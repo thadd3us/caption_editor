@@ -126,7 +126,76 @@ Caption to rate`
 
     await page.waitForTimeout(1000)
 
+    // Check that the grid is visible
     await expect(page.locator('.ag-theme-alpine')).toBeVisible()
+
+    // Verify initially unrated (all stars should be empty ☆)
+    const starRating = page.locator('.star-rating').first()
+    await expect(starRating).toBeVisible()
+    await expect(starRating).toHaveAttribute('data-rating', '0')
+
+    // Count empty stars - should be 5
+    const emptyStars = starRating.locator('.star:not(.filled)')
+    await expect(emptyStars).toHaveCount(5)
+
+    // Click the third star to rate it 3
+    const thirdStar = starRating.locator('.star[data-star-index="3"]')
+    await thirdStar.click()
+
+    await page.waitForTimeout(500)
+
+    // Verify rating is now 3
+    await expect(starRating).toHaveAttribute('data-rating', '3')
+
+    // Check that 3 stars are filled and 2 are empty
+    const filledStars = starRating.locator('.star.filled')
+    await expect(filledStars).toHaveCount(3)
+    await expect(emptyStars).toHaveCount(2)
+
+    // Verify the document in localStorage has the rating
+    const stored = await page.evaluate(() => {
+      const data = localStorage.getItem('vtt-editor-document')
+      return data ? JSON.parse(data) : null
+    })
+
+    expect(stored).toBeDefined()
+    expect(stored.document.cues).toHaveLength(1)
+    expect(stored.document.cues[0].rating).toBe(3)
+
+    // Click the fifth star to change rating to 5
+    const fifthStar = starRating.locator('.star[data-star-index="5"]')
+    await fifthStar.click()
+
+    await page.waitForTimeout(500)
+
+    // Verify rating is now 5
+    await expect(starRating).toHaveAttribute('data-rating', '5')
+    await expect(filledStars).toHaveCount(5)
+
+    // Verify the document has rating 5
+    const stored2 = await page.evaluate(() => {
+      const data = localStorage.getItem('vtt-editor-document')
+      return data ? JSON.parse(data) : null
+    })
+
+    expect(stored2.document.cues[0].rating).toBe(5)
+
+    // Click the fifth star again to clear the rating
+    await fifthStar.click()
+
+    await page.waitForTimeout(500)
+
+    // Verify rating is cleared
+    await expect(starRating).toHaveAttribute('data-rating', '0')
+    await expect(emptyStars).toHaveCount(5)
+
+    // Verify the document has no rating
+    const stored3 = await page.evaluate(() => {
+      const data = localStorage.getItem('vtt-editor-document')
+      return data ? JSON.parse(data) : null
+    })
+
+    expect(stored3.document.cues[0].rating).toBeUndefined()
   })
 
   test('should clear all captions with confirmation', async ({ page }) => {
