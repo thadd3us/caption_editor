@@ -6,11 +6,7 @@
   },
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
-
-  // Post-create command to install dependencies from cache or fresh install
   "postCreateCommand": "if [ -d /tmp/node_modules_cache ]; then cp -r /tmp/node_modules_cache node_modules; fi && npm install",
-
-  // VS Code customizations
   "customizations": {
     "vscode": {
       "extensions": [
@@ -34,8 +30,6 @@
       }
     }
   },
-
-  // Forward ports for dev server and Playwright UI
   "forwardPorts": [3000, 9323],
   "portsAttributes": {
     "3000": {
@@ -47,16 +41,10 @@
       "onAutoForward": "silent"
     }
   },
-
-  // Environment variables
   "remoteEnv": {
     "NODE_ENV": "development"
   },
-
-  // Run as node user (non-root)
   "remoteUser": "node",
-
-  // Features to install
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
