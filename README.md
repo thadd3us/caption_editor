@@ -46,8 +46,32 @@ A browser-based, frontend-only WebVTT caption file editor with media playback su
 ### Prerequisites
 
 - Node.js 18+ and npm/pnpm/yarn
+- For testing: Playwright browsers (installed via `npx playwright install`)
 
-### Installation
+### Development Container (Recommended)
+
+This project includes a complete devcontainer setup with all dependencies pre-installed:
+
+```bash
+# Using VS Code
+1. Install the "Dev Containers" extension
+2. Open the project in VS Code
+3. Click "Reopen in Container" when prompted
+   (or use Command Palette: "Dev Containers: Reopen in Container")
+
+# Using GitHub Codespaces
+1. Click "Code" → "Codespaces" → "Create codespace on main"
+2. Everything is pre-configured!
+```
+
+The devcontainer includes:
+- Node.js 20
+- All npm dependencies pre-installed
+- Playwright browsers and system dependencies
+- VS Code extensions for Vue, TypeScript, and Playwright
+- Port forwarding for dev server (3000) and test reports (9323)
+
+### Manual Installation
 
 ```bash
 # Install dependencies
@@ -86,9 +110,27 @@ npm run test:e2e
 # Run tests with UI
 npm run test:e2e:ui
 
+# Run tests with coverage report
+npm run test:coverage
+
+# View coverage report (after running tests)
+npx playwright show-report
+
 # Install Playwright browsers (first time only)
 npx playwright install
 ```
+
+The test suite includes comprehensive coverage:
+- Application loading and initialization
+- File drag-and-drop functionality
+- VTT parsing and serialization
+- Caption editing and validation
+- Media playback controls
+- LocalStorage persistence
+- Export functionality
+- UI component rendering
+
+Test reports are generated in `playwright-report/` with screenshots and videos for failed tests.
 
 ## Usage
 

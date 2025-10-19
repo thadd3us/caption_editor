@@ -7,7 +7,9 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:coverage": "playwright test --reporter=html,json",
+    "test:coverage": "playwright test --reporter=html"
   },
   "dependencies": {
     "vue": "^3.4.21",
