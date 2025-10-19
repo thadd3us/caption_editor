@@ -146,6 +146,12 @@ function onRowClicked(event: RowClickedEvent) {
 
     // Move playhead to the start of the clicked cue
     store.setCurrentTime(startTime)
+
+    // Also update the media element directly to ensure scrubber syncs
+    const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
+    if (mediaElement) {
+      mediaElement.currentTime = startTime
+    }
   }
 }
 

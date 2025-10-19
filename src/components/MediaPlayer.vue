@@ -77,8 +77,10 @@ const snippetEndTime = ref<number | null>(null)
 const mediaElement = computed(() => videoElement.value || audioElement.value)
 const hasMedia = computed(() => !!store.mediaPath)
 const isVideo = computed(() => {
-  // Simple heuristic: if path contains video or mp4, assume video
-  return store.mediaPath?.includes('video') || store.mediaPath?.includes('.mp4') || true
+  // Determine if media is video or audio based on file extension
+  if (!store.mediaPath) return false
+  const path = store.mediaPath.toLowerCase()
+  return path.includes('.mp4') || path.includes('.webm') || path.includes('.mov') || path.includes('.avi')
 })
 
 function onMediaLoaded() {
