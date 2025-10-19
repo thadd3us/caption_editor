@@ -97,14 +97,11 @@ Caption with UUID`
       expect(result.document?.cues[0].id).toBe(uuid)
     })
 
-    it.skip('should parse VTT with NOTE metadata (currently not working)', () => {
-      // Note: There's a bug in the NOTE parser - it skips content on the same line
-      // The serializer puts metadata on same line as NOTE, but parser reads next line
+    it('should parse VTT with NOTE metadata', () => {
       const uuid = '550e8400-e29b-41d4-a716-446655440000'
       const content = `WEBVTT
 
-NOTE
-{"id":"${uuid}","rating":5}
+NOTE {"id":"${uuid}","rating":5}
 
 00:00:01.000 --> 00:00:04.000
 Rated caption`
@@ -535,9 +532,7 @@ Caption with short format`
       expect(parsed.document?.cues).toHaveLength(2)
       expect(parsed.document?.cues[0].text).toBe('First caption')
       expect(parsed.document?.cues[0].id).toBe(uuid1)
-      // Note: Rating is not preserved in round-trip due to NOTE parsing bug
-      // The parser skips NOTE content on the same line
-      // expect(parsed.document?.cues[0].rating).toBe(5)
+      expect(parsed.document?.cues[0].rating).toBe(5)
       expect(parsed.document?.cues[1].text).toBe('Second caption\nwith multiple lines')
     })
   })

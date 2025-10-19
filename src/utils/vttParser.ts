@@ -82,11 +82,17 @@ export function parseVTT(content: string): ParseResult {
 
       // Check for NOTE comment with metadata
       if (line.startsWith('NOTE')) {
-        i++
-        // Read NOTE content (until blank line)
-        let noteContent = ''
-        while (i < lines.length && lines[i].trim()) {
-          noteContent += lines[i].trim()
+        // Extract content after "NOTE " on the same line
+        let noteContent = line.substring(4).trim()
+
+        // If no content on same line, read next lines until blank line
+        if (!noteContent) {
+          i++
+          while (i < lines.length && lines[i].trim()) {
+            noteContent += lines[i].trim()
+            i++
+          }
+        } else {
           i++
         }
 
