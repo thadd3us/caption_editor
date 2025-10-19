@@ -13,10 +13,18 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 
 interface Props {
-  data: {
+  params?: {
+    data: {
+      id: string
+      startTime: number
+      endTime: number
+    }
+  }
+  data?: {
     id: string
     startTime: number
     endTime: number
@@ -26,10 +34,14 @@ interface Props {
 const props = defineProps<Props>()
 const store = useVTTStore()
 
+// Support both AG Grid (params.data) and direct usage (data)
+const rowData = computed(() => props.params?.data || props.data)
+
 function playSnippet() {
-  console.log('Playing snippet:', props.data.id)
+  if (!rowData.value) return
+  console.log('Playing snippet:', rowData.value.id)
   // The MediaPlayer component will listen to this
-  store.setCurrentTime(props.data.startTime)
+  store.setCurrentTime(rowData.value.startTime)
   store.setPlaying(true)
 
   // Set up a listener to stop at end time
@@ -37,15 +49,17 @@ function playSnippet() {
 }
 
 function seekToStart() {
-  console.log('Seeking to start:', props.data.id)
-  store.setCurrentTime(props.data.startTime)
+  if (!rowData.value) return
+  console.log('Seeking to start:', rowData.value.id)
+  store.setCurrentTime(rowData.value.startTime)
   store.setPlaying(false)
 }
 
 function deleteCaption() {
+  if (!rowData.value) return
   if (confirm('Are you sure you want to delete this caption?')) {
-    console.log('Deleting caption:', props.data.id)
-    store.deleteCue(props.data.id)
+    console.log('Deleting caption:', rowData.value.id)
+    store.deleteCue(rowData.value.id)
   }
 }
 </script>

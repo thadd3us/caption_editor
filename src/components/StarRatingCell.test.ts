@@ -289,4 +289,56 @@ describe('StarRatingCell', () => {
 
     expect(wrapper.find('.star-rating').attributes('data-rating')).toBe('0')
   })
+
+  it('should work with AG Grid params format', () => {
+    const wrapper = mount(StarRatingCell, {
+      props: {
+        params: {
+          data: {
+            id: 'test-ag-grid',
+            rating: 3
+          }
+        }
+      }
+    })
+
+    const stars = wrapper.findAll('.star')
+    expect(stars).toHaveLength(5)
+
+    // First 3 stars should be filled
+    for (let i = 0; i < 3; i++) {
+      expect(stars[i].text()).toBe('★')
+      expect(stars[i].classes()).toContain('filled')
+    }
+
+    // Last 2 stars should be empty
+    for (let i = 3; i < 5; i++) {
+      expect(stars[i].text()).toBe('☆')
+      expect(stars[i].classes()).not.toContain('filled')
+    }
+
+    expect(wrapper.find('.star-rating').attributes('data-rating')).toBe('3')
+  })
+
+  it('should handle clicks with AG Grid params format', async () => {
+    const store = useVTTStore()
+    const updateCueSpy = vi.spyOn(store, 'updateCue')
+
+    const wrapper = mount(StarRatingCell, {
+      props: {
+        params: {
+          data: {
+            id: 'test-ag-grid-click',
+            rating: 2
+          }
+        }
+      }
+    })
+
+    // Click on the fifth star
+    const stars = wrapper.findAll('.star')
+    await stars[4].trigger('click')
+
+    expect(updateCueSpy).toHaveBeenCalledWith('test-ag-grid-click', { rating: 5 })
+  })
 })
