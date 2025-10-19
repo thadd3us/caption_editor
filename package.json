@@ -1,0 +1,28 @@
+{
+  "name": "vtt-editor",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "vue": "^3.4.21",
+    "pinia": "^2.1.7",
+    "ag-grid-vue3": "^31.1.1",
+    "ag-grid-community": "^31.1.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@playwright/test": "^1.42.1",
+    "@types/node": "^20.11.24",
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.5",
+    "vue-tsc": "^2.0.6"
+  }
+}
