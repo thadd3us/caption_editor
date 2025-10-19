@@ -11,6 +11,7 @@
       :rowSelection="'single'"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
+      @row-clicked="onRowClicked"
       :domLayout="'normal'"
       style="height: calc(100% - 60px);"
     />
@@ -22,7 +23,7 @@ import { ref, computed, watch } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent } from 'ag-grid-community'
+import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent } from 'ag-grid-community'
 import { useVTTStore } from '../stores/vttStore'
 import { formatTimestamp } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
@@ -136,10 +137,23 @@ function onGridReady(params: GridReadyEvent) {
   gridApi.value = params.api
 }
 
+function onRowClicked(event: RowClickedEvent) {
+  if (event.data) {
+    const cueId = event.data.id
+    const startTime = event.data.startTime
+    console.log('Row clicked:', cueId, 'startTime:', startTime)
+    store.selectCue(cueId)
+
+    // Move playhead to the start of the clicked cue
+    store.setCurrentTime(startTime)
+  }
+}
+
 function onSelectionChanged(event: SelectionChangedEvent) {
   const selectedRows = event.api.getSelectedRows()
   if (selectedRows.length > 0) {
-    const cueId = selectedRows[0].id
+    const row = selectedRows[0]
+    const cueId = row.id
     console.log('Selected cue:', cueId)
     store.selectCue(cueId)
   }
