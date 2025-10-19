@@ -256,6 +256,48 @@ interface VTTDocument {
 - File API for drag & drop
 - HTML5 video/audio element support
 
+## Debugging
+
+### Inspecting Document State
+
+In development mode, the Pinia store is exposed on `window.$store` for easy debugging. Open the browser console and use:
+
+```javascript
+// View the complete document structure as formatted JSON
+console.log(JSON.stringify($store.document, null, 2))
+
+// Access individual properties
+console.log($store.document.cues.length)          // Number of captions
+console.log($store.sortedCues)                    // Captions sorted by time
+console.log($store.currentCue)                    // Current cue at playhead
+console.log($store.currentTime)                   // Current playback position
+console.log($store.mediaPath)                     // Loaded media file path
+
+// View a specific cue
+console.log(JSON.stringify($store.document.cues[0], null, 2))
+```
+
+**Example output:**
+
+```json
+{
+  "cues": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "startTime": 1.5,
+      "endTime": 4.25,
+      "text": "First caption",
+      "rating": 5
+    }
+  ],
+  "filePath": "example.vtt"
+}
+```
+
+This outputs the complete TypeScript `VTTDocument` structure including all cues with their IDs, timestamps, text, and ratings.
+
+**Note:** The store is only exposed in development mode (`npm run dev`). In production builds, use Vue DevTools extension for state inspection.
+
 ## References
 
 - [WebVTT Specification](https://www.w3.org/TR/webvtt1/)
