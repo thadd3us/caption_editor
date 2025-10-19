@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/coverage'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'

@@ -28,3 +28,7 @@ dist-ssr
 /playwright-report/
 /playwright/.cache/
 test-results.json
+
+# Coverage
+.nyc_output/
+coverage/
