@@ -38,7 +38,7 @@ First caption`
       }
     }, vttContent)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     // Check initial caption count
     const grid = page.locator('.ag-theme-alpine')
@@ -67,7 +67,7 @@ Original text`
       }
     }, vttContent)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     // Grid should be visible
     await expect(page.locator('.ag-theme-alpine')).toBeVisible()
@@ -97,7 +97,7 @@ Caption to keep`
       }
     }, vttContent)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     // Grid should show 2 captions
     await expect(page.locator('.ag-theme-alpine')).toBeVisible()
@@ -124,7 +124,7 @@ Caption to rate`
       }
     }, vttContent)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     // Check that the grid is visible
     await expect(page.locator('.ag-theme-alpine')).toBeVisible()
@@ -142,7 +142,7 @@ Caption to rate`
     const thirdStar = starRating.locator('.star[data-star-index="3"]')
     await thirdStar.click()
 
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify rating is now 3
     await expect(starRating).toHaveAttribute('data-rating', '3')
@@ -166,7 +166,7 @@ Caption to rate`
     const fifthStar = starRating.locator('.star[data-star-index="5"]')
     await fifthStar.click()
 
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify rating is now 5
     await expect(starRating).toHaveAttribute('data-rating', '5')
@@ -183,7 +183,7 @@ Caption to rate`
     // Click the fifth star again to clear the rating
     await fifthStar.click()
 
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify rating is cleared
     await expect(starRating).toHaveAttribute('data-rating', '0')
@@ -222,7 +222,7 @@ Caption 2`
       }
     }, vttContent)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     // Accept clear confirmation
     page.on('dialog', dialog => dialog.accept())
@@ -230,7 +230,7 @@ Caption 2`
     const clearButton = page.locator('button', { hasText: 'Clear' })
     await clearButton.click()
 
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Document should be empty
     const stored = await page.evaluate(() => {
@@ -273,7 +273,7 @@ Caption 2`
       }
     }, invalidContent)
 
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Application should still be functional
     const uploadButton = page.locator('button', { hasText: 'Open Files' })
@@ -301,7 +301,7 @@ Caption with timing`
       }
     }, vttContent)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     await expect(page.locator('.ag-theme-alpine')).toBeVisible()
   })

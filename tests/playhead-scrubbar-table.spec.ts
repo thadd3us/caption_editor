@@ -22,7 +22,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
         scrubberEl.dispatchEvent(new Event('input', { bubbles: true }))
       }
     }, time)
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
   }
 
   // Helper function to get scrubber value
@@ -44,7 +44,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
       ;(window as any).$store.loadMediaFile(audioUrl)
     }, audioPath)
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
 
     // Verify media player is ready
     const mediaPlayer = page.locator('.media-player')
@@ -77,7 +77,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Click "Add Caption" button
     await addCaptionBtn.click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify first row was added
     rowCount = await page.locator('.ag-row').count()
@@ -107,7 +107,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Add caption at 0.5s
     await addCaptionBtn.click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify we now have 2 rows
     rowCount = await page.locator('.ag-row').count()
@@ -138,7 +138,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Add caption at 8s
     await addCaptionBtn.click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify we now have 3 rows
     rowCount = await page.locator('.ag-row').count()
@@ -183,7 +183,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Click on first row
     await page.locator('.ag-row').first().click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify playhead is at start of first cue (0.5s)
     currentTime = await page.evaluate(() => (window as any).$store.currentTime)
@@ -195,7 +195,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Click on third row
     await page.locator('.ag-row').nth(2).click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify playhead is at start of third cue (8s)
     currentTime = await page.evaluate(() => (window as any).$store.currentTime)

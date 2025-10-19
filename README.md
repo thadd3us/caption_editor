@@ -104,7 +104,10 @@ npm run preview
 ### Testing
 
 ```bash
-# Run Playwright tests
+# Run unit tests
+npm run test:unit
+
+# Run Playwright E2E tests
 npm run test:e2e
 
 # Run tests with UI
@@ -120,15 +123,37 @@ npx playwright show-report
 npx playwright install
 ```
 
+#### Test Timeout Philosophy
+
+**All test timeouts are deliberately kept very short (100-200ms)** to catch stalled tests immediately:
+
+- UI operations should complete in milliseconds, not seconds
+- A test taking >10 seconds total indicates a real problem (infinite loop, missing element, etc.)
+- Short timeouts = fast feedback when something breaks
+- If a test times out, it's **always** a bug - either in the code or the test itself
+
+**Timeout Guidelines:**
+- Page interactions (clicks, seeks): 100ms wait
+- File loading/initialization: 200ms wait
+- Entire test suite should complete in <1 minute
+
+If you see timeout failures, don't just increase the timeout - investigate why the operation is slow!
+
+#### Test Coverage
+
 The test suite includes comprehensive coverage:
-- Application loading and initialization
-- File drag-and-drop functionality
-- VTT parsing and serialization
-- Caption editing and validation
-- Media playback controls
-- LocalStorage persistence
-- Export functionality
-- UI component rendering
+- **Unit tests**: Vue components (StarRatingCell), stores (vttStore), utilities (vttParser)
+- **E2E tests**:
+  - Application loading and initialization
+  - File drag-and-drop functionality
+  - VTT parsing and serialization
+  - Star rating interactions (full flow)
+  - Playhead/scrub bar/table integration
+  - Caption editing and validation
+  - Media playback controls
+  - LocalStorage persistence
+  - Export functionality
+  - UI component rendering
 
 Test reports are generated in `playwright-report/` with screenshots and videos for failed tests.
 

@@ -48,7 +48,7 @@ test.describe('VTT Editor', () => {
     await page.dispatchEvent('.file-input-zone', 'drop', { dataTransfer })
 
     // Check that captions appear in the table
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(200)
     const captionTable = page.locator('.caption-table')
     await expect(captionTable).toBeVisible()
     console.log('VTT file loaded and table displayed')
