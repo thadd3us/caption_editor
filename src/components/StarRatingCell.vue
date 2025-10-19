@@ -1,13 +1,14 @@
 <template>
-  <div class="star-rating">
+  <div class="star-rating" :data-rating="rating || 0">
     <span
       v-for="star in 5"
       :key="star"
       class="star"
       :class="{ filled: star <= (rating || 0) }"
+      :data-star-index="star"
       @click="handleClick(star)"
     >
-      ★
+      {{ star <= (rating || 0) ? '★' : '☆' }}
     </span>
   </div>
 </template>
@@ -50,7 +51,7 @@ function handleClick(star: number) {
 .star {
   cursor: pointer;
   font-size: 20px;
-  color: #ddd;
+  color: #999;
   transition: color 0.2s;
   user-select: none;
 }
