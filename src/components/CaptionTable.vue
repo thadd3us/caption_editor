@@ -178,18 +178,6 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   }
 }
 
-// Auto-scroll to current cue
-// TODO: This watcher doesn't trigger reliably - needs investigation
-watch(() => store.currentCue, (cue) => {
-  if (cue && gridApi.value) {
-    const rowNode = gridApi.value.getRowNode(cue.id)
-    if (rowNode) {
-      gridApi.value.ensureNodeVisible(rowNode, 'middle')
-      rowNode.setSelected(true)
-    }
-  }
-}, { flush: 'post' })
-
 // Update grid when cues change
 watch(() => store.document.cues, () => {
   gridApi.value?.refreshCells()

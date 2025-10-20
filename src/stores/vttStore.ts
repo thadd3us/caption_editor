@@ -23,18 +23,10 @@ export const useVTTStore = defineStore('vtt', () => {
   const selectedCueId = ref<string | null>(null)
 
   // Computed
-  const sortedCues = computed(() => {
-    return [...document.value.cues].sort((a, b) => {
-      if (a.startTime !== b.startTime) {
-        return a.startTime - b.startTime
-      }
-      return a.endTime - b.endTime
-    })
-  })
-
   const currentCue = computed(() => {
     const time = currentTime.value
-    return sortedCues.value.find(
+    // document.cues is always kept sorted
+    return document.value.cues.find(
       cue => cue.startTime <= time && time < cue.endTime
     )
   })
@@ -199,7 +191,6 @@ export const useVTTStore = defineStore('vtt', () => {
     selectedCueId,
 
     // Computed
-    sortedCues,
     currentCue,
 
     // Actions

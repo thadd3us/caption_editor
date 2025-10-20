@@ -103,7 +103,7 @@ function onTimeUpdate() {
       mediaElement.value.pause()
 
       // Seek back to start of snippet
-      const cue = store.sortedCues.find(c => c.endTime === snippetEndTime.value)
+      const cue = store.document.cues.find(c => c.endTime === snippetEndTime.value)
       if (cue) {
         mediaElement.value.currentTime = cue.startTime
         store.setCurrentTime(cue.startTime)

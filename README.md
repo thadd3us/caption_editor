@@ -293,7 +293,7 @@ console.log(JSON.stringify($store.document, null, 2))
 
 // Access individual properties
 console.log($store.document.cues.length)          // Number of captions
-console.log($store.sortedCues)                    // Captions sorted by time
+console.log($store.document.cues)                 // Captions (always sorted by time)
 console.log($store.currentCue)                    // Current cue at playhead
 console.log($store.currentTime)                   // Current playback position
 console.log($store.mediaPath)                     // Loaded media file path

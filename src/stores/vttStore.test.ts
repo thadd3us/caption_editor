@@ -347,17 +347,17 @@ Test caption`
     })
   })
 
-  describe('sortedCues', () => {
-    it('should return cues sorted by start time', () => {
+  describe('document.cues (always sorted)', () => {
+    it('should keep cues sorted by start time', () => {
       const store = useVTTStore()
       store.addCue(20)
       store.addCue(10)
       store.addCue(30)
 
-      const sorted = store.sortedCues
-      expect(sorted[0].startTime).toBe(10)
-      expect(sorted[1].startTime).toBe(20)
-      expect(sorted[2].startTime).toBe(30)
+      const cues = store.document.cues
+      expect(cues[0].startTime).toBe(10)
+      expect(cues[1].startTime).toBe(20)
+      expect(cues[2].startTime).toBe(30)
     })
 
     it('should sort by end time when start times are equal', () => {
@@ -368,9 +368,9 @@ Test caption`
       const id2 = store.addCue(10, 5) // 10-15
       store.updateCue(id2, { startTime: 10, endTime: 15 })
 
-      const sorted = store.sortedCues
-      expect(sorted[0].endTime).toBe(15)
-      expect(sorted[1].endTime).toBe(20)
+      const cues = store.document.cues
+      expect(cues[0].endTime).toBe(15)
+      expect(cues[1].endTime).toBe(20)
     })
   })
 
