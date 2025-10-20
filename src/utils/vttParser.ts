@@ -299,6 +299,41 @@ function sortCues(cues: readonly VTTCue[]): readonly VTTCue[] {
 }
 
 /**
+ * Find the index of the cue that should be selected for a given time.
+ * Returns the index of the cue that contains the time, or the last cue before it.
+ * Returns -1 if there are no cues or if time is before all cues.
+ *
+ * @param cues - Array of cues (must be sorted by start time)
+ * @param time - The time to search for
+ * @returns The index of the matching cue, or -1 if no match
+ */
+export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): number {
+  if (cues.length === 0) {
+    return -1
+  }
+
+  // Find the cue that contains the current time
+  const indexAtTime = cues.findIndex(cue =>
+    cue.startTime <= time && time < cue.endTime
+  )
+
+  if (indexAtTime !== -1) {
+    return indexAtTime
+  }
+
+  // If no cue contains the time, find the last cue before it
+  let lastIndexBefore = -1
+  for (let i = cues.length - 1; i >= 0; i--) {
+    if (cues[i].startTime <= time) {
+      lastIndexBefore = i
+      break
+    }
+  }
+
+  return lastIndexBefore
+}
+
+/**
  * Add a new cue to the document (returns new document with sorted cues)
  */
 export function addCue(document: VTTDocument, cue: VTTCue): VTTDocument {

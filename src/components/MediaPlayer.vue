@@ -70,6 +70,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
+import { findIndexOfRowForTime } from '../utils/vttParser'
 
 const store = useVTTStore()
 const videoElement = ref<HTMLVideoElement | null>(null)
@@ -162,21 +163,13 @@ function addCaptionAtCurrentTime() {
 }
 
 function jumpToCurrentRow() {
-  console.log('Jumping to row at current time:', store.currentTime)
   const currentTime = store.currentTime
   const cues = store.document.cues
 
-  // Find the cue that contains the current time, or the last cue before it
-  const cueAtTime = cues.find(cue =>
-    cue.startTime <= currentTime && currentTime < cue.endTime
-  )
-
-  // If no cue contains the current time, find the last cue before it
-  // (cues are already sorted by start time in the document)
-  const cuesBeforeTime = cues.filter(cue => cue.startTime <= currentTime)
-  const targetCue = cueAtTime || cuesBeforeTime[cuesBeforeTime.length - 1]
-
-  if (targetCue) {
+  const index = findIndexOfRowForTime(cues, currentTime)
+  if (index !== -1) {
+    const targetCue = cues[index]
+    console.log('Jumping to row at time:', currentTime, '-> cue:', targetCue.id)
     store.selectCue(targetCue.id)
     // Emit event to tell CaptionTable to select and scroll to this row
     window.dispatchEvent(new CustomEvent('jumpToRow', { detail: { cueId: targetCue.id } }))

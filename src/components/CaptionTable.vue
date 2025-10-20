@@ -192,9 +192,12 @@ function handleJumpToRow(event: Event) {
   if (cueId && gridApi.value) {
     const rowNode = gridApi.value.getRowNode(cueId)
     if (rowNode) {
+      gridApi.value.deselectAll()  // Clear any previous selection first
       gridApi.value.ensureNodeVisible(rowNode, 'middle')
       rowNode.setSelected(true)
       console.log('Row selected and scrolled:', cueId)
+    } else {
+      console.warn('Could not find row node for cue ID:', cueId)
     }
   }
 }
