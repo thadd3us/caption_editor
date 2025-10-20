@@ -9,6 +9,7 @@
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
       :rowSelection="'single'"
+      :getRowId="getRowId"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
@@ -19,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
@@ -47,6 +48,7 @@ const rowData = computed(() => {
 const columnDefs = ref<ColDef[]>([
   {
     field: 'startTimeFormatted',
+    colId: 'startTime',
     headerName: 'Start',
     width: 120,
     editable: true,
@@ -73,6 +75,7 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     field: 'endTimeFormatted',
+    colId: 'endTime',
     headerName: 'End',
     width: 120,
     editable: true,
@@ -127,10 +130,14 @@ const columnDefs = ref<ColDef[]>([
 ])
 
 const defaultColDef = ref<ColDef>({
-  sortable: true,
+  sortable: false,  // Disable sorting by default; only time columns are sortable
   filter: true,
   resizable: true
 })
+
+function getRowId(params: { data: { id: string } }) {
+  return params.data.id
+}
 
 function onGridReady(params: GridReadyEvent) {
   console.log('AG Grid ready')
@@ -166,6 +173,7 @@ function onSelectionChanged(event: SelectionChangedEvent) {
 }
 
 // Auto-scroll to current cue
+// TODO: This watcher doesn't trigger reliably - needs investigation
 watch(() => store.currentCue, (cue) => {
   if (cue && gridApi.value) {
     const rowNode = gridApi.value.getRowNode(cue.id)
@@ -174,12 +182,36 @@ watch(() => store.currentCue, (cue) => {
       rowNode.setSelected(true)
     }
   }
-})
+}, { flush: 'post' })
 
 // Update grid when cues change
 watch(() => store.sortedCues, () => {
   gridApi.value?.refreshCells()
 }, { deep: true })
+
+// Handle jumpToRow event from MediaPlayer
+function handleJumpToRow(event: Event) {
+  const customEvent = event as CustomEvent
+  const { cueId } = customEvent.detail
+  console.log('Jump to row event received:', cueId)
+
+  if (cueId && gridApi.value) {
+    const rowNode = gridApi.value.getRowNode(cueId)
+    if (rowNode) {
+      gridApi.value.ensureNodeVisible(rowNode, 'middle')
+      rowNode.setSelected(true)
+      console.log('Row selected and scrolled:', cueId)
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('jumpToRow', handleJumpToRow)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('jumpToRow', handleJumpToRow)
+})
 </script>
 
 <style scoped>

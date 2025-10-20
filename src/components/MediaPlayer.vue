@@ -59,6 +59,9 @@
         <button @click="addCaptionAtCurrentTime" class="add-caption-btn" :disabled="!hasMedia">
           ➕ Add Caption at Current Position
         </button>
+        <button @click="jumpToCurrentRow" class="jump-to-row-btn" :disabled="!hasMedia">
+          🎯 Jump to Row
+        </button>
       </div>
     </div>
   </div>
@@ -156,6 +159,27 @@ function addCaptionAtCurrentTime() {
   console.log('Adding caption at current time:', store.currentTime)
   const cueId = store.addCue(store.currentTime, 5)
   store.selectCue(cueId)
+}
+
+function jumpToCurrentRow() {
+  console.log('Jumping to row at current time:', store.currentTime)
+  const currentTime = store.currentTime
+
+  // Find the cue that contains the current time, or the last cue before it
+  const cueAtTime = store.sortedCues.find(cue =>
+    cue.startTime <= currentTime && currentTime < cue.endTime
+  )
+
+  // If no cue contains the current time, find the last cue before it
+  const targetCue = cueAtTime || store.sortedCues
+    .filter(cue => cue.startTime <= currentTime)
+    .sort((a, b) => b.startTime - a.startTime)[0]
+
+  if (targetCue) {
+    store.selectCue(targetCue.id)
+    // Emit event to tell CaptionTable to select and scroll to this row
+    window.dispatchEvent(new CustomEvent('jumpToRow', { detail: { cueId: targetCue.id } }))
+  }
 }
 
 function formatTime(seconds: number): string {
@@ -324,6 +348,27 @@ video, audio {
 }
 
 .add-caption-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.jump-to-row-btn {
+  padding: 12px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.jump-to-row-btn:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.jump-to-row-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
