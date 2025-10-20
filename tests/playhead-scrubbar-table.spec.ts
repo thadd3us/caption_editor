@@ -23,6 +23,11 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
 
   test('should integrate playhead, scrub bar, and table with complete workflow', async ({ page }) => {
+    // Clear localStorage and reload to start fresh
+    await page.goto('/')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+
     // Load the 10-second audio file
     const audioPath = path.join(__dirname, 'fixtures', 'test-audio-10s.wav')
 
@@ -155,27 +160,30 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     // === Test 5: Table row selection moves playhead ===
     console.log('Test 5: Testing table row selection moves playhead')
 
-    // Wait a moment for AG Grid to finish sorting after all the data changes
-    await page.waitForTimeout(300)
-
-    // Get all rows - they should now be sorted by start time
+    // Get all rows - they should be sorted by start time now
     const rows = await page.locator('.ag-row').all()
     console.log('Total rows:', rows.length)
 
-    // Note: Table sorting is not yet implemented, rows appear in insertion order
-    // For now, just test that clicking rows moves the playhead correctly
+    // Verify rows are sorted by checking start times
+    const firstRowTime = await rows[0].locator('[col-id="startTime"]').textContent()
+    const secondRowTime = await rows[1].locator('[col-id="startTime"]').textContent()
+    const thirdRowTime = await rows[2].locator('[col-id="startTime"]').textContent()
+    console.log('Row times:', firstRowTime, secondRowTime, thirdRowTime)
+    expect(firstRowTime).toBe('00:00:00.500')  // First cue at 0.5s
+    expect(secondRowTime).toBe('00:00:02.000')  // Second cue at 2s
+    expect(thirdRowTime).toBe('00:00:08.000')   // Third cue at 8s
 
-    // Click on first row (2s cue) and verify playhead moves
+    // Click on first row (0.5s cue) and verify playhead moves
     await rows[0].click()
     await page.waitForTimeout(200)
     currentTime = await page.evaluate(() => (window as any).$store.currentTime)
-    expect(currentTime).toBeCloseTo(2, 1)
+    expect(currentTime).toBeCloseTo(0.5, 1)
 
-    // Click on second row (0.5s cue) and verify playhead moves
+    // Click on second row (2s cue) and verify playhead moves
     await rows[1].click()
     await page.waitForTimeout(200)
     currentTime = await page.evaluate(() => (window as any).$store.currentTime)
-    expect(currentTime).toBeCloseTo(0.5, 1)
+    expect(currentTime).toBeCloseTo(2, 1)
 
     // Click on third row (8s cue) and verify playhead moves
     await rows[2].click()

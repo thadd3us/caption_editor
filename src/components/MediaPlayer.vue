@@ -164,16 +164,17 @@ function addCaptionAtCurrentTime() {
 function jumpToCurrentRow() {
   console.log('Jumping to row at current time:', store.currentTime)
   const currentTime = store.currentTime
+  const cues = store.document.cues
 
   // Find the cue that contains the current time, or the last cue before it
-  const cueAtTime = store.sortedCues.find(cue =>
+  const cueAtTime = cues.find(cue =>
     cue.startTime <= currentTime && currentTime < cue.endTime
   )
 
   // If no cue contains the current time, find the last cue before it
-  const targetCue = cueAtTime || store.sortedCues
-    .filter(cue => cue.startTime <= currentTime)
-    .sort((a, b) => b.startTime - a.startTime)[0]
+  // (cues are already sorted by start time in the document)
+  const cuesBeforeTime = cues.filter(cue => cue.startTime <= currentTime)
+  const targetCue = cueAtTime || cuesBeforeTime[cuesBeforeTime.length - 1]
 
   if (targetCue) {
     store.selectCue(targetCue.id)

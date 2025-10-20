@@ -286,30 +286,42 @@ export function createEmptyDocument(): VTTDocument {
 }
 
 /**
- * Add a new cue to the document (returns new document)
+ * Sort cues by start time, then end time
+ */
+function sortCues(cues: readonly VTTCue[]): readonly VTTCue[] {
+  const sorted = [...cues].sort((a, b) => {
+    if (a.startTime !== b.startTime) {
+      return a.startTime - b.startTime
+    }
+    return a.endTime - b.endTime
+  })
+  return Object.freeze(sorted)
+}
+
+/**
+ * Add a new cue to the document (returns new document with sorted cues)
  */
 export function addCue(document: VTTDocument, cue: VTTCue): VTTDocument {
   console.log('Adding cue:', cue.id)
   return {
     ...document,
-    cues: Object.freeze([...document.cues, cue])
+    cues: sortCues([...document.cues, cue])
   }
 }
 
 /**
- * Update an existing cue (returns new document)
+ * Update an existing cue (returns new document with sorted cues)
  */
 export function updateCue(document: VTTDocument, cueId: string, updates: Partial<Omit<VTTCue, 'id'>>): VTTDocument {
   console.log('Updating cue:', cueId, updates)
+  const updatedCues = document.cues.map(cue =>
+    cue.id === cueId
+      ? { ...cue, ...updates }
+      : cue
+  )
   return {
     ...document,
-    cues: Object.freeze(
-      document.cues.map(cue =>
-        cue.id === cueId
-          ? { ...cue, ...updates }
-          : cue
-      )
-    )
+    cues: sortCues(updatedCues)
   }
 }
 

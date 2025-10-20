@@ -1,15 +1,17 @@
 <template>
   <div class="caption-table">
     <div class="table-header">
-      <h2>Captions ({{ store.sortedCues.length }})</h2>
+      <h2>Captions ({{ store.document.cues.length }})</h2>
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
+      :key="gridKey"
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
       :rowSelection="'single'"
       :getRowId="getRowId"
+      :immutableData="true"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
@@ -33,8 +35,12 @@ import ActionButtonsCell from './ActionButtonsCell.vue'
 const store = useVTTStore()
 const gridApi = ref<GridApi | null>(null)
 
+// Force grid re-render when cues array changes
+const gridKey = computed(() => store.document.cues.map(c => c.id).join(','))
+
 const rowData = computed(() => {
-  return store.sortedCues.map(cue => ({
+  // Cues are always kept sorted in the document model
+  return store.document.cues.map(cue => ({
     id: cue.id,
     startTime: cue.startTime,
     endTime: cue.endTime,
@@ -185,7 +191,7 @@ watch(() => store.currentCue, (cue) => {
 }, { flush: 'post' })
 
 // Update grid when cues change
-watch(() => store.sortedCues, () => {
+watch(() => store.document.cues, () => {
   gridApi.value?.refreshCells()
 }, { deep: true })
 
