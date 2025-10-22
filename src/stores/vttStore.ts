@@ -18,8 +18,16 @@ const STORAGE_MEDIA_FILEPATH_KEY = 'vtt-editor-media-filepath'
 export const useVTTStore = defineStore('vtt', () => {
   // State
   const document = ref<VTTDocument>(createEmptyDocument())
+
+  // Media URL used as the src attribute for <video> or <audio> elements
+  // Examples: blob:http://localhost:3000/uuid, /tests/fixtures/file.wav, https://example.com/video.mp4
   const mediaPath = ref<string | null>(null)
+
+  // Original file path for display purposes (e.g., in UI)
+  // Examples: /home/user/videos/movie.mp4, C:\Users\Name\audio.wav, or just filename.wav
+  // Note: In browsers, full paths are often unavailable due to security restrictions
   const mediaFilePath = ref<string | null>(null)
+
   const currentTime = ref(0)
   const isPlaying = ref(false)
   const selectedCueId = ref<string | null>(null)
@@ -51,6 +59,11 @@ export const useVTTStore = defineStore('vtt', () => {
     }
   }
 
+  /**
+   * Load a media file for playback
+   * @param path - URL to use as media element src (blob URL, HTTP URL, or file path)
+   * @param filePath - Optional original file path for display in UI
+   */
   function loadMediaFile(path: string, filePath?: string) {
     console.log('Loading media file:', path, 'with file path:', filePath)
     mediaPath.value = path
