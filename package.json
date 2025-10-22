@@ -13,7 +13,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:coverage": "playwright test --reporter=html,json",
-    "test:coverage": "npm run test:unit:coverage && playwright test --reporter=html && npx nyc report --reporter=text --reporter=html"
+    "test:coverage": "npm run test:unit:coverage && playwright test --reporter=html && npx nyc report --reporter=text --reporter=html",
+    "test:build": "vue-tsc && vite build",
+    "test:all": "npm run test:unit && npm run test:e2e && npm run test:build"
   },
   "dependencies": {
     "ag-grid-community": "^31.1.1",

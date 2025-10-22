@@ -103,25 +103,37 @@ npm run preview
 
 ### Testing
 
+This project has comprehensive test coverage including unit tests, end-to-end tests, and build verification.
+
 ```bash
-# Run unit tests
+# Run ALL tests (unit + e2e + build verification) - recommended for CI/pre-commit
+npm run test:all
+
+# Run unit tests only (Vitest)
 npm run test:unit
 
-# Run Playwright E2E tests
+# Run E2E tests only (Playwright)
 npm run test:e2e
 
-# Run tests with UI
-npm run test:e2e:ui
+# Run TypeScript build verification only
+npm run test:build
 
-# Run tests with coverage report
-npm run test:coverage
+# Interactive test UIs
+npm run test:unit:ui      # Vitest UI
+npm run test:e2e:ui       # Playwright UI
 
-# View coverage report (after running tests)
-npx playwright show-report
+# Coverage reports
+npm run test:coverage     # Generate combined coverage report
+npx playwright show-report # View Playwright HTML report
 
-# Install Playwright browsers (first time only)
-npx playwright install
+# First-time setup
+npx playwright install    # Install Playwright browsers
 ```
+
+**Recommended workflow:**
+- During development: `npm run test:unit` (fast feedback)
+- Before committing: `npm run test:all` (complete verification)
+- For debugging: Use the UI modes (`test:unit:ui` or `test:e2e:ui`)
 
 #### Test Timeout Philosophy
 
