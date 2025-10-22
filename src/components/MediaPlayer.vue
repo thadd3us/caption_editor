@@ -95,6 +95,8 @@ const isVideo = computed(() => {
 })
 
 const mediaFileName = computed(() => {
+  // Use stored file path if available, otherwise extract from media URL path
+  if (store.mediaFilePath) return store.mediaFilePath
   if (!store.mediaPath) return ''
   const path = store.mediaPath
   // Extract filename from path (handle both Unix and Windows paths, and URLs)

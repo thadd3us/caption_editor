@@ -13,11 +13,13 @@ import {
 
 const STORAGE_KEY = 'vtt-editor-document'
 const STORAGE_MEDIA_KEY = 'vtt-editor-media-path'
+const STORAGE_MEDIA_FILEPATH_KEY = 'vtt-editor-media-filepath'
 
 export const useVTTStore = defineStore('vtt', () => {
   // State
   const document = ref<VTTDocument>(createEmptyDocument())
   const mediaPath = ref<string | null>(null)
+  const mediaFilePath = ref<string | null>(null)
   const currentTime = ref(0)
   const isPlaying = ref(false)
   const selectedCueId = ref<string | null>(null)
@@ -49,10 +51,16 @@ export const useVTTStore = defineStore('vtt', () => {
     }
   }
 
-  function loadMediaFile(path: string) {
-    console.log('Loading media file:', path)
+  function loadMediaFile(path: string, filePath?: string) {
+    console.log('Loading media file:', path, 'with file path:', filePath)
     mediaPath.value = path
+    mediaFilePath.value = filePath || null
     localStorage.setItem(STORAGE_MEDIA_KEY, path)
+    if (filePath) {
+      localStorage.setItem(STORAGE_MEDIA_FILEPATH_KEY, filePath)
+    } else {
+      localStorage.removeItem(STORAGE_MEDIA_FILEPATH_KEY)
+    }
   }
 
   function exportToString(): string {
@@ -186,6 +194,7 @@ export const useVTTStore = defineStore('vtt', () => {
     // State
     document,
     mediaPath,
+    mediaFilePath,
     currentTime,
     isPlaying,
     selectedCueId,

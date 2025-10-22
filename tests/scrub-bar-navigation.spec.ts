@@ -18,10 +18,11 @@ test.describe('Scrub Bar Navigation with Jump Buttons', () => {
 
     // Load the test WAV file via HTTP (served by vite dev server)
     const audioUrl = '/tests/fixtures/OSR_us_000_0010_8k.wav'
+    const expectedFilePath = '/home/user/audio/OSR_us_000_0010_8k.wav'
 
-    await page.evaluate((url) => {
-      ;(window as any).$store.loadMediaFile(url)
-    }, audioUrl)
+    await page.evaluate(({ url, filePath }) => {
+      ;(window as any).$store.loadMediaFile(url, filePath)
+    }, { url: audioUrl, filePath: expectedFilePath })
 
     // Wait for media to load
     await page.waitForTimeout(200)
@@ -32,6 +33,16 @@ test.describe('Scrub Bar Navigation with Jump Buttons', () => {
       return !!audio
     })
     expect(hasAudio).toBe(true)
+
+    // Verify the full file path is displayed correctly in the UI
+    const displayedFilePath = await page.locator('.media-filename').textContent()
+    console.log('Displayed file path:', displayedFilePath)
+    expect(displayedFilePath).toContain(expectedFilePath)
+
+    // Verify the file path is stored in the store
+    const storedFilePath = await page.evaluate(() => (window as any).$store.mediaFilePath)
+    console.log('Stored file path:', storedFilePath)
+    expect(storedFilePath).toBe(expectedFilePath)
 
     // Wait for audio duration to be available (not NaN)
     let duration = 0
