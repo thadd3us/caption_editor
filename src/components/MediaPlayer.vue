@@ -1,5 +1,9 @@
 <template>
   <div class="media-player">
+    <div v-if="hasMedia && mediaFileName" class="media-info">
+      <span class="media-filename">📁 {{ mediaFileName }}</span>
+      <span class="media-duration">⏱️ {{ formatTimeDetailed(duration) }}</span>
+    </div>
     <div class="video-container">
       <video
         v-if="store.mediaPath && isVideo"
@@ -34,10 +38,12 @@
         </button>
         <span class="time-display">{{ formatTime(store.currentTime) }}</span>
         <input
+          ref="scrubberElement"
           type="range"
           class="scrubber"
           :value="store.currentTime"
           :max="duration"
+          step="0.001"
           :disabled="!hasMedia"
           @input="onScrub"
         />
@@ -77,6 +83,7 @@ const videoElement = ref<HTMLVideoElement | null>(null)
 const audioElement = ref<HTMLAudioElement | null>(null)
 const duration = ref(0)
 const snippetEndTime = ref<number | null>(null)
+const scrubberElement = ref<HTMLInputElement | null>(null)
 
 const mediaElement = computed(() => videoElement.value || audioElement.value)
 const hasMedia = computed(() => !!store.mediaPath)
@@ -85,6 +92,14 @@ const isVideo = computed(() => {
   if (!store.mediaPath) return false
   const path = store.mediaPath.toLowerCase()
   return path.includes('.mp4') || path.includes('.webm') || path.includes('.mov') || path.includes('.avi')
+})
+
+const mediaFileName = computed(() => {
+  if (!store.mediaPath) return ''
+  const path = store.mediaPath
+  // Extract filename from path (handle both Unix and Windows paths, and URLs)
+  const parts = path.split(/[/\\]/)
+  return parts[parts.length - 1]
 })
 
 function onMediaLoaded() {
@@ -182,6 +197,18 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
+function formatTimeDetailed(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
+  const secs = Math.floor(seconds % 60)
+  const ms = Math.floor((seconds % 1) * 1000)
+
+  if (hours > 0) {
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`
+  }
+  return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`
+}
+
 // Watch for play/pause from store (triggered by action buttons)
 watch(() => store.isPlaying, (playing) => {
   if (!mediaElement.value) return
@@ -206,6 +233,12 @@ watch(() => store.currentTime, (time) => {
     console.log('Syncing media time to store:', time)
     mediaElement.value.currentTime = time
   }
+
+  // FIX: Explicitly update the scrubber's value property to ensure visual update
+  // The :value binding only sets the initial DOM attribute, not the live value property
+  if (scrubberElement.value) {
+    scrubberElement.value.value = time.toString()
+  }
 })
 </script>
 
@@ -215,6 +248,34 @@ watch(() => store.currentTime, (time) => {
   display: flex;
   flex-direction: column;
   padding: 20px;
+}
+
+.media-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.media-filename {
+  font-weight: 500;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 16px;
+}
+
+.media-duration {
+  font-family: monospace;
+  color: #6c757d;
+  white-space: nowrap;
 }
 
 .video-container {
