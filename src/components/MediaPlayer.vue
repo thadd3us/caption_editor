@@ -2,7 +2,7 @@
   <div class="media-player">
     <div v-if="hasMedia && mediaFileName" class="media-info">
       <span class="media-filename">📁 {{ mediaFileName }}</span>
-      <span class="media-duration">⏱️ {{ formatTimeDetailed(duration) }}</span>
+      <span class="media-duration">⏱️ {{ formatTime(duration) }}</span>
     </div>
     <div class="video-container">
       <video
@@ -194,12 +194,6 @@ function jumpToCurrentRow() {
 }
 
 function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
-
-function formatTimeDetailed(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const mins = Math.floor((seconds % 3600) / 60)
   const secs = Math.floor(seconds % 60)
@@ -347,7 +341,7 @@ video, audio {
 .time-display {
   font-family: monospace;
   font-size: 16px;
-  min-width: 60px;
+  min-width: 90px;
   color: #333;
 }
 
