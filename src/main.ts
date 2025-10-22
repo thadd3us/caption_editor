@@ -12,12 +12,13 @@ const pinia = createPinia()
 app.use(pinia)
 app.mount('#app')
 
-// Expose store on window for debugging in development
-if (import.meta.env.DEV) {
-  const store = useVTTStore()
-  ;(window as any).$store = store
+// Always expose store on window for tests and debugging
+const store = useVTTStore()
+;(window as any).$store = store
+
+if (import.meta.env && import.meta.env.DEV) {
   console.log('VTT Editor mounted - Store available at window.$store')
   console.log('Debug tip: console.log(JSON.stringify($store.document, null, 2))')
 } else {
-  console.log('VTT Editor mounted')
+  console.log('VTT Editor mounted (production) - Store available at window.$store')
 }

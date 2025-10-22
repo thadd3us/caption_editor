@@ -75,7 +75,7 @@ const columnDefs = ref<ColDef[]>([
         store.updateCue(params.data.id, { startTime: seconds })
       } catch (err) {
         alert('Invalid start time: ' + (err instanceof Error ? err.message : 'Unknown error'))
-        params.node.setDataValue('startTimeFormatted', formatTimestamp(params.data.startTime))
+        params.node?.setDataValue('startTimeFormatted', formatTimestamp(params.data.startTime))
       }
     }
   },
@@ -99,7 +99,7 @@ const columnDefs = ref<ColDef[]>([
         store.updateCue(params.data.id, { endTime: seconds })
       } catch (err) {
         alert('Invalid end time: ' + (err instanceof Error ? err.message : 'Unknown error'))
-        params.node.setDataValue('endTimeFormatted', formatTimestamp(params.data.endTime))
+        params.node?.setDataValue('endTimeFormatted', formatTimestamp(params.data.endTime))
       }
     }
   },

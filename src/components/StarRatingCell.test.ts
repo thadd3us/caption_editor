@@ -170,7 +170,7 @@ describe('StarRatingCell', () => {
     const store = useVTTStore()
 
     // Add a cue to the store
-    store.addCue('00:00:01.000', '00:00:04.000')
+    store.addCue(1.0, 3.0)
     const cueId = store.document.cues[0].id
 
     // Mount component with unrated cue
