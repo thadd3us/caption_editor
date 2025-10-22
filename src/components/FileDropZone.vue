@@ -104,8 +104,11 @@ async function processFiles(files: File[]) {
   if (mediaFile) {
     try {
       const url = URL.createObjectURL(mediaFile)
-      store.loadMediaFile(url)
-      console.log('Media file loaded successfully')
+      // Try to get full path from File object (may be limited by browser security)
+      // @ts-ignore - path property exists in Electron and some contexts
+      const filePath = mediaFile.path || mediaFile.webkitRelativePath || mediaFile.name
+      store.loadMediaFile(url, filePath)
+      console.log('Media file loaded successfully:', filePath)
     } catch (err) {
       console.error('Failed to load media file:', err)
       alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
