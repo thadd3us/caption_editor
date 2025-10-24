@@ -1,6 +1,7 @@
 """Tests for transcription tool."""
 
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -12,10 +13,11 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot):
     # Path to transcribe script
     transcribe_script = repo_root / "transcribe" / "transcribe.py"
 
-    # Run transcription
+    # Run transcription using the current Python interpreter
+    # Use openai/whisper-tiny for testing (much faster and widely compatible)
     result = subprocess.run(
         [
-            "python3",
+            sys.executable,
             str(transcribe_script),
             str(test_audio),
             "--output",
@@ -24,6 +26,8 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot):
             "10",
             "--overlap",
             "5",
+            "--model",
+            "openai/whisper-tiny",
         ],
         capture_output=True,
         text=True,
