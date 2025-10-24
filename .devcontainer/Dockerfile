@@ -64,10 +64,11 @@ RUN cd /tmp/deps && \
     # Move node_modules to a cache location
     mv node_modules /tmp/node_modules_cache || true
 
-# Pre-download ASR model for transcription
+# Pre-download ASR models for transcription
 RUN mkdir -p /models && \
     python3 -m pip install --no-cache-dir transformers torch torchaudio huggingface_hub && \
-    python3 -c "from huggingface_hub import snapshot_download; snapshot_download('nvidia/parakeet-tdt-0.6b-v3', cache_dir='/models')"
+    python3 -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny', cache_dir='/models')" && \
+    echo "Whisper-tiny model downloaded successfully"
 
 # Environment variables
 ENV NODE_ENV=development
