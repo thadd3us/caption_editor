@@ -1,6 +1,6 @@
 FROM node:20-bookworm
 
-# Install system dependencies for Playwright
+# Install system dependencies for Playwright and Python ML
 RUN apt-get update && apt-get install -y \
     # Playwright browser dependencies
     libnss3 \
@@ -26,7 +26,15 @@ RUN apt-get update && apt-get install -y \
     curl \
     xvfb \
     ffmpeg \
+    # Python and ML dependencies
+    python3 \
+    python3-pip \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast Python package management
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install global npm packages
 RUN npm install -g npm@latest
@@ -56,8 +64,14 @@ RUN cd /tmp/deps && \
     # Move node_modules to a cache location
     mv node_modules /tmp/node_modules_cache || true
 
+# Pre-download ASR model for transcription
+RUN mkdir -p /models && \
+    python3 -m pip install --no-cache-dir transformers torch torchaudio huggingface_hub && \
+    python3 -c "from huggingface_hub import snapshot_download; snapshot_download('nvidia/parakeet-tdt-0.6b-v3', cache_dir='/models')"
+
 # Environment variables
 ENV NODE_ENV=development
+ENV HF_HOME=/models
 
 # Default command
 CMD ["bash"]
