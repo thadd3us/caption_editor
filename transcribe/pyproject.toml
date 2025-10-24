@@ -1,7 +1,7 @@
 [project]
 name = "transcribe"
 version = "0.1.0"
-description = "Add your description here"
+description = "Media transcription tool using NVIDIA Parakeet TDT for VTT generation"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -14,6 +14,9 @@ dependencies = [
     "typer>=0.20.0",
     "webvtt-py>=0.5.1",
 ]
+
+[project.scripts]
+transcribe = "transcribe:app"
 
 [dependency-groups]
 dev = [
