@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install uv for fast Python package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Install global npm packages
 RUN npm install -g npm@latest
@@ -64,10 +64,17 @@ RUN cd /tmp/deps && \
     # Move node_modules to a cache location
     mv node_modules /tmp/node_modules_cache || true
 
-# Pre-download ASR models for transcription
+# Pre-install Python packages from transcribe project
+# This creates a cached virtual environment that uv will reuse
+COPY transcribe/pyproject.toml transcribe/uv.lock /tmp/python-deps/
+RUN cd /tmp/python-deps && \
+    uv sync --frozen && \
+    echo "Python packages cached successfully"
+
+# Pre-download ASR models for transcription using the cached environment
 RUN mkdir -p /models && \
-    python3 -m pip install --no-cache-dir transformers torch torchaudio huggingface_hub && \
-    python3 -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny', cache_dir='/models')" && \
+    cd /tmp/python-deps && \
+    uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny', cache_dir='/models')" && \
     echo "Whisper-tiny model downloaded successfully"
 
 # Environment variables
