@@ -16,6 +16,7 @@ import soundfile as sf
 import torch
 import typer
 from pydantic import BaseModel, ConfigDict, Field
+from tqdm import tqdm
 from transformers import pipeline
 
 app = typer.Typer()
@@ -276,16 +277,12 @@ def main(
         num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
 
         typer.echo(f"Processing {num_chunks} chunks...")
-        for i in range(num_chunks):
+        for i in tqdm(range(num_chunks), desc="Transcribing chunks", unit="chunk"):
             chunk_start = i * (chunk_size - overlap)
             chunk_duration = min(chunk_size, duration - chunk_start)
 
             if chunk_duration <= 0:
                 break
-
-            typer.echo(
-                f"  Chunk {i+1}/{num_chunks}: {chunk_start:.1f}s - {chunk_start + chunk_duration:.1f}s"
-            )
 
             # Load audio chunk
             audio, _ = load_audio_chunk(audio_path, chunk_start, chunk_duration)
