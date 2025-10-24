@@ -15,7 +15,7 @@ import numpy as np
 import soundfile as sf
 import torch
 import typer
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from transformers import pipeline
 
 app = typer.Typer()
@@ -24,14 +24,13 @@ app = typer.Typer()
 class VTTCue(BaseModel):
     """VTT cue matching the frontend data model."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     id: str = Field(description="UUID - cue identifier")
     start_time: float = Field(description="Start time in seconds", alias="startTime")
     end_time: float = Field(description="End time in seconds", alias="endTime")
     text: str = Field(description="Caption text")
     rating: Optional[int] = Field(None, description="Optional rating 1-5")
-
-    class Config:
-        populate_by_name = True
 
 
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
