@@ -78,12 +78,13 @@ def load_audio_chunk(
 
 
 def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float) -> List[VTTCue]:
-    """Transcribe a single audio chunk using the model's native timestamps."""
+    """Transcribe a single audio chunk using the model's native segment-level timestamps."""
     if len(audio) == 0:
         return []
 
-    # Get transcription with timestamps
-    result = asr_pipeline(audio, return_timestamps="word")
+    # Get transcription with segment-level timestamps
+    # return_timestamps=True gives sentence/segment level (not word level)
+    result = asr_pipeline(audio, return_timestamps=True)
 
     cues = []
 
