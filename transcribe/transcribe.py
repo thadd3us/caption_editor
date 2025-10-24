@@ -15,7 +15,7 @@ import numpy as np
 import soundfile as sf
 import torch
 import typer
-from transformers import AutoModelForCTC, AutoProcessor
+from transformers import pipeline
 import webvtt
 
 app = typer.Typer()
@@ -108,19 +108,15 @@ def load_audio_chunk(audio_path: Path, start_time: float, duration: float) -> Tu
 def transcribe_chunk(
     audio: np.ndarray,
     sample_rate: int,
-    processor: AutoProcessor,
-    model: AutoModelForCTC,
-    device: str
+    asr_pipeline,
 ) -> List[dict]:
     """
-    Transcribe a single audio chunk.
+    Transcribe a single audio chunk and split into sentence-level segments.
 
     Args:
         audio: Audio data as numpy array
         sample_rate: Sample rate of audio
-        processor: Hugging Face processor
-        model: Hugging Face model
-        device: Device to run on ('cpu' or 'cuda')
+        asr_pipeline: Hugging Face ASR pipeline
 
     Returns:
         List of segment dictionaries with 'text', 'start_time', 'end_time'
@@ -128,28 +124,87 @@ def transcribe_chunk(
     if len(audio) == 0:
         return []
 
-    # Process audio
-    inputs = processor(audio, sampling_rate=sample_rate, return_tensors="pt", padding=True)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+    # Run inference - try with timestamps first, fallback to basic
+    try:
+        result = asr_pipeline(
+            audio,
+            return_timestamps="word",
+            chunk_length_s=30,
+        )
+    except Exception:
+        # Fallback to basic transcription without timestamps
+        result = asr_pipeline(audio)
 
-    # Run inference
-    with torch.no_grad():
-        logits = model(**inputs).logits
-
-    # Decode with timestamps
-    predicted_ids = torch.argmax(logits, dim=-1)
-    transcription = processor.batch_decode(predicted_ids)[0]
-
-    # Get word-level timestamps if available
-    # For now, we'll create a single segment for the chunk
-    # TODO: Use a more sophisticated method to get word-level timestamps
     segments = []
-    if transcription.strip():
-        segments.append({
-            'text': transcription.strip(),
-            'start_time': 0.0,
-            'end_time': len(audio) / sample_rate
-        })
+
+    # Check if we have word-level timestamps
+    if isinstance(result, dict) and "chunks" in result:
+        # Group words into sentences/segments
+        current_segment = {"words": [], "start": None, "end": None}
+
+        for chunk in result["chunks"]:
+            word_text = chunk["text"].strip()
+            if not word_text:
+                continue
+
+            timestamp = chunk.get("timestamp", (None, None))
+            start_time = timestamp[0] if timestamp[0] is not None else 0.0
+            end_time = timestamp[1] if timestamp[1] is not None else len(audio) / sample_rate
+
+            if current_segment["start"] is None:
+                current_segment["start"] = start_time
+
+            current_segment["words"].append(word_text)
+            current_segment["end"] = end_time
+
+            # End segment on punctuation or after ~10 words
+            if (word_text.endswith(('.', '!', '?')) or len(current_segment["words"]) >= 10):
+                if current_segment["words"]:
+                    segments.append({
+                        'text': " ".join(current_segment["words"]),
+                        'start_time': current_segment["start"],
+                        'end_time': current_segment["end"]
+                    })
+                current_segment = {"words": [], "start": None, "end": None}
+
+        # Add remaining words as final segment
+        if current_segment["words"]:
+            segments.append({
+                'text': " ".join(current_segment["words"]),
+                'start_time': current_segment["start"],
+                'end_time': current_segment["end"]
+            })
+    else:
+        # Fallback: split text into sentences and estimate timing
+        text = result.get("text", "") if isinstance(result, dict) else str(result)
+        if text.strip():
+            # Simple sentence splitting
+            import re
+            sentences = re.split(r'([.!?]\s+)', text)
+
+            # Merge sentence pieces back together
+            merged_sentences = []
+            for i in range(0, len(sentences) - 1, 2):
+                sentence = sentences[i] + (sentences[i + 1] if i + 1 < len(sentences) else "")
+                if sentence.strip():
+                    merged_sentences.append(sentence.strip())
+            # Add last sentence if it doesn't end with punctuation
+            if len(sentences) % 2 == 1 and sentences[-1].strip():
+                merged_sentences.append(sentences[-1].strip())
+
+            if not merged_sentences:
+                merged_sentences = [text.strip()]
+
+            # Estimate timing by distributing duration across sentences
+            total_duration = len(audio) / sample_rate
+            for i, sentence in enumerate(merged_sentences):
+                start_time = (i / len(merged_sentences)) * total_duration
+                end_time = ((i + 1) / len(merged_sentences)) * total_duration
+                segments.append({
+                    'text': sentence,
+                    'start_time': start_time,
+                    'end_time': end_time
+                })
 
     return segments
 
@@ -325,11 +380,13 @@ def main(
         # Compute audio hash for UUID generation
         audio_hash = compute_audio_hash(audio_path)
 
-        # Load model
+        # Load model using pipeline
         typer.echo(f"Loading model: {model_name}")
-        processor = AutoProcessor.from_pretrained(model_name)
-        model = AutoModelForCTC.from_pretrained(model_name).to(device)
-        model.eval()
+        asr_pipeline = pipeline(
+            "automatic-speech-recognition",
+            model=model_name,
+            device=0 if device == "cuda" else -1,
+        )
 
         # Process audio in chunks
         all_segments = []
@@ -356,7 +413,7 @@ def main(
                 continue
 
             # Transcribe chunk
-            chunk_segments = transcribe_chunk(audio, sample_rate, processor, model, device)
+            chunk_segments = transcribe_chunk(audio, sample_rate, asr_pipeline)
 
             # Convert to TranscriptSegment objects with absolute times
             for seg in chunk_segments:
