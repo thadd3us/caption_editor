@@ -47,3 +47,12 @@ env/
 *.egg-info/
 dist/
 build/
+
+# NeMo toolkit artifacts
+*.err
+onelogger.err
+nemo_experiments/
+
+# ML Models cache (optional - comment out if you want to track models)
+models/
+.cache/huggingface/
