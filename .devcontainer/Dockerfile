@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
+# TODO: Delete the line above. 
 
 # Install uv for fast Python package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -49,6 +50,7 @@ RUN mkdir -p /tmp/playwright-install && \
     cd / && \
     rm -rf /tmp/playwright-install
 
+# TODO: Delete me.
 # Set working directory
 WORKDIR /workspace
 
