@@ -30,7 +30,10 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
-    && rm -rf /var/lib/apt/lists/*
+    # Additional dependencies for NeMo toolkit
+    libsndfile1 \
+    sox \
+    && rm -rf /var/lib/apt/lists/* 
 
 # Install uv for fast Python package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -74,12 +77,21 @@ RUN cd /tmp/python-deps && \
 # Pre-download ASR models for transcription using the cached environment
 RUN mkdir -p /models && \
     cd /tmp/python-deps && \
+    # Download Whisper-tiny for testing (fast, small model)
     uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny', cache_dir='/models')" && \
-    echo "Whisper-tiny model downloaded successfully"
+    echo "Whisper-tiny model downloaded successfully" && \
+    # Pre-download NVIDIA Parakeet model (default model for production)
+    # Note: This is a ~600MB download and may take time during build
+    uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
+    echo "Parakeet TDT model downloaded successfully"
 
 # Environment variables
 ENV NODE_ENV=development
 ENV HF_HOME=/models
+# NeMo toolkit environment variables
+ENV NEMO_MODEL_CACHE=/models
+# Disable OneLogger telemetry in development
+ENV ONE_LOGGER_DISABLE=1
 
 # Default command
 CMD ["bash"]
