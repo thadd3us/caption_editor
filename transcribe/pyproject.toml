@@ -3,16 +3,18 @@ name = "transcribe"
 version = "0.1.0"
 description = "Media transcription tool using NVIDIA Parakeet TDT for VTT generation"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "librosa>=0.11.0",
-    "numpy>=2.3.4",
+    "megatron-core>=0.10.0",
+    "nemo-toolkit[asr]>=2.5.0",
+    "numpy>=1.24,<2.0",
     "pydantic>=2.12.3",
     "soundfile>=0.13.1",
     "syrupy>=5.0.0",
     "torch>=2.9.0",
     "torchaudio>=2.9.0",
-    "transformers>=4.57.1",
+    "transformers>=4.53.0,<4.54",
     "typer>=0.20.0",
     "webvtt-py>=0.5.1",
 ]
