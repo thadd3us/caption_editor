@@ -60,9 +60,10 @@ python transcribe.py podcast.mp3 --chunk-size 120 --overlap 10 --output podcast_
 
 2. **Chunked Processing**: Splits long audio into overlapping chunks to avoid cutting off words at boundaries
 
-3. **Transcription**: Uses NVIDIA Parakeet TDT model via Hugging Face transformers pipeline
-   - Attempts to get word-level timestamps when available
-   - Falls back to sentence-level segmentation with estimated timing
+3. **Transcription**: Uses ASR model (NeMo for Parakeet, Transformers for others)
+   - For NeMo models: Gets segment-level timestamps directly from the model
+   - For Transformers models: Uses the pipeline with return_timestamps=True
+   - Automatically handles framework-specific output formats
 
 4. **Overlap Resolution**: For segments in overlapping regions between chunks:
    - Calculates each segment's distance to the nearest chunk edge
@@ -120,13 +121,50 @@ uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio
 
 ## Model Information
 
-This tool uses [NVIDIA Parakeet TDT 0.6b v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3), a multilingual automatic speech recognition model that supports:
+This tool supports two types of ASR models:
 
-- Multiple languages
-- Fast inference
-- Reasonable accuracy for general transcription tasks
+### 1. NVIDIA NeMo Models (Default)
 
-To use a different model, specify it with the `--model` flag. The model must be compatible with the Hugging Face ASR pipeline.
+The default model is [NVIDIA Parakeet TDT 0.6b v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3), a state-of-the-art multilingual ASR model that supports:
+
+- **25 European languages** with automatic language detection
+- **600M parameters** with FastConformer-TDT architecture
+- **Segment-level timestamps** for accurate timing
+- **Automatic punctuation and capitalization**
+- **Average WER of 6.34%** on HuggingFace Open ASR Leaderboard
+
+The tool automatically detects NeMo models (models containing "parakeet" or "nvidia" in the name) and loads them using the NeMo toolkit.
+
+**Example:**
+```bash
+python transcribe.py audio.wav --model nvidia/parakeet-tdt-0.6b-v3
+```
+
+### 2. Hugging Face Transformers Models
+
+The tool also supports any model compatible with the Hugging Face `automatic-speech-recognition` pipeline, such as:
+
+- `openai/whisper-tiny` - Fast, lightweight model
+- `openai/whisper-base` - Good balance of speed and accuracy
+- `openai/whisper-small` - Better accuracy
+- `openai/whisper-medium` - High accuracy
+- `openai/whisper-large-v3` - Best accuracy
+
+**Example:**
+```bash
+python transcribe.py audio.wav --model openai/whisper-small
+```
+
+### Model Selection
+
+The tool automatically determines which framework to use:
+- **NeMo models**: Loaded via `nemo_toolkit` (for Parakeet and other NVIDIA models)
+- **Other models**: Loaded via Hugging Face `transformers` pipeline
+
+To use a different model, simply specify it with the `--model` flag:
+```bash
+python transcribe.py input.mp4 --model your/favorite-model
+```
 
 ## License
 

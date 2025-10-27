@@ -19,6 +19,18 @@ from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 from transformers import pipeline
 
+try:
+    import nemo.collections.asr as nemo_asr
+    NEMO_AVAILABLE = True
+except ImportError:
+    NEMO_AVAILABLE = False
+
+try:
+    from transformers import pipeline
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
+
 app = typer.Typer()
 
 
@@ -78,37 +90,84 @@ def load_audio_chunk(
     return audio, sr
 
 
-def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float) -> List[VTTCue]:
+def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nemo: bool = False) -> List[VTTCue]:
     """Transcribe a single audio chunk using the model's native segment-level timestamps."""
     if len(audio) == 0:
         return []
 
-    # Get transcription with segment-level timestamps
-    # return_timestamps=True gives sentence/segment level (not word level)
-    result = asr_pipeline(audio, return_timestamps=True)
-
     cues = []
 
-    # Process chunks from the model
-    if isinstance(result, dict) and "chunks" in result:
-        for chunk in result["chunks"]:
-            if not chunk["text"].strip():
-                continue
+    if is_nemo:
+        # NeMo model processing - expects file path
+        # We need to save the chunk to a temp file for NeMo
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+            sf.write(tmp_path, audio, 16000)
 
-            timestamp = chunk.get("timestamp", (0.0, None))
-            start = chunk_start + (timestamp[0] if timestamp[0] is not None else 0.0)
-            end = chunk_start + (
-                timestamp[1] if timestamp[1] is not None else len(audio) / 16000
-            )
+        try:
+            # Get transcription with timestamps from NeMo
+            result = asr_pipeline.transcribe([tmp_path], timestamps=True)
 
-            cues.append(
-                VTTCue(
-                    id="",  # Will be set later with hash
-                    start_time=start,
-                    end_time=end,
-                    text=chunk["text"].strip(),
+            if result and len(result) > 0:
+                output = result[0]
+
+                # Check if we have segment timestamps
+                if hasattr(output, 'timestamp') and 'segment' in output.timestamp:
+                    for segment in output.timestamp['segment']:
+                        if not segment['segment'].strip():
+                            continue
+
+                        cues.append(
+                            VTTCue(
+                                id="",  # Will be set later with hash
+                                start_time=chunk_start + segment['start'],
+                                end_time=chunk_start + segment['end'],
+                                text=segment['segment'].strip(),
+                            )
+                        )
+                else:
+                    # No timestamps available, create single cue for entire chunk
+                    if hasattr(output, 'text') and output.text.strip():
+                        cues.append(
+                            VTTCue(
+                                id="",
+                                start_time=chunk_start,
+                                end_time=chunk_start + len(audio) / 16000,
+                                text=output.text.strip(),
+                            )
+                        )
+        finally:
+            # Clean up temp file
+            import os
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+    else:
+        # Transformers pipeline processing
+        # Get transcription with segment-level timestamps
+        # return_timestamps=True gives sentence/segment level (not word level)
+        result = asr_pipeline(audio, return_timestamps=True)
+
+        # Process chunks from the model
+        if isinstance(result, dict) and "chunks" in result:
+            for chunk in result["chunks"]:
+                if not chunk["text"].strip():
+                    continue
+
+                timestamp = chunk.get("timestamp", (0.0, None))
+                start = chunk_start + (timestamp[0] if timestamp[0] is not None else 0.0)
+                end = chunk_start + (
+                    timestamp[1] if timestamp[1] is not None else len(audio) / 16000
                 )
-            )
+
+                cues.append(
+                    VTTCue(
+                        id="",  # Will be set later with hash
+                        start_time=start,
+                        end_time=end,
+                        text=chunk["text"].strip(),
+                    )
+                )
 
     return cues
 
@@ -264,13 +323,40 @@ def main(
         # Compute audio hash
         audio_hash = compute_audio_hash(audio_path)
 
+        # Detect if this is a NeMo model (Parakeet models use NeMo)
+        is_nemo = "parakeet" in model_name.lower() or "nvidia" in model_name.lower()
+
         # Load model
         typer.echo(f"Loading model: {model_name}")
-        asr_pipeline = pipeline(
-            "automatic-speech-recognition",
-            model=model_name,
-            device=0 if device == "cuda" else -1,
-        )
+
+        if is_nemo:
+            if not NEMO_AVAILABLE:
+                typer.echo(
+                    "Error: NeMo toolkit not installed. Install with: pip install nemo_toolkit['asr']",
+                    err=True,
+                )
+                raise typer.Exit(1)
+
+            typer.echo("Using NeMo ASR model...")
+            asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(model_name=model_name)
+
+            # Move to appropriate device
+            if device == "cuda":
+                asr_pipeline = asr_pipeline.to(device)
+        else:
+            if not TRANSFORMERS_AVAILABLE:
+                typer.echo(
+                    "Error: Transformers library not installed. Install with: pip install transformers",
+                    err=True,
+                )
+                raise typer.Exit(1)
+
+            typer.echo("Using Hugging Face Transformers model...")
+            asr_pipeline = pipeline(
+                "automatic-speech-recognition",
+                model=model_name,
+                device=0 if device == "cuda" else -1,
+            )
 
         # Process chunks
         all_cues = []
@@ -291,7 +377,7 @@ def main(
                 continue
 
             # Transcribe
-            chunk_cues = transcribe_chunk(audio, asr_pipeline, chunk_start)
+            chunk_cues = transcribe_chunk(audio, asr_pipeline, chunk_start, is_nemo=is_nemo)
             all_cues.extend(chunk_cues)
 
         # Resolve overlaps
