@@ -44,8 +44,8 @@
   "remoteEnv": {
     "NODE_ENV": "development"
   },
-  "remoteUser": "node",
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  }
+  // "remoteUser": "node",
+  // "features": {
+  //   "ghcr.io/devcontainers/features/git:1": {}
+  // }
 }
