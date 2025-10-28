@@ -101,5 +101,7 @@ ENV NEMO_MODEL_CACHE=/models
 # Disable OneLogger telemetry in development
 ENV ONE_LOGGER_DISABLE=1
 
+RUN apt install -y ncdu
+
 # Default command
 CMD ["bash"]
