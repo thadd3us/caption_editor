@@ -1,5 +1,61 @@
 # serializer version: 1
-# name: test_transcribe_osr_audio
+# name: test_transcribe_osr_audio[nvidia/parakeet-tdt-0.6b-v3]
+  '''
+  WEBVTT
+  
+  
+  ccdb12d8-0423-3909-3977-c4fc906f2122
+  00:00:00.240 --> 00:00:03.440
+  The birch canoe slid on the smooth planks.
+  
+  
+  57c15f3a-9d2c-f253-abdc-2554cec2381d
+  00:00:04.000 --> 00:00:07.200
+  Glue the sheet to the dark blue background.
+  
+  
+  1566b07d-6382-fe9f-9640-6107ea4c603c
+  00:00:07.440 --> 00:00:09.760
+  It is easy to tell the depth of a well.
+  
+  
+  2942d461-d0a7-7108-8341-56bb79409b0a
+  00:00:10.480 --> 00:00:13.520
+  These days a chicken leg is a rare dish.
+  
+  
+  1d190074-17ce-7bb5-c63a-d1bf50b687cb
+  00:00:14.000 --> 00:00:16.720
+  Rice is often served in round bowls.
+  
+  
+  0a3f524e-beec-08e3-5769-12b2edc3d8ec
+  00:00:17.000 --> 00:00:19.800
+  The juice of lemons makes fine punch.
+  
+  
+  5f807269-18e2-5659-1703-8f5bb1be6356
+  00:00:20.240 --> 00:00:22.880
+  The box was thrown beside the parked truck.
+  
+  
+  04fb3db7-8763-bb91-a17f-0107cb7f4dcb
+  00:00:23.440 --> 00:00:26.240
+  The hogs were fed chopped corn and garbage.
+  
+  
+  17184080-9b9d-983c-8a5f-d8df57cc702a
+  00:00:26.800 --> 00:00:29.280
+  Four hours of steady work faced us.
+  
+  
+  5c7299fd-a233-bdc0-9d63-865f9a4abd75
+  00:00:29.800 --> 00:00:32.440
+  A large size in stockings is hard to sell.
+  
+  '''
+# ---
+# name: test_transcribe_osr_audio[openai/whisper-tiny]
   '''
   WEBVTT
   

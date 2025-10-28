@@ -4,8 +4,17 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
-def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot):
+
+@pytest.mark.parametrize(
+    "model_name",
+    [
+        "openai/whisper-tiny",
+        "nvidia/parakeet-tdt-0.6b-v3",
+    ],
+)
+def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_name: str):
     """Test transcribing the OSR audio file with 10s chunks and 5s overlap."""
     test_audio = repo_root / "tests" / "fixtures" / "OSR_us_000_0010_8k.wav"
     output_path = tmp_path / "output.vtt"
@@ -14,7 +23,6 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot):
     transcribe_script = repo_root / "transcribe" / "transcribe.py"
 
     # Run transcription using the current Python interpreter
-    # Use openai/whisper-tiny for testing (much faster and widely compatible)
     result = subprocess.run(
         [
             sys.executable,
@@ -27,7 +35,7 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot):
             "--overlap",
             "5",
             "--model",
-            "openai/whisper-tiny",
+            model_name,
         ],
         capture_output=True,
         text=True,
