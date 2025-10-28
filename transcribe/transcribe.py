@@ -17,7 +17,6 @@ import torch
 import typer
 from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
-from transformers import pipeline
 
 try:
     import nemo.collections.asr as nemo_asr
@@ -91,87 +90,98 @@ def load_audio_chunk(
     return audio, sr
 
 
+def parse_nemo_result(result, chunk_start: float, audio_duration: float) -> List[VTTCue]:
+    """Parse NeMo transcription result into VTT cues."""
+    cues = []
+
+    if not result or len(result) == 0:
+        return cues
+
+    output = result[0]
+
+    # Check if we have segment timestamps
+    if hasattr(output, 'timestamp') and 'segment' in output.timestamp:
+        for segment in output.timestamp['segment']:
+            if not segment['segment'].strip():
+                continue
+
+            cues.append(
+                VTTCue(
+                    id="",  # Will be set later with hash
+                    start_time=chunk_start + segment['start'],
+                    end_time=chunk_start + segment['end'],
+                    text=segment['segment'].strip(),
+                )
+            )
+    else:
+        # No timestamps available, create single cue for entire chunk
+        if hasattr(output, 'text') and output.text.strip():
+            cues.append(
+                VTTCue(
+                    id="",
+                    start_time=chunk_start,
+                    end_time=chunk_start + audio_duration,
+                    text=output.text.strip(),
+                )
+            )
+
+    return cues
+
+
+def parse_transformers_result(result, chunk_start: float, audio_duration: float) -> List[VTTCue]:
+    """Parse Transformers pipeline result into VTT cues."""
+    cues = []
+
+    # Process chunks from the model
+    if isinstance(result, dict) and "chunks" in result:
+        for chunk in result["chunks"]:
+            if not chunk["text"].strip():
+                continue
+
+            timestamp = chunk.get("timestamp", (0.0, None))
+            start = chunk_start + (timestamp[0] if timestamp[0] is not None else 0.0)
+            end = chunk_start + (
+                timestamp[1] if timestamp[1] is not None else audio_duration
+            )
+
+            cues.append(
+                VTTCue(
+                    id="",  # Will be set later with hash
+                    start_time=start,
+                    end_time=end,
+                    text=chunk["text"].strip(),
+                )
+            )
+
+    return cues
+
+
 def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nemo: bool = False) -> List[VTTCue]:
-    """Transcribe a single audio chunk using the model's native segment-level timestamps."""
+    """Transcribe a single audio chunk using the model's native segment-level timestamps.
+
+    Both NEMO and HuggingFace models now use a unified file-based input approach.
+    """
     if len(audio) == 0:
         return []
 
-    cues = []
+    # Calculate audio duration
+    audio_duration = len(audio) / 16000
 
-    if is_nemo:
-        # todo: make this handling consistent for both nemo and non-nemo pipelines.
-        # NeMo model processing - expects file path
-        # We need to save the chunk to a temp file for NeMo
-        import tempfile
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
-            tmp_path = tmp_file.name
-            sf.write(tmp_path, audio, 16000)
+    # Save audio chunk to temporary file (unified approach for both models)
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp_file:
+        tmp_path = tmp_file.name
+        sf.write(tmp_path, audio, 16000)
 
-        try:
-            # Get transcription with timestamps from NeMo
+        # Get transcription with timestamps
+        if is_nemo:
             result = asr_pipeline.transcribe([tmp_path], timestamps=True)
+            cues = parse_nemo_result(result, chunk_start, audio_duration)
+        else:
+            # HuggingFace transformers pipeline accepts file paths
+            result = asr_pipeline(tmp_path, return_timestamps=True)
+            cues = parse_transformers_result(result, chunk_start, audio_duration)
 
-            if result and len(result) > 0:
-                output = result[0]
-
-                # Check if we have segment timestamps
-                if hasattr(output, 'timestamp') and 'segment' in output.timestamp:
-                    for segment in output.timestamp['segment']:
-                        if not segment['segment'].strip():
-                            continue
-
-                        cues.append(
-                            VTTCue(
-                                id="",  # Will be set later with hash
-                                start_time=chunk_start + segment['start'],
-                                end_time=chunk_start + segment['end'],
-                                text=segment['segment'].strip(),
-                            )
-                        )
-                else:
-                    # No timestamps available, create single cue for entire chunk
-                    if hasattr(output, 'text') and output.text.strip():
-                        cues.append(
-                            VTTCue(
-                                id="",
-                                start_time=chunk_start,
-                                end_time=chunk_start + len(audio) / 16000,
-                                text=output.text.strip(),
-                            )
-                        )
-        finally:
-            # Clean up temp file
-            import os
-            if os.path.exists(tmp_path):
-                os.remove(tmp_path)
-    else:
-        # Transformers pipeline processing
-        # Get transcription with segment-level timestamps
-        # return_timestamps=True gives sentence/segment level (not word level)
-        result = asr_pipeline(audio, return_timestamps=True)
-
-        # Process chunks from the model
-        if isinstance(result, dict) and "chunks" in result:
-            for chunk in result["chunks"]:
-                if not chunk["text"].strip():
-                    continue
-
-                timestamp = chunk.get("timestamp", (0.0, None))
-                start = chunk_start + (timestamp[0] if timestamp[0] is not None else 0.0)
-                end = chunk_start + (
-                    timestamp[1] if timestamp[1] is not None else len(audio) / 16000
-                )
-
-                cues.append(
-                    VTTCue(
-                        id="",  # Will be set later with hash
-                        start_time=start,
-                        end_time=end,
-                        text=chunk["text"].strip(),
-                    )
-                )
-
-    return cues
+        return cues
 
 
 def resolve_overlap_conflicts(
