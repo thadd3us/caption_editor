@@ -41,13 +41,13 @@ ENV PATH="/root/.local/bin:${PATH}"
 # Install global npm packages
 RUN npm install -g npm@latest
 
-# Pre-install Playwright with browsers
-# We'll do this with a temporary package.json to cache the installation
+# Pre-install Playwright with headless Chromium only (for CI/CD)
+# Using --only-shell to install just the headless shell, saving ~450MB
 RUN mkdir -p /tmp/playwright-install && \
     cd /tmp/playwright-install && \
     npm init -y && \
     npm install @playwright/test@^1.42.1 && \
-    npx playwright install --with-deps chromium && \
+    npx playwright install --with-deps --only-shell chromium && \
     cd / && \
     rm -rf /tmp/playwright-install
 
@@ -67,27 +67,35 @@ RUN cd /tmp/deps && \
     # Move node_modules to a cache location
     mv node_modules /tmp/node_modules_cache || true
 
-# Pre-install Python packages from transcribe project
-# This creates a cached virtual environment that uv will reuse
+# Pre-warm uv cache by syncing Python packages from transcribe project
+# This populates uv's cache so future syncs are fast
 COPY transcribe/pyproject.toml transcribe/uv.lock /tmp/python-deps/
 RUN cd /tmp/python-deps && \
-    uv sync --frozen && \
+    uv sync --frozen --no-install-project && \
     echo "Python packages cached successfully"
 
-# Pre-download ASR models for transcription using the cached environment
+# Pre-download ASR models for transcription
+# Set HF_HOME before downloading models
+ENV HF_HOME=/models
 RUN mkdir -p /models && \
     cd /tmp/python-deps && \
     # Download Whisper-tiny for testing (fast, small model)
-    HF_HOME=/models uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \
+    uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \
     echo "Whisper-tiny model downloaded successfully" && \
     # Pre-download NVIDIA Parakeet model (default model for production)
-    # Note: This is a ~600MB download and may take time during build
+    # Note: This is a ~2.4GB download and may take time during build
     uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
-    echo "Parakeet TDT model downloaded successfully"
+    echo "Parakeet TDT model downloaded successfully" && \
+    # Clean up the xet chunk cache (temp files from model download, saves ~145MB)
+    rm -rf /models/xet && \
+    echo "Cleaned up xet cache"
+
+# Clean up temporary build files to reduce image size (saves ~3.5GB total)
+RUN rm -rf /tmp/python-deps && \
+    echo "Cleaned up build artifacts"
 
 # Environment variables
 ENV NODE_ENV=development
-ENV HF_HOME=/models
 # NeMo toolkit environment variables
 ENV NEMO_MODEL_CACHE=/models
 # Disable OneLogger telemetry in development
