@@ -52,14 +52,14 @@ def extract_audio(media_file: Path, temp_dir: Path) -> Path:
 
     cmd = [
         "ffmpeg",
-        "-i",
-        str(media_file),
-        "-ar",
-        "16000",  # 16kHz sample rate
-        "-ac",
-        "1",  # Mono
-        "-f",
-        "wav",
+        *("-i",
+        str(media_file)),
+        *("-ar",
+        "16000"),  # 16kHz sample rate
+        *("-ac",
+        "1"),  # Mono
+        *("-f",
+        "wav"),
         "-y",  # Overwrite
         str(output_path),
     ]
@@ -83,6 +83,7 @@ def load_audio_chunk(
     num_frames = int(duration * sample_rate)
 
     if start_frame >= info.frames:
+        # todo:  just raise exception
         return np.array([]), sample_rate
 
     num_frames = min(num_frames, info.frames - start_frame)
@@ -98,6 +99,7 @@ def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nem
     cues = []
 
     if is_nemo:
+        # todo: make this handling consistent for both nemo and non-nemo pipelines.
         # NeMo model processing - expects file path
         # We need to save the chunk to a temp file for NeMo
         import tempfile
@@ -356,6 +358,7 @@ def main(
                 "automatic-speech-recognition",
                 model=model_name,
                 device=0 if device == "cuda" else -1,
+
             )
 
         # Process chunks

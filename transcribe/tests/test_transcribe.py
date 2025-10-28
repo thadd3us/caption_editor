@@ -31,6 +31,7 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot):
         ],
         capture_output=True,
         text=True,
+        check=True,
     )
 
     # Check that command succeeded
