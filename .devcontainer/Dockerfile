@@ -56,7 +56,8 @@ RUN mkdir -p /tmp/playwright-install && \
 WORKDIR /workspace
 
 # Pre-install common dependencies based on package.json structure
-# This creates a layer that can be cached when only package.json changes
+# This creates a layer (~155MB) that can be cached when only package.json changes
+# The postCreateCommand in devcontainer.json will copy this to node_modules
 COPY package.json package-lock.json* /tmp/deps/
 RUN cd /tmp/deps && \
     if [ -f package-lock.json ]; then \
@@ -67,19 +68,20 @@ RUN cd /tmp/deps && \
     # Move node_modules to a cache location
     mv node_modules /tmp/node_modules_cache || true
 
-# Pre-warm uv cache by syncing Python packages from transcribe project
-# This populates uv's cache so future syncs are fast
+# Pre-create uv virtual environment for transcribe project at a fixed location
+# This creates the actual .venv (~1.8GB) that pytest will use
 COPY transcribe/pyproject.toml transcribe/uv.lock /tmp/python-deps/
+ENV UV_PROJECT_ENVIRONMENT=/venv
 RUN cd /tmp/python-deps && \
-    uv sync --frozen --no-install-project && \
-    echo "Python packages cached successfully"
+    uv sync --frozen && \
+    echo "Python virtual environment created successfully at $UV_PROJECT_ENVIRONMENT"
 
 # Pre-download ASR models for transcription
 # Set HF_HOME before downloading models
 ENV HF_HOME=/models
 RUN mkdir -p /models && \
     cd /tmp/python-deps && \
-    # Download Whisper-tiny for testing (fast, small model)
+    # Use the pre-created .venv to download models
     uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \
     echo "Whisper-tiny model downloaded successfully" && \
     # Pre-download NVIDIA Parakeet model (default model for production)
@@ -90,7 +92,8 @@ RUN mkdir -p /models && \
     rm -rf /models/xet && \
     echo "Cleaned up xet cache"
 
-# Clean up temporary build files to reduce image size (saves ~3.5GB total)
+# Clean up temporary build files to reduce image size
+# The .venv is at /venv and will persist across container restarts
 RUN rm -rf /tmp/python-deps && \
     echo "Cleaned up build artifacts"
 
