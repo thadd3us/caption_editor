@@ -78,10 +78,10 @@ RUN cd /tmp/python-deps && \
 RUN mkdir -p /models && \
     cd /tmp/python-deps && \
     # Download Whisper-tiny for testing (fast, small model)
-    uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny', cache_dir='/models')" && \
+    HF_HOME=/models uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \
     echo "Whisper-tiny model downloaded successfully" && \
     # Pre-download NVIDIA Parakeet model (default model for production)
-    # Note: This is a ~600MB download and may take time during build 
+    # Note: This is a ~600MB download and may take time during build
     uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
     echo "Parakeet TDT model downloaded successfully"
 
