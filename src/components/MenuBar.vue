@@ -17,20 +17,38 @@ import { useVTTStore } from '../stores/vttStore'
 
 const store = useVTTStore()
 
-function exportVTT() {
+async function exportVTT() {
   console.log('Exporting VTT file')
   try {
     const content = store.exportToString()
-    const blob = new Blob([content], { type: 'text/vtt' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = store.document.filePath || 'captions.vtt'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    console.log('VTT file downloaded')
+
+    // Use Electron save dialog if available
+    if (window.electronAPI) {
+      const result = await window.electronAPI.saveFile({
+        content,
+        suggestedName: store.document.filePath || 'captions.vtt'
+      })
+
+      if (result.success) {
+        console.log('VTT file saved successfully:', result.filePath)
+        alert('File saved successfully!')
+      } else if (result.error !== 'Save canceled') {
+        console.error('Failed to save VTT:', result.error)
+        alert('Failed to save VTT file: ' + result.error)
+      }
+    } else {
+      // Fallback to browser download
+      const blob = new Blob([content], { type: 'text/vtt' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = store.document.filePath || 'captions.vtt'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      console.log('VTT file downloaded')
+    }
   } catch (err) {
     console.error('Failed to export VTT:', err)
     alert('Failed to export VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))

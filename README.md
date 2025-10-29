@@ -1,6 +1,39 @@
 # VTT Editor
 
-A browser-based, frontend-only WebVTT caption file editor with media playback support.
+A WebVTT caption file editor with media playback support. Available as both a web application and native desktop app.
+
+## 🖥️ Desktop App (Electron)
+
+**NEW!** The VTT Editor is now available as a native desktop application with proper file system permissions.
+
+👉 **See [ELECTRON.md](ELECTRON.md) for desktop app setup, building, and packaging instructions.**
+
+### Quick Start (Desktop)
+```bash
+# Build everything
+npm run build:all
+
+# Run the Electron app
+npm run dev:electron
+
+# Package for your platform
+npm run package:mac     # macOS
+npm run package:win     # Windows
+npm run package:linux   # Linux
+```
+
+### Desktop App Features
+- ✅ Native file dialogs (no permission prompts)
+- ✅ Drag & drop from Finder/Explorer
+- ✅ macOS security-scoped file access (no broad permissions!)
+- ✅ Cross-platform (macOS, Windows, Linux)
+- ✅ Same UI/UX as web version
+
+---
+
+## 🌐 Web Application
+
+The web version runs directly in your browser without any installation.
 
 ## Features
 

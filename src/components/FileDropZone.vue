@@ -33,15 +33,44 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 
 const store = useVTTStore()
 const showDropZone = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const isElectron = ref(false)
 
-function triggerFileInput() {
-  fileInput.value?.click()
+onMounted(() => {
+  isElectron.value = !!window.electronAPI?.isElectron
+
+  // Listen for Electron file drops
+  if (isElectron.value) {
+    window.addEventListener('electron-files-dropped', ((event: CustomEvent<{ filePaths: string[] }>) => {
+      handleElectronFileDrop(event)
+    }) as EventListener)
+  }
+})
+
+async function triggerFileInput() {
+  if (isElectron.value && window.electronAPI) {
+    // Use Electron file picker
+    const filePaths = await window.electronAPI.openFile({
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'VTT Files', extensions: ['vtt'] },
+        { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+
+    if (filePaths && filePaths.length > 0) {
+      await processElectronFiles(filePaths)
+    }
+  } else {
+    // Use browser file picker
+    fileInput.value?.click()
+  }
 }
 
 function handleFileSelect(event: Event) {
@@ -69,7 +98,52 @@ async function handleDrop(e: DragEvent) {
   if (!e.dataTransfer?.files) return
 
   const files = Array.from(e.dataTransfer.files)
+
+  // In Electron, extract file paths and use Electron API
+  if (isElectron.value && window.electronAPI) {
+    // @ts-ignore - path property exists in Electron
+    const filePaths = files.map(f => f.path).filter(Boolean)
+    if (filePaths.length > 0) {
+      await processElectronFiles(filePaths)
+      return
+    }
+  }
+
+  // Fallback to browser processing
   await processFiles(files)
+}
+
+async function handleElectronFileDrop(event: CustomEvent<{ filePaths: string[] }>) {
+  showDropZone.value = false
+  await processElectronFiles(event.detail.filePaths)
+}
+
+async function processElectronFiles(filePaths: string[]) {
+  if (!window.electronAPI) return
+
+  console.log('Processing', filePaths.length, 'files via Electron')
+
+  const results = await window.electronAPI.processDroppedFiles(filePaths)
+
+  for (const result of results) {
+    if (result.type === 'vtt' && result.content) {
+      try {
+        store.loadFromFile(result.content, result.filePath)
+        console.log('VTT file loaded successfully:', result.fileName)
+      } catch (err) {
+        console.error('Failed to load VTT file:', err)
+        alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      }
+    } else if (result.type === 'media' && result.url) {
+      try {
+        store.loadMediaFile(result.url, result.filePath)
+        console.log('Media file loaded successfully:', result.fileName)
+      } catch (err) {
+        console.error('Failed to load media file:', err)
+        alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      }
+    }
+  }
 }
 
 async function processFiles(files: File[]) {
