@@ -98,7 +98,8 @@ export const useVTTStore = defineStore('vtt', () => {
       startTime,
       endTime: startTime + duration,
       text: 'New caption',
-      rating: undefined
+      rating: undefined,
+      timestamp: new Date().toISOString()
     }
 
     document.value = addCueToDoc(document.value, newCue)
@@ -178,7 +179,8 @@ export const useVTTStore = defineStore('vtt', () => {
       const data = {
         document: {
           cues: document.value.cues,
-          filePath: document.value.filePath
+          filePath: document.value.filePath,
+          history: document.value.history
         },
         timestamp: Date.now()
       }
@@ -196,7 +198,8 @@ export const useVTTStore = defineStore('vtt', () => {
         const data = JSON.parse(stored)
         document.value = {
           cues: Object.freeze(data.document.cues),
-          filePath: data.document.filePath
+          filePath: data.document.filePath,
+          history: data.document.history
         }
         console.log('Loaded from localStorage:', document.value.cues.length, 'cues')
       }

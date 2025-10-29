@@ -255,7 +255,7 @@ Caption with short format`
       expect(output).toContain('"rating":5')
     })
 
-    it('should not include NOTE for unrated cues', () => {
+    it('should always include NOTE metadata for all cues', () => {
       const doc: VTTDocument = {
         cues: Object.freeze([
           {
@@ -269,7 +269,8 @@ Caption with short format`
       }
 
       const output = serializeVTT(doc)
-      expect(output).not.toContain('NOTE')
+      expect(output).toContain('NOTE')
+      expect(output).toContain('"id":"test-1"')
     })
 
     it('should handle empty documents', () => {
@@ -534,6 +535,186 @@ Caption with short format`
       expect(parsed.document?.cues[0].id).toBe(uuid1)
       expect(parsed.document?.cues[0].rating).toBe(5)
       expect(parsed.document?.cues[1].text).toBe('Second caption\nwith multiple lines')
+    })
+  })
+
+  describe('segment history', () => {
+    it('should record history when updating a cue', () => {
+      const cue: VTTCue = {
+        id: 'test-1',
+        startTime: 1,
+        endTime: 4,
+        text: 'Original text',
+        rating: undefined,
+        timestamp: '2024-01-01T00:00:00.000Z'
+      }
+      const doc: VTTDocument = {
+        cues: Object.freeze([cue])
+      }
+
+      const updatedDoc = updateCue(doc, 'test-1', { text: 'Updated text' })
+
+      expect(updatedDoc.history).toBeDefined()
+      expect(updatedDoc.history?.entries).toHaveLength(1)
+      expect(updatedDoc.history?.entries[0].action).toBe('modified')
+      expect(updatedDoc.history?.entries[0].actionTimestamp).toBeDefined()
+      expect(updatedDoc.history?.entries[0].cue.id).toBe('test-1')
+      expect(updatedDoc.history?.entries[0].cue.text).toBe('Original text')
+      expect(updatedDoc.history?.entries[0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z') // Original timestamp preserved
+    })
+
+    it('should record history when deleting a cue', () => {
+      const cue: VTTCue = {
+        id: 'test-1',
+        startTime: 1,
+        endTime: 4,
+        text: 'To be deleted',
+        rating: 5,
+        timestamp: '2024-01-01T12:00:00.000Z'
+      }
+      const doc: VTTDocument = {
+        cues: Object.freeze([cue])
+      }
+
+      const updatedDoc = deleteCue(doc, 'test-1')
+
+      expect(updatedDoc.history).toBeDefined()
+      expect(updatedDoc.history?.entries).toHaveLength(1)
+      expect(updatedDoc.history?.entries[0].action).toBe('deleted')
+      expect(updatedDoc.history?.entries[0].actionTimestamp).toBeDefined()
+      expect(updatedDoc.history?.entries[0].cue.id).toBe('test-1')
+      expect(updatedDoc.history?.entries[0].cue.text).toBe('To be deleted')
+      expect(updatedDoc.history?.entries[0].cue.rating).toBe(5)
+      expect(updatedDoc.history?.entries[0].cue.timestamp).toBe('2024-01-01T12:00:00.000Z') // Original timestamp preserved
+    })
+
+    it('should append to existing history', () => {
+      const cue1: VTTCue = {
+        id: 'test-1',
+        startTime: 1,
+        endTime: 4,
+        text: 'First',
+        rating: undefined
+      }
+      const cue2: VTTCue = {
+        id: 'test-2',
+        startTime: 5,
+        endTime: 8,
+        text: 'Second',
+        rating: undefined
+      }
+      const doc: VTTDocument = {
+        cues: Object.freeze([cue1, cue2])
+      }
+
+      // First update
+      let updatedDoc = updateCue(doc, 'test-1', { text: 'First updated' })
+      expect(updatedDoc.history?.entries).toHaveLength(1)
+
+      // Second update
+      updatedDoc = updateCue(updatedDoc, 'test-2', { text: 'Second updated' })
+      expect(updatedDoc.history?.entries).toHaveLength(2)
+      expect(updatedDoc.history?.entries[0].cue.id).toBe('test-1')
+      expect(updatedDoc.history?.entries[1].cue.id).toBe('test-2')
+    })
+
+    it('should serialize history to NOTE at end of VTT', () => {
+      const cue: VTTCue = {
+        id: 'test-1',
+        startTime: 1,
+        endTime: 4,
+        text: 'Original',
+        rating: undefined
+      }
+      let doc: VTTDocument = {
+        cues: Object.freeze([cue])
+      }
+
+      // Update to create history
+      doc = updateCue(doc, 'test-1', { text: 'Updated' })
+
+      const serialized = serializeVTT(doc)
+
+      expect(serialized).toContain('NOTE')
+      expect(serialized).toContain('"entries"')
+      expect(serialized).toContain('"action":"modified"')
+      expect(serialized).toContain('test-1')
+
+      // History should be at the end
+      const noteIndex = serialized.lastIndexOf('NOTE')
+      const historyMatch = serialized.substring(noteIndex).match(/NOTE (.+)/)
+      expect(historyMatch).toBeDefined()
+
+      const historyData = JSON.parse(historyMatch![1])
+      expect(historyData.entries).toBeDefined()
+      expect(historyData.entries).toHaveLength(1)
+    })
+
+    it('should parse history from NOTE at end of VTT', () => {
+      const content = `WEBVTT
+
+test-1
+00:00:01.000 --> 00:00:04.000
+Updated text
+
+NOTE {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","cue":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}]}`
+
+      const result = parseVTT(content)
+
+      expect(result.success).toBe(true)
+      expect(result.document?.history).toBeDefined()
+      expect(result.document?.history?.entries).toHaveLength(1)
+      expect(result.document?.history?.entries[0].action).toBe('modified')
+      expect(result.document?.history?.entries[0].actionTimestamp).toBe('2024-01-01T12:00:00.000Z')
+      expect(result.document?.history?.entries[0].cue.id).toBe('test-1')
+      expect(result.document?.history?.entries[0].cue.text).toBe('Original text')
+      expect(result.document?.history?.entries[0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z')
+    })
+
+    it('should preserve history through round-trip', () => {
+      const cue: VTTCue = {
+        id: 'test-1',
+        startTime: 1,
+        endTime: 4,
+        text: 'Current text',
+        rating: 3
+      }
+      let doc: VTTDocument = {
+        cues: Object.freeze([cue])
+      }
+
+      // Update and delete to create history
+      doc = updateCue(doc, 'test-1', { text: 'Updated text' })
+      doc = updateCue(doc, 'test-1', { rating: 5 })
+
+      const serialized = serializeVTT(doc)
+      const parsed = parseVTT(serialized)
+
+      expect(parsed.success).toBe(true)
+      expect(parsed.document?.history?.entries).toHaveLength(2)
+      expect(parsed.document?.history?.entries[0].cue.text).toBe('Current text')
+      expect(parsed.document?.history?.entries[1].cue.rating).toBe(3)
+    })
+
+    it('should not serialize history if no entries exist', () => {
+      const doc: VTTDocument = {
+        cues: Object.freeze([
+          {
+            id: 'test-1',
+            startTime: 1,
+            endTime: 4,
+            text: 'Caption',
+            rating: undefined
+          }
+        ])
+      }
+
+      const serialized = serializeVTT(doc)
+
+      // Should contain one NOTE for the cue metadata, but not for history
+      const noteCount = (serialized.match(/NOTE/g) || []).length
+      expect(noteCount).toBe(1) // One NOTE for cue metadata, no history NOTE
+      expect(serialized).not.toContain('"entries"')
     })
   })
 })

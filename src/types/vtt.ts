@@ -7,6 +7,7 @@ export interface VTTCue {
   readonly endTime: number // End time in seconds
   readonly text: string // Caption text
   readonly rating?: number // Optional rating 1-5
+  readonly timestamp?: string // ISO 8601 timestamp of when the cue was created/last modified
 }
 
 /**
@@ -15,6 +16,7 @@ export interface VTTCue {
 export interface VTTDocument {
   readonly cues: readonly VTTCue[]
   readonly filePath?: string // Original file path if loaded from file
+  readonly history?: SegmentHistory // Historical record of segment changes
 }
 
 /**
@@ -23,6 +25,7 @@ export interface VTTDocument {
 export interface VTTCueMetadata {
   id: string
   rating?: number
+  timestamp?: string
 }
 
 /**
@@ -40,4 +43,20 @@ export interface ParseResult {
 export interface TimeRange {
   start: number
   end: number
+}
+
+/**
+ * Historical record of a segment modification or deletion
+ */
+export interface SegmentHistoryEntry {
+  readonly action: 'modified' | 'deleted' // Type of action performed
+  readonly actionTimestamp: string // ISO 8601 timestamp of when this action occurred
+  readonly cue: VTTCue // The segment's state before the change (preserves the original timestamp)
+}
+
+/**
+ * Collection of segment history entries
+ */
+export interface SegmentHistory {
+  readonly entries: readonly SegmentHistoryEntry[]
 }
