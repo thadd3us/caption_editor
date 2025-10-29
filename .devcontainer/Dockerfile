@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y \
     libsndfile1 \
     sox 
 
+RUN apt install -y ncdu
+
 # Install uv for fast Python package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
@@ -50,10 +52,6 @@ RUN mkdir -p /tmp/playwright-install && \
     npx playwright install --with-deps --only-shell chromium && \
     cd / && \
     rm -rf /tmp/playwright-install
-
-# TODO: Delete me.
-# Set working directory
-WORKDIR /workspace
 
 # Pre-install common dependencies based on package.json structure
 # This creates a layer (~155MB) that can be cached when only package.json changes
@@ -79,32 +77,29 @@ RUN cd /tmp/python-deps && \
 # Pre-download ASR models for transcription
 # Set HF_HOME before downloading models
 ENV HF_HOME=/models
-RUN mkdir -p /models && \
-    cd /tmp/python-deps && \
-    # Use the pre-created .venv to download models
+
+# TODO: Does this do anything?
+# NeMo toolkit environment variables
+ENV NEMO_MODEL_CACHE=/models
+
+RUN mkdir -p /models
+
+RUN cd /tmp/python-deps && \
     uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \
-    echo "Whisper-tiny model downloaded successfully" && \
+    rm -rf /models/xet && \
+    echo "Whisper-tiny model downloaded successfully"
     # Pre-download NVIDIA Parakeet model (default model for production)
     # Note: This is a ~2.4GB download and may take time during build
+    
+RUN cd /tmp/python-deps && \
     uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
-    echo "Parakeet TDT model downloaded successfully" && \
-    # Clean up the xet chunk cache (temp files from model download, saves ~145MB)
     rm -rf /models/xet && \
-    echo "Cleaned up xet cache"
-
-# Clean up temporary build files to reduce image size
-# The .venv is at /venv and will persist across container restarts
-RUN rm -rf /tmp/python-deps && \
-    echo "Cleaned up build artifacts"
+    echo "Parakeet TDT model downloaded successfully"
 
 # Environment variables
 ENV NODE_ENV=development
-# NeMo toolkit environment variables
-ENV NEMO_MODEL_CACHE=/models
 # Disable OneLogger telemetry in development
 ENV ONE_LOGGER_DISABLE=1
-
-RUN apt install -y ncdu
 
 # Default command
 CMD ["bash"]
