@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import istanbul from 'vite-plugin-istanbul'
 
 export default defineConfig({
+  base: './',
   plugins: [
     vue(),
     istanbul({

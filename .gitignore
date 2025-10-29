@@ -33,6 +33,7 @@ out
 /playwright-report/
 /playwright/.cache/
 test-results.json
+tests/electron/screenshots/
 
 # Coverage
 .nyc_output/

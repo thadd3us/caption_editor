@@ -89,7 +89,14 @@ The macOS build includes:
 npm run test:e2e:electron
 ```
 
-This runs Playwright tests specifically for the Electron app.
+This runs Playwright tests specifically for the Electron app, including:
+- Application launch and window creation
+- Electron API availability
+- File operations (open, read, save)
+- File drop handling
+- Screenshot capture to verify UI renders correctly
+
+Screenshots are saved to `tests/electron/screenshots/` for visual verification.
 
 ### Manual Testing
 
@@ -181,12 +188,30 @@ The app still works in browsers! The code automatically detects Electron and use
 - The app should prompt for file access automatically
 - If issues persist, check System Preferences > Security & Privacy > Files and Folders
 
+### Blank white screen / App doesn't load
+
+This is usually caused by incorrect asset paths. The fix has been applied in `vite.config.ts` by setting `base: './'` to use relative paths instead of absolute paths.
+
+If you still see a blank screen:
+```bash
+# Clean and rebuild
+rm -rf dist dist-electron
+npm run build:all
+npm run dev:electron
+```
+
 ### Electron won't start
 ```bash
 # Clean and rebuild
 rm -rf dist dist-electron
 npm run build:all
 npm run dev:electron
+```
+
+Note: On Linux, Electron requires GTK libraries. If you see `libgtk-3.so.0` errors, install them:
+```bash
+# Ubuntu/Debian
+sudo apt-get install libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils libatspi2.0-0 libdrm2 libgbm1 libasound2
 ```
 
 ### App won't package

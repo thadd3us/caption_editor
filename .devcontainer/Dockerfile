@@ -1,6 +1,6 @@
 FROM node:20-bookworm
 
-# Install system dependencies for Playwright and Python ML
+# Install system dependencies for Playwright, Electron, and Python ML
 RUN apt-get update && apt-get install -y \
     # Playwright browser dependencies
     libnss3 \
@@ -21,6 +21,13 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libasound2 \
     libxshmfence1 \
+    # Electron-specific dependencies
+    libgtk-3-0 \
+    libnotify4 \
+    libxss1 \
+    libxtst6 \
+    xdg-utils \
+    libwayland-client0 \
     # Additional tools
     git \
     curl \

@@ -196,4 +196,45 @@ Dropped caption
 
     expect(consoleErrors.length).toBe(0)
   })
+
+  test('should capture screenshot of app', async () => {
+    // Wait for app to fully load
+    await window.waitForLoadState('networkidle')
+    await window.waitForTimeout(1000)
+
+    // Capture screenshot to verify app is rendering correctly
+    const screenshot = await window.screenshot({
+      path: 'tests/electron/screenshots/app-launch.png',
+      fullPage: true
+    })
+
+    // Verify screenshot was captured
+    expect(screenshot).toBeTruthy()
+    expect(screenshot.length).toBeGreaterThan(0)
+
+    // Check that the main UI elements are visible
+    const body = await window.locator('body')
+    await expect(body).toBeVisible()
+
+    // Log viewport size for debugging
+    const viewportSize = window.viewportSize()
+    console.log('Viewport size:', viewportSize)
+
+    // Verify page is not blank by checking if there's actual content
+    const hasContent = await window.evaluate(() => {
+      const body = document.body
+      const bodyText = body.innerText || body.textContent || ''
+      const hasElements = body.children.length > 1 // More than just #app
+      return {
+        hasText: bodyText.trim().length > 0,
+        hasElements,
+        bodyHTML: body.innerHTML.substring(0, 200) // First 200 chars for debugging
+      }
+    })
+
+    console.log('Page content check:', hasContent)
+
+    // App should have either text content or multiple elements
+    expect(hasContent.hasText || hasContent.hasElements).toBe(true)
+  })
 })
