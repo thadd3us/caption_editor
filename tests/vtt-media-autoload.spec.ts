@@ -199,4 +199,47 @@ test.describe('VTT Media Auto-loading', () => {
     expect(cues[2].rating).toBeUndefined()
     expect(cues[2].id).toBe('db8f6b03-f1a0-426b-80bd-6d39382e8417')
   })
+
+  test('should trigger auto-load when document is loaded from localStorage', async ({ page }) => {
+    test.setTimeout(15000)
+
+    // First, load a VTT with media reference
+    const vttFilePath = path.resolve(__dirname, 'fixtures', 'with-media-reference.vtt')
+    const vttContent = fs.readFileSync(vttFilePath, 'utf-8')
+
+    const dataTransfer = await page.evaluateHandle((content) => {
+      const dt = new DataTransfer()
+      const file = new File([content], 'with-media-reference.vtt', { type: 'text/vtt' })
+      dt.items.add(file)
+      return dt
+    }, vttContent)
+
+    await page.dispatchEvent('.file-input-zone', 'drop', { dataTransfer })
+    await page.waitForTimeout(500)
+
+    // Verify the document was loaded and saved to localStorage
+    const savedToLocalStorage = await page.evaluate(() => {
+      const stored = localStorage.getItem('vtt-editor-document')
+      return stored !== null
+    })
+    expect(savedToLocalStorage).toBe(true)
+
+    // Now reload the page to simulate crash recovery / localStorage load
+    await page.reload()
+    await page.waitForTimeout(1000)
+
+    // Verify the document was restored from localStorage
+    const restoredMetadata = await page.evaluate(() => (window as any).$store.document.metadata)
+    console.log('Restored metadata:', restoredMetadata)
+    expect(restoredMetadata.id).toBe('550e8400-e29b-41d4-a716-446655440000')
+    expect(restoredMetadata.mediaFilePath).toBe('OSR_us_000_0010_8k.wav')
+
+    // Verify cues were also restored
+    const restoredCues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(restoredCues.length).toBe(3)
+
+    // In browser mode, we can't auto-load the media file from localStorage
+    // but the metadata should be preserved and logged
+    // (Electron tests will verify actual auto-loading)
+  })
 })

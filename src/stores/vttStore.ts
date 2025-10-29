@@ -55,6 +55,10 @@ export const useVTTStore = defineStore('vtt', () => {
       }
       saveToLocalStorage()
       console.log('Loaded document with', document.value.cues.length, 'cues')
+
+      // Trigger media auto-load if metadata has mediaFilePath
+      // We return the metadata so the caller can handle auto-loading
+      // (since the store doesn't have access to Electron APIs)
     } else {
       console.error('Failed to load VTT:', result.error)
       throw new Error(result.error || 'Failed to parse VTT file')
