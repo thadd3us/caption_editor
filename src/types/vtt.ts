@@ -14,9 +14,16 @@ export interface VTTCue {
  * Complete VTT document with metadata
  */
 export interface VTTDocument {
+  // TODO: Add a UUID here.
+  // TODO: Add an optional path to the media file for which this is a transcript here.  Ideally this path would be relative to the directory containing filePath if possible.  
   readonly cues: readonly VTTCue[]
   readonly filePath?: string // Original file path if loaded from file
   readonly history?: SegmentHistory // Historical record of segment changes
+
+  // TODO: Extract a type called TranscriptMetadata that contains the UUID for the document and the path to the media file.
+  // Serialize all that into a top-level NOTE comment in the VTT file, ideally at the top of the file.
+
+  // TODO: Extract a type called TranscriptHistory and serialize/parse that as a NOTE comment at the end of the VTT file.
 }
 
 /**
@@ -49,6 +56,7 @@ export interface TimeRange {
  * Historical record of a segment modification or deletion
  */
 export interface SegmentHistoryEntry {
+  // TODO: Add a UUID here.
   readonly action: 'modified' | 'deleted' // Type of action performed
   readonly actionTimestamp: string // ISO 8601 timestamp of when this action occurred
   readonly cue: VTTCue // The segment's state before the change (preserves the original timestamp)
