@@ -251,66 +251,12 @@ function handleJumpToRow(event: Event) {
   }
 }
 
-// Handle keyboard navigation with arrow keys and space
-function handleKeyDown(event: KeyboardEvent) {
-  if (!gridApi.value) return
-
-  const selectedRows = gridApi.value.getSelectedRows()
-  if (selectedRows.length === 0) return
-
-  const currentRow = selectedRows[0]
-  const allRows = rowData.value
-
-  const currentIndex = allRows.findIndex(r => r.id === currentRow.id)
-  if (currentIndex === -1) return
-
-  let newIndex = currentIndex
-
-  // Arrow key navigation
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    newIndex = Math.min(currentIndex + 1, allRows.length - 1)
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    newIndex = Math.max(currentIndex - 1, 0)
-  } else if (event.key === ' ' || event.key === 'Spacebar') {
-    // Space key toggles play/pause if autoplay is enabled
-    if (autoplayEnabled.value) {
-      event.preventDefault()
-      const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
-      if (mediaElement) {
-        if (mediaElement.paused) {
-          mediaElement.play().catch(err => console.error('Play failed:', err))
-        } else {
-          mediaElement.pause()
-        }
-      }
-    }
-    return
-  } else {
-    return
-  }
-
-  // Select the new row
-  if (newIndex !== currentIndex) {
-    const newRow = allRows[newIndex]
-    const rowNode = gridApi.value.getRowNode(newRow.id)
-    if (rowNode) {
-      gridApi.value.deselectAll()
-      gridApi.value.ensureNodeVisible(rowNode, 'middle')
-      rowNode.setSelected(true)
-    }
-  }
-}
-
 onMounted(() => {
   window.addEventListener('jumpToRow', handleJumpToRow)
-  window.addEventListener('keydown', handleKeyDown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('jumpToRow', handleJumpToRow)
-  window.removeEventListener('keydown', handleKeyDown)
 })
 </script>
 
