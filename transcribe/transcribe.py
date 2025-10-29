@@ -5,9 +5,11 @@ Converts media files to VTT format with segment-level transcription.
 """
 
 import hashlib
+import json
 import subprocess
 import tempfile
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -43,6 +45,23 @@ class VTTCue(BaseModel):
     end_time: float = Field(description="End time in seconds", alias="endTime")
     text: str = Field(description="Caption text")
     rating: Optional[int] = Field(None, description="Optional rating 1-5")
+    timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of when the cue was created/last modified")
+
+
+class SegmentHistoryEntry(BaseModel):
+    """Historical record of a segment modification or deletion."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    action: str = Field(description="Type of action performed: 'modified' or 'deleted'")
+    action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
+    cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")
+
+
+class SegmentHistory(BaseModel):
+    """Collection of segment history entries."""
+
+    entries: List[SegmentHistoryEntry] = Field(description="List of historical changes to segments")
 
 
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
@@ -242,18 +261,34 @@ def generate_cue_id(audio_hash: str, start_time: float) -> str:
 
 
 def cues_to_vtt(cues: List[VTTCue], audio_hash: str) -> str:
-    """Convert cues to VTT format string."""
+    """Convert cues to VTT format string with NOTE metadata."""
     lines = ["WEBVTT\n"]
+
+    # Get current timestamp for all cues
+    current_timestamp = datetime.now(timezone.utc).isoformat()
 
     for cue in cues:
         # Generate ID
         cue_id = generate_cue_id(audio_hash, cue.start_time)
 
+        # Set timestamp if not already set
+        cue_timestamp = cue.timestamp if cue.timestamp else current_timestamp
+
+        # Always add NOTE with metadata
+        metadata = {
+            "id": cue_id,
+            "rating": cue.rating,
+            "timestamp": cue_timestamp
+        }
+        # Remove None values for cleaner JSON
+        metadata = {k: v for k, v in metadata.items() if v is not None}
+        lines.append(f"\nNOTE {json.dumps(metadata)}\n")
+
         # Format timestamps
         start = format_timestamp(cue.start_time)
         end = format_timestamp(cue.end_time)
 
-        lines.append(f"\n{cue_id}")
+        lines.append(f"{cue_id}")
         lines.append(f"{start} --> {end}")
         lines.append(f"{cue.text}\n")
 
