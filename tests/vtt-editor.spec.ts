@@ -98,7 +98,27 @@ test.describe('VTT Editor', () => {
 
     const resizer = page.locator('.resizer')
     await expect(resizer).toBeVisible()
-    console.log('Panel resizer is visible')
+
+    // Get initial panel widths
+    const leftPanel = page.locator('.left-panel')
+    const initialWidth = await leftPanel.evaluate(el => el.getBoundingClientRect().width)
+
+    // Get resizer position
+    const resizerBox = await resizer.boundingBox()
+    if (!resizerBox) throw new Error('Resizer not found')
+
+    // Drag the resizer to the right by 100px
+    await page.mouse.move(resizerBox.x + resizerBox.width / 2, resizerBox.y + resizerBox.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(resizerBox.x + 100, resizerBox.y + resizerBox.height / 2)
+    await page.mouse.up()
+
+    // Check that the left panel width increased
+    await page.waitForTimeout(100)
+    const newWidth = await leftPanel.evaluate(el => el.getBoundingClientRect().width)
+    expect(newWidth).toBeGreaterThan(initialWidth)
+
+    console.log('Panel resizer works: width changed from', initialWidth, 'to', newWidth)
   })
 
   test('should clear document with confirmation', async ({ page }) => {

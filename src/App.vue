@@ -40,13 +40,19 @@ function startResize(e: MouseEvent) {
   isResizing = true
   e.preventDefault()
 
-  const onMouseMove = (e: MouseEvent) => {
+  // Get the container element
+  const container = (e.target as HTMLElement).parentElement
+  if (!container) return
+
+  const onMouseMove = (moveEvent: MouseEvent) => {
     if (!isResizing) return
 
-    const containerWidth = (e.currentTarget as HTMLElement)?.parentElement?.offsetWidth
-    if (!containerWidth) return
+    // Calculate position relative to the container
+    const containerRect = container.getBoundingClientRect()
+    const offsetX = moveEvent.clientX - containerRect.left
+    const newWidth = (offsetX / containerRect.width) * 100
 
-    const newWidth = (e.clientX / containerWidth) * 100
+    // Constrain width between 20% and 80%
     if (newWidth >= 20 && newWidth <= 80) {
       leftPanelWidth.value = newWidth
     }

@@ -214,15 +214,13 @@ function onSelectionChanged(event: SelectionChangedEvent) {
     console.log('Selected cue:', cueId)
     store.selectCue(cueId)
 
-    // If autoplay is enabled, play from this row
+    // If autoplay is enabled, play the segment and stop at end (like play snippet button)
     if (autoplayEnabled.value) {
-      console.log('Autoplay enabled, playing from:', startTime)
+      console.log('Autoplay enabled, playing snippet from:', startTime)
       store.setCurrentTime(startTime)
-      const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
-      if (mediaElement) {
-        mediaElement.currentTime = startTime
-        mediaElement.play().catch(err => console.error('Autoplay failed:', err))
-      }
+      // Use store.setPlaying(true) to trigger snippet playback in MediaPlayer
+      // This will automatically stop at the segment's end time
+      store.setPlaying(true)
     }
   }
 }
