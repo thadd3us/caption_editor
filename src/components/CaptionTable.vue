@@ -2,10 +2,16 @@
   <div class="caption-table">
     <div class="table-header">
       <h2>Captions ({{ store.document.cues.length }})</h2>
-      <label class="autoplay-checkbox">
-        <input type="checkbox" v-model="autoplayEnabled" />
-        Autoplay (selected row)
-      </label>
+      <div class="header-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" v-model="autoplayEnabled" />
+          Autoplay (selected row)
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" v-model="autoScrollEnabled" />
+          Auto-scroll
+        </label>
+      </div>
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
@@ -39,6 +45,8 @@ import ActionButtonsCell from './ActionButtonsCell.vue'
 const store = useVTTStore()
 const gridApi = ref<GridApi | null>(null)
 const autoplayEnabled = ref(false)
+const autoScrollEnabled = ref(false)
+let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
 
 // Force grid re-render when cues array changes
 const gridKey = computed(() => store.document.cues.map(c => c.id).join(','))
@@ -211,11 +219,12 @@ function onSelectionChanged(event: SelectionChangedEvent) {
     const row = selectedRows[0]
     const cueId = row.id
     const startTime = row.startTime
-    console.log('Selected cue:', cueId)
+    console.log('Selected cue:', cueId, 'isAutoScrolling:', isAutoScrolling)
     store.selectCue(cueId)
 
-    // If autoplay is enabled, do exactly what the play snippet button does
-    if (autoplayEnabled.value) {
+    // If autoplay is enabled AND we're not auto-scrolling, play the snippet
+    // (During auto-scroll, we don't want to trigger autoplay)
+    if (autoplayEnabled.value && !isAutoScrolling) {
       console.log('Autoplay: playing snippet for cue:', cueId)
       store.setCurrentTime(startTime)
       store.setPlaying(true)
@@ -227,6 +236,37 @@ function onSelectionChanged(event: SelectionChangedEvent) {
 watch(() => store.document.cues, () => {
   gridApi.value?.refreshCells()
 }, { deep: true })
+
+// Auto-scroll: watch currentTime and scroll to the intersecting row
+watch(() => store.currentTime, (currentTime) => {
+  if (!autoScrollEnabled.value || !gridApi.value) return
+
+  // Find the first cue that the playhead intersects
+  const cue = store.document.cues.find(c =>
+    c.startTime <= currentTime && currentTime < c.endTime
+  )
+
+  if (cue) {
+    const rowNode = gridApi.value.getRowNode(cue.id)
+    if (rowNode) {
+      isAutoScrolling = true
+
+      // Select the row (highlights it blue)
+      gridApi.value.deselectAll()
+      rowNode.setSelected(true)
+
+      // Scroll it to the top
+      gridApi.value.ensureNodeVisible(rowNode, 'top')
+
+      console.log('Auto-scrolled to cue:', cue.id, 'at time:', currentTime)
+
+      // Reset the flag after a short delay to allow selection to complete
+      setTimeout(() => {
+        isAutoScrolling = false
+      }, 100)
+    }
+  }
+})
 
 // Handle jumpToRow event from MediaPlayer
 function handleJumpToRow(event: Event) {
@@ -277,7 +317,12 @@ onUnmounted(() => {
   color: #333;
 }
 
-.autoplay-checkbox {
+.header-controls {
+  display: flex;
+  gap: 16px;
+}
+
+.checkbox-label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -287,7 +332,7 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.autoplay-checkbox input[type="checkbox"] {
+.checkbox-label input[type="checkbox"] {
   width: 16px;
   height: 16px;
   cursor: pointer;

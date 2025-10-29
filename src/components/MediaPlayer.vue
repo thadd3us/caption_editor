@@ -210,38 +210,28 @@ watch(() => store.isPlaying, (playing) => {
   if (!mediaElement.value) return
 
   if (playing) {
-    console.log('Play requested - paused:', mediaElement.value.paused, 'selectedCueId:', store.selectedCueId, 'currentTime:', store.currentTime)
-
     // Check if we need to set up snippet playback
     // Use selectedCueId to find the cue, not currentCue (which is based on time)
     if (store.selectedCueId) {
       const selectedCue = store.document.cues.find(c => c.id === store.selectedCueId)
-      console.log('Found selected cue:', selectedCue?.id, 'startTime:', selectedCue?.startTime)
 
       if (selectedCue) {
         const timeDiff = Math.abs(store.currentTime - selectedCue.startTime)
-        console.log('Time difference:', timeDiff)
 
         if (timeDiff < 0.1) {
-          console.log('Starting snippet playback for cue:', selectedCue.id, 'endTime:', selectedCue.endTime)
+          console.log('Starting snippet playback for cue:', selectedCue.id)
           snippetEndTime.value = selectedCue.endTime
-        } else {
-          console.log('Time difference too large, not setting up snippet playback')
         }
       }
     }
 
     if (mediaElement.value.paused) {
-      console.log('Media is paused, calling play()')
       mediaElement.value.play().catch(err => {
         console.error('Failed to play:', err)
       })
-    } else {
-      console.log('Media already playing, not calling play() again')
     }
   } else if (!playing) {
     if (!mediaElement.value.paused) {
-      console.log('Pausing media')
       mediaElement.value.pause()
     }
   }
