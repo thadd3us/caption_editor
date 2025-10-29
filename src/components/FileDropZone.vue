@@ -26,9 +26,6 @@
       style="display: none"
       @change="handleFileSelect"
     />
-    <button @click="triggerFileInput" class="upload-button">
-      📁 Open Files
-    </button>
   </div>
 </template>
 
@@ -194,6 +191,11 @@ async function processFiles(files: File[]) {
     console.log('No VTT file, creating empty document')
   }
 }
+
+// Expose methods to parent component
+defineExpose({
+  triggerFileInput
+})
 </script>
 
 <style scoped>
@@ -237,27 +239,11 @@ async function processFiles(files: File[]) {
 
 .file-input-zone {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-}
-
-.upload-button {
-  padding: 12px 24px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-  transition: all 0.2s;
-}
-
-.upload-button:hover {
-  background: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
 }
 </style>

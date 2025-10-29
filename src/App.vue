@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <MenuBar />
+    <MenuBar @open-files="handleOpenFiles" />
     <div class="main-content">
       <div class="resizable-container">
         <div class="left-panel" :style="{ width: leftPanelWidth + '%' }">
@@ -12,7 +12,7 @@
         </div>
       </div>
     </div>
-    <FileDropZone />
+    <FileDropZone ref="fileDropZone" />
   </div>
 </template>
 
@@ -24,7 +24,12 @@ import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 
 const leftPanelWidth = ref(60)
+const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 let isResizing = false
+
+function handleOpenFiles() {
+  fileDropZone.value?.triggerFileInput()
+}
 
 function startResize(e: MouseEvent) {
   console.log('Starting panel resize')

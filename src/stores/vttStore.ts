@@ -81,6 +81,15 @@ export const useVTTStore = defineStore('vtt', () => {
     return serializeVTT(document.value)
   }
 
+  function updateFilePath(filePath: string) {
+    console.log('Updating file path:', filePath)
+    document.value = {
+      ...document.value,
+      filePath
+    }
+    saveToLocalStorage()
+  }
+
   function addCue(startTime: number, duration: number = 5) {
     console.log('Adding new cue at', startTime, 'with duration', duration)
     const newCue: VTTCue = {
@@ -219,6 +228,7 @@ export const useVTTStore = defineStore('vtt', () => {
     loadFromFile,
     loadMediaFile,
     exportToString,
+    updateFilePath,
     addCue,
     updateCue,
     deleteCue,
