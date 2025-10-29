@@ -450,17 +450,22 @@ def main(
         typer.echo("Resolving overlaps...")
         final_cues = resolve_overlap_conflicts(all_cues, chunk_size, overlap)
 
-        # Calculate relative path from output VTT file's directory to media file
-        try:
-            import os
-            # Get absolute paths
-            output_dir = output.resolve().parent
-            media_abs = media_file.resolve()
-            # Compute relative path from output directory to media file
-            media_file_path = os.path.relpath(media_abs, output_dir)
-        except (ValueError, OSError):
-            # If relative path cannot be computed, use absolute path
-            media_file_path = str(media_file.resolve())
+        # Copy media file to output directory to keep VTT and media together
+        import shutil
+        output_dir = output.resolve().parent
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Copy media file with same name to output directory
+        media_filename = media_file.name
+        copied_media_path = output_dir / media_filename
+
+        # Only copy if source and destination are different
+        if media_file.resolve() != copied_media_path.resolve():
+            typer.echo(f"Copying media file to: {copied_media_path}")
+            shutil.copy2(media_file, copied_media_path)
+
+        # Media file path is just the filename (same directory as VTT)
+        media_file_path = media_filename
 
         # Generate VTT
         typer.echo("Generating VTT...")
