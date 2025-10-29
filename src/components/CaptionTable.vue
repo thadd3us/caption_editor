@@ -159,6 +159,8 @@ const columnDefs = ref<ColDef[]>([
       rows: 4,
       cols: 50
     },
+    wrapText: true,
+    autoHeight: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateCue(params.data.id, { text: params.newValue })

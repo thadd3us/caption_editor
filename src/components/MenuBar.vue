@@ -79,15 +79,19 @@ function handleClickOutside(event: MouseEvent) {
 function handleKeyDown(event: KeyboardEvent) {
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
   const modifier = isMac ? event.metaKey : event.ctrlKey
+  const key = event.key.toLowerCase()
 
-  if (modifier && event.key === 's') {
+  if (modifier && key === 's') {
     event.preventDefault()
+    console.log('Save shortcut triggered, filePath:', store.document.filePath)
     if (store.document.filePath) {
+      console.log('Calling saveFile()')
       saveFile()
     } else {
+      console.log('No filePath, calling exportVTT()')
       exportVTT()
     }
-  } else if (modifier && event.key === 'o') {
+  } else if (modifier && key === 'o') {
     event.preventDefault()
     openFile()
   }
@@ -141,8 +145,15 @@ async function handleDrop(event: DragEvent) {
 async function saveFile() {
   closeFileMenu()
 
+  // Check if Electron API is available
+  if (!window.electronAPI) {
+    console.log('Not in Electron, falling back to Save As dialog')
+    await exportVTT()
+    return
+  }
+
   if (!store.document.filePath) {
-    // No file path, do Save As instead
+    console.log('No file path stored, doing Save As')
     await exportVTT()
     return
   }
@@ -151,22 +162,20 @@ async function saveFile() {
   try {
     const content = store.exportToString()
 
-    // Use Electron save to existing file if available
-    if (window.electronAPI) {
-      const result = await window.electronAPI.saveExistingFile({
-        filePath: store.document.filePath,
-        content
-      })
+    const result = await window.electronAPI.saveExistingFile({
+      filePath: store.document.filePath,
+      content
+    })
 
-      if (result.success) {
-        console.log('VTT file saved successfully:', result.filePath)
-      } else {
-        console.error('Failed to save VTT:', result.error)
-        alert('Failed to save VTT file: ' + result.error)
+    if (result.success) {
+      console.log('VTT file saved successfully to:', result.filePath)
+      // Ensure the file path is updated in store
+      if (result.filePath && result.filePath !== store.document.filePath) {
+        store.updateFilePath(result.filePath)
       }
     } else {
-      // In browser, we can't save to existing file, do Save As
-      await exportVTT()
+      console.error('Failed to save VTT:', result.error)
+      alert('Failed to save VTT file: ' + result.error)
     }
   } catch (err) {
     console.error('Failed to save VTT:', err)
