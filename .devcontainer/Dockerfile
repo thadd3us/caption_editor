@@ -1,5 +1,8 @@
 FROM node:20-bookworm
 
+# Break caching.
+RUN touch /z
+
 # Install system dependencies for Playwright, Electron, and Python ML
 RUN apt-get update && apt-get install -y \
     # Playwright browser dependencies
