@@ -23,6 +23,12 @@ Standard file access through native dialogs. No special permissions needed.
 
 ## Development
 
+### Once
+
+```
+npm install
+```
+
 ### Running in Development Mode
 
 1. Start the Vite dev server:
