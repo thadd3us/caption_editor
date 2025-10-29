@@ -8,7 +8,7 @@ export default defineConfig({
         main: 'electron/main.ts',
         preload: 'electron/preload.ts'
       },
-      formats: ['es']
+      formats: ['cjs']
     },
     outDir: 'dist-electron',
     emptyOutDir: true,
