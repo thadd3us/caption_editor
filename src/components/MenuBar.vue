@@ -106,6 +106,7 @@ onUnmounted(() => {
 // Emit event to trigger file picker from FileDropZone
 const emit = defineEmits<{
   openFiles: []
+  filesDropped: [files: File[]]
 }>()
 
 function openFile() {
@@ -124,18 +125,15 @@ function handleDragLeave(event: DragEvent) {
   isDragOver.value = false
 }
 
-function handleDrop(event: DragEvent) {
+async function handleDrop(event: DragEvent) {
   event.preventDefault()
   isDragOver.value = false
 
-  // Forward the drop event to the file drop zone
+  // Process dropped files directly
   if (event.dataTransfer?.files) {
-    const dropEvent = new DragEvent('drop', {
-      dataTransfer: event.dataTransfer,
-      bubbles: true,
-      cancelable: true
-    })
-    document.dispatchEvent(dropEvent)
+    const files = Array.from(event.dataTransfer.files)
+    // Emit event to process files through FileDropZone
+    emit('filesDropped', files)
   }
 }
 

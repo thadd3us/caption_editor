@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <MenuBar @open-files="handleOpenFiles" />
+    <MenuBar @open-files="handleOpenFiles" @files-dropped="handleFilesDropped" />
     <div class="main-content">
       <div class="resizable-container">
         <div class="left-panel" :style="{ width: leftPanelWidth + '%' }">
@@ -29,6 +29,10 @@ let isResizing = false
 
 function handleOpenFiles() {
   fileDropZone.value?.triggerFileInput()
+}
+
+function handleFilesDropped(files: File[]) {
+  fileDropZone.value?.processFiles(files)
 }
 
 function startResize(e: MouseEvent) {

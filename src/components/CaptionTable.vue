@@ -300,4 +300,20 @@ onUnmounted(() => {
 .ag-theme-alpine {
   width: 100%;
 }
+
+/* Override AG Grid's default ellipsis behavior for time columns */
+:deep(.ag-cell[col-id="startTime"]),
+:deep(.ag-cell[col-id="endTime"]) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* When editing, switch back to LTR for proper input */
+:deep(.ag-cell[col-id="startTime"].ag-cell-inline-editing),
+:deep(.ag-cell[col-id="endTime"].ag-cell-inline-editing) {
+  direction: ltr !important;
+}
 </style>

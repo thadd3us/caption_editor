@@ -194,7 +194,8 @@ async function processFiles(files: File[]) {
 
 // Expose methods to parent component
 defineExpose({
-  triggerFileInput
+  triggerFileInput,
+  processFiles
 })
 </script>
 
