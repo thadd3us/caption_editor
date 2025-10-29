@@ -44,9 +44,9 @@
   "remoteEnv": {
     "NODE_ENV": "development"
   },
-  "runEnv": {
-    "DOCKER_BUILDKIT": "1"
-  },
+  // "runEnv": {
+  //   "DOCKER_BUILDKIT": "1"
+  // },
   // "remoteUser": "node",
   // "features": {
   //   "ghcr.io/devcontainers/features/git:1": {}

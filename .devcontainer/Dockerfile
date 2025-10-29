@@ -1,8 +1,5 @@
 FROM node:20-bookworm
 
-# Break caching.
-RUN touch /z
-
 # Install system dependencies for Playwright, Electron, and Python ML
 RUN apt-get update && apt-get install -y \
     # Playwright browser dependencies
@@ -105,6 +102,8 @@ RUN cd /tmp/python-deps && \
     uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
     rm -rf /models/xet && \
     echo "Parakeet TDT model downloaded successfully"
+
+RUN echo "2) sleeping for 30 seconds" && sleep 30 && echo "done sleeping"
 
 # Environment variables
 ENV NODE_ENV=development
