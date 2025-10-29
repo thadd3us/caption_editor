@@ -7,19 +7,12 @@ import type { VTTCue, VTTDocument, VTTCueMetadata, ParseResult, SegmentHistory, 
 export function getCurrentTimestamp(): string {
   const now = new Date()
   const offset = -now.getTimezoneOffset()
-  const offsetHours = Math.floor(Math.abs(offset) / 60).toString().padStart(2, '0')
-  const offsetMinutes = (Math.abs(offset) % 60).toString().padStart(2, '0')
+  const offsetHours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0')
+  const offsetMinutes = String(Math.abs(offset) % 60).padStart(2, '0')
   const offsetSign = offset >= 0 ? '+' : '-'
 
-  const year = now.getFullYear()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const day = now.getDate().toString().padStart(2, '0')
-  const hours = now.getHours().toString().padStart(2, '0')
-  const minutes = now.getMinutes().toString().padStart(2, '0')
-  const seconds = now.getSeconds().toString().padStart(2, '0')
-  const milliseconds = now.getMilliseconds().toString().padStart(3, '0')
-
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}${offsetSign}${offsetHours}:${offsetMinutes}`
+  // Get ISO string without the 'Z' and append timezone offset
+  return now.toISOString().slice(0, -1) + offsetSign + offsetHours + ':' + offsetMinutes
 }
 
 /**
