@@ -27,7 +27,7 @@ test.describe('Auto-scroll functionality', () => {
     await fileInput.setInputFiles([vttPath, audioPath])
 
     // Wait for files to load
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Verify 100 rows are loaded
     const captionHeader = page.locator('h2', { hasText: 'Captions' })
@@ -48,7 +48,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 10.5
     })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     let selectedRow = page.locator('.ag-row-selected')
     await expect(selectedRow).toBeVisible()
@@ -60,7 +60,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 50.5
     })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     selectedRow = page.locator('.ag-row-selected')
     selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
@@ -71,7 +71,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 99.5
     })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     selectedRow = page.locator('.ag-row-selected')
     selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
@@ -82,7 +82,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 25.5
     })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     selectedRow = page.locator('.ag-row-selected')
     selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
@@ -97,7 +97,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 75.5
     })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     selectedRow = page.locator('.ag-row-selected')
     selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
@@ -111,7 +111,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 75.6
     })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     selectedRow = page.locator('.ag-row-selected')
     selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
@@ -130,7 +130,7 @@ test.describe('Auto-scroll functionality', () => {
 
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles([vttPath, audioPath])
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     // Enable both autoplay and auto-scroll
     const autoplayCheckbox = page.locator('input[type="checkbox"]').nth(0)
@@ -153,7 +153,7 @@ test.describe('Auto-scroll functionality', () => {
     await mediaElement.evaluate((el: HTMLMediaElement) => {
       el.currentTime = 30.5
     })
-    await page.waitForTimeout(300)
+    await page.waitForTimeout(50)
 
     // Verify row is selected
     const selectedRow = page.locator('.ag-row-selected')

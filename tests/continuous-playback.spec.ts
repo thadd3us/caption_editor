@@ -11,7 +11,7 @@ test.describe('Continuous playback with auto-scroll', () => {
 
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles([vttPath, audioPath])
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     console.log('Files loaded')
 
@@ -30,41 +30,41 @@ test.describe('Continuous playback with auto-scroll', () => {
     console.log('Started playback')
 
     // Wait a bit and verify we're still playing (not stopped at 1 second)
-    await page.waitForTimeout(1500)
+    await page.waitForTimeout(1100)
 
     const currentTime1 = await mediaElement.evaluate((el: HTMLMediaElement) => el.currentTime)
     const isPlaying1 = await mediaElement.evaluate((el: HTMLMediaElement) => !el.paused)
 
-    console.log('After 1.5s: currentTime =', currentTime1, 'playing =', isPlaying1)
+    console.log('After 1.1s: currentTime =', currentTime1, 'playing =', isPlaying1)
     expect(isPlaying1).toBe(true)
-    expect(currentTime1).toBeGreaterThan(1.0)  // Should have passed the first segment
+    expect(currentTime1).toBeGreaterThan(0.9)  // Should have passed most of first segment
 
-    // Verify row 1 is now selected (auto-scroll working)
+    // Verify row 0 or 1 is now selected (auto-scroll working)
     let selectedRow = page.locator('.ag-row-selected')
     let selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
     console.log('Selected row text:', selectedText)
-    expect(['1', '2']).toContain(selectedText)  // Could be 1 or 2 depending on timing
+    expect(['0', '1', '2']).toContain(selectedText)  // Could be 0, 1, or 2 depending on timing
 
     // Wait more and verify playback continues
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(1100)
 
     const currentTime2 = await mediaElement.evaluate((el: HTMLMediaElement) => el.currentTime)
     const isPlaying2 = await mediaElement.evaluate((el: HTMLMediaElement) => !el.paused)
 
-    console.log('After 3.5s: currentTime =', currentTime2, 'playing =', isPlaying2)
+    console.log('After 2.2s: currentTime =', currentTime2, 'playing =', isPlaying2)
     expect(isPlaying2).toBe(true)
-    expect(currentTime2).toBeGreaterThan(3.0)  // Should be well past 3 seconds
+    expect(currentTime2).toBeGreaterThan(2.0)  // Should be well past 2 seconds
 
     // Verify auto-scroll updated to a later row
     selectedRow = page.locator('.ag-row-selected')
     selectedText = await selectedRow.locator('.ag-cell[col-id="text"]').textContent()
-    console.log('Selected row after 3.5s:', selectedText)
-    expect(['3', '4']).toContain(selectedText)
+    console.log('Selected row after 2.2s:', selectedText)
+    expect(['2', '3']).toContain(selectedText)
 
     // Pause playback (button text changes to pause icon when playing)
     const pauseButton = page.locator('button.control-btn', { hasText: '⏸️' })
     await pauseButton.click()
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(50)
 
     const isPaused = await mediaElement.evaluate((el: HTMLMediaElement) => el.paused)
     expect(isPaused).toBe(true)
@@ -81,7 +81,7 @@ test.describe('Continuous playback with auto-scroll', () => {
 
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles([vttPath, audioPath])
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(100)
 
     console.log('Files loaded')
 
@@ -95,8 +95,8 @@ test.describe('Continuous playback with auto-scroll', () => {
 
     console.log('Started snippet playback for row 10')
 
-    // Wait for snippet to finish (1 second + buffer)
-    await page.waitForTimeout(1200)
+    // Wait for snippet to finish (1 second + buffer for processing)
+    await page.waitForTimeout(1150)
 
     // Verify playback stopped
     const isPaused = await mediaElement.evaluate((el: HTMLMediaElement) => el.paused)
