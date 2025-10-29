@@ -18,7 +18,7 @@ export default defineConfig({
         ...builtinModules.flatMap(m => [m, `node:${m}`])
       ],
       output: {
-        entryFileNames: '[name].js'
+        entryFileNames: '[name].cjs'
       }
     },
     target: 'node18',
