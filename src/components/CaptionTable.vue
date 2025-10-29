@@ -66,6 +66,38 @@ const rowData = computed(() => {
 
 const columnDefs = ref<ColDef[]>([
   {
+    field: 'text',
+    headerName: 'Caption',
+    flex: 1,
+    editable: true,
+    cellEditor: 'agLargeTextCellEditor',
+    cellEditorParams: {
+      maxLength: 500,
+      rows: 4,
+      cols: 50
+    },
+    wrapText: true,
+    autoHeight: true,
+    onCellValueChanged: (params) => {
+      console.log('Caption text edited:', params.newValue)
+      store.updateCue(params.data.id, { text: params.newValue })
+    }
+  },
+  {
+    field: 'rating',
+    headerName: 'Rating',
+    width: 120,
+    cellRenderer: StarRatingCell,
+  },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    width: 120,
+    cellRenderer: ActionButtonsCell,
+    sortable: false,
+    filter: false
+  },
+  {
     field: 'startTimeFormatted',
     colId: 'startTime',
     headerName: 'Start',
@@ -147,38 +179,6 @@ const columnDefs = ref<ColDef[]>([
         params.node?.setDataValue('endTimeFormatted', formatTimestamp(params.data.endTime))
       }
     }
-  },
-  {
-    field: 'text',
-    headerName: 'Caption',
-    flex: 1,
-    editable: true,
-    cellEditor: 'agLargeTextCellEditor',
-    cellEditorParams: {
-      maxLength: 500,
-      rows: 4,
-      cols: 50
-    },
-    wrapText: true,
-    autoHeight: true,
-    onCellValueChanged: (params) => {
-      console.log('Caption text edited:', params.newValue)
-      store.updateCue(params.data.id, { text: params.newValue })
-    }
-  },
-  {
-    field: 'rating',
-    headerName: 'Rating',
-    width: 120,
-    cellRenderer: StarRatingCell,
-  },
-  {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 120,
-    cellRenderer: ActionButtonsCell,
-    sortable: false,
-    filter: false
   }
 ])
 
