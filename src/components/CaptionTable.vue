@@ -214,12 +214,10 @@ function onSelectionChanged(event: SelectionChangedEvent) {
     console.log('Selected cue:', cueId)
     store.selectCue(cueId)
 
-    // If autoplay is enabled, play the segment and stop at end (like play snippet button)
+    // If autoplay is enabled, do exactly what the play snippet button does
     if (autoplayEnabled.value) {
-      console.log('Autoplay enabled, playing snippet from:', startTime)
+      console.log('Autoplay: playing snippet for cue:', cueId)
       store.setCurrentTime(startTime)
-      // Use store.setPlaying(true) to trigger snippet playback in MediaPlayer
-      // This will automatically stop at the segment's end time
       store.setPlaying(true)
     }
   }

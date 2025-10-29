@@ -211,10 +211,13 @@ watch(() => store.isPlaying, (playing) => {
 
   if (playing && mediaElement.value.paused) {
     // Check if we need to set up snippet playback
-    const currentCue = store.currentCue
-    if (currentCue && store.currentTime === currentCue.startTime) {
-      console.log('Starting snippet playback for cue:', currentCue.id)
-      snippetEndTime.value = currentCue.endTime
+    // Use selectedCueId to find the cue, not currentCue (which is based on time)
+    if (store.selectedCueId) {
+      const selectedCue = store.document.cues.find(c => c.id === store.selectedCueId)
+      if (selectedCue && Math.abs(store.currentTime - selectedCue.startTime) < 0.1) {
+        console.log('Starting snippet playback for cue:', selectedCue.id)
+        snippetEndTime.value = selectedCue.endTime
+      }
     }
 
     mediaElement.value.play()
