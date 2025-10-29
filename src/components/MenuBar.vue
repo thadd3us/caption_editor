@@ -26,12 +26,18 @@
       </div>
     </div>
     <div class="menu-actions">
-      <button @click="openFile" class="menu-button open-button">
-        📁 Open Files
-      </button>
-      <button @click="exportVTT" class="menu-button">
-        Export VTT
-      </button>
+      <div
+        class="drop-zone-button"
+        @click="openFile"
+        @drop.prevent="handleDrop"
+        @dragover.prevent="handleDragOver"
+        @dragleave="handleDragLeave"
+        :class="{ 'drag-over': isDragOver }"
+      >
+        <button class="menu-button open-button">
+          📁 Open Files
+        </button>
+      </div>
       <button @click="clearAll" class="menu-button">
         Clear
       </button>
@@ -47,6 +53,7 @@ const store = useVTTStore()
 const showFileMenu = ref(false)
 const fileMenuButton = ref<HTMLButtonElement | null>(null)
 const fileMenuDropdown = ref<HTMLDivElement | null>(null)
+const isDragOver = ref(false)
 
 // Menu state management
 function toggleFileMenu() {
@@ -104,6 +111,32 @@ const emit = defineEmits<{
 function openFile() {
   closeFileMenu()
   emit('openFiles')
+}
+
+// Drag and drop handlers for Open Files button
+function handleDragOver(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = true
+}
+
+function handleDragLeave(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = false
+}
+
+function handleDrop(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = false
+
+  // Forward the drop event to the file drop zone
+  if (event.dataTransfer?.files) {
+    const dropEvent = new DragEvent('drop', {
+      dataTransfer: event.dataTransfer,
+      bubbles: true,
+      cancelable: true
+    })
+    document.dispatchEvent(dropEvent)
+  }
 }
 
 // Save to existing file
@@ -311,6 +344,16 @@ h1 {
 
 .menu-button:hover {
   background: #2980b9;
+}
+
+.drop-zone-button {
+  position: relative;
+}
+
+.drop-zone-button.drag-over {
+  outline: 2px dashed #27ae60;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .open-button {

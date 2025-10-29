@@ -2,6 +2,10 @@
   <div class="caption-table">
     <div class="table-header">
       <h2>Captions ({{ store.document.cues.length }})</h2>
+      <label class="autoplay-checkbox">
+        <input type="checkbox" v-model="autoplayEnabled" />
+        Autoplay (selected row)
+      </label>
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
@@ -34,6 +38,7 @@ import ActionButtonsCell from './ActionButtonsCell.vue'
 
 const store = useVTTStore()
 const gridApi = ref<GridApi | null>(null)
+const autoplayEnabled = ref(false)
 
 // Force grid re-render when cues array changes
 const gridKey = computed(() => store.document.cues.map(c => c.id).join(','))
@@ -58,6 +63,22 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Start',
     width: 120,
     editable: true,
+    cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    onCellClicked: (params) => {
+      // Single click seeks to this timestamp
+      if (params.data && params.event) {
+        const mouseEvent = params.event as MouseEvent
+        if (mouseEvent.detail <= 1) {
+          const startTime = params.data.startTime
+          console.log('Seeking to start time:', startTime)
+          store.setCurrentTime(startTime)
+          const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
+          if (mediaElement) {
+            mediaElement.currentTime = startTime
+          }
+        }
+      }
+    },
     onCellValueChanged: (params) => {
       console.log('Start time edited:', params.newValue)
       try {
@@ -85,6 +106,22 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'End',
     width: 120,
     editable: true,
+    cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    onCellClicked: (params) => {
+      // Single click seeks to this timestamp
+      if (params.data && params.event) {
+        const mouseEvent = params.event as MouseEvent
+        if (mouseEvent.detail <= 1) {
+          const endTime = params.data.endTime
+          console.log('Seeking to end time:', endTime)
+          store.setCurrentTime(endTime)
+          const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
+          if (mediaElement) {
+            mediaElement.currentTime = endTime
+          }
+        }
+      }
+    },
     onCellValueChanged: (params) => {
       console.log('End time edited:', params.newValue)
       try {
@@ -122,13 +159,13 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'rating',
     headerName: 'Rating',
-    width: 150,
+    width: 120,
     cellRenderer: StarRatingCell,
   },
   {
     field: 'actions',
     headerName: 'Actions',
-    width: 180,
+    width: 120,
     cellRenderer: ActionButtonsCell,
     sortable: false,
     filter: false
@@ -173,8 +210,20 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   if (selectedRows.length > 0) {
     const row = selectedRows[0]
     const cueId = row.id
+    const startTime = row.startTime
     console.log('Selected cue:', cueId)
     store.selectCue(cueId)
+
+    // If autoplay is enabled, play from this row
+    if (autoplayEnabled.value) {
+      console.log('Autoplay enabled, playing from:', startTime)
+      store.setCurrentTime(startTime)
+      const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
+      if (mediaElement) {
+        mediaElement.currentTime = startTime
+        mediaElement.play().catch(err => console.error('Autoplay failed:', err))
+      }
+    }
   }
 }
 
@@ -202,12 +251,66 @@ function handleJumpToRow(event: Event) {
   }
 }
 
+// Handle keyboard navigation with arrow keys and space
+function handleKeyDown(event: KeyboardEvent) {
+  if (!gridApi.value) return
+
+  const selectedRows = gridApi.value.getSelectedRows()
+  if (selectedRows.length === 0) return
+
+  const currentRow = selectedRows[0]
+  const allRows = rowData.value
+
+  const currentIndex = allRows.findIndex(r => r.id === currentRow.id)
+  if (currentIndex === -1) return
+
+  let newIndex = currentIndex
+
+  // Arrow key navigation
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    newIndex = Math.min(currentIndex + 1, allRows.length - 1)
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    newIndex = Math.max(currentIndex - 1, 0)
+  } else if (event.key === ' ' || event.key === 'Spacebar') {
+    // Space key toggles play/pause if autoplay is enabled
+    if (autoplayEnabled.value) {
+      event.preventDefault()
+      const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
+      if (mediaElement) {
+        if (mediaElement.paused) {
+          mediaElement.play().catch(err => console.error('Play failed:', err))
+        } else {
+          mediaElement.pause()
+        }
+      }
+    }
+    return
+  } else {
+    return
+  }
+
+  // Select the new row
+  if (newIndex !== currentIndex) {
+    const newRow = allRows[newIndex]
+    const rowNode = gridApi.value.getRowNode(newRow.id)
+    if (rowNode) {
+      gridApi.value.deselectAll()
+      gridApi.value.ensureNodeVisible(rowNode, 'middle')
+      rowNode.setSelected(true)
+    }
+  }
+}
+
 onMounted(() => {
   window.addEventListener('jumpToRow', handleJumpToRow)
+  window.addEventListener('keydown', handleKeyDown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('jumpToRow', handleJumpToRow)
+  window.removeEventListener('keydown', handleKeyDown)
 })
 </script>
 
@@ -221,12 +324,31 @@ onUnmounted(() => {
 
 .table-header {
   padding: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .table-header h2 {
   font-size: 18px;
   font-weight: 600;
   color: #333;
+}
+
+.autoplay-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  user-select: none;
+}
+
+.autoplay-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .ag-theme-alpine {
