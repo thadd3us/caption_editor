@@ -48,18 +48,28 @@ class VTTCue(BaseModel):
     timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of when the cue was created/last modified")
 
 
+class TranscriptMetadata(BaseModel):
+    """Metadata for the transcript document."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(description="UUID for the document")
+    media_file_path: Optional[str] = Field(None, description="Optional path to the media file (relative to VTT file directory if possible)", alias="mediaFilePath")
+
+
 class SegmentHistoryEntry(BaseModel):
     """Historical record of a segment modification or deletion."""
 
     model_config = ConfigDict(populate_by_name=True)
 
+    id: str = Field(description="UUID for this history entry")
     action: str = Field(description="Type of action performed: 'modified' or 'deleted'")
     action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
     cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")
 
 
-class SegmentHistory(BaseModel):
-    """Collection of segment history entries."""
+class TranscriptHistory(BaseModel):
+    """Historical record of segment changes."""
 
     entries: List[SegmentHistoryEntry] = Field(description="List of historical changes to segments")
 
@@ -260,9 +270,17 @@ def generate_cue_id(audio_hash: str, start_time: float) -> str:
     return str(uuid.UUID(bytes=hash_bytes[:16]))
 
 
-def cues_to_vtt(cues: List[VTTCue], audio_hash: str) -> str:
+def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[str] = None) -> str:
     """Convert cues to VTT format string with NOTE metadata."""
     lines = ["WEBVTT\n"]
+
+    # Add TranscriptMetadata at the top
+    # Generate deterministic document UUID based on audio hash
+    hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
+    doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
+    transcript_metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file_path)
+    metadata_json = transcript_metadata.model_dump(by_alias=True, exclude_none=True)
+    lines.append(f"NOTE {json.dumps(metadata_json)}\n")
 
     # Get current timestamp for all cues (local timezone)
     current_timestamp = datetime.now().astimezone().isoformat()
@@ -432,9 +450,21 @@ def main(
         typer.echo("Resolving overlaps...")
         final_cues = resolve_overlap_conflicts(all_cues, chunk_size, overlap)
 
+        # Calculate relative path from output VTT file's directory to media file
+        try:
+            import os
+            # Get absolute paths
+            output_dir = output.resolve().parent
+            media_abs = media_file.resolve()
+            # Compute relative path from output directory to media file
+            media_file_path = os.path.relpath(media_abs, output_dir)
+        except (ValueError, OSError):
+            # If relative path cannot be computed, use absolute path
+            media_file_path = str(media_file.resolve())
+
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = cues_to_vtt(final_cues, audio_hash)
+        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file_path)
 
         # Write output
         output.write_text(vtt_content)

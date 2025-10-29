@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTCue, VTTDocument, VTTCueMetadata, ParseResult, SegmentHistory, SegmentHistoryEntry } from '../types/vtt'
+import type { VTTCue, VTTDocument, VTTCueMetadata, ParseResult, SegmentHistoryEntry, TranscriptMetadata, TranscriptHistory } from '../types/vtt'
 
 /**
  * Get current timestamp in ISO 8601 format with local timezone
@@ -84,7 +84,8 @@ export function parseVTT(content: string): ParseResult {
     const cues: VTTCue[] = []
     let i = 1
     let pendingMetadata: VTTCueMetadata | null = null
-    let segmentHistory: SegmentHistory | undefined = undefined
+    let transcriptHistory: TranscriptHistory | undefined = undefined
+    let transcriptMetadata: TranscriptMetadata | undefined = undefined
 
     while (i < lines.length) {
       const line = lines[i].trim()
@@ -115,10 +116,15 @@ export function parseVTT(content: string): ParseResult {
         try {
           const parsed = JSON.parse(noteContent)
 
-          // Check if it's segment history (has 'entries' array)
+          // Check if it's transcript history (has 'entries' array)
           if (Array.isArray(parsed.entries)) {
-            segmentHistory = parsed as SegmentHistory
-            console.log('Found segment history with', segmentHistory.entries.length, 'entries')
+            transcriptHistory = parsed as TranscriptHistory
+            console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
+          }
+          // Check if it's transcript metadata (has 'id' but not 'rating' or 'timestamp' - those are cue metadata)
+          else if (parsed.id && !('rating' in parsed) && !('timestamp' in parsed)) {
+            transcriptMetadata = parsed as TranscriptMetadata
+            console.log('Found transcript metadata:', transcriptMetadata.id)
           }
           // Otherwise check if it's cue metadata (has 'id' field)
           else if (parsed.id) {
@@ -249,8 +255,9 @@ export function parseVTT(content: string): ParseResult {
     return {
       success: true,
       document: {
+        metadata: transcriptMetadata || { id: uuidv4() },
         cues: Object.freeze(cues),
-        history: segmentHistory
+        history: transcriptHistory
       }
     }
 
@@ -271,6 +278,9 @@ export function serializeVTT(document: VTTDocument): string {
   console.log('Serializing VTT document with', document.cues.length, 'cues')
 
   let output = 'WEBVTT\n\n'
+
+  // Add TranscriptMetadata at the top
+  output += `NOTE ${JSON.stringify(document.metadata)}\n\n`
 
   // Sort cues by start time, then by end time
   const sortedCues = [...document.cues].sort((a, b) => {
@@ -299,7 +309,7 @@ export function serializeVTT(document: VTTDocument): string {
     output += `${cue.text}\n\n`
   }
 
-  // Add segment history at the end if it exists
+  // Add TranscriptHistory at the end if it exists
   if (document.history && document.history.entries.length > 0) {
     output += `NOTE ${JSON.stringify(document.history)}\n`
   }
@@ -312,6 +322,7 @@ export function serializeVTT(document: VTTDocument): string {
  */
 export function createEmptyDocument(): VTTDocument {
   return {
+    metadata: { id: uuidv4() },
     cues: Object.freeze([])
   }
 }
@@ -369,13 +380,14 @@ export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): nu
  */
 function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: 'modified' | 'deleted'): VTTDocument {
   const newEntry: SegmentHistoryEntry = {
+    id: uuidv4(),
     action,
     actionTimestamp: getCurrentTimestamp(),
     cue // Preserve the original cue state including its original timestamp
   }
 
   const existingEntries = document.history?.entries || []
-  const newHistory: SegmentHistory = {
+  const newHistory: TranscriptHistory = {
     entries: Object.freeze([...existingEntries, newEntry])
   }
 

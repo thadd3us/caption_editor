@@ -179,6 +179,7 @@ export const useVTTStore = defineStore('vtt', () => {
     try {
       const data = {
         document: {
+          metadata: document.value.metadata,
           cues: document.value.cues,
           filePath: document.value.filePath,
           history: document.value.history
@@ -197,7 +198,13 @@ export const useVTTStore = defineStore('vtt', () => {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const data = JSON.parse(stored)
+        // Handle old format or new format
+        const metadata = data.document.metadata || {
+          id: data.document.id || uuidv4(), // Use existing id or generate new one for old data
+          mediaFilePath: data.document.mediaFilePath
+        }
         document.value = {
+          metadata,
           cues: Object.freeze(data.document.cues),
           filePath: data.document.filePath,
           history: data.document.history

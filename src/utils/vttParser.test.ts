@@ -193,6 +193,7 @@ Caption with short format`
   describe('serializeVTT', () => {
     it('should serialize a simple document', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -213,6 +214,7 @@ Caption with short format`
 
     it('should serialize cues in time order', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-2',
@@ -239,6 +241,7 @@ Caption with short format`
 
     it('should include NOTE metadata for rated cues', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -257,6 +260,7 @@ Caption with short format`
 
     it('should always include NOTE metadata for all cues', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -275,15 +279,19 @@ Caption with short format`
 
     it('should handle empty documents', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([])
       }
 
       const output = serializeVTT(doc)
-      expect(output).toBe('WEBVTT\n\n')
+      expect(output).toContain('WEBVTT')
+      expect(output).toContain('NOTE {"id":"test-doc-id"}')
+      expect(output).not.toContain('-->') // No timing lines for empty doc
     })
 
     it('should sort cues with equal start times by end time', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-2',
@@ -359,6 +367,7 @@ Caption with short format`
         rating: undefined
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -376,6 +385,7 @@ Caption with short format`
         rating: undefined
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -393,6 +403,7 @@ Caption with short format`
         rating: undefined
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -409,6 +420,7 @@ Caption with short format`
         rating: undefined
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -418,6 +430,7 @@ Caption with short format`
 
     it('should leave other cues unchanged', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -444,6 +457,7 @@ Caption with short format`
   describe('deleteCue', () => {
     it('should delete a cue from the document', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -469,6 +483,7 @@ Caption with short format`
 
     it('should not mutate the original document', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -486,6 +501,7 @@ Caption with short format`
 
     it('should handle deleting non-existent cue', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -508,6 +524,7 @@ Caption with short format`
       const uuid2 = '550e8400-e29b-41d4-a716-446655440001'
 
       const original: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: uuid1,
@@ -549,6 +566,7 @@ Caption with short format`
         timestamp: '2024-01-01T00:00:00.000Z'
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -573,6 +591,7 @@ Caption with short format`
         timestamp: '2024-01-01T12:00:00.000Z'
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -604,6 +623,7 @@ Caption with short format`
         rating: undefined
       }
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue1, cue2])
       }
 
@@ -627,6 +647,7 @@ Caption with short format`
         rating: undefined
       }
       let doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -680,6 +701,7 @@ NOTE {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000
         rating: 3
       }
       let doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([cue])
       }
 
@@ -698,6 +720,7 @@ NOTE {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000
 
     it('should not serialize history if no entries exist', () => {
       const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
         cues: Object.freeze([
           {
             id: 'test-1',
@@ -711,9 +734,9 @@ NOTE {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000
 
       const serialized = serializeVTT(doc)
 
-      // Should contain one NOTE for the cue metadata, but not for history
+      // Should contain one NOTE for the document metadata and one NOTE for the cue metadata, but not for history
       const noteCount = (serialized.match(/NOTE/g) || []).length
-      expect(noteCount).toBe(1) // One NOTE for cue metadata, no history NOTE
+      expect(noteCount).toBe(2) // One NOTE for document metadata, one for cue metadata, no history NOTE
       expect(serialized).not.toContain('"entries"')
     })
   })
