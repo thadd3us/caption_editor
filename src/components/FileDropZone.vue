@@ -122,10 +122,13 @@ async function processElectronFiles(filePaths: string[]) {
 
   const results = await window.electronAPI.processDroppedFiles(filePaths)
 
+  let vttFilePath: string | undefined = undefined
+
   for (const result of results) {
     if (result.type === 'vtt' && result.content) {
       try {
         store.loadFromFile(result.content, result.filePath)
+        vttFilePath = result.filePath
         console.log('VTT file loaded successfully:', result.fileName)
       } catch (err) {
         console.error('Failed to load VTT file:', err)
@@ -141,6 +144,9 @@ async function processElectronFiles(filePaths: string[]) {
       }
     }
   }
+
+  // After loading VTT, check if it has a mediaFilePath in metadata and auto-load it
+  await autoLoadMediaFromVTTMetadata(vttFilePath)
 }
 
 async function processFiles(files: File[]) {
@@ -186,9 +192,70 @@ async function processFiles(files: File[]) {
     }
   }
 
+  // After loading VTT, check if it has a mediaFilePath in metadata and auto-load it (browser mode)
+  // Note: In browser mode, we can't automatically load the media file, but we log the metadata
+  if (vttFile) {
+    await autoLoadMediaFromVTTMetadata(undefined)
+  }
+
   // If no VTT file but there's a media file, create empty document
   if (!vttFile && mediaFile) {
     console.log('No VTT file, creating empty document')
+  }
+}
+
+/**
+ * Attempts to automatically load media file referenced in VTT metadata
+ * @param vttFilePath - Path to the VTT file (only available in Electron)
+ */
+async function autoLoadMediaFromVTTMetadata(vttFilePath: string | undefined) {
+  const metadata = store.document.metadata
+  const mediaFilePath = metadata?.mediaFilePath
+
+  if (!mediaFilePath) {
+    console.log('No mediaFilePath in VTT metadata')
+    return
+  }
+
+  console.log('VTT metadata references media file:', mediaFilePath)
+
+  // Check if we already have a media file loaded
+  if (store.mediaPath) {
+    console.log('Media file already loaded, skipping auto-load')
+    return
+  }
+
+  // In Electron, we can resolve relative paths and load the media file
+  if (isElectron.value && window.electronAPI && vttFilePath) {
+    try {
+      // Resolve the media file path relative to the VTT file directory
+      const vttDir = vttFilePath.substring(0, vttFilePath.lastIndexOf('/') || vttFilePath.lastIndexOf('\\'))
+      const resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
+
+      console.log('Attempting to load media file from:', resolvedMediaPath)
+
+      // Check if the file exists
+      const stats = await window.electronAPI.statFile(resolvedMediaPath)
+
+      if (stats.success && stats.exists && stats.isFile) {
+        // Convert to URL and load
+        const urlResult = await window.electronAPI.fileToURL(resolvedMediaPath)
+
+        if (urlResult.success && urlResult.url) {
+          store.loadMediaFile(urlResult.url, resolvedMediaPath)
+          console.log('Successfully auto-loaded media file:', resolvedMediaPath)
+        } else {
+          console.warn('Failed to convert media file to URL:', urlResult.error)
+        }
+      } else {
+        console.warn('Media file referenced in VTT metadata not found:', resolvedMediaPath)
+      }
+    } catch (err) {
+      console.error('Error auto-loading media file:', err)
+    }
+  } else {
+    // In browser mode, we can't automatically load files
+    console.log('Browser mode: Cannot auto-load media file. Please drag and drop:', mediaFilePath)
   }
 }
 
