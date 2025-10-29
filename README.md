@@ -252,13 +252,30 @@ Test reports are generated in `playwright-report/` with screenshots and videos f
 
 This editor stores additional metadata in NOTE comments:
 
+#### Document Metadata (Top of File)
+The first NOTE comment contains document-level metadata including a UUID for the transcript and the relative path to the associated media file:
+
 ```
-NOTE {"id":"550e8400-e29b-41d4-a716-446655440000","rating":4}
+WEBVTT
+
+NOTE {"id":"2ea43707-088b-c4fe-c7ff-b59f4a1232a0","mediaFilePath":"video.mp4"}
+```
+
+**Note:** When using the Python transcription tool (`transcribe/transcribe.py`), the media file is automatically copied alongside the VTT output to ensure they stay together and the relative path remains valid across different systems.
+
+#### Cue Metadata
+Each caption can have metadata stored in a NOTE comment immediately before it:
+
+```
+NOTE {"id":"550e8400-e29b-41d4-a716-446655440000","rating":4,"timestamp":"2025-10-29T..."}
 
 550e8400-e29b-41d4-a716-446655440000
 00:00:01.000 --> 00:00:05.000
 Caption text with 4-star rating
 ```
+
+#### Transcript History (End of File)
+Changes to captions are tracked in a history NOTE at the end of the file, preserving the original state of modified or deleted segments.
 
 ## Architecture
 
@@ -296,11 +313,19 @@ interface VTTCue {
   readonly endTime: number   // Seconds
   readonly text: string      // Caption text
   readonly rating?: number   // 1-5 stars
+  readonly timestamp?: string // ISO 8601 timestamp of last modification
+}
+
+interface TranscriptMetadata {
+  readonly id: string              // UUID for the document
+  readonly mediaFilePath?: string  // Relative path to media file
 }
 
 interface VTTDocument {
+  readonly metadata: TranscriptMetadata
   readonly cues: readonly VTTCue[]
-  readonly filePath?: string
+  readonly filePath?: string       // Original VTT file path
+  readonly history?: TranscriptHistory // Track of changes
 }
 ```
 
