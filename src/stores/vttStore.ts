@@ -31,6 +31,7 @@ export const useVTTStore = defineStore('vtt', () => {
   const currentTime = ref(0)
   const isPlaying = ref(false)
   const selectedCueId = ref<string | null>(null)
+  const snippetMode = ref(false)  // True when playing a single snippet, false for continuous playback
 
   // Computed
   const currentCue = computed(() => {
@@ -167,6 +168,10 @@ export const useVTTStore = defineStore('vtt', () => {
     selectedCueId.value = cueId
   }
 
+  function setSnippetMode(enabled: boolean) {
+    snippetMode.value = enabled
+  }
+
   // LocalStorage persistence
   function saveToLocalStorage() {
     try {
@@ -220,6 +225,7 @@ export const useVTTStore = defineStore('vtt', () => {
     currentTime,
     isPlaying,
     selectedCueId,
+    snippetMode,
 
     // Computed
     currentCue,
@@ -235,6 +241,7 @@ export const useVTTStore = defineStore('vtt', () => {
     clearDocument,
     setCurrentTime,
     setPlaying,
-    selectCue
+    selectCue,
+    setSnippetMode
   }
 })

@@ -40,12 +40,9 @@ const rowData = computed(() => props.params?.data || props.data)
 function playSnippet() {
   if (!rowData.value) return
   console.log('Playing snippet:', rowData.value.id)
-  // The MediaPlayer component will listen to this
+  store.setSnippetMode(true)
   store.setCurrentTime(rowData.value.startTime)
   store.setPlaying(true)
-
-  // Set up a listener to stop at end time
-  // This will be handled by the MediaPlayer component
 }
 
 function seekToStart() {

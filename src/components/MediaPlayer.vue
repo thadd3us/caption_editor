@@ -128,6 +128,7 @@ function onTimeUpdate() {
       }
 
       snippetEndTime.value = null
+      store.setSnippetMode(false)
     }
   }
 }
@@ -210,9 +211,8 @@ watch(() => store.isPlaying, (playing) => {
   if (!mediaElement.value) return
 
   if (playing) {
-    // Check if we need to set up snippet playback
-    // Use selectedCueId to find the cue, not currentCue (which is based on time)
-    if (store.selectedCueId) {
+    // Only set up snippet playback if snippetMode is enabled
+    if (store.snippetMode && store.selectedCueId) {
       const selectedCue = store.document.cues.find(c => c.id === store.selectedCueId)
 
       if (selectedCue) {
@@ -223,6 +223,9 @@ watch(() => store.isPlaying, (playing) => {
           snippetEndTime.value = selectedCue.endTime
         }
       }
+    } else {
+      // Continuous playback mode - clear any snippet end time
+      snippetEndTime.value = null
     }
 
     if (mediaElement.value.paused) {
