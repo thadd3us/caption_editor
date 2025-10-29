@@ -8,7 +8,8 @@ import {
   createEmptyDocument,
   addCue as addCueToDoc,
   updateCue as updateCueInDoc,
-  deleteCue as deleteCueFromDoc
+  deleteCue as deleteCueFromDoc,
+  getCurrentTimestamp
 } from '../utils/vttParser'
 
 const STORAGE_KEY = 'vtt-editor-document'
@@ -99,7 +100,7 @@ export const useVTTStore = defineStore('vtt', () => {
       endTime: startTime + duration,
       text: 'New caption',
       rating: undefined,
-      timestamp: new Date().toISOString()
+      timestamp: getCurrentTimestamp()
     }
 
     document.value = addCueToDoc(document.value, newCue)

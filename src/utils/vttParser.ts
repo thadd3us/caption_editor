@@ -2,6 +2,27 @@ import { v4 as uuidv4 } from 'uuid'
 import type { VTTCue, VTTDocument, VTTCueMetadata, ParseResult, SegmentHistory, SegmentHistoryEntry } from '../types/vtt'
 
 /**
+ * Get current timestamp in ISO 8601 format with local timezone
+ */
+export function getCurrentTimestamp(): string {
+  const now = new Date()
+  const offset = -now.getTimezoneOffset()
+  const offsetHours = Math.floor(Math.abs(offset) / 60).toString().padStart(2, '0')
+  const offsetMinutes = (Math.abs(offset) % 60).toString().padStart(2, '0')
+  const offsetSign = offset >= 0 ? '+' : '-'
+
+  const year = now.getFullYear()
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  const day = now.getDate().toString().padStart(2, '0')
+  const hours = now.getHours().toString().padStart(2, '0')
+  const minutes = now.getMinutes().toString().padStart(2, '0')
+  const seconds = now.getSeconds().toString().padStart(2, '0')
+  const milliseconds = now.getMilliseconds().toString().padStart(3, '0')
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}${offsetSign}${offsetHours}:${offsetMinutes}`
+}
+
+/**
  * Parse timestamp in format HH:MM:SS.mmm or MM:SS.mmm to seconds
  */
 function parseTimestamp(timestamp: string): number {
@@ -356,7 +377,7 @@ export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): nu
 function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: 'modified' | 'deleted'): VTTDocument {
   const newEntry: SegmentHistoryEntry = {
     action,
-    actionTimestamp: new Date().toISOString(),
+    actionTimestamp: getCurrentTimestamp(),
     cue // Preserve the original cue state including its original timestamp
   }
 
@@ -397,7 +418,7 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
   }
 
   // Update the cues with new timestamp
-  const currentTimestamp = new Date().toISOString()
+  const currentTimestamp = getCurrentTimestamp()
   const updatedCues = document.cues.map(cue =>
     cue.id === cueId
       ? { ...cue, ...updates, timestamp: currentTimestamp }

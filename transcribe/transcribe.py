@@ -9,7 +9,7 @@ import json
 import subprocess
 import tempfile
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
@@ -264,8 +264,8 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str) -> str:
     """Convert cues to VTT format string with NOTE metadata."""
     lines = ["WEBVTT\n"]
 
-    # Get current timestamp for all cues
-    current_timestamp = datetime.now(timezone.utc).isoformat()
+    # Get current timestamp for all cues (local timezone)
+    current_timestamp = datetime.now().astimezone().isoformat()
 
     for cue in cues:
         # Generate ID
