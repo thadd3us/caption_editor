@@ -11,7 +11,7 @@
     "package.json"
   ],
   "extraMetadata": {
-    "main": "dist-electron/main.js"
+    "main": "dist-electron/main.cjs"
   },
   "mac": {
     "category": "public.app-category.productivity",
