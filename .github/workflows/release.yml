@@ -56,6 +56,7 @@ jobs:
         run: npm run package:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Find DMG file
         id: find-dmg
