@@ -12,18 +12,24 @@ Tests should run quickly to maintain development velocity:
 ### Test Status Overview
 
 **Current Test Suite Status:**
-- ✅ TypeScript Unit Tests: 109/109 passing, 93.34% coverage
+- ✅ TypeScript Unit Tests: 96/96 passing ⭐ **ALL PASSING!**
 - ✅ Python Tests: 2/2 passing ⭐ **ALL PASSING!**
-- ✅ Browser E2E Tests: 32/32 passing ⭐ **ALL PASSING!**
-- ✅ Electron E2E Tests: 17/17 passing ⭐ **ALL PASSING!**
+- ✅ UI/Interaction E2E Tests: 15/15 passing ⭐ **ALL PASSING!**
+- ✅ Electron Platform E2E Tests: 18/18 passing ⭐ **ALL PASSING!**
 
-**Total: 160/160 tests passing (100%)! 🎉**
+**Total: 131/131 tests passing (100%)! 🎉**
+
+**Test Organization:**
+- **UI/Interaction E2E** (`tests/*.spec.ts`): Tests UI functionality, user interactions, media playback controls
+- **Electron Platform E2E** (`tests/electron/*.spec.ts`): Tests Electron-specific features (file system, OS integration, IPC)
 
 **Platform Support:**
 - ✅ **macOS**: All tests work natively, no special setup needed
-- ✅ **Linux/Docker**: Electron tests require Xvfb (see setup instructions below)
+- ✅ **Linux/Docker**: Electron Platform tests require Xvfb (see setup instructions below)
 
 **Quick Start:** Use `./scripts/run-all-tests.sh` or `npm run test:all:complete` to run all tests automatically!
+
+**Note:** The app is now **Electron-only**. Browser mode and localStorage have been removed for simplicity.
 
 ### NPM Test Scripts
 
@@ -36,9 +42,9 @@ npm run test:unit             # Run unit tests once
 npm run test:unit:coverage    # Run with coverage report
 
 # E2E tests
-npm run test:e2e              # Run all E2E tests (browser + Electron)
-npm run test:e2e:browser      # Run browser E2E tests only
-npm run test:e2e:electron     # Build and run Electron tests
+npm run test:e2e              # Run all E2E tests (UI + Electron Platform)
+npm run test:e2e:browser      # Run UI/Interaction E2E tests only
+npm run test:e2e:electron     # Build and run Electron Platform tests
 npm run test:e2e:ui           # Run E2E tests with Playwright UI
 
 # Complete test suite
@@ -66,21 +72,39 @@ uv sync  # Installs dependencies if needed
 npm test
 ```
 
-Current performance: ~1.7s for 109 tests ✅
+Current performance: ~1.7s for 96 tests ✅
 
 With coverage:
 ```bash
 npm test -- --coverage
 ```
 
-Current coverage: 93.33% ✅
+Current coverage: 94.62% ✅
 
 #### TypeScript E2E Tests
+
+**UI/Interaction E2E Tests:**
+```bash
+npx playwright test --grep-invert "electron"
+```
+
+Current performance: ~13s for 15 tests ✅
+
+**Electron Platform E2E Tests:**
+```bash
+# macOS:
+npm run build && npm run build:electron && npx playwright test tests/electron/
+
+# Linux/Docker (requires Xvfb):
+npm run build && npm run build:electron && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
+```
+
+Current performance: ~21s for 18 tests ✅
+
+**All E2E Tests:**
 ```bash
 npx playwright test
 ```
-
-Current performance: ~35s for 41 browser tests (29 passing, 8 Electron tests require Xvfb) ✅
 
 #### Python Tests
 ```bash
@@ -100,8 +124,11 @@ Current performance: ~56s for 2 tests with AI model inference ✅
 # TypeScript unit test
 npm test src/utils/findIndexOfRowForTime.test.ts
 
-# TypeScript E2E test
-npx playwright test comprehensive-e2e.spec.ts
+# UI/Interaction E2E test
+npx playwright test vtt-editor.spec.ts
+
+# Electron Platform E2E test
+npx playwright test tests/electron/file-save.electron.spec.ts
 
 # Python test
 cd transcribe
@@ -113,12 +140,13 @@ uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio -v
 
 #### Run All Tests (Full Suite)
 ```bash
-# TypeScript tests
-npm test -- --coverage
-npx playwright test
+# Use the helper script (recommended)
+./scripts/run-all-tests.sh
 
-# Python tests
-cd transcribe && uv run pytest tests/ -v
+# Or manually:
+npm test -- --coverage           # Unit tests with coverage
+npx playwright test              # All E2E tests
+cd transcribe && uv run pytest tests/ -v  # Python tests
 ```
 
 ### Timeout Configuration
@@ -138,20 +166,27 @@ If a test times out, it indicates a performance issue that needs fixing rather t
 - Test pure functions and utilities
 - Use Vitest
 
-#### E2E Tests (`tests/**/*.spec.ts`)
-- Browser-based integration tests
-- Test full user workflows
-- Use Playwright with Chromium
+#### UI/Interaction E2E Tests (`tests/*.spec.ts`)
+- Test UI functionality and user interactions
+- Test media playback controls, caption editing, table interactions
+- Run in Playwright's Chromium (but app is Electron-only)
 - Keep tests focused and efficient
+
+#### Electron Platform E2E Tests (`tests/electron/*.spec.ts`)
+- Test Electron-specific features
+- File system operations, OS integration (file associations), IPC
+- Test file loading/saving with full paths
+- Require app build before running (use `npm run build && npm run build:electron`)
 
 ### Writing New Tests
 
 When adding tests:
 
 1. **Prefer unit tests** for logic that can be extracted and tested in isolation
-2. **Use E2E tests** for user interactions and integration points
-3. **Avoid long waits** - use `waitForTimeout()` sparingly and keep under 500ms
-4. **Click buttons directly** when UI elements are obscured:
+2. **Use UI/Interaction E2E tests** for testing UI components and user workflows
+3. **Use Electron Platform E2E tests** for testing file system operations, OS integration, or Electron APIs
+4. **Avoid long waits** - use `waitForTimeout()` sparingly and keep under 500ms
+5. **Click buttons directly** when UI elements are obscured:
    ```typescript
    await page.evaluate(() => {
      const buttons = Array.from(document.querySelectorAll('button'))
