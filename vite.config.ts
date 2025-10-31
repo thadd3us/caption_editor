@@ -18,7 +18,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     include: ['src/**/*.test.ts'],
     exclude: ['tests/**', 'node_modules/**'],
     coverage: {

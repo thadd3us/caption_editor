@@ -48,6 +48,7 @@
     "concurrently": "^9.2.1",
     "electron": "^39.0.0",
     "electron-builder": "^26.0.12",
+    "happy-dom": "^20.0.10",
     "jsdom": "^27.0.1",
     "nyc": "^17.1.0",
     "typescript": "^5.4.2",
