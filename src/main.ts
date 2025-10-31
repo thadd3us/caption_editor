@@ -33,7 +33,7 @@ if (window.electronAPI?.onFileOpen) {
 
     if (result.success && result.content) {
       // Load the VTT content into the store
-      await store.loadVTT(result.content, result.filePath)
+      store.loadFromFile(result.content, result.filePath)
       console.log('File loaded successfully:', filePath)
     } else {
       console.error('Failed to load file:', result.error)
