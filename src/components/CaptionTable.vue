@@ -1,5 +1,9 @@
 <template>
   <div class="caption-table">
+    <div v-if="store.document.filePath" class="file-path-display">
+      <span class="file-path-label">📄 VTT File:</span>
+      <span class="file-path-value">{{ store.document.filePath }}</span>
+    </div>
     <div class="table-header">
       <h2>Captions ({{ store.document.cues.length }})</h2>
       <div class="header-controls">
@@ -26,7 +30,7 @@
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
       :domLayout="'normal'"
-      style="height: calc(100% - 60px);"
+      :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
     />
   </div>
 </template>
@@ -304,6 +308,33 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 10px;
+}
+
+.file-path-display {
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-path-label {
+  font-weight: 600;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.file-path-value {
+  font-family: 'Courier New', monospace;
+  color: #212529;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
 }
 
 .table-header {
