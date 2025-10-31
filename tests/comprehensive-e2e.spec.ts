@@ -59,7 +59,7 @@ test.describe('VTT Editor - Comprehensive E2E Test', () => {
     await page.keyboard.press('Control+A')
     await page.keyboard.type('test at 2 seconds')
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(200) // Allow AG Grid cell edit to complete
 
     // === Step 3: Verify table has one row with correct times ===
     console.log('Step 3: Verify table with one row')
@@ -106,7 +106,7 @@ test.describe('VTT Editor - Comprehensive E2E Test', () => {
     await page.keyboard.press('Control+A')
     await page.keyboard.type('Test at 1 second.')
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(200) // Allow AG Grid cell edit to complete
 
     // === Step 6: Verify table has two rows in correct order ===
     console.log('Step 6: Verify table with two rows')
@@ -126,7 +126,11 @@ test.describe('VTT Editor - Comprehensive E2E Test', () => {
     await page.keyboard.press('Control+A')
     await page.keyboard.type('00:00:02.000')
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(300) // Allow AG Grid cell edit to complete and store to update
+
+    // Verify the edit actually took effect
+    const updatedEndTime = await allRows[0].locator('[col-id="endTime"]').textContent()
+    expect(updatedEndTime).toBe('00:00:02.000')
 
     // === Step 8: Set rating of first row to 3 stars ===
     console.log('Step 8: Set rating to 3 stars')
@@ -169,7 +173,7 @@ test.describe('VTT Editor - Comprehensive E2E Test', () => {
     await page.keyboard.press('Control+A')
     await page.keyboard.type('test at 9 seconds')
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(200) // Allow AG Grid cell edit to complete
 
     // === Step 11: Verify table has three rows in correct order with rating ===
     console.log('Step 11: Verify table with three rows')
@@ -276,7 +280,7 @@ test.describe('VTT Editor - Comprehensive E2E Test', () => {
     await page.keyboard.press('Control+A')
     await page.keyboard.type('Edited first row text')
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(200) // Allow AG Grid cell edit to complete
 
     // === Step 18: Change rating in third row to 5 stars ===
     console.log('Step 18: Set third row rating to 5 stars')
