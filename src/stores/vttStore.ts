@@ -84,7 +84,39 @@ export const useVTTStore = defineStore('vtt', () => {
 
   function exportToString(): string {
     console.log('Exporting VTT document')
-    return serializeVTT(document.value)
+
+    // Include the current mediaFilePath in the metadata before exporting
+    // Convert to relative path if possible (relative to VTT file location)
+    let mediaFilePathToStore = mediaFilePath.value
+
+    if (mediaFilePathToStore && document.value.filePath) {
+      // Try to make the path relative to the VTT file's directory
+      // This makes the VTT file more portable
+      const vttDir = document.value.filePath.substring(0, Math.max(
+        document.value.filePath.lastIndexOf('/'),
+        document.value.filePath.lastIndexOf('\\')
+      ))
+
+      // Extract just the filename if the media file is in the same directory as the VTT
+      if (mediaFilePathToStore.startsWith(vttDir)) {
+        const relativePath = mediaFilePathToStore.substring(vttDir.length + 1)
+        if (relativePath && !relativePath.includes('/') && !relativePath.includes('\\')) {
+          // It's in the same directory, just use the filename
+          mediaFilePathToStore = relativePath
+        }
+      }
+    }
+
+    // Create updated document with mediaFilePath in metadata
+    const documentWithMedia: VTTDocument = {
+      ...document.value,
+      metadata: {
+        ...document.value.metadata,
+        mediaFilePath: mediaFilePathToStore || undefined
+      }
+    }
+
+    return serializeVTT(documentWithMedia)
   }
 
   function updateFilePath(filePath: string) {
