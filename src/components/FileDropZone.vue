@@ -100,6 +100,8 @@ async function handleDrop(e: DragEvent) {
   if (isElectron.value && window.electronAPI) {
     // @ts-ignore - path property exists in Electron
     const filePaths = files.map(f => f.path).filter(Boolean)
+    console.log('[FileDropZone] Extracted file paths from dropped files:', filePaths)
+    console.log('[FileDropZone] File objects:', files.map(f => ({ name: f.name, path: (f as any).path })))
     if (filePaths.length > 0) {
       await processElectronFiles(filePaths)
       return
@@ -118,9 +120,10 @@ async function handleElectronFileDrop(event: CustomEvent<{ filePaths: string[] }
 async function processElectronFiles(filePaths: string[]) {
   if (!window.electronAPI) return
 
-  console.log('Processing', filePaths.length, 'files via Electron')
+  console.log('[processElectronFiles] Processing', filePaths.length, 'files via Electron:', filePaths)
 
   const results = await window.electronAPI.processDroppedFiles(filePaths)
+  console.log('[processElectronFiles] Got results from Electron:', results)
 
   for (const result of results) {
     if (result.type === 'vtt' && result.content) {
