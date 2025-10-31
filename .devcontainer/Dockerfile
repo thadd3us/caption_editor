@@ -1,7 +1,17 @@
-FROM node:20-bookworm
+# Use Ubuntu 24.04 LTS as base image
+FROM ubuntu:24.04
 
-# Install system dependencies for Playwright, Electron, and Python ML
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    # Essential build tools
+    build-essential \
+    git \
+    curl \
+    ca-certificates \
+    gnupg \
     # Playwright browser dependencies
     libnss3 \
     libnspr4 \
@@ -28,10 +38,9 @@ RUN apt-get update && apt-get install -y \
     libxtst6 \
     xdg-utils \
     libwayland-client0 \
-    # Additional tools
-    git \
-    curl \
+    # X virtual framebuffer for headless testing
     xvfb \
+    # Media processing
     ffmpeg \
     # Python and ML dependencies
     python3 \
@@ -39,15 +48,32 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     # Additional dependencies for NeMo toolkit
     libsndfile1 \
-    sox 
+    sox \
+    # Disk usage analyzer
+    ncdu \
+    # Sudo for non-root user
+    sudo
 
-RUN apt install -y ncdu
+# Install Node.js 20.x LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Verify Node.js and npm installation
+RUN node --version && npm --version
+
+# Create non-root user 'dev' with sudo access
+RUN useradd -m dev \
+    && echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to dev user for subsequent operations
+USER dev
+WORKDIR /home/dev
 
 # Install uv for fast Python package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:${PATH}"
+ENV PATH="/home/dev/.local/bin:${PATH}"
 
-# Install global npm packages
+# Update npm to latest version (as dev user)
 RUN npm install -g npm@latest
 
 # Pre-install Playwright with headless Chromium only (for CI/CD)
@@ -60,10 +86,14 @@ RUN mkdir -p /tmp/playwright-install && \
     cd / && \
     rm -rf /tmp/playwright-install
 
+# Create directories for caching with proper ownership
+RUN mkdir -p /tmp/deps /tmp/node_modules_cache /tmp/python-deps /home/dev/models
+ENV HF_HOME=/home/dev/models
+ENV NEMO_MODEL_CACHE=/home/dev/models
+
 # Pre-install common dependencies based on package.json structure
-# This creates a layer (~155MB) that can be cached when only package.json changes
-# The postCreateCommand in devcontainer.json will copy this to node_modules
-COPY package.json package-lock.json* /tmp/deps/
+# This creates a layer that can be cached when only package.json changes
+COPY --chown=dev:dev package.json package-lock.json* /tmp/deps/
 RUN cd /tmp/deps && \
     if [ -f package-lock.json ]; then \
         npm ci; \
@@ -74,47 +104,48 @@ RUN cd /tmp/deps && \
     mv node_modules /tmp/node_modules_cache || true
 
 # Pre-create uv virtual environment for transcribe project at a fixed location
-# This creates the actual .venv (~1.8GB) that pytest will use
-COPY transcribe/pyproject.toml transcribe/uv.lock /tmp/python-deps/
-ENV UV_PROJECT_ENVIRONMENT=/venv
+# This creates the actual .venv that pytest will use
+COPY --chown=dev:dev transcribe/pyproject.toml transcribe/uv.lock /tmp/python-deps/
+ENV UV_PROJECT_ENVIRONMENT=/home/dev/venv
 RUN cd /tmp/python-deps && \
     uv sync --frozen && \
     echo "Python virtual environment created successfully at $UV_PROJECT_ENVIRONMENT"
 
 # Pre-download ASR models for transcription
-# Set HF_HOME before downloading models
-ENV HF_HOME=/models
-
-# TODO: Does this do anything?
-# NeMo toolkit environment variables
-ENV NEMO_MODEL_CACHE=/models
-
-RUN mkdir -p /models
-
 RUN cd /tmp/python-deps && \
     uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \
-    rm -rf /models/xet && \
+    rm -rf /home/dev/models/xet && \
     echo "Whisper-tiny model downloaded successfully"
-    # Pre-download NVIDIA Parakeet model (default model for production)
-    # Note: This is a ~2.4GB download and may take time during build
-    
+
+# Pre-download NVIDIA Parakeet model (default model for production)
+# Note: This is a ~2.4GB download and may take time during build
 RUN cd /tmp/python-deps && \
     uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
-    rm -rf /models/xet && \
+    rm -rf /home/dev/models/xet && \
     echo "Parakeet TDT model downloaded successfully"
 
-RUN echo "2) sleeping for 30 seconds" && sleep 30 && echo "done sleeping"
+# Brief pause to ensure models are properly cached
+RUN echo "Finalizing model downloads..." && sleep 30 && echo "Model downloads complete"
 
-# Copy Xvfb startup script
+# Switch back to root to install Xvfb script with SUID bit
+USER root
+
+# Copy Xvfb startup script and set SUID bit so non-root users can run it
 # Note: This script must be manually run to start Xvfb for Electron tests
 # See CLAUDE.md for instructions
 COPY .devcontainer/start-xvfb.sh /usr/local/bin/start-xvfb.sh
-RUN chmod +x /usr/local/bin/start-xvfb.sh
+RUN chmod 4755 /usr/local/bin/start-xvfb.sh
+
+# Switch back to dev user
+USER dev
 
 # Environment variables
 ENV NODE_ENV=development
 # Disable OneLogger telemetry in development
 ENV ONE_LOGGER_DISABLE=1
+
+# Set working directory to the workspace mount point
+WORKDIR /workspace
 
 # Default command
 CMD ["bash"]

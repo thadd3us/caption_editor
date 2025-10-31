@@ -233,11 +233,11 @@ This builds `dist-electron/main.cjs` and `dist-electron/preload.cjs` which are r
 **Step 1:** Start Xvfb using the provided script:
 
 ```bash
-# Start Xvfb using the startup script
-/usr/local/bin/start-xvfb.sh
+# Start Xvfb using the startup script (has SUID bit set, no sudo needed)
+start-xvfb.sh
 
 # Or manually if you prefer:
-Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
+sudo Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
 ```
 
 The script will:
@@ -255,7 +255,7 @@ export DISPLAY=:99
 ps aux | grep Xvfb | grep -v grep
 ```
 
-> **Note:** Xvfb needs to be started manually each time the container restarts. The Dockerfile includes the script at `/usr/local/bin/start-xvfb.sh` but does not auto-run it on container startup.
+> **Note:** Xvfb needs to be started manually each time the container restarts. The Dockerfile includes the script at `/usr/local/bin/start-xvfb.sh` (in your PATH) but does not auto-run it on container startup.
 
 ### Running Electron Tests
 
@@ -295,8 +295,8 @@ ps aux | grep Xvfb
 echo $DISPLAY
 
 # Restart Xvfb if needed
-pkill Xvfb
-/usr/local/bin/start-xvfb.sh
+sudo pkill Xvfb
+start-xvfb.sh
 ```
 
 **Xvfb logs:**
@@ -349,7 +349,7 @@ npx playwright test --grep-invert "electron"
 
 # 5. Optional: Run Electron tests (requires build + Xvfb)
 npm run build:electron
-/usr/local/bin/start-xvfb.sh
+start-xvfb.sh
 export DISPLAY=:99
 npx playwright test tests/electron/ --reporter=list
 ```

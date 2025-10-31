@@ -1,6 +1,7 @@
 #!/bin/bash
 # Start Xvfb (X Virtual Framebuffer) for headless Electron testing
 # This script starts Xvfb on display :99 and sets the DISPLAY environment variable
+# Note: This script has the SUID bit set, so it runs with elevated privileges
 
 # Start Xvfb in the background
 Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
