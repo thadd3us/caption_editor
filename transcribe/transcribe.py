@@ -307,7 +307,11 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
     lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
 
     # Get current timestamp for all cues (local timezone)
-    current_timestamp = datetime.now().astimezone().isoformat()
+    if deterministic_ids:
+        # Use deterministic timestamp for testing
+        current_timestamp = "2025-01-01T00:00:00.000000+00:00"
+    else:
+        current_timestamp = datetime.now().astimezone().isoformat()
 
     for idx, cue in enumerate(cues):
         # Generate ID

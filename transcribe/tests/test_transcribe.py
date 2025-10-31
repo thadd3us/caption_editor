@@ -36,6 +36,7 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
             "5",
             "--model",
             model_name,
+            "--deterministic-ids",
         ],
         capture_output=True,
         text=True,
