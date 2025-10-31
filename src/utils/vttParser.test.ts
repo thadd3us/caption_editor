@@ -101,7 +101,7 @@ Caption with UUID`
       const uuid = '550e8400-e29b-41d4-a716-446655440000'
       const content = `WEBVTT
 
-NOTE {"id":"${uuid}","rating":5}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"${uuid}","rating":5}
 
 00:00:01.000 --> 00:00:04.000
 Rated caption`
@@ -678,7 +678,7 @@ test-1
 00:00:01.000 --> 00:00:04.000
 Updated text
 
-NOTE {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","cue":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}]}`
+NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","cue":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}]}`
 
       const result = parseVTT(content)
 

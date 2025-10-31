@@ -138,32 +138,9 @@ export function parseVTT(content: string): ParseResult {
               console.warn('Failed to parse CAPTION_EDITOR metadata:', err)
             }
           }
-        }
-        // Fallback: Try to parse as legacy JSON format (for backward compatibility)
-        else {
-          try {
-            const parsed = JSON.parse(noteContent)
-
-            // Check if it's transcript history (has 'entries' array)
-            if (Array.isArray(parsed.entries)) {
-              transcriptHistory = parsed as TranscriptHistory
-              console.log('Found transcript history (legacy format) with', transcriptHistory.entries.length, 'entries')
-            }
-            // Check if it's transcript metadata (has 'id' but not 'rating' or 'timestamp' - those are cue metadata)
-            // Only set transcript metadata once (from the first NOTE)
-            else if (parsed.id && !('rating' in parsed) && !('timestamp' in parsed) && !transcriptMetadata) {
-              transcriptMetadata = parsed as TranscriptMetadata
-              console.log('Found transcript metadata (legacy format):', transcriptMetadata.id)
-            }
-            // Otherwise check if it's cue metadata (has 'id' field)
-            else if (parsed.id) {
-              pendingMetadata = parsed as VTTCueMetadata
-              console.log('Found cue metadata (legacy format):', pendingMetadata.id)
-            }
-          } catch {
-            // Not JSON metadata, just a regular NOTE comment - ignore
-            console.log('NOTE is regular comment (not CAPTION_EDITOR metadata), ignoring')
-          }
+        } else {
+          // Regular NOTE comment without CAPTION_EDITOR sentinel - ignore
+          console.log('NOTE is regular comment (not CAPTION_EDITOR metadata), ignoring')
         }
         continue
       }
