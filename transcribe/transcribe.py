@@ -267,21 +267,41 @@ def resolve_overlap_conflicts(
     return result
 
 
-def generate_cue_id(audio_hash: str, start_time: float) -> str:
-    """Generate deterministic UUID based on audio hash and timestamp."""
+def generate_cue_id(audio_hash: str, start_time: float, deterministic_index: Optional[int] = None) -> str:
+    """Generate deterministic UUID based on audio hash and timestamp.
+
+    Args:
+        audio_hash: Hash of the audio file
+        start_time: Start time of the cue
+        deterministic_index: If provided, generates simple incremental ID like 'id_00000'
+    """
+    if deterministic_index is not None:
+        return f"id_{deterministic_index:05d}"
+
     combined = f"{audio_hash}:{start_time:.3f}"
     hash_bytes = hashlib.sha256(combined.encode()).digest()
     return str(uuid.UUID(bytes=hash_bytes[:16]))
 
 
-def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[str] = None) -> str:
-    """Convert cues to VTT format string with NOTE metadata using CAPTION_EDITOR sentinel format."""
+def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[str] = None, deterministic_ids: bool = False) -> str:
+    """Convert cues to VTT format string with NOTE metadata using CAPTION_EDITOR sentinel format.
+
+    Args:
+        cues: List of VTT cues to convert
+        audio_hash: Hash of the audio file
+        media_file_path: Optional path to the media file
+        deterministic_ids: If True, use simple incremental IDs (id_00000, id_00001, etc.) for testing
+    """
     lines = ["WEBVTT\n"]
 
     # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
     # Generate deterministic document UUID based on audio hash
-    hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
-    doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
+    if deterministic_ids:
+        doc_id = "doc_id"
+    else:
+        hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
+        doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
+
     transcript_metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file_path)
     metadata_json = transcript_metadata.model_dump(by_alias=True, exclude_none=True)
     lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
@@ -289,9 +309,12 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
     # Get current timestamp for all cues (local timezone)
     current_timestamp = datetime.now().astimezone().isoformat()
 
-    for cue in cues:
+    for idx, cue in enumerate(cues):
         # Generate ID
-        cue_id = generate_cue_id(audio_hash, cue.start_time)
+        if deterministic_ids:
+            cue_id = generate_cue_id(audio_hash, cue.start_time, deterministic_index=idx)
+        else:
+            cue_id = generate_cue_id(audio_hash, cue.start_time)
 
         # Set timestamp if not already set
         cue_timestamp = cue.timestamp if cue.timestamp else current_timestamp
@@ -351,6 +374,11 @@ def main(
         "--model",
         "-m",
         help="Hugging Face model name",
+    ),
+    deterministic_ids: bool = typer.Option(
+        False,
+        "--deterministic-ids",
+        help="Use simple incremental IDs (id_00000, id_00001, etc.) for testing instead of UUIDs",
     ),
 ):
     """
@@ -473,7 +501,7 @@ def main(
 
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file_path)
+        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file_path, deterministic_ids=deterministic_ids)
 
         # Write output
         output.write_text(vtt_content)
