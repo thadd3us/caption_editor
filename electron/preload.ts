@@ -63,23 +63,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // Handle file drop events
 window.addEventListener('DOMContentLoaded', () => {
+  console.log('[preload] Registered drop handler on document')
   document.addEventListener('drop', (e) => {
+    console.log('[preload] Drop event received at document level')
     e.preventDefault()
     e.stopPropagation()
 
     // Extract file paths from dropped files
     const files = Array.from(e.dataTransfer?.files || [])
+    console.log('[preload] Files in drop:', files.map(f => ({ name: f.name, path: (f as any).path })))
     const filePaths = files
       // @ts-ignore - path property exists in Electron
       .map(file => file.path)
       .filter(Boolean)
 
+    console.log('[preload] Extracted file paths:', filePaths)
+
     if (filePaths.length > 0) {
       // Dispatch custom event with file paths
+      console.log('[preload] Dispatching electron-files-dropped event')
       const event = new CustomEvent('electron-files-dropped', {
         detail: { filePaths }
       })
       window.dispatchEvent(event)
+    } else {
+      console.warn('[preload] No file paths found - file.path property not available')
     }
   })
 

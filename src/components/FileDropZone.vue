@@ -110,6 +110,7 @@ async function handleDrop(e: DragEvent) {
 }
 
 async function handleElectronFileDrop(event: CustomEvent<{ filePaths: string[] }>) {
+  console.log('[handleElectronFileDrop] Received electron-files-dropped event with paths:', event.detail.filePaths)
   showDropZone.value = false
   await processElectronFiles(event.detail.filePaths)
 }
