@@ -46,7 +46,7 @@ test.describe('Electron App', () => {
   })
 
   test('should show the file upload button', async () => {
-    const uploadButton = await window.locator('.upload-button')
+    const uploadButton = await window.locator('.open-button')
     await expect(uploadButton).toBeVisible()
   })
 
@@ -131,9 +131,13 @@ Test caption
       })
     })
 
-    // Click export button
-    const exportButton = await window.locator('button:has-text("Export VTT")')
-    await exportButton.click()
+    // Click export button - need to open File menu first
+    const fileMenu = await window.locator('button.menu-item:has-text("File")')
+    await fileMenu.click()
+    await window.waitForTimeout(200)
+
+    const saveAsButton = await window.locator('button:has-text("Save As")')
+    await saveAsButton.click()
 
     // Wait for export to complete
     await window.waitForTimeout(1000)
@@ -182,7 +186,7 @@ Dropped caption
     })
 
     // Try to open file via button
-    const uploadButton = await window.locator('.upload-button')
+    const uploadButton = await window.locator('.open-button')
     await uploadButton.click()
 
     // Wait for dialog to be processed

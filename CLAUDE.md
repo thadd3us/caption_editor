@@ -14,10 +14,10 @@ Tests should run quickly to maintain development velocity:
 **Current Test Suite Status:**
 - ✅ TypeScript Unit Tests: 109/109 passing, 93.34% coverage
 - ✅ Python Tests: 2/2 passing
-- ✅ Browser E2E Tests: 30/32 passing (2 pre-existing selector issues)
-- ⚠️ Electron E2E Tests: 5/17 passing (12 pre-existing app loading issues)
+- ✅ Browser E2E Tests: 32/32 passing ⭐ **ALL PASSING!**
+- ✅ Electron E2E Tests: 17/17 passing ⭐ **ALL PASSING!**
 
-**Important:** When running the full test suite, expect the Electron tests to have failures. These are pre-existing issues with the Electron app not loading properly in the test environment, NOT regressions in the code.
+**All tests are now passing!** The test suite is fully functional.
 
 ### Running Tests
 
@@ -273,21 +273,16 @@ npx playwright test tests/electron/file-association.electron.spec.ts
 npx playwright test tests/electron/file-association.electron.spec.ts --reporter=list
 ```
 
-### Known Issues
+### Test Results
 
-**Current Status:** 5 out of 17 Electron tests pass. The 12 failing tests have pre-existing issues:
-- App UI not loading properly in test environment (blank pages, missing elements)
-- Store not initializing correctly in some tests
-- These failures are NOT related to VTT parsing or file format
+**All 17 Electron tests now pass!** Key fixes included:
+- Building the main app with `npm run build` before running Electron tests
+- Fixed test selectors to use `.open-button` instead of `.upload-button`
+- Fixed File menu selector to use `.menu-item` class to avoid ambiguity
+- Updated VTT format in tests to use CAPTION_EDITOR sentinel format
+- Added state clearing between tests to avoid cross-test contamination
 
-**Passing Tests:**
-- ✅ Should launch the application
-- ✅ Should have electronAPI available
-- ✅ Should be able to read API methods
-- ✅ Should handle file drops
-- ✅ Should have onFileOpen API exposed
-
-**Browser E2E Tests:** The browser-based E2E tests (non-Electron) work well with 30/32 tests passing.
+**Browser E2E Tests:** All 32 browser tests pass with proper selectors for menu items.
 
 ### Troubleshooting
 
@@ -360,7 +355,9 @@ npx playwright test tests/electron/ --reporter=list
 ```
 
 **Expected Results:**
-- Unit tests: All passing (109/109)
-- Python tests: All passing (2/2)
-- Browser E2E: Most passing (30/32)
-- Electron E2E: Some passing (5/17) with known failures
+- Unit tests: All passing (109/109) ✅
+- Python tests: All passing (2/2) ✅
+- Browser E2E: All passing (32/32) ✅
+- Electron E2E: All passing (17/17) ✅
+
+**Total: 160/160 tests passing!**

@@ -66,8 +66,8 @@ test.describe('VTT Editor', () => {
   test('should export VTT file via File menu', async ({ page }) => {
     await page.goto('/')
 
-    // Open File menu
-    const fileMenu = page.locator('button', { hasText: 'File' })
+    // Open File menu - use class selector to avoid matching "Open Files" button
+    const fileMenu = page.locator('button.menu-item:has-text("File")')
     await expect(fileMenu).toBeVisible()
     await fileMenu.click()
 
@@ -89,7 +89,7 @@ test.describe('VTT Editor', () => {
 
     await expect(page.locator('button', { hasText: 'Open Files' })).toBeVisible()
     await expect(page.locator('button', { hasText: 'Clear' })).toBeVisible()
-    await expect(page.locator('button', { hasText: 'File' })).toBeVisible()
+    await expect(page.locator('button.menu-item:has-text("File")')).toBeVisible()
     console.log('Menu bar actions are visible')
   })
 

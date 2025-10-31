@@ -119,20 +119,29 @@ test.describe('Electron VTT Media Auto-loading', () => {
     console.log('Final state:', finalState)
 
     expect(finalState.mediaPath).toBeTruthy()
-    expect(finalState.mediaFilePath).toContain('OSR_us_000_0010_8k.wav')
+    expect(finalState.mediaPath).toContain('OSR_us_000_0010_8k.wav')
     expect(finalState.hasAudio).toBe(true)
   })
 
   test('should handle missing media file gracefully', async () => {
     test.setTimeout(30000)
 
+    // Clear any previous state
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      if (store && store.clearDocument) {
+        store.clearDocument()
+      }
+    })
+    await window.waitForTimeout(200)
+
     // Create a VTT with a non-existent media reference
     const testVTTPath = path.join(process.cwd(), 'tests/fixtures/missing-media-ref.vtt')
     const vttContent = `WEBVTT
 
-NOTE {"id":"550e8400-e29b-41d4-a716-446655440000","mediaFilePath":"nonexistent-file.wav"}
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"550e8400-e29b-41d4-a716-446655440000","mediaFilePath":"nonexistent-file.wav"}
 
-NOTE {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9"}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","timestamp":"2025-10-31T00:00:00.000Z"}
 
 84ec6681-574b-4570-aecb-5bcaea9415a9
 00:00:00.000 --> 00:00:03.000
