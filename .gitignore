@@ -53,6 +53,9 @@ env/
 *.egg-info/
 dist/
 build/
+!build/icon.icns
+!build/icon.ico
+!build/icon.png
 
 # NeMo toolkit artifacts
 *.err
