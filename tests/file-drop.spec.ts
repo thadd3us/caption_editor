@@ -10,7 +10,6 @@ const __dirname = dirname(__filename)
 test.describe('File Drop Zone', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
   })
 

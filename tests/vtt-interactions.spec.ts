@@ -9,7 +9,6 @@ const __dirname = dirname(__filename)
 test.describe('VTT Editor - User Interactions', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
   })
 
@@ -152,15 +151,10 @@ Caption to rate`
     await expect(filledStars).toHaveCount(3)
     await expect(emptyStars).toHaveCount(2)
 
-    // Verify the document in localStorage has the rating
-    const stored = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-
-    expect(stored).toBeDefined()
-    expect(stored.document.cues).toHaveLength(1)
-    expect(stored.document.cues[0].rating).toBe(3)
+    // Verify the document in store has the rating
+    let cues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(cues).toHaveLength(1)
+    expect(cues[0].rating).toBe(3)
 
     // Click the fifth star to change rating to 5
     const fifthStar = starRating.locator('.star[data-star-index="5"]')
@@ -173,12 +167,8 @@ Caption to rate`
     await expect(filledStars).toHaveCount(5)
 
     // Verify the document has rating 5
-    const stored2 = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-
-    expect(stored2.document.cues[0].rating).toBe(5)
+    cues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(cues[0].rating).toBe(5)
 
     // Click the fifth star again to clear the rating
     await fifthStar.click()
@@ -190,58 +180,8 @@ Caption to rate`
     await expect(emptyStars).toHaveCount(5)
 
     // Verify the document has no rating
-    const stored3 = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-
-    expect(stored3.document.cues[0].rating).toBeUndefined()
-  })
-
-  test('should clear all captions with confirmation', async ({ page }) => {
-    await page.goto('/')
-
-    const vttContent = `WEBVTT
-
-00:00:01.000 --> 00:00:04.000
-Caption 1
-
-00:00:05.000 --> 00:00:08.000
-Caption 2`
-
-    await page.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
-    }, vttContent)
-
-    await page.waitForTimeout(200)
-
-    // Accept clear confirmation
-    page.on('dialog', dialog => dialog.accept())
-
-    const clearButton = page.locator('button', { hasText: 'Clear' })
-    await clearButton.click()
-
-    await page.waitForTimeout(100)
-
-    // Document should be empty
-    const stored = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-
-    expect(stored).toBeDefined()
-    if (stored) {
-      expect(stored.document.cues).toHaveLength(0)
-    }
+    cues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(cues[0].rating).toBeUndefined()
   })
 
   test('should handle invalid VTT file gracefully', async ({ page }) => {

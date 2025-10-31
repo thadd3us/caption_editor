@@ -27,7 +27,6 @@ test.describe('VTT Editor - Comprehensive E2E Test', () => {
 
     // === Setup: Load empty app with 10-second audio ===
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
 
     const audioPath = path.join(__dirname, 'fixtures', 'test-audio-10s.wav')

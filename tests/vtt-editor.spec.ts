@@ -8,9 +8,7 @@ const __dirname = dirname(__filename)
 
 test.describe('VTT Editor', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
   })
 
@@ -121,52 +119,6 @@ test.describe('VTT Editor', () => {
     console.log('Panel resizer works: width changed from', initialWidth, 'to', newWidth)
   })
 
-  test('should clear document with confirmation', async ({ page }) => {
-    await page.goto('/')
-
-    // Set up dialog handler
-    page.on('dialog', async dialog => {
-      expect(dialog.type()).toBe('confirm')
-      await dialog.dismiss()
-    })
-
-    const clearButton = page.locator('button', { hasText: 'Clear' })
-    await clearButton.click()
-
-    console.log('Clear confirmation dialog works')
-  })
-
-  test('should persist data to localStorage', async ({ page }) => {
-    await page.goto('/')
-
-    // Load some VTT data
-    await page.evaluate(() => {
-      const vttContent = 'WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nPersistence test'
-      localStorage.setItem('vtt-editor-document', JSON.stringify({
-        document: {
-          cues: [{
-            id: 'test-id',
-            startTime: 1,
-            endTime: 4,
-            text: 'Persistence test'
-          }]
-        },
-        timestamp: Date.now()
-      }))
-    })
-
-    await page.reload()
-
-    // Check if data persisted
-    const stored = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-
-    expect(stored).not.toBeNull()
-    expect(stored.document.cues).toHaveLength(1)
-    console.log('LocalStorage persistence works')
-  })
 
   test('should show AG Grid table', async ({ page }) => {
     await page.goto('/')

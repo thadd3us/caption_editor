@@ -9,7 +9,6 @@ const __dirname = dirname(__filename)
 test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
   })
 
@@ -23,9 +22,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
 
   test('should integrate playhead, scrub bar, and table with complete workflow', async ({ page }) => {
-    // Clear localStorage and reload to start fresh
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
 
     // Load the 10-second audio file
@@ -77,14 +74,11 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     rowCount = await page.locator('.ag-row').count()
     expect(rowCount).toBe(1)
 
-    // Verify the cue in localStorage spans 2-7 seconds (default 5s duration)
-    let stored = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-    expect(stored.document.cues).toHaveLength(1)
-    expect(stored.document.cues[0].startTime).toBeCloseTo(2, 1)
-    expect(stored.document.cues[0].endTime).toBeCloseTo(7, 1)
+    // Verify the cue in store spans 2-7 seconds (default 5s duration)
+    let cues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(cues).toHaveLength(1)
+    expect(cues[0].startTime).toBeCloseTo(2, 1)
+    expect(cues[0].endTime).toBeCloseTo(7, 1)
 
     // === Test 2: Add cue BEFORE first cue ===
     console.log('Test 2: Adding cue before first cue')
@@ -104,18 +98,14 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     expect(rowCount).toBe(2)
 
     // Verify cues are in correct order
-    stored = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-    expect(stored.document.cues).toHaveLength(2)
+    cues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(cues).toHaveLength(2)
 
-    // Should be sorted by start time
-    const sortedCues = stored.document.cues.sort((a: any, b: any) => a.startTime - b.startTime)
-    expect(sortedCues[0].startTime).toBeCloseTo(0.5, 1)
-    expect(sortedCues[0].endTime).toBeCloseTo(5.5, 1)
-    expect(sortedCues[1].startTime).toBeCloseTo(2, 1)
-    expect(sortedCues[1].endTime).toBeCloseTo(7, 1)
+    // Should be sorted by start time (store keeps them sorted)
+    expect(cues[0].startTime).toBeCloseTo(0.5, 1)
+    expect(cues[0].endTime).toBeCloseTo(5.5, 1)
+    expect(cues[1].startTime).toBeCloseTo(2, 1)
+    expect(cues[1].endTime).toBeCloseTo(7, 1)
 
     // === Test 3: Add cue AFTER existing cues ===
     console.log('Test 3: Adding cue after existing cues')
@@ -135,11 +125,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     expect(rowCount).toBe(3)
 
     // Verify third cue
-    stored = await page.evaluate(() => {
-      const data = localStorage.getItem('vtt-editor-document')
-      return data ? JSON.parse(data) : null
-    })
-    expect(stored.document.cues).toHaveLength(3)
+    cues = await page.evaluate(() => (window as any).$store.document.cues)
+    expect(cues).toHaveLength(3)
 
     // === Test 4: Scrub bar seeking (auto-selection not yet implemented) ===
     console.log('Test 4: Testing scrub bar seeking')

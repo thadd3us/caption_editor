@@ -9,7 +9,6 @@ const __dirname = dirname(__filename)
 test.describe('Media Element Seek Test', () => {
   test('should set audio currentTime and update store via timeupdate event', async ({ page }) => {
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
     await page.reload()
 
     // Load audio file
