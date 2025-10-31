@@ -110,7 +110,7 @@ jobs:
           prerelease: false
           files: ${{ steps.find-dmg.outputs.dmg_path }}
           body: |
-            ## VTT Editor v${{ inputs.version }}
+            ## Caption Editor v${{ inputs.version }}
 
             ### Installation
             Download the DMG file below and drag the app to your Applications folder.

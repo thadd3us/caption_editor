@@ -1,5 +1,5 @@
 {
-  "name": "vtt-editor",
+  "name": "caption-editor",
   "version": "1.0.0",
   "type": "module",
   "main": "dist-electron/main.cjs",

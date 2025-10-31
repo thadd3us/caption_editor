@@ -1,6 +1,6 @@
 {
-  "appId": "com.vtteditor.app",
-  "productName": "VTT Editor",
+  "appId": "com.captioneditor.app",
+  "productName": "Caption Editor",
   "directories": {
     "output": "release",
     "buildResources": "build"
