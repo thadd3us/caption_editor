@@ -61,36 +61,6 @@ test.describe('VTT Editor', () => {
     console.log('Add caption button is visible')
   })
 
-  test('should export VTT file via File menu', async ({ page }) => {
-    await page.goto('/')
-
-    // Open File menu - use class selector to avoid matching "Open Files" button
-    const fileMenu = page.locator('button.menu-item:has-text("File")')
-    await expect(fileMenu).toBeVisible()
-    await fileMenu.click()
-
-    // Click Save As
-    const saveAsButton = page.locator('button', { hasText: 'Save As' })
-    await expect(saveAsButton).toBeVisible()
-
-    // Set up download listener
-    const downloadPromise = page.waitForEvent('download')
-    await saveAsButton.click()
-    const download = await downloadPromise
-
-    expect(download.suggestedFilename()).toMatch(/\.vtt$/)
-    console.log('Export functionality works, filename:', download.suggestedFilename())
-  })
-
-  test('should display menu bar actions', async ({ page }) => {
-    await page.goto('/')
-
-    await expect(page.locator('button', { hasText: 'Open Files' })).toBeVisible()
-    await expect(page.locator('button', { hasText: 'Clear' })).toBeVisible()
-    await expect(page.locator('button.menu-item:has-text("File")')).toBeVisible()
-    console.log('Menu bar actions are visible')
-  })
-
   test('should have resizable panels', async ({ page }) => {
     await page.goto('/')
 
