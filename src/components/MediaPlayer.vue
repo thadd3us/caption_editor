@@ -95,10 +95,11 @@ const isVideo = computed(() => {
 })
 
 const mediaFileName = computed(() => {
-  // Display the relative path from mediaFilePath (which may be just filename or relative path)
+  // Display exactly what will be saved in VTT metadata (document.metadata.mediaFilePath)
+  // This is typically a relative path (e.g., just filename) when media is in same dir as VTT
   if (store.mediaFilePath) return store.mediaFilePath
   if (!store.mediaPath) return ''
-  // Fallback: extract filename from media URL path
+  // Fallback: extract filename from media URL path if metadata not available
   const path = store.mediaPath
   const parts = path.split(/[/\\]/)
   return parts[parts.length - 1]
