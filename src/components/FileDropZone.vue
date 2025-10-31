@@ -2,7 +2,7 @@
   <div
     v-if="showDropZone"
     class="drop-zone-overlay"
-    @drop.prevent="handleDrop"
+    @drop="handleDrop"
     @dragover.prevent="handleDragOver"
     @dragleave="handleDragLeave"
   >
@@ -15,7 +15,7 @@
   <div
     v-else
     class="file-input-zone"
-    @drop.prevent="handleDrop"
+    @drop="handleDrop"
     @dragenter.prevent="showDropZone = true"
   >
     <input
@@ -89,26 +89,23 @@ function handleDragLeave(e: DragEvent) {
 }
 
 async function handleDrop(e: DragEvent) {
-  console.log('Files dropped')
+  console.log('[handleDrop] Files dropped')
+  e.preventDefault() // Prevent browser from opening the file
+  // DON'T stopPropagation - let the preload script's document listener also handle this
+
   showDropZone.value = false
 
-  if (!e.dataTransfer?.files) return
-
-  const files = Array.from(e.dataTransfer.files)
-
-  // In Electron, extract file paths and use Electron API
+  // In Electron mode, the preload script will dispatch 'electron-files-dropped' event
+  // with full file paths, so we don't need to process here
   if (isElectron.value && window.electronAPI) {
-    // @ts-ignore - path property exists in Electron
-    const filePaths = files.map(f => f.path).filter(Boolean)
-    console.log('[FileDropZone] Extracted file paths from dropped files:', filePaths)
-    console.log('[FileDropZone] File objects:', files.map(f => ({ name: f.name, path: (f as any).path })))
-    if (filePaths.length > 0) {
-      await processElectronFiles(filePaths)
-      return
-    }
+    console.log('[handleDrop] Electron mode - waiting for electron-files-dropped event from preload')
+    return
   }
 
-  // Fallback to browser processing
+  // Browser mode - process files directly
+  if (!e.dataTransfer?.files) return
+  const files = Array.from(e.dataTransfer.files)
+  console.log('[handleDrop] Browser mode - processing files:', files.map(f => f.name))
   await processFiles(files)
 }
 
