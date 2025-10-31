@@ -271,16 +271,16 @@ def generate_cue_id(audio_hash: str, start_time: float) -> str:
 
 
 def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[str] = None) -> str:
-    """Convert cues to VTT format string with NOTE metadata."""
+    """Convert cues to VTT format string with NOTE metadata using CAPTION_EDITOR sentinel format."""
     lines = ["WEBVTT\n"]
 
-    # Add TranscriptMetadata at the top
+    # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
     # Generate deterministic document UUID based on audio hash
     hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
     doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
     transcript_metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file_path)
     metadata_json = transcript_metadata.model_dump(by_alias=True, exclude_none=True)
-    lines.append(f"NOTE {json.dumps(metadata_json)}\n")
+    lines.append(f"NOTE CAPTION_EDITOR:TranscriptMetadata {json.dumps(metadata_json)}\n")
 
     # Get current timestamp for all cues (local timezone)
     current_timestamp = datetime.now().astimezone().isoformat()
@@ -292,7 +292,7 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
         # Set timestamp if not already set
         cue_timestamp = cue.timestamp if cue.timestamp else current_timestamp
 
-        # Always add NOTE with metadata
+        # Always add NOTE with metadata using CAPTION_EDITOR sentinel
         metadata = {
             "id": cue_id,
             "rating": cue.rating,
@@ -300,7 +300,7 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
         }
         # Remove None values for cleaner JSON
         metadata = {k: v for k, v in metadata.items() if v is not None}
-        lines.append(f"\nNOTE {json.dumps(metadata)}\n")
+        lines.append(f"\nNOTE CAPTION_EDITOR:VTTCueMetadata {json.dumps(metadata)}\n")
 
         # Format timestamps
         start = format_timestamp(cue.start_time)
