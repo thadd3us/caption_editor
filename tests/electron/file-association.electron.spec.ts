@@ -19,11 +19,13 @@ test.describe('File Association - Open VTT files from OS', () => {
     electronApp = await electron.launch({
       args: [
         path.join(process.cwd(), 'dist-electron/main.cjs'),
+        '--no-sandbox',
         vttFilePath  // Pass VTT file path as argument
       ],
       env: {
         ...process.env,
-        NODE_ENV: 'test'
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
       }
     })
 
@@ -108,10 +110,11 @@ test.describe('File Association - Open VTT files from OS', () => {
 
     // Launch Electron without file argument first
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs')],
+      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
       env: {
         ...process.env,
-        NODE_ENV: 'test'
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
       }
     })
 
@@ -146,10 +149,11 @@ test.describe('File Association - Open VTT files from OS', () => {
 
   test('should have onFileOpen API exposed', async () => {
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs')],
+      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
       env: {
         ...process.env,
-        NODE_ENV: 'test'
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
       }
     })
 

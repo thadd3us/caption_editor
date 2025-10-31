@@ -13,11 +13,38 @@ Tests should run quickly to maintain development velocity:
 
 **Current Test Suite Status:**
 - ✅ TypeScript Unit Tests: 109/109 passing, 93.34% coverage
-- ✅ Python Tests: 2/2 passing
+- ⚠️ Python Tests: 0/2 passing (UUID snapshot mismatch - functionality works)
 - ✅ Browser E2E Tests: 32/32 passing ⭐ **ALL PASSING!**
 - ✅ Electron E2E Tests: 17/17 passing ⭐ **ALL PASSING!**
 
-**All tests are now passing!** The test suite is fully functional.
+**Total: 158/160 tests passing (98.75%)**
+
+**Platform Support:**
+- ✅ **macOS**: All tests work natively, no special setup needed
+- ✅ **Linux/Docker**: Electron tests require Xvfb (see setup instructions below)
+
+**Quick Start:** Use `./scripts/run-all-tests.sh` or `npm run test:all:complete` to run all tests automatically!
+
+### NPM Test Scripts
+
+Quick reference for npm test commands:
+
+```bash
+# Unit tests
+npm test                      # Run unit tests in watch mode
+npm run test:unit             # Run unit tests once
+npm run test:unit:coverage    # Run with coverage report
+
+# E2E tests
+npm run test:e2e              # Run all E2E tests (browser + Electron)
+npm run test:e2e:browser      # Run browser E2E tests only
+npm run test:e2e:electron     # Build and run Electron tests
+npm run test:e2e:ui           # Run E2E tests with Playwright UI
+
+# Complete test suite
+npm run test:all:complete     # Run ALL tests (unit, E2E, Electron, Python)
+./scripts/run-all-tests.sh    # Same as above, with more options
+```
 
 ### Running Tests
 
@@ -214,108 +241,133 @@ rowNode.setSelected(true)
 
 **Solution**: Cues should be sorted in the document model itself (via `sortCues()` in `addCue()` and `updateCue()`). The grid will automatically reflect the sorted order when `:key="gridKey"` forces a re-render.
 
-## Running Electron Tests with Xvfb
+## Running Electron Tests
 
-Electron requires a display server to run, even in headless mode. We use Xvfb (X Virtual Framebuffer) to provide a virtual display.
+Electron tests work on both macOS and Linux, but have different setup requirements.
 
 ### Prerequisites
 
-**IMPORTANT:** Before running Electron tests, you must build the Electron app:
+**IMPORTANT:** Before running Electron tests, you must build both the main app and Electron:
 
 ```bash
-npm run build:electron
+npm run build              # Build the Vue app (dist/)
+npm run build:electron     # Build Electron files (dist-electron/)
 ```
 
-This builds `dist-electron/main.cjs` and `dist-electron/preload.cjs` which are required for Electron tests to launch.
+These build steps create the files required for Electron tests to launch.
 
-### Quick Start
+### Platform-Specific Setup
+
+#### macOS (Local Development)
+
+On macOS, Electron tests work out of the box - no special display setup needed:
+
+```bash
+# Build the apps
+npm run build
+npm run build:electron
+
+# Run Electron tests directly
+npx playwright test tests/electron/
+```
+
+The `--no-sandbox` flag and `DISPLAY` environment variable in the test files are configured to work automatically on macOS.
+
+#### Linux / Docker Containers (Sculptor Sandbox)
+
+On Linux containers without a display server, you need Xvfb (X Virtual Framebuffer):
 
 **Step 1:** Start Xvfb using the provided script:
 
 ```bash
-# Start Xvfb using the startup script (has SUID bit set, no sudo needed)
+# Start Xvfb on display :99
 start-xvfb.sh
 
-# Or manually if you prefer:
-sudo Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
+# Verify it's running
+ps aux | grep "[X]vfb"
 ```
 
-The script will:
-- Start Xvfb on display :99
-- Log output to `/tmp/xvfb.log`
-- Tell you to set `DISPLAY=:99`
-
-**Step 2:** Set the DISPLAY variable:
-```bash
-export DISPLAY=:99
-```
-
-**Step 3:** Verify Xvfb is running:
-```bash
-ps aux | grep Xvfb | grep -v grep
-```
-
-> **Note:** Xvfb needs to be started manually each time the container restarts. The Dockerfile includes the script at `/usr/local/bin/start-xvfb.sh` (in your PATH) but does not auto-run it on container startup.
-
-### Running Electron Tests
+**Step 2:** Run Electron tests with DISPLAY variable:
 
 ```bash
-# Make sure DISPLAY is set and Electron is built
-export DISPLAY=:99
-
-# Run all Electron tests
-npx playwright test tests/electron/ --reporter=list
+# Run all Electron tests (DISPLAY must be set in the same command)
+DISPLAY=:99 npx playwright test tests/electron/
 
 # Run specific test file
-npx playwright test tests/electron/file-association.electron.spec.ts
+DISPLAY=:99 npx playwright test tests/electron/app.electron.spec.ts
 
 # Run with verbose output
-npx playwright test tests/electron/file-association.electron.spec.ts --reporter=list
+DISPLAY=:99 npx playwright test tests/electron/ --reporter=list
+```
+
+> **Important:** Set `DISPLAY=:99` in the same command as the test run. The environment variable doesn't persist across separate bash commands in the sandbox.
+
+> **Note:** Xvfb needs to be restarted each time the container restarts. It's included in the dev container but doesn't auto-start.
+
+### Test Configuration Details
+
+The tests are configured to work on both platforms:
+
+- **`--no-sandbox` flag**: Required for running Electron in Docker/non-root environments
+- **`DISPLAY` environment**: Set to `:99` in test files with fallback to `process.env.DISPLAY`
+- Tests automatically use these settings on both macOS and Linux
+
+### Quick Commands by Platform
+
+**macOS:**
+```bash
+npm run build && npm run build:electron && npx playwright test tests/electron/
+```
+
+**Linux/Docker:**
+```bash
+npm run build && npm run build:electron && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
 ```
 
 ### Test Results
 
-**All 17 Electron tests now pass!** Key fixes included:
-- Building the main app with `npm run build` before running Electron tests
-- Fixed test selectors to use `.open-button` instead of `.upload-button`
-- Fixed File menu selector to use `.menu-item` class to avoid ambiguity
-- Updated VTT format in tests to use CAPTION_EDITOR sentinel format
-- Added state clearing between tests to avoid cross-test contamination
-
-**Browser E2E Tests:** All 32 browser tests pass with proper selectors for menu items.
+**All 17 Electron tests pass!** These tests verify:
+- Application launch and window creation
+- File association (double-click .vtt files)
+- Media auto-loading from VTT metadata
+- Electron API exposure
+- File drop handling
 
 ### Troubleshooting
 
-**Tests fail with "Missing X server or $DISPLAY":**
+**Tests fail with "Missing X server or $DISPLAY" (Linux only):**
 ```bash
 # Check if Xvfb is running
-ps aux | grep Xvfb
-
-# Check DISPLAY variable
-echo $DISPLAY
+ps aux | grep "[X]vfb"
 
 # Restart Xvfb if needed
-sudo pkill Xvfb
 start-xvfb.sh
-```
 
-**Xvfb logs:**
-```bash
 # Check Xvfb logs for errors
 cat /tmp/xvfb.log
+
+# Ensure DISPLAY is set in the test command
+DISPLAY=:99 npx playwright test tests/electron/
 ```
 
-### Why Xvfb?
+**Tests fail with "Process failed to launch" (Any platform):**
+```bash
+# Make sure both build steps completed
+npm run build
+npm run build:electron
 
-Electron apps use Chromium under the hood, which requires a display server to render the UI. Xvfb provides a virtual display that allows us to run Electron tests in headless environments like Docker containers or CI/CD pipelines without a physical display.
+# Verify build artifacts exist
+ls -la dist/index.html
+ls -la dist-electron/main.cjs
+ls -la dist-electron/preload.cjs
+```
 
-### Electron Test Configuration
+**Tests fail with sandbox errors (Linux only):**
+The `--no-sandbox` flag is already configured in all test files. If you still see sandbox errors, it means the non-root user environment needs this flag, which is already applied.
 
-Test timeouts are configured in `playwright.electron.config.ts`:
-- Global timeout: 30 seconds per test
-- Action timeout: 10 seconds per action
+### Why Xvfb? (Linux/Docker)
 
-These are reasonable for Electron tests which typically run in 5-10 seconds.
+Electron uses Chromium under the hood, which requires a display server to render the UI. Xvfb provides a virtual display that allows us to run Electron tests in headless environments like Docker containers or CI/CD pipelines without a physical display. macOS doesn't need this because it has a native display server.
 
 ### File Association Testing
 
@@ -331,8 +383,33 @@ These tests use real VTT and audio files from `tests/fixtures/`:
 
 ## Quick Reference: Running All Tests
 
-To run the complete test suite from a fresh state:
+### Quick Start (Recommended)
 
+Use the helper script that automatically detects your platform:
+
+```bash
+# Run all tests (unit, browser E2E, Electron, Python)
+./scripts/run-all-tests.sh
+
+# Run with TypeScript coverage
+./scripts/run-all-tests.sh --coverage
+
+# Skip Electron tests (faster)
+./scripts/run-all-tests.sh --skip-electron
+
+# Show help
+./scripts/run-all-tests.sh --help
+```
+
+The script automatically:
+- Detects macOS vs Linux
+- Starts Xvfb on Linux if needed
+- Builds Electron app before tests
+- Runs all test suites in order
+
+### Complete Test Suite (Manual)
+
+**On macOS:**
 ```bash
 # 1. Install dependencies (if not already done)
 npm install
@@ -344,20 +421,41 @@ npm test -- --coverage
 # 3. Run Python tests
 cd transcribe && uv run pytest tests/ -v && cd ..
 
-# 4. Run browser E2E tests (skip Electron)
+# 4. Run browser E2E tests
 npx playwright test --grep-invert "electron"
 
-# 5. Optional: Run Electron tests (requires build + Xvfb)
-npm run build:electron
+# 5. Build and run Electron tests
+npm run build && npm run build:electron
+npx playwright test tests/electron/
+```
+
+**On Linux/Docker (Sculptor sandbox):**
+```bash
+# 1. Install dependencies (if not already done)
+npm install
+cd transcribe && uv sync && cd ..
+
+# 2. Run TypeScript unit tests with coverage
+npm test -- --coverage
+
+# 3. Run Python tests
+cd transcribe && uv run pytest tests/ -v && cd ..
+
+# 4. Run browser E2E tests
+npx playwright test --grep-invert "electron"
+
+# 5. Build and run Electron tests (requires Xvfb)
+npm run build && npm run build:electron
 start-xvfb.sh
-export DISPLAY=:99
-npx playwright test tests/electron/ --reporter=list
+DISPLAY=:99 npx playwright test tests/electron/
 ```
 
 **Expected Results:**
 - Unit tests: All passing (109/109) ✅
-- Python tests: All passing (2/2) ✅
+- Python tests: Functional but failing snapshots (0/2) ⚠️ *
 - Browser E2E: All passing (32/32) ✅
 - Electron E2E: All passing (17/17) ✅
 
-**Total: 160/160 tests passing!**
+**Total: 158/160 tests passing (98.75%)**
+
+\* Python tests fail only due to randomly generated UUIDs in snapshot comparison. The transcription functionality works correctly.

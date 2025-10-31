@@ -14,10 +14,11 @@ test.describe('Electron VTT Media Auto-loading', () => {
   test.beforeAll(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs')],
+      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
       env: {
         ...process.env,
-        NODE_ENV: 'test'
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
       }
     })
 

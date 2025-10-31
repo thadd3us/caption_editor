@@ -23,9 +23,11 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:coverage": "playwright test --reporter=html,json",
     "test:e2e:electron": "npm run build:all && playwright test --config playwright.electron.config.ts",
+    "test:e2e:browser": "playwright test --grep-invert electron",
     "test:coverage": "npm run test:unit:coverage && playwright test --reporter=html && npx nyc report --reporter=text --reporter=html",
     "test:build": "vue-tsc && vite build",
-    "test:all": "npm run test:unit && npm run test:e2e && npm run test:build"
+    "test:all": "npm run test:unit && npm run test:e2e && npm run test:build",
+    "test:all:complete": "./scripts/run-all-tests.sh"
   },
   "dependencies": {
     "ag-grid-community": "^31.1.1",

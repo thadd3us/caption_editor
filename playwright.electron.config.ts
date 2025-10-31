@@ -11,7 +11,13 @@ export default defineConfig({
 
   use: {
     trace: 'on-first-retry',
-    actionTimeout: 10000, // 10 seconds for actions
+    actionTimeout: 10000, // 10 seconds for actions,
+    launchOptions: {
+      env: {
+        ...process.env,
+        DISPLAY: ':99',
+      },
+    },
   },
 
   projects: [
