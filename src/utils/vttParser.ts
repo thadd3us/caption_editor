@@ -112,29 +112,58 @@ export function parseVTT(content: string): ParseResult {
           i++
         }
 
-        // Try to parse as JSON metadata
-        try {
-          const parsed = JSON.parse(noteContent)
+        // Check if this is a CAPTION_EDITOR sentinel note
+        if (noteContent.startsWith('CAPTION_EDITOR:')) {
+          const sentinelMatch = noteContent.match(/^CAPTION_EDITOR:(\w+)\s+(.+)$/)
+          if (sentinelMatch) {
+            const typeName = sentinelMatch[1]
+            const jsonContent = sentinelMatch[2]
 
-          // Check if it's transcript history (has 'entries' array)
-          if (Array.isArray(parsed.entries)) {
-            transcriptHistory = parsed as TranscriptHistory
-            console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
+            try {
+              const parsed = JSON.parse(jsonContent)
+
+              if (typeName === 'TranscriptMetadata' && !transcriptMetadata) {
+                transcriptMetadata = parsed as TranscriptMetadata
+                console.log('Found transcript metadata:', transcriptMetadata.id)
+              } else if (typeName === 'VTTCueMetadata') {
+                pendingMetadata = parsed as VTTCueMetadata
+                console.log('Found cue metadata:', pendingMetadata.id)
+              } else if (typeName === 'TranscriptHistory') {
+                transcriptHistory = parsed as TranscriptHistory
+                console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
+              } else {
+                console.log('Unknown CAPTION_EDITOR type:', typeName)
+              }
+            } catch (err) {
+              console.warn('Failed to parse CAPTION_EDITOR metadata:', err)
+            }
           }
-          // Check if it's transcript metadata (has 'id' but not 'rating' or 'timestamp' - those are cue metadata)
-          // Only set transcript metadata once (from the first NOTE)
-          else if (parsed.id && !('rating' in parsed) && !('timestamp' in parsed) && !transcriptMetadata) {
-            transcriptMetadata = parsed as TranscriptMetadata
-            console.log('Found transcript metadata:', transcriptMetadata.id)
+        }
+        // Fallback: Try to parse as legacy JSON format (for backward compatibility)
+        else {
+          try {
+            const parsed = JSON.parse(noteContent)
+
+            // Check if it's transcript history (has 'entries' array)
+            if (Array.isArray(parsed.entries)) {
+              transcriptHistory = parsed as TranscriptHistory
+              console.log('Found transcript history (legacy format) with', transcriptHistory.entries.length, 'entries')
+            }
+            // Check if it's transcript metadata (has 'id' but not 'rating' or 'timestamp' - those are cue metadata)
+            // Only set transcript metadata once (from the first NOTE)
+            else if (parsed.id && !('rating' in parsed) && !('timestamp' in parsed) && !transcriptMetadata) {
+              transcriptMetadata = parsed as TranscriptMetadata
+              console.log('Found transcript metadata (legacy format):', transcriptMetadata.id)
+            }
+            // Otherwise check if it's cue metadata (has 'id' field)
+            else if (parsed.id) {
+              pendingMetadata = parsed as VTTCueMetadata
+              console.log('Found cue metadata (legacy format):', pendingMetadata.id)
+            }
+          } catch {
+            // Not JSON metadata, just a regular NOTE comment - ignore
+            console.log('NOTE is regular comment (not CAPTION_EDITOR metadata), ignoring')
           }
-          // Otherwise check if it's cue metadata (has 'id' field)
-          else if (parsed.id) {
-            pendingMetadata = parsed as VTTCueMetadata
-            console.log('Found metadata for cue:', pendingMetadata.id)
-          }
-        } catch {
-          // Not JSON metadata, ignore
-          console.log('NOTE is not metadata JSON, ignoring')
         }
         continue
       }
@@ -273,15 +302,15 @@ export function parseVTT(content: string): ParseResult {
 
 /**
  * Serialize VTTDocument to VTT file content
- * Includes NOTE comments for metadata (UUID and rating)
+ * Uses CAPTION_EDITOR sentinel format for metadata
  */
 export function serializeVTT(document: VTTDocument): string {
   console.log('Serializing VTT document with', document.cues.length, 'cues')
 
   let output = 'WEBVTT\n\n'
 
-  // Add TranscriptMetadata at the top
-  output += `NOTE ${JSON.stringify(document.metadata)}\n\n`
+  // Add TranscriptMetadata at the top with sentinel
+  output += `NOTE CAPTION_EDITOR:TranscriptMetadata ${JSON.stringify(document.metadata)}\n\n`
 
   // Sort cues by start time, then by end time
   const sortedCues = [...document.cues].sort((a, b) => {
@@ -292,13 +321,13 @@ export function serializeVTT(document: VTTDocument): string {
   })
 
   for (const cue of sortedCues) {
-    // Always add NOTE with metadata
+    // Always add NOTE with metadata using sentinel format
     const metadata: VTTCueMetadata = {
       id: cue.id,
       rating: cue.rating,
       timestamp: cue.timestamp
     }
-    output += `NOTE ${JSON.stringify(metadata)}\n\n`
+    output += `NOTE CAPTION_EDITOR:VTTCueMetadata ${JSON.stringify(metadata)}\n\n`
 
     // Add cue identifier (UUID)
     output += `${cue.id}\n`
@@ -312,7 +341,7 @@ export function serializeVTT(document: VTTDocument): string {
 
   // Add TranscriptHistory at the end if it exists
   if (document.history && document.history.entries.length > 0) {
-    output += `NOTE ${JSON.stringify(document.history)}\n`
+    output += `NOTE CAPTION_EDITOR:TranscriptHistory ${JSON.stringify(document.history)}\n`
   }
 
   return output

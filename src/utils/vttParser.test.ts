@@ -285,7 +285,7 @@ Caption with short format`
 
       const output = serializeVTT(doc)
       expect(output).toContain('WEBVTT')
-      expect(output).toContain('NOTE {"id":"test-doc-id"}')
+      expect(output).toContain('NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-doc-id"}')
       expect(output).not.toContain('-->') // No timing lines for empty doc
     })
 
@@ -663,7 +663,7 @@ Caption with short format`
 
       // History should be at the end
       const noteIndex = serialized.lastIndexOf('NOTE')
-      const historyMatch = serialized.substring(noteIndex).match(/NOTE (.+)/)
+      const historyMatch = serialized.substring(noteIndex).match(/NOTE (?:CAPTION_EDITOR:TranscriptHistory )?(.+)/)
       expect(historyMatch).toBeDefined()
 
       const historyData = JSON.parse(historyMatch![1])
