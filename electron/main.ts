@@ -19,7 +19,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: false  // Disabled to allow file.path property in drag-and-drop
     }
   })
 
@@ -42,6 +42,17 @@ function createWindow() {
       mainWindow.webContents.send('open-file', fileToOpen)
       fileToOpen = null
     }
+  })
+
+  // Handle file drops - intercept before renderer to get full paths
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    // Prevent navigation from file drops
+    event.preventDefault()
+  })
+
+  // Register handler for file drops
+  mainWindow.webContents.setWindowOpenHandler(() => {
+    return { action: 'deny' }
   })
 }
 
