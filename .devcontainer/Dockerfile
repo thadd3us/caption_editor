@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y \
     libgbm1 \
     libpango-1.0-0 \
     libcairo2 \
-    libasound2 \
+    # libasound2 \
     libxshmfence1 \
     # Electron-specific dependencies
     libgtk-3-0 \
