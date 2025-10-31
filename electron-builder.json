@@ -13,6 +13,15 @@
   "extraMetadata": {
     "main": "dist-electron/main.cjs"
   },
+  "fileAssociations": [
+    {
+      "ext": "vtt",
+      "name": "WebVTT Caption File",
+      "description": "WebVTT caption and subtitle file",
+      "role": "Editor",
+      "icon": "build/icon.icns"
+    }
+  ],
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "zip"],

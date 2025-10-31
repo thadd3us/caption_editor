@@ -51,7 +51,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   /**
    * Check if running in Electron
    */
-  isElectron: true
+  isElectron: true,
+
+  /**
+   * Listen for files opened from the OS (double-click, right-click > Open With)
+   */
+  onFileOpen: (callback: (filePath: string) => void) => {
+    ipcRenderer.on('open-file', (_event, filePath) => callback(filePath))
+  }
 })
 
 // Handle file drop events

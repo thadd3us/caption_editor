@@ -22,3 +22,21 @@ if (import.meta.env && import.meta.env.DEV) {
 } else {
   console.log('VTT Editor mounted (production) - Store available at window.$store')
 }
+
+// Listen for file open events from OS (Electron only)
+if (window.electronAPI?.onFileOpen) {
+  window.electronAPI.onFileOpen(async (filePath: string) => {
+    console.log('Opening file from OS:', filePath)
+
+    // Read the file using Electron API
+    const result = await window.electronAPI!.readFile(filePath)
+
+    if (result.success && result.content) {
+      // Load the VTT content into the store
+      await store.loadVTT(result.content, result.filePath)
+      console.log('File loaded successfully:', filePath)
+    } else {
+      console.error('Failed to load file:', result.error)
+    }
+  })
+}

@@ -80,6 +80,11 @@ export interface ElectronAPI {
    * Check if running in Electron
    */
   isElectron: boolean
+
+  /**
+   * Listen for files opened from the OS (double-click, right-click > Open With)
+   */
+  onFileOpen: (callback: (filePath: string) => void) => void
 }
 
 declare global {

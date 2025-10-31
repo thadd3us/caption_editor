@@ -35,7 +35,30 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  // Send any pending file to open once the window is ready
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (fileToOpen && mainWindow) {
+      mainWindow.webContents.send('open-file', fileToOpen)
+      fileToOpen = null
+    }
+  })
 }
+
+// Handle file opening from OS (macOS)
+let fileToOpen: string | null = null
+
+app.on('open-file', (event, filePath) => {
+  event.preventDefault()
+
+  if (mainWindow && mainWindow.webContents) {
+    // Window is ready, send the file path
+    mainWindow.webContents.send('open-file', filePath)
+  } else {
+    // Window not ready yet, store for later
+    fileToOpen = filePath
+  }
+})
 
 app.whenReady().then(() => {
   createWindow()
@@ -45,6 +68,14 @@ app.whenReady().then(() => {
       createWindow()
     }
   })
+
+  // Check if app was launched with a file path (Windows/Linux)
+  if (process.platform !== 'darwin' && process.argv.length >= 2) {
+    const filePath = process.argv[process.argv.length - 1]
+    if (filePath && !filePath.startsWith('-') && filePath.endsWith('.vtt')) {
+      fileToOpen = filePath
+    }
+  }
 })
 
 app.on('window-all-closed', () => {
