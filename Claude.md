@@ -148,3 +148,97 @@ rowNode.setSelected(true)
 **Symptom**: AG Grid displays rows in wrong order after adding/editing cues
 
 **Solution**: Cues should be sorted in the document model itself (via `sortCues()` in `addCue()` and `updateCue()`). The grid will automatically reflect the sorted order when `:key="gridKey"` forces a re-render.
+
+## Running Electron Tests with Xvfb
+
+Electron requires a display server to run, even in headless mode. We use Xvfb (X Virtual Framebuffer) to provide a virtual display.
+
+### Quick Start
+
+**First time setup:** Start Xvfb using the provided script:
+
+```bash
+# Start Xvfb using the startup script
+/usr/local/bin/start-xvfb.sh
+
+# Or manually if you prefer:
+Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
+```
+
+The script will:
+- Start Xvfb on display :99
+- Log output to `/tmp/xvfb.log`
+- Tell you to set `DISPLAY=:99`
+
+**Then set the DISPLAY variable:**
+```bash
+export DISPLAY=:99
+```
+
+**Verify it's running:**
+```bash
+ps aux | grep Xvfb | grep -v grep
+```
+
+> **Note:** Xvfb needs to be started manually each time the container restarts. The Dockerfile includes the script at `/usr/local/bin/start-xvfb.sh` but does not auto-run it on container startup.
+
+### Running Electron Tests
+
+```bash
+# Make sure DISPLAY is set
+export DISPLAY=:99
+
+# Run all Electron tests
+npm run test:e2e:electron
+
+# Run specific test file
+npx playwright test tests/electron/file-association.electron.spec.ts
+
+# Run with verbose output
+npx playwright test tests/electron/file-association.electron.spec.ts --reporter=list
+```
+
+### Troubleshooting
+
+**Tests fail with "Missing X server or $DISPLAY":**
+```bash
+# Check if Xvfb is running
+ps aux | grep Xvfb
+
+# Check DISPLAY variable
+echo $DISPLAY
+
+# Restart Xvfb if needed
+pkill Xvfb
+/usr/local/bin/start-xvfb.sh
+```
+
+**Xvfb logs:**
+```bash
+# Check Xvfb logs for errors
+cat /tmp/xvfb.log
+```
+
+### Why Xvfb?
+
+Electron apps use Chromium under the hood, which requires a display server to render the UI. Xvfb provides a virtual display that allows us to run Electron tests in headless environments like Docker containers or CI/CD pipelines without a physical display.
+
+### Electron Test Configuration
+
+Test timeouts are configured in `playwright.electron.config.ts`:
+- Global timeout: 30 seconds per test
+- Action timeout: 10 seconds per action
+
+These are reasonable for Electron tests which typically run in 5-10 seconds.
+
+### File Association Testing
+
+The `file-association.electron.spec.ts` tests verify that:
+1. VTT files can be opened via command line (simulating double-click)
+2. macOS `open-file` events work correctly
+3. Media files referenced in VTT metadata auto-load
+4. The `onFileOpen` API is exposed to the renderer
+
+These tests use real VTT and audio files from `tests/fixtures/`:
+- `with-media-reference.vtt` - VTT file with media metadata
+- `OSR_us_000_0010_8k.wav` - Audio file for testing
