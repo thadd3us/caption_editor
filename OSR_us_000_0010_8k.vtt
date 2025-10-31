@@ -1,24 +1,29 @@
 WEBVTT
 
-NOTE {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","rating":4}
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"0d7aa08f-4636-40df-8bc3-0fca28911f60"}
+
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","rating":5,"timestamp":"2025-10-31T21:02:51.273-07:00"}
 
 84ec6681-574b-4570-aecb-5bcaea9415a9
 00:00:00.000 --> 00:00:03.000
 The birch canoe slid on the smooth planks.
 
-NOTE {"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c","rating":3}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c","rating":3}
 
 ead5dd22-5dd3-4d27-8cc8-c09df813a71c
 00:00:03.944 --> 00:00:07.000
-Glue the sheet to the dark blue background.22
+Glue the sheet to the dark blue background.
+
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"db8f6b03-f1a0-426b-80bd-6d39382e8417"}
 
 db8f6b03-f1a0-426b-80bd-6d39382e8417
 00:00:16.243 --> 00:00:20.000
 The juice of lemons makes fine punch.
 
-NOTE {"id":"18a4869f-8cab-4bb5-ba5b-f55900d26076","rating":1}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"18a4869f-8cab-4bb5-ba5b-f55900d26076","rating":1}
 
 18a4869f-8cab-4bb5-ba5b-f55900d26076
 00:00:30.000 --> 00:00:33.000
 A large size of stockings is hard to sell.
 
+NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"id":"d50db0fa-b044-407f-ae17-3c75df8e27d9","action":"modified","actionTimestamp":"2025-10-31T20:59:48.783-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","rating":4}},{"id":"48c6b228-5906-48c0-9796-b7eb3fe33213","action":"modified","actionTimestamp":"2025-10-31T20:59:49.887-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","timestamp":"2025-10-31T20:59:48.775-07:00"}},{"id":"921a5009-467d-496a-b44c-6d8470356926","action":"modified","actionTimestamp":"2025-10-31T20:59:51.193-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","rating":4,"timestamp":"2025-10-31T20:59:49.887-07:00"}},{"id":"325953af-f8c5-4dbd-bf09-9c10584b13bf","action":"modified","actionTimestamp":"2025-10-31T20:59:51.743-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","timestamp":"2025-10-31T20:59:51.193-07:00"}},{"id":"a9ab9ac3-7a44-4f2d-b153-5abfa41ac9d0","action":"modified","actionTimestamp":"2025-10-31T20:59:53.161-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","rating":4,"timestamp":"2025-10-31T20:59:51.743-07:00"}},{"id":"5f145652-5ccc-4f44-8950-3ca5acab9c90","action":"modified","actionTimestamp":"2025-10-31T21:02:45.165-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","rating":3,"timestamp":"2025-10-31T20:59:53.161-07:00"}},{"id":"48cd4883-058f-4ab7-863d-e1f327fe0e4e","action":"modified","actionTimestamp":"2025-10-31T21:02:51.273-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","rating":4,"timestamp":"2025-10-31T21:02:45.165-07:00"}}]}
