@@ -77,9 +77,9 @@ test.describe('File Association - Open VTT files from OS', () => {
     // Verify media file was auto-loaded
     expect(mediaState.mediaPath).toBeTruthy()
     expect(mediaState.mediaPath).toContain('OSR_us_000_0010_8k.wav')
-    // mediaFilePath may be null if loaded via file:// URL
+    // mediaFilePath is stored as a relative path when in the same directory as VTT
     if (mediaState.mediaFilePath) {
-      expect(mediaState.mediaFilePath).toBe(audioFilePath)
+      expect(mediaState.mediaFilePath).toBe('OSR_us_000_0010_8k.wav')
     }
 
     // Verify the audio element has the media loaded

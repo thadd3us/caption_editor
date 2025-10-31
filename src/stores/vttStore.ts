@@ -14,7 +14,6 @@ import {
 
 const STORAGE_KEY = 'vtt-editor-document'
 const STORAGE_MEDIA_KEY = 'vtt-editor-media-path'
-const STORAGE_MEDIA_FILEPATH_KEY = 'vtt-editor-media-filepath'
 
 export const useVTTStore = defineStore('vtt', () => {
   // State
@@ -23,11 +22,6 @@ export const useVTTStore = defineStore('vtt', () => {
   // Media URL used as the src attribute for <video> or <audio> elements
   // Examples: blob:http://localhost:3000/uuid, /tests/fixtures/file.wav, https://example.com/video.mp4
   const mediaPath = ref<string | null>(null)
-
-  // Original file path for display purposes (e.g., in UI)
-  // Examples: /home/user/videos/movie.mp4, C:\Users\Name\audio.wav, or just filename.wav
-  // Note: In browsers, full paths are often unavailable due to security restrictions
-  const mediaFilePath = ref<string | null>(null)
 
   const currentTime = ref(0)
   const isPlaying = ref(false)
@@ -42,6 +36,9 @@ export const useVTTStore = defineStore('vtt', () => {
       cue => cue.startTime <= time && time < cue.endTime
     )
   })
+
+  // Computed property for mediaFilePath - single source of truth from document.metadata
+  const mediaFilePath = computed(() => document.value.metadata.mediaFilePath || null)
 
   // Actions
   function loadFromFile(content: string, filePath?: string) {
@@ -68,55 +65,50 @@ export const useVTTStore = defineStore('vtt', () => {
   /**
    * Load a media file for playback
    * @param path - URL to use as media element src (blob URL, HTTP URL, or file path)
-   * @param filePath - Optional original file path for display in UI
+   * @param filePath - Optional original file path to store in document metadata
    */
   function loadMediaFile(path: string, filePath?: string) {
     console.log('Loading media file:', path, 'with file path:', filePath)
     mediaPath.value = path
-    mediaFilePath.value = filePath || null
     localStorage.setItem(STORAGE_MEDIA_KEY, path)
+
+    // Store mediaFilePath in document metadata
     if (filePath) {
-      localStorage.setItem(STORAGE_MEDIA_FILEPATH_KEY, filePath)
-    } else {
-      localStorage.removeItem(STORAGE_MEDIA_FILEPATH_KEY)
+      // Convert to relative path if possible (relative to VTT file location)
+      let mediaFilePathToStore = filePath
+
+      if (document.value.filePath) {
+        // Try to make the path relative to the VTT file's directory
+        const vttDir = document.value.filePath.substring(0, Math.max(
+          document.value.filePath.lastIndexOf('/'),
+          document.value.filePath.lastIndexOf('\\')
+        ))
+
+        // Extract just the filename if the media file is in the same directory as the VTT
+        if (mediaFilePathToStore.startsWith(vttDir)) {
+          const relativePath = mediaFilePathToStore.substring(vttDir.length + 1)
+          if (relativePath && !relativePath.includes('/') && !relativePath.includes('\\')) {
+            // It's in the same directory, just use the filename
+            mediaFilePathToStore = relativePath
+          }
+        }
+      }
+
+      document.value = {
+        ...document.value,
+        metadata: {
+          ...document.value.metadata,
+          mediaFilePath: mediaFilePathToStore
+        }
+      }
+      saveToLocalStorage()
     }
   }
 
   function exportToString(): string {
     console.log('Exporting VTT document')
-
-    // Include the current mediaFilePath in the metadata before exporting
-    // Convert to relative path if possible (relative to VTT file location)
-    let mediaFilePathToStore = mediaFilePath.value
-
-    if (mediaFilePathToStore && document.value.filePath) {
-      // Try to make the path relative to the VTT file's directory
-      // This makes the VTT file more portable
-      const vttDir = document.value.filePath.substring(0, Math.max(
-        document.value.filePath.lastIndexOf('/'),
-        document.value.filePath.lastIndexOf('\\')
-      ))
-
-      // Extract just the filename if the media file is in the same directory as the VTT
-      if (mediaFilePathToStore.startsWith(vttDir)) {
-        const relativePath = mediaFilePathToStore.substring(vttDir.length + 1)
-        if (relativePath && !relativePath.includes('/') && !relativePath.includes('\\')) {
-          // It's in the same directory, just use the filename
-          mediaFilePathToStore = relativePath
-        }
-      }
-    }
-
-    // Create updated document with mediaFilePath in metadata
-    const documentWithMedia: VTTDocument = {
-      ...document.value,
-      metadata: {
-        ...document.value.metadata,
-        mediaFilePath: mediaFilePathToStore || undefined
-      }
-    }
-
-    return serializeVTT(documentWithMedia)
+    // mediaFilePath is already in document.metadata, just serialize directly
+    return serializeVTT(document.value)
   }
 
   function updateFilePath(filePath: string) {
