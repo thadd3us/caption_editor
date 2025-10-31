@@ -61,6 +61,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 # Verify Node.js and npm installation
 RUN node --version && npm --version
 
+# Update npm to latest version (as root before creating dev user)
+RUN npm install -g npm@latest
+
 # Create non-root user 'dev' with sudo access
 RUN useradd -m dev \
     && echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -72,9 +75,6 @@ WORKDIR /home/dev
 # Install uv for fast Python package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/home/dev/.local/bin:${PATH}"
-
-# Update npm to latest version (as dev user)
-RUN npm install -g npm@latest
 
 # Pre-install Playwright with headless Chromium only (for CI/CD)
 # Using --only-shell to install just the headless shell, saving ~450MB
