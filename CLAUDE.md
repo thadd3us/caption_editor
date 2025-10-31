@@ -11,27 +11,77 @@ Tests should run quickly to maintain development velocity:
 
 ### Running Tests
 
-#### Unit Tests
+#### Prerequisites
+
+Before running tests for the first time, install dependencies:
+```bash
+npm install
+```
+
+For Python/transcription tests, use `uv` (already installed in the dev container):
+```bash
+cd transcribe
+uv sync  # Installs dependencies if needed
+```
+
+#### TypeScript Unit Tests
 ```bash
 npm test
 ```
 
-Current performance: ~1.3s for 95 tests ✅
+Current performance: ~1.7s for 109 tests ✅
 
-#### E2E Tests
+With coverage:
+```bash
+npm test -- --coverage
+```
+
+Current coverage: 93.33% ✅
+
+#### TypeScript E2E Tests
 ```bash
 npx playwright test
 ```
 
-Current performance: ~19.5s for 21 tests ✅
+Current performance: ~35s for 41 browser tests (29 passing, 8 Electron tests require Xvfb) ✅
 
-#### Run Specific Test File
+#### Python Tests
 ```bash
-# Unit test
+cd transcribe
+uv run pytest tests/ -v
+```
+
+To update snapshots after intentional changes:
+```bash
+uv run pytest tests/ -v --snapshot-update
+```
+
+Current performance: ~56s for 2 tests with AI model inference ✅
+
+#### Run Specific Test Files
+```bash
+# TypeScript unit test
 npm test src/utils/findIndexOfRowForTime.test.ts
 
-# E2E test
+# TypeScript E2E test
 npx playwright test comprehensive-e2e.spec.ts
+
+# Python test
+cd transcribe
+uv run pytest tests/test_transcribe.py -v
+
+# With specific test function
+uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio -v
+```
+
+#### Run All Tests (Full Suite)
+```bash
+# TypeScript tests
+npm test -- --coverage
+npx playwright test
+
+# Python tests
+cd transcribe && uv run pytest tests/ -v
 ```
 
 ### Timeout Configuration
@@ -119,8 +169,13 @@ npx playwright show-report
 
 ### VTT Format
 - Exports include cue IDs on separate lines before timestamps
-- Ratings stored in NOTE metadata as JSON
-- Format: `NOTE {"id":"<uuid>","rating":<number>}`
+- Metadata stored in NOTE comments using CAPTION_EDITOR sentinel format
+- Sentinel constant: `CAPTION_EDITOR_SENTINEL` (defined in both TypeScript and Python)
+- Format examples:
+  - Document metadata: `NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"<uuid>","mediaFilePath":"..."}`
+  - Cue metadata: `NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"<uuid>","rating":<number>,"timestamp":"..."}`
+  - History: `NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[...]}`
+- The sentinel allows the parser to distinguish app-specific metadata from regular VTT NOTE comments
 
 ### Key Utilities
 - `findIndexOfRowForTime(cues, time)`: Find cue index for a given time

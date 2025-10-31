@@ -2,6 +2,12 @@ import { v4 as uuidv4 } from 'uuid'
 import type { VTTCue, VTTDocument, VTTCueMetadata, ParseResult, SegmentHistoryEntry, TranscriptMetadata, TranscriptHistory } from '../types/vtt'
 
 /**
+ * Sentinel prefix for app-specific NOTE comments in VTT files
+ * Format: NOTE CAPTION_EDITOR:TypeName {json}
+ */
+const CAPTION_EDITOR_SENTINEL = 'CAPTION_EDITOR'
+
+/**
  * Get current timestamp in ISO 8601 format with local timezone
  */
 export function getCurrentTimestamp(): string {
@@ -113,8 +119,8 @@ export function parseVTT(content: string): ParseResult {
         }
 
         // Check if this is a CAPTION_EDITOR sentinel note
-        if (noteContent.startsWith('CAPTION_EDITOR:')) {
-          const sentinelMatch = noteContent.match(/^CAPTION_EDITOR:(\w+)\s+(.+)$/)
+        if (noteContent.startsWith(`${CAPTION_EDITOR_SENTINEL}:`)) {
+          const sentinelMatch = noteContent.match(new RegExp(`^${CAPTION_EDITOR_SENTINEL}:(\\w+)\\s+(.+)$`))
           if (sentinelMatch) {
             const typeName = sentinelMatch[1]
             const jsonContent = sentinelMatch[2]
@@ -132,15 +138,15 @@ export function parseVTT(content: string): ParseResult {
                 transcriptHistory = parsed as TranscriptHistory
                 console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
               } else {
-                console.log('Unknown CAPTION_EDITOR type:', typeName)
+                console.log(`Unknown ${CAPTION_EDITOR_SENTINEL} type:`, typeName)
               }
             } catch (err) {
-              console.warn('Failed to parse CAPTION_EDITOR metadata:', err)
+              console.warn(`Failed to parse ${CAPTION_EDITOR_SENTINEL} metadata:`, err)
             }
           }
         } else {
           // Regular NOTE comment without CAPTION_EDITOR sentinel - ignore
-          console.log('NOTE is regular comment (not CAPTION_EDITOR metadata), ignoring')
+          console.log(`NOTE is regular comment (not ${CAPTION_EDITOR_SENTINEL} metadata), ignoring`)
         }
         continue
       }
@@ -287,7 +293,7 @@ export function serializeVTT(document: VTTDocument): string {
   let output = 'WEBVTT\n\n'
 
   // Add TranscriptMetadata at the top with sentinel
-  output += `NOTE CAPTION_EDITOR:TranscriptMetadata ${JSON.stringify(document.metadata)}\n\n`
+  output += `NOTE ${CAPTION_EDITOR_SENTINEL}:TranscriptMetadata ${JSON.stringify(document.metadata)}\n\n`
 
   // Sort cues by start time, then by end time
   const sortedCues = [...document.cues].sort((a, b) => {
@@ -304,7 +310,7 @@ export function serializeVTT(document: VTTDocument): string {
       rating: cue.rating,
       timestamp: cue.timestamp
     }
-    output += `NOTE CAPTION_EDITOR:VTTCueMetadata ${JSON.stringify(metadata)}\n\n`
+    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:VTTCueMetadata ${JSON.stringify(metadata)}\n\n`
 
     // Add cue identifier (UUID)
     output += `${cue.id}\n`
@@ -318,7 +324,7 @@ export function serializeVTT(document: VTTDocument): string {
 
   // Add TranscriptHistory at the end if it exists
   if (document.history && document.history.entries.length > 0) {
-    output += `NOTE CAPTION_EDITOR:TranscriptHistory ${JSON.stringify(document.history)}\n`
+    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:TranscriptHistory ${JSON.stringify(document.history)}\n`
   }
 
   return output

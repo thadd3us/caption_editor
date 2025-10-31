@@ -34,6 +34,10 @@ except ImportError:
 
 app = typer.Typer()
 
+# Sentinel prefix for app-specific NOTE comments in VTT files
+# Format: NOTE CAPTION_EDITOR:TypeName {json}
+CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
+
 
 class VTTCue(BaseModel):
     """VTT cue matching the frontend data model."""
@@ -280,7 +284,7 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
     doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
     transcript_metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file_path)
     metadata_json = transcript_metadata.model_dump(by_alias=True, exclude_none=True)
-    lines.append(f"NOTE CAPTION_EDITOR:TranscriptMetadata {json.dumps(metadata_json)}\n")
+    lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
 
     # Get current timestamp for all cues (local timezone)
     current_timestamp = datetime.now().astimezone().isoformat()
@@ -300,7 +304,7 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
         }
         # Remove None values for cleaner JSON
         metadata = {k: v for k, v in metadata.items() if v is not None}
-        lines.append(f"\nNOTE CAPTION_EDITOR:VTTCueMetadata {json.dumps(metadata)}\n")
+        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:VTTCueMetadata {json.dumps(metadata)}\n")
 
         # Format timestamps
         start = format_timestamp(cue.start_time)
