@@ -17,10 +17,6 @@
             <button @click="exportVTT" class="dropdown-item">
               Save As...
             </button>
-            <div class="dropdown-divider"></div>
-            <button @click="clearAll" class="dropdown-item">
-              Clear
-            </button>
           </div>
         </div>
       </div>
@@ -38,9 +34,6 @@
           📁 Open Files
         </button>
       </div>
-      <button @click="clearAll" class="menu-button">
-        Clear
-      </button>
     </div>
   </div>
 </template>
@@ -110,7 +103,6 @@ onUnmounted(() => {
 // Emit event to trigger file picker from FileDropZone
 const emit = defineEmits<{
   openFiles: []
-  filesDropped: [files: File[]]
 }>()
 
 function openFile() {
@@ -132,23 +124,15 @@ function handleDragLeave(event: DragEvent) {
 async function handleDrop(event: DragEvent) {
   event.preventDefault()
   isDragOver.value = false
-
-  // Process dropped files directly
-  if (event.dataTransfer?.files) {
-    const files = Array.from(event.dataTransfer.files)
-    // Emit event to process files through FileDropZone
-    emit('filesDropped', files)
-  }
+  // Note: Actual file processing happens via the preload script's drop handler
 }
 
-// Save to existing file
+// Save to existing file (Electron only)
 async function saveFile() {
   closeFileMenu()
 
-  // Check if Electron API is available
   if (!window.electronAPI) {
-    console.log('Not in Electron, falling back to Save As dialog')
-    await exportVTT()
+    console.error('Electron API not available')
     return
   }
 
@@ -183,54 +167,37 @@ async function saveFile() {
   }
 }
 
-// Save As / Export
+// Save As / Export (Electron only)
 async function exportVTT() {
   closeFileMenu()
+
+  if (!window.electronAPI) {
+    console.error('Electron API not available')
+    return
+  }
+
   console.log('Exporting VTT file')
   try {
     const content = store.exportToString()
 
-    // Use Electron save dialog if available
-    if (window.electronAPI) {
-      const result = await window.electronAPI.saveFile({
-        content,
-        suggestedName: store.document.filePath || 'captions.vtt'
-      })
+    const result = await window.electronAPI.saveFile({
+      content,
+      suggestedName: store.document.filePath || 'captions.vtt'
+    })
 
-      if (result.success) {
-        console.log('VTT file saved successfully:', result.filePath)
-        // Update the store with the new file path
-        if (result.filePath) {
-          store.updateFilePath(result.filePath)
-        }
-      } else if (result.error !== 'Save canceled') {
-        console.error('Failed to save VTT:', result.error)
-        alert('Failed to save VTT file: ' + result.error)
+    if (result.success) {
+      console.log('VTT file saved successfully:', result.filePath)
+      // Update the store with the new file path
+      if (result.filePath) {
+        store.updateFilePath(result.filePath)
       }
-    } else {
-      // Fallback to browser download
-      const blob = new Blob([content], { type: 'text/vtt' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = store.document.filePath || 'captions.vtt'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      console.log('VTT file downloaded')
+    } else if (result.error !== 'Save canceled') {
+      console.error('Failed to save VTT:', result.error)
+      alert('Failed to save VTT file: ' + result.error)
     }
   } catch (err) {
     console.error('Failed to export VTT:', err)
     alert('Failed to export VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-  }
-}
-
-function clearAll() {
-  closeFileMenu()
-  if (confirm('Are you sure you want to clear the current document? This cannot be undone.')) {
-    console.log('Clearing all data')
-    store.clearDocument()
   }
 }
 </script>

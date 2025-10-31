@@ -209,47 +209,6 @@ describe('FileDropZone', () => {
     })
   })
 
-  describe('Browser file processing', () => {
-    it('should process VTT files in browser mode', async () => {
-      const wrapper = mount(FileDropZone)
-      const store = useVTTStore()
-
-      // Create mock File object with text() method
-      const vttContent = 'WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nBrowser test caption'
-      const mockFile = new File([vttContent], 'test.vtt', { type: 'text/vtt' })
-
-      // Mock File.text() method for Node environment
-      mockFile.text = vi.fn().mockResolvedValue(vttContent)
-
-      // Simulate browser file processing
-      const component = wrapper.vm as any
-      await component.processFiles([mockFile])
-
-      // Verify VTT was loaded
-      expect(store.document.cues.length).toBe(1)
-      expect(store.document.cues[0].text).toBe('Browser test caption')
-    })
-
-    it('should process media files in browser mode', async () => {
-      const wrapper = mount(FileDropZone)
-      const store = useVTTStore()
-
-      // Mock URL.createObjectURL for Node environment
-      global.URL.createObjectURL = vi.fn().mockReturnValue('blob:http://localhost/mock-blob-url')
-
-      // Create mock media File object
-      const mockFile = new File(['fake video data'], 'video.mp4', { type: 'video/mp4' })
-
-      // Simulate browser file processing
-      const component = wrapper.vm as any
-      await component.processFiles([mockFile])
-
-      // Verify media was loaded (URL.createObjectURL creates a blob URL)
-      expect(store.mediaPath).toContain('blob:')
-      expect(store.mediaPath).toBe('blob:http://localhost/mock-blob-url')
-    })
-  })
-
   describe('triggerFileInput method', () => {
     it('should call Electron openFile API when in Electron', async () => {
       const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.vtt'])

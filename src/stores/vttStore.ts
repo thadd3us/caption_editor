@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { VTTDocument, VTTCue } from '../types/vtt'
 import {
@@ -12,15 +12,12 @@ import {
   getCurrentTimestamp
 } from '../utils/vttParser'
 
-const STORAGE_KEY = 'vtt-editor-document'
-const STORAGE_MEDIA_KEY = 'vtt-editor-media-path'
-
 export const useVTTStore = defineStore('vtt', () => {
-  // State
+  // State - all state lives in memory only, persisted by saving VTT files
   const document = ref<VTTDocument>(createEmptyDocument())
 
-  // Media URL used as the src attribute for <video> or <audio> elements
-  // Examples: blob:http://localhost:3000/uuid, /tests/fixtures/file.wav, https://example.com/video.mp4
+  // Media URL - always a file:// URL in Electron mode
+  // Example: file:///Users/name/path/to/audio.wav
   const mediaPath = ref<string | null>(null)
 
   const currentTime = ref(0)
@@ -50,12 +47,7 @@ export const useVTTStore = defineStore('vtt', () => {
         ...result.document,
         filePath
       }
-      saveToLocalStorage()
       console.log('Loaded document with', document.value.cues.length, 'cues')
-
-      // Trigger media auto-load if metadata has mediaFilePath
-      // We return the metadata so the caller can handle auto-loading
-      // (since the store doesn't have access to Electron APIs)
     } else {
       console.error('Failed to load VTT:', result.error)
       throw new Error(result.error || 'Failed to parse VTT file')
@@ -63,14 +55,13 @@ export const useVTTStore = defineStore('vtt', () => {
   }
 
   /**
-   * Load a media file for playback
-   * @param path - URL to use as media element src (blob URL, HTTP URL, or file path)
-   * @param filePath - Optional original file path to store in document metadata
+   * Load a media file for playback (Electron mode)
+   * @param path - file:// URL to use as media element src
+   * @param filePath - Absolute file path to store in document metadata
    */
   function loadMediaFile(path: string, filePath?: string) {
     console.log('Loading media file:', path, 'with file path:', filePath)
     mediaPath.value = path
-    localStorage.setItem(STORAGE_MEDIA_KEY, path)
 
     // Store mediaFilePath in document metadata
     if (filePath) {
@@ -101,7 +92,6 @@ export const useVTTStore = defineStore('vtt', () => {
           mediaFilePath: mediaFilePathToStore
         }
       }
-      saveToLocalStorage()
     }
   }
 
@@ -117,7 +107,6 @@ export const useVTTStore = defineStore('vtt', () => {
       ...document.value,
       filePath
     }
-    saveToLocalStorage()
   }
 
   function addCue(startTime: number, duration: number = 5) {
@@ -132,7 +121,6 @@ export const useVTTStore = defineStore('vtt', () => {
     }
 
     document.value = addCueToDoc(document.value, newCue)
-    saveToLocalStorage()
     return newCue.id
   }
 
@@ -157,7 +145,6 @@ export const useVTTStore = defineStore('vtt', () => {
     }
 
     document.value = updateCueInDoc(document.value, cueId, updates)
-    saveToLocalStorage()
   }
 
   function deleteCue(cueId: string) {
@@ -166,18 +153,6 @@ export const useVTTStore = defineStore('vtt', () => {
     if (selectedCueId.value === cueId) {
       selectedCueId.value = null
     }
-    saveToLocalStorage()
-  }
-
-  function clearDocument() {
-    console.log('Clearing document')
-    document.value = createEmptyDocument()
-    mediaPath.value = null
-    currentTime.value = 0
-    isPlaying.value = false
-    selectedCueId.value = null
-    localStorage.removeItem(STORAGE_KEY)
-    localStorage.removeItem(STORAGE_MEDIA_KEY)
   }
 
   function setCurrentTime(time: number) {
@@ -202,60 +177,6 @@ export const useVTTStore = defineStore('vtt', () => {
     snippetMode.value = enabled
   }
 
-  // LocalStorage persistence
-  function saveToLocalStorage() {
-    try {
-      const data = {
-        document: {
-          metadata: document.value.metadata,
-          cues: document.value.cues,
-          filePath: document.value.filePath,
-          history: document.value.history
-        },
-        timestamp: Date.now()
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-      console.log('Saved to localStorage')
-    } catch (err) {
-      console.error('Failed to save to localStorage:', err)
-    }
-  }
-
-  function loadFromLocalStorage() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const data = JSON.parse(stored)
-        // Handle old format or new format
-        const metadata = data.document.metadata || {
-          id: data.document.id || uuidv4(), // Use existing id or generate new one for old data
-          mediaFilePath: data.document.mediaFilePath
-        }
-        document.value = {
-          metadata,
-          cues: Object.freeze(data.document.cues),
-          filePath: data.document.filePath,
-          history: data.document.history
-        }
-        console.log('Loaded from localStorage:', document.value.cues.length, 'cues')
-      }
-
-      const storedMedia = localStorage.getItem(STORAGE_MEDIA_KEY)
-      if (storedMedia) {
-        mediaPath.value = storedMedia
-        console.log('Loaded media path from localStorage:', storedMedia)
-      }
-    } catch (err) {
-      console.error('Failed to load from localStorage:', err)
-    }
-  }
-
-  // Auto-save on document changes
-  watch(() => document.value, saveToLocalStorage, { deep: true })
-
-  // Initialize from localStorage
-  loadFromLocalStorage()
-
   return {
     // State
     document,
@@ -277,7 +198,6 @@ export const useVTTStore = defineStore('vtt', () => {
     addCue,
     updateCue,
     deleteCue,
-    clearDocument,
     setCurrentTime,
     setPlaying,
     selectCue,

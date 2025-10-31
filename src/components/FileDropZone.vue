@@ -1,4 +1,5 @@
 <template>
+  <!-- Electron-only drop zone overlay -->
   <div
     v-if="showDropZone"
     class="drop-zone-overlay"
@@ -17,16 +18,7 @@
     class="file-input-zone"
     @drop="handleDrop"
     @dragenter.prevent="showDropZone = true"
-  >
-    <input
-      ref="fileInput"
-      type="file"
-      accept=".vtt,video/*,audio/*"
-      multiple
-      style="display: none"
-      @change="handleFileSelect"
-    />
-  </div>
+  />
 </template>
 
 <script setup lang="ts">
@@ -35,45 +27,32 @@ import { useVTTStore } from '../stores/vttStore'
 
 const store = useVTTStore()
 const showDropZone = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
-const isElectron = ref(false)
 
 onMounted(() => {
-  isElectron.value = !!window.electronAPI?.isElectron
-
-  // Listen for Electron file drops
-  if (isElectron.value) {
-    window.addEventListener('electron-files-dropped', ((event: CustomEvent<{ filePaths: string[] }>) => {
-      handleElectronFileDrop(event)
-    }) as EventListener)
-  }
+  // Listen for Electron file drops from preload script
+  window.addEventListener('electron-files-dropped', ((event: CustomEvent<{ filePaths: string[] }>) => {
+    handleElectronFileDrop(event)
+  }) as EventListener)
 })
 
 async function triggerFileInput() {
-  if (isElectron.value && window.electronAPI) {
-    // Use Electron file picker
-    const filePaths = await window.electronAPI.openFile({
-      properties: ['openFile', 'multiSelections'],
-      filters: [
-        { name: 'VTT Files', extensions: ['vtt'] },
-        { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
-        { name: 'All Files', extensions: ['*'] }
-      ]
-    })
-
-    if (filePaths && filePaths.length > 0) {
-      await processElectronFiles(filePaths)
-    }
-  } else {
-    // Use browser file picker
-    fileInput.value?.click()
+  if (!window.electronAPI) {
+    console.error('Electron API not available')
+    return
   }
-}
 
-function handleFileSelect(event: Event) {
-  const target = event.target as HTMLInputElement
-  if (target.files) {
-    processFiles(Array.from(target.files))
+  // Use Electron file picker
+  const filePaths = await window.electronAPI.openFile({
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: 'VTT Files', extensions: ['vtt'] },
+      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  })
+
+  if (filePaths && filePaths.length > 0) {
+    await processElectronFiles(filePaths)
   }
 }
 
@@ -95,18 +74,8 @@ async function handleDrop(e: DragEvent) {
 
   showDropZone.value = false
 
-  // In Electron mode, the preload script will dispatch 'electron-files-dropped' event
-  // with full file paths, so we don't need to process here
-  if (isElectron.value && window.electronAPI) {
-    console.log('[handleDrop] Electron mode - waiting for electron-files-dropped event from preload')
-    return
-  }
-
-  // Browser mode - process files directly
-  if (!e.dataTransfer?.files) return
-  const files = Array.from(e.dataTransfer.files)
-  console.log('[handleDrop] Browser mode - processing files:', files.map(f => f.name))
-  await processFiles(files)
+  // The preload script will dispatch 'electron-files-dropped' event with full file paths
+  console.log('[handleDrop] Waiting for electron-files-dropped event from preload script')
 }
 
 async function handleElectronFileDrop(event: CustomEvent<{ filePaths: string[] }>) {
@@ -145,60 +114,9 @@ async function processElectronFiles(filePaths: string[]) {
   }
 }
 
-async function processFiles(files: File[]) {
-  console.log('Processing', files.length, 'files')
-
-  let vttFile: File | null = null
-  let mediaFile: File | null = null
-
-  for (const file of files) {
-    if (file.name.endsWith('.vtt')) {
-      vttFile = file
-      console.log('Found VTT file:', file.name)
-    } else if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
-      mediaFile = file
-      console.log('Found media file:', file.name)
-    }
-  }
-
-  // Load VTT file
-  if (vttFile) {
-    try {
-      const content = await vttFile.text()
-      store.loadFromFile(content, vttFile.name)
-      console.log('VTT file loaded successfully')
-      // Note: Media auto-loading from VTT metadata is handled by App.vue watcher
-    } catch (err) {
-      console.error('Failed to load VTT file:', err)
-      alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-    }
-  }
-
-  // Load media file
-  if (mediaFile) {
-    try {
-      const url = URL.createObjectURL(mediaFile)
-      // Try to get full path from File object (may be limited by browser security)
-      // @ts-ignore - path property exists in Electron and some contexts
-      const filePath = mediaFile.path || mediaFile.webkitRelativePath || mediaFile.name
-      store.loadMediaFile(url, filePath)
-      console.log('Media file loaded successfully:', filePath)
-    } catch (err) {
-      console.error('Failed to load media file:', err)
-      alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-    }
-  }
-
-  // If no VTT file but there's a media file, create empty document
-  if (!vttFile && mediaFile) {
-    console.log('No VTT file, creating empty document')
-  }
-}
-
 // Expose methods to parent component
 defineExpose({
-  triggerFileInput,
-  processFiles
+  triggerFileInput
 })
 </script>
 

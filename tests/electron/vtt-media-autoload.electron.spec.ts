@@ -127,11 +127,14 @@ test.describe('Electron VTT Media Auto-loading', () => {
   test('should handle missing media file gracefully', async () => {
     test.setTimeout(30000)
 
-    // Clear any previous state
+    // Clear any previous state by loading an empty document and clearing media
     await window.evaluate(() => {
       const store = (window as any).$store
-      if (store && store.clearDocument) {
-        store.clearDocument()
+      if (store) {
+        // Load empty VTT to reset state
+        store.loadFromFile('WEBVTT\n', null)
+        // Clear media path manually
+        store.mediaPath = null
       }
     })
     await window.waitForTimeout(200)

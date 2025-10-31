@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <MenuBar @open-files="handleOpenFiles" @files-dropped="handleFilesDropped" />
+    <MenuBar @open-files="handleOpenFiles" />
     <div class="main-content">
       <div class="resizable-container">
         <div class="left-panel" :style="{ width: leftPanelWidth + '%' }">
@@ -34,10 +34,6 @@ const attemptedAutoLoad = ref<string | null>(null)
 
 function handleOpenFiles() {
   fileDropZone.value?.triggerFileInput()
-}
-
-function handleFilesDropped(files: File[]) {
-  fileDropZone.value?.processFiles(files)
 }
 
 function startResize(e: MouseEvent) {

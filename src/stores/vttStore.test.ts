@@ -37,31 +37,6 @@ describe('vttStore', () => {
       expect(store.isPlaying).toBe(false)
       expect(store.selectedCueId).toBeNull()
     })
-
-    it('should load from localStorage if available', () => {
-      localStorageMock.setItem('vtt-editor-document', JSON.stringify({
-        document: {
-          cues: [{
-            id: 'test-id',
-            startTime: 1,
-            endTime: 4,
-            text: 'Test caption'
-          }]
-        },
-        timestamp: Date.now()
-      }))
-
-      const store = useVTTStore()
-      expect(store.document.cues).toHaveLength(1)
-      expect(store.document.cues[0].text).toBe('Test caption')
-    })
-
-    it('should load media path from localStorage', () => {
-      localStorageMock.setItem('vtt-editor-media-path', '/path/to/media.mp4')
-
-      const store = useVTTStore()
-      expect(store.mediaPath).toBe('/path/to/media.mp4')
-    })
   })
 
   describe('loadFromFile', () => {
@@ -84,21 +59,6 @@ Test caption`
 
       expect(() => store.loadFromFile(invalidContent)).toThrow()
     })
-
-    it('should save to localStorage after loading', () => {
-      const store = useVTTStore()
-      const vttContent = `WEBVTT
-
-00:00:01.000 --> 00:00:04.000
-Test caption`
-
-      store.loadFromFile(vttContent)
-      const stored = localStorageMock.getItem('vtt-editor-document')
-      expect(stored).not.toBeNull()
-
-      const parsed = JSON.parse(stored!)
-      expect(parsed.document.cues).toHaveLength(1)
-    })
   })
 
   describe('loadMediaFile', () => {
@@ -106,14 +66,6 @@ Test caption`
       const store = useVTTStore()
       store.loadMediaFile('/path/to/video.mp4')
       expect(store.mediaPath).toBe('/path/to/video.mp4')
-    })
-
-    it('should save media path to localStorage', () => {
-      const store = useVTTStore()
-      store.loadMediaFile('/path/to/video.mp4')
-
-      const stored = localStorageMock.getItem('vtt-editor-media-path')
-      expect(stored).toBe('/path/to/video.mp4')
     })
   })
 
@@ -151,14 +103,6 @@ Test caption`
       store.addCue(10)
 
       expect(store.document.cues[0].endTime).toBe(15)
-    })
-
-    it('should save to localStorage after adding', () => {
-      const store = useVTTStore()
-      store.addCue(10)
-
-      const stored = localStorageMock.getItem('vtt-editor-document')
-      expect(stored).not.toBeNull()
     })
   })
 
@@ -214,17 +158,6 @@ Test caption`
         store.updateCue(cueId, { endTime: 9 })
       }).toThrow('End time must be greater than start time')
     })
-
-    it('should save to localStorage after updating', () => {
-      const store = useVTTStore()
-      const cueId = store.addCue(10)
-
-      store.updateCue(cueId, { text: 'Updated' })
-
-      const stored = localStorageMock.getItem('vtt-editor-document')
-      const parsed = JSON.parse(stored!)
-      expect(parsed.document.cues[0].text).toBe('Updated')
-    })
   })
 
   describe('deleteCue', () => {
@@ -254,48 +187,8 @@ Test caption`
       store.deleteCue(cueId2)
       expect(store.selectedCueId).toBe(cueId1)
     })
-
-    it('should save to localStorage after deleting', () => {
-      const store = useVTTStore()
-      const cueId = store.addCue(10)
-
-      store.deleteCue(cueId)
-
-      const stored = localStorageMock.getItem('vtt-editor-document')
-      const parsed = JSON.parse(stored!)
-      expect(parsed.document.cues).toHaveLength(0)
-    })
   })
 
-  describe('clearDocument', () => {
-    it('should clear all document data', () => {
-      const store = useVTTStore()
-      store.addCue(10)
-      store.loadMediaFile('/path/to/video.mp4')
-      store.setCurrentTime(5)
-      store.setPlaying(true)
-      store.selectCue('test-id')
-
-      store.clearDocument()
-
-      expect(store.document.cues).toHaveLength(0)
-      expect(store.mediaPath).toBeNull()
-      expect(store.currentTime).toBe(0)
-      expect(store.isPlaying).toBe(false)
-      expect(store.selectedCueId).toBeNull()
-    })
-
-    it('should remove data from localStorage', () => {
-      const store = useVTTStore()
-      store.addCue(10)
-      store.loadMediaFile('/path/to/video.mp4')
-
-      store.clearDocument()
-
-      expect(localStorageMock.getItem('vtt-editor-document')).toBeNull()
-      expect(localStorageMock.getItem('vtt-editor-media-path')).toBeNull()
-    })
-  })
 
   describe('setCurrentTime', () => {
     it('should update current time', () => {
@@ -401,28 +294,4 @@ Test caption`
     })
   })
 
-  describe('localStorage error handling', () => {
-    it('should handle localStorage save errors gracefully', () => {
-      const store = useVTTStore()
-
-      // Mock localStorage.setItem to throw an error
-      const originalSetItem = localStorageMock.setItem
-      localStorageMock.setItem = () => {
-        throw new Error('Storage quota exceeded')
-      }
-
-      // Should not throw
-      expect(() => store.addCue(10)).not.toThrow()
-
-      // Restore
-      localStorageMock.setItem = originalSetItem
-    })
-
-    it('should handle localStorage load errors gracefully', () => {
-      localStorageMock.setItem('vtt-editor-document', 'invalid json')
-
-      // Should not throw during initialization
-      expect(() => useVTTStore()).not.toThrow()
-    })
-  })
 })
