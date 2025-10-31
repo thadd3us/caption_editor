@@ -109,6 +109,15 @@ RUN echo "2) sleeping for 30 seconds" && sleep 30 && echo "done sleeping"
 ENV NODE_ENV=development
 # Disable OneLogger telemetry in development
 ENV ONE_LOGGER_DISABLE=1
+# Set DISPLAY for Xvfb
+ENV DISPLAY=:99
 
-# Default command
+# Create startup script to launch Xvfb
+RUN echo '#!/bin/bash\n\
+Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &\n\
+exec "$@"' > /usr/local/bin/start-with-xvfb.sh && \
+    chmod +x /usr/local/bin/start-with-xvfb.sh
+
+# Default command - start Xvfb then bash
+ENTRYPOINT ["/usr/local/bin/start-with-xvfb.sh"]
 CMD ["bash"]

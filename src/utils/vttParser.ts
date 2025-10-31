@@ -122,7 +122,8 @@ export function parseVTT(content: string): ParseResult {
             console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
           }
           // Check if it's transcript metadata (has 'id' but not 'rating' or 'timestamp' - those are cue metadata)
-          else if (parsed.id && !('rating' in parsed) && !('timestamp' in parsed)) {
+          // Only set transcript metadata once (from the first NOTE)
+          else if (parsed.id && !('rating' in parsed) && !('timestamp' in parsed) && !transcriptMetadata) {
             transcriptMetadata = parsed as TranscriptMetadata
             console.log('Found transcript metadata:', transcriptMetadata.id)
           }

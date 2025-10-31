@@ -7,9 +7,11 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: 'html',
+  timeout: 30000, // 30 seconds per test
 
   use: {
     trace: 'on-first-retry',
+    actionTimeout: 10000, // 10 seconds for actions
   },
 
   projects: [
