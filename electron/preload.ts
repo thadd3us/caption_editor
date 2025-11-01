@@ -71,10 +71,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Extract file paths from dropped files
     const files = Array.from(e.dataTransfer?.files || [])
-    console.log('[preload] Files in drop:', files.map(f => ({ name: f.name, path: (f as any).path })))
+    console.log('[preload] Files in drop:', files.map(f => {
+      const file = f as any
+      return {
+        name: f.name,
+        path: file.path,
+        allKeys: Object.keys(file),
+        hasPath: 'path' in file,
+        pathType: typeof file.path
+      }
+    }))
     const filePaths = files
       // @ts-ignore - path property exists in Electron
-      .map(file => file.path)
+      .map(file => (file as any).path)
       .filter(Boolean)
 
     console.log('[preload] Extracted file paths:', filePaths)
