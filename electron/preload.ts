@@ -69,46 +69,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
 })
 
 // Handle file drop events
+// NOTE: Due to sandbox limitations, file.path is not available on File objects
+// The preload script must use IPC to get the main process to resolve file paths
 window.addEventListener('DOMContentLoaded', () => {
   console.log('[preload] Registered drop handler on document')
-  document.addEventListener('drop', (e) => {
-    console.log('[preload] Drop event received at document level')
-    e.preventDefault()
-    e.stopPropagation()
 
-    // Extract file paths from dropped files
-    const files = Array.from(e.dataTransfer?.files || [])
-    console.log('[preload] Files in drop:', files.map(f => {
-      const file = f as any
-      return {
-        name: f.name,
-        path: file.path,
-        allKeys: Object.keys(file),
-        hasPath: 'path' in file,
-        pathType: typeof file.path
-      }
-    }))
-    const filePaths = files
-      // @ts-ignore - path property exists in Electron
-      .map(file => (file as any).path)
-      .filter(Boolean)
-
-    console.log('[preload] Extracted file paths:', filePaths)
-
-    if (filePaths.length > 0) {
-      // Dispatch custom event with file paths
-      console.log('[preload] Dispatching electron-files-dropped event')
-      const event = new CustomEvent('electron-files-dropped', {
-        detail: { filePaths }
-      })
-      window.dispatchEvent(event)
-    } else {
-      console.warn('[preload] No file paths found - file.path property not available')
-    }
-  })
-
+  // Don't intercept drops at all - let them bubble to default handlers
+  // The main process will intercept navigation events
   document.addEventListener('dragover', (e) => {
     e.preventDefault()
     e.stopPropagation()
+  })
+
+  // Log drop events but don't prevent default - let navigation happen
+  document.addEventListener('drop', (e) => {
+    console.log('[preload] Drop event detected - allowing default navigation for main process to intercept')
+    // Don't call e.preventDefault() - let it navigate so main process can intercept
   })
 })
