@@ -162,6 +162,27 @@ onMounted(() => {
   setTimeout(() => {
     attemptMediaAutoLoad()
   }, 200)
+
+  // Listen for files dropped (intercepted by main process with full paths)
+  if ((window as any).electronAPI?.onFileDropped) {
+    (window as any).electronAPI.onFileDropped(async (filePaths: string[]) => {
+      console.log('[App] Received file drop from main process:', filePaths)
+      // Use the FileDropZone component to handle the files
+      if (fileDropZone.value && (window as any).electronAPI?.processDroppedFiles) {
+        const results = await (window as any).electronAPI.processDroppedFiles(filePaths)
+        console.log('[App] Processed dropped files:', results)
+
+        // Process the results directly
+        for (const result of results) {
+          if (result.type === 'vtt') {
+            store.loadFromFile(result.content, result.filePath)
+          } else if (result.type === 'media') {
+            store.loadMediaFile(result.url, result.filePath)
+          }
+        }
+      }
+    })
+  }
 })
 </script>
 

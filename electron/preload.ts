@@ -58,6 +58,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
    */
   onFileOpen: (callback: (filePath: string) => void) => {
     ipcRenderer.on('open-file', (_event, filePath) => callback(filePath))
+  },
+
+  /**
+   * Listen for files dropped (intercepted by main process)
+   */
+  onFileDropped: (callback: (filePaths: string[]) => void) => {
+    ipcRenderer.on('file-dropped-from-main', (_event, filePaths) => callback(filePaths))
   }
 })
 

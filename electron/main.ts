@@ -44,13 +44,26 @@ function createWindow() {
     }
   })
 
-  // Handle file drops - intercept before renderer to get full paths
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    // Prevent navigation from file drops
+  // Handle file drops - intercept at main process level to get full paths
+  mainWindow.webContents.session.on('will-download', (event, item) => {
+    // Prevent downloads from file drops
     event.preventDefault()
   })
 
-  // Register handler for file drops
+  // Intercept file drops using webContents
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    // Check if this is a file:// URL from a drag-drop
+    if (url.startsWith('file://')) {
+      event.preventDefault()
+      console.log('[main] Prevented file navigation:', url)
+
+      // Extract file path and send to renderer
+      const filePath = decodeURIComponent(url.replace('file://', ''))
+      mainWindow?.webContents.send('file-dropped-from-main', [filePath])
+    }
+  })
+
+  // Set up protocol handling for file drops
   mainWindow.webContents.setWindowOpenHandler(() => {
     return { action: 'deny' }
   })
