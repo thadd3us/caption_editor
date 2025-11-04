@@ -91,17 +91,9 @@ RUN mkdir -p /tmp/deps /tmp/node_modules_cache /tmp/python-deps /home/dev/models
 ENV HF_HOME=/home/dev/models
 ENV NEMO_MODEL_CACHE=/home/dev/models
 
-# Pre-install common dependencies based on package.json structure
-# This creates a layer that can be cached when only package.json changes
-COPY --chown=dev:dev package.json package-lock.json* /tmp/deps/
-RUN cd /tmp/deps && \
-    if [ -f package-lock.json ]; then \
-        npm ci; \
-    else \
-        npm install; \
-    fi && \
-    # Move node_modules to a cache location
-    mv node_modules /tmp/node_modules_cache || true
+# ============================================================================
+# PYTHON & ML MODELS - Do these FIRST so Node.js changes don't invalidate them
+# ============================================================================
 
 # Pre-create uv virtual environment for transcribe project at a fixed location
 # This creates the actual .venv that pytest will use
@@ -126,6 +118,22 @@ RUN cd /tmp/python-deps && \
 
 # Brief pause to ensure models are properly cached
 RUN echo "Finalizing model downloads..." && sleep 30 && echo "Model downloads complete"
+
+# ============================================================================
+# NODE.JS DEPENDENCIES - Do these LAST so changes only rebuild from here
+# ============================================================================
+
+# Pre-install common dependencies based on package.json structure
+# This creates a layer that can be cached when only package.json changes
+COPY --chown=dev:dev package.json package-lock.json* /tmp/deps/
+RUN cd /tmp/deps && \
+    if [ -f package-lock.json ]; then \
+        npm ci; \
+    else \
+        npm install; \
+    fi && \
+    # Move node_modules to a cache location
+    mv node_modules /tmp/node_modules_cache || true
 
 # Switch back to root to install Xvfb script with SUID bit
 USER root
