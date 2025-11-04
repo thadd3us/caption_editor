@@ -51,7 +51,8 @@ describe('FileDropZone', () => {
         statFile: vi.fn(),
         fileToURL: vi.fn(),
         processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn()
+        onFileOpen: vi.fn(),
+        onFileDropped: vi.fn()
       }
 
       const wrapper = mount(FileDropZone)
@@ -94,7 +95,8 @@ describe('FileDropZone', () => {
         statFile: vi.fn(),
         fileToURL: vi.fn(),
         processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn()
+        onFileOpen: vi.fn(),
+        onFileDropped: vi.fn()
       }
 
       const wrapper = mount(FileDropZone)
@@ -142,7 +144,8 @@ describe('FileDropZone', () => {
         statFile: vi.fn(),
         fileToURL: vi.fn(),
         processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn()
+        onFileOpen: vi.fn(),
+        onFileDropped: vi.fn()
       }
 
       const wrapper = mount(FileDropZone)
@@ -186,7 +189,8 @@ describe('FileDropZone', () => {
         statFile: vi.fn(),
         fileToURL: vi.fn(),
         processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn()
+        onFileOpen: vi.fn(),
+        onFileDropped: vi.fn()
       }
 
       const wrapper = mount(FileDropZone)
@@ -230,7 +234,8 @@ describe('FileDropZone', () => {
         statFile: vi.fn(),
         fileToURL: vi.fn(),
         processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn()
+        onFileOpen: vi.fn(),
+        onFileDropped: vi.fn()
       }
 
       const wrapper = mount(FileDropZone)

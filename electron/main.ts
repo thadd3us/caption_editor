@@ -52,14 +52,41 @@ function createWindow() {
 
   // Intercept file drops using webContents
   mainWindow.webContents.on('will-navigate', (event, url) => {
+    console.log('[main] will-navigate event triggered with URL:', url)
+
     // Check if this is a file:// URL from a drag-drop
     if (url.startsWith('file://')) {
       event.preventDefault()
-      console.log('[main] Prevented file navigation:', url)
+      console.log('[main] ✓ Prevented file navigation (file:// URL detected)')
 
-      // Extract file path and send to renderer
-      const filePath = decodeURIComponent(url.replace('file://', ''))
+      // Extract file path properly - on Unix/Mac, file:// URLs have three slashes
+      // file:///Users/... -> /Users/...
+      // file:///C:/Users/... -> C:/Users/... (Windows with file:///)
+      // file://C:/Users/... -> C:/Users/... (Windows with file://)
+      let filePath = url
+
+      // Remove 'file://' prefix
+      if (filePath.startsWith('file://')) {
+        filePath = filePath.substring(7) // Remove 'file://'
+      }
+
+      // On Unix/Mac, file URLs start with file:/// so we have leading / left
+      // On Windows, file URLs are file:///C:/ so we also have leading / that needs removal
+      if (filePath.startsWith('/') && /^\/[A-Za-z]:/.test(filePath)) {
+        // Windows path like /C:/Users -> C:/Users
+        filePath = filePath.substring(1)
+      }
+
+      filePath = decodeURIComponent(filePath)
+
+      console.log('[main] ✓ Extracted file path:', filePath)
+      console.log('[main] ✓ Sending file-dropped-from-main IPC with paths:', [filePath])
+
       mainWindow?.webContents.send('file-dropped-from-main', [filePath])
+
+      console.log('[main] ✓ IPC message sent successfully')
+    } else {
+      console.log('[main] ✗ Not a file:// URL, allowing navigation to proceed')
     }
   })
 
@@ -266,36 +293,56 @@ ipcMain.handle('file:toURL', async (_event, filePath: string) => {
 
 // Handle file drops from system
 ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) => {
+  console.log('[main] ✓ processDroppedFiles IPC handler called')
+  console.log('[main] ✓ Received file paths:', filePaths)
+  console.log('[main] ✓ Number of files to process:', filePaths.length)
+
   const results = []
 
   for (const filePath of filePaths) {
+    console.log('[main] Processing file:', filePath)
     try {
       const stats = await fs.stat(filePath)
-      if (!stats.isFile()) continue
+      console.log('[main]   - File exists, is file:', stats.isFile())
+
+      if (!stats.isFile()) {
+        console.log('[main]   - Skipping (not a file)')
+        continue
+      }
 
       const ext = path.extname(filePath).toLowerCase()
+      console.log('[main]   - File extension:', ext)
 
       if (ext === '.vtt') {
+        console.log('[main]   - Reading VTT file content')
         const content = await fs.readFile(filePath, 'utf-8')
+        console.log('[main]   - VTT content length:', content.length)
         results.push({
           type: 'vtt',
           filePath,
           fileName: path.basename(filePath),
           content
         })
+        console.log('[main]   ✓ VTT file added to results')
       } else if (['.mp4', '.webm', '.ogg', '.mp3', '.wav', '.mov', '.m4a'].includes(ext)) {
         const url = `file://${filePath}`
+        console.log('[main]   - Creating media URL:', url)
         results.push({
           type: 'media',
           filePath,
           fileName: path.basename(filePath),
           url
         })
+        console.log('[main]   ✓ Media file added to results')
+      } else {
+        console.log('[main]   - Skipping (unsupported file type)')
       }
     } catch (error) {
-      console.error('Error processing dropped file:', error)
+      console.error('[main]   ✗ Error processing dropped file:', error)
     }
   }
 
+  console.log('[main] ✓ Finished processing files, returning', results.length, 'results')
+  console.log('[main] ✓ Results:', results)
   return results
 })
