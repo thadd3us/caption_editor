@@ -1,7 +1,7 @@
 <template>
   <div class="menu-bar">
     <div class="menu-left">
-      <h1>VTT Editor</h1>
+      <h1>VTT Editor <span class="version">v1.0.5</span></h1>
       <div class="menu-items">
         <div class="menu-dropdown">
           <button @click="toggleFileMenu" class="menu-item" ref="fileMenuButton">
@@ -223,6 +223,13 @@ h1 {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
+}
+
+.version {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 8px;
 }
 
 .menu-items {

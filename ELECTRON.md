@@ -171,12 +171,6 @@ The app uses:
 - User must explicitly select files via dialogs or drag-drop
 - Security-scoped bookmarks on macOS (future enhancement)
 
-## Browser Compatibility
-
-The app still works in browsers! The code automatically detects Electron and uses:
-- Electron file APIs when available
-- Browser File API as fallback
-- Same UI/UX in both environments
 
 ## Troubleshooting
 

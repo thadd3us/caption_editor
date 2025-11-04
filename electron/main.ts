@@ -6,6 +6,16 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// Log version on startup
+const APP_VERSION = '1.0.5'
+console.log(`[main] ========================================`)
+console.log(`[main] VTT Caption Editor v${APP_VERSION}`)
+console.log(`[main] Electron v${process.versions.electron}`)
+console.log(`[main] Chrome v${process.versions.chrome}`)
+console.log(`[main] Node v${process.versions.node}`)
+console.log(`[main] Platform: ${process.platform}`)
+console.log(`[main] ========================================`)
+
 // Store security-scoped bookmarks for macOS
 const fileBookmarks = new Map<string, Buffer>()
 

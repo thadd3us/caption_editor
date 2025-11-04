@@ -1,5 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
+// Log version on startup
+const APP_VERSION = '1.0.5'
+console.log(`[preload] VTT Caption Editor v${APP_VERSION} - Preload script loaded`)
+
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {

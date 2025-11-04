@@ -24,6 +24,13 @@ import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 
+// Log version on startup
+const APP_VERSION = '1.0.5'
+console.log(`========================================`)
+console.log(`VTT Caption Editor v${APP_VERSION}`)
+console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' : 'Browser'}`)
+console.log(`========================================`)
+
 const store = useVTTStore()
 const leftPanelWidth = ref(60)
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
