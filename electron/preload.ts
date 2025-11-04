@@ -86,7 +86,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 })
 
 // Handle file drop events
-// With sandbox: false, we CAN access file.path property
+// Strategy: Let the drop trigger navigation so main process can intercept with will-navigate
 window.addEventListener('DOMContentLoaded', () => {
   console.log('[preload] Registered drop handler on document')
 
@@ -98,39 +98,26 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('drop', async (e) => {
     console.log('[preload] ✓ Drop event detected!')
-    e.preventDefault()
-    e.stopPropagation()
 
     const files = e.dataTransfer?.files
     console.log('[preload] ✓ Number of files dropped:', files?.length || 0)
 
     if (!files || files.length === 0) {
       console.log('[preload] ✗ No files in drop event')
+      e.preventDefault()
       return
     }
 
-    // With sandbox: false, file.path is available
-    const filePaths: string[] = []
+    // Log file info for debugging
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const path = (file as any).path
-      console.log('[preload] ✓ File', i, '- name:', file.name, 'path:', path, 'type:', file.type)
-      if (path) {
-        filePaths.push(path)
-      } else {
-        console.log('[preload] ✗ File has no path property! Sandbox might still be enabled.')
-      }
+      console.log('[preload] File', i, '- name:', file.name, 'path:', path, 'type:', file.type)
     }
 
-    console.log('[preload] ✓ Extracted file paths:', filePaths)
-
-    if (filePaths.length > 0) {
-      console.log('[preload] ✓ Triggering file processing with paths:', filePaths)
-      // Send to main process to trigger the onFileDropped callback
-      ipcRenderer.send('files-dropped-in-preload', filePaths)
-      console.log('[preload] ✓ Sent IPC message to main process')
-    } else {
-      console.log('[preload] ✗ No valid file paths extracted')
-    }
+    // DON'T prevent default - let it try to navigate so main process will-navigate handler catches it
+    console.log('[preload] ✓ Allowing default navigation behavior for main process interception')
+    // e.preventDefault() <- NOT calling this
+    // NOTE: This will attempt to navigate to file:// URL, which main process will intercept
   })
 })
