@@ -86,7 +86,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 })
 
 // Handle file drop events
-// Strategy: Let the drop trigger navigation so main process can intercept with will-navigate
+// With webSecurity: false and sandbox: false, file.path should be available
 window.addEventListener('DOMContentLoaded', () => {
   console.log('[preload] Registered drop handler on document')
 
@@ -97,6 +97,9 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 
   document.addEventListener('drop', async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
     console.log('[preload] ✓ Drop event detected!')
 
     const files = e.dataTransfer?.files
@@ -104,20 +107,37 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (!files || files.length === 0) {
       console.log('[preload] ✗ No files in drop event')
-      e.preventDefault()
       return
     }
 
-    // Log file info for debugging
+    // With webSecurity: false, file.path should now be available
+    const filePaths: string[] = []
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const path = (file as any).path
-      console.log('[preload] File', i, '- name:', file.name, 'path:', path, 'type:', file.type)
+      console.log('[preload] File', i, ':', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        path: path
+      })
+
+      if (path) {
+        filePaths.push(path)
+        console.log('[preload]   ✓ Got path:', path)
+      } else {
+        console.log('[preload]   ✗ No path property (webSecurity might still be blocking)')
+      }
     }
 
-    // DON'T prevent default - let it try to navigate so main process will-navigate handler catches it
-    console.log('[preload] ✓ Allowing default navigation behavior for main process interception')
-    // e.preventDefault() <- NOT calling this
-    // NOTE: This will attempt to navigate to file:// URL, which main process will intercept
+    if (filePaths.length > 0) {
+      console.log('[preload] ✓ Extracted', filePaths.length, 'file paths')
+      console.log('[preload] ✓ Sending to main process:', filePaths)
+      ipcRenderer.send('files-dropped-in-preload', filePaths)
+      console.log('[preload] ✓ IPC message sent')
+    } else {
+      console.log('[preload] ✗ No valid file paths extracted')
+    }
   })
 })

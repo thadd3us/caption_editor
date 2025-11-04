@@ -34,7 +34,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false  // Disabled to allow file.path property in drag-and-drop
+      sandbox: false,  // Disabled to allow file.path property in drag-and-drop
+      webSecurity: false  // Disable web security to allow file.path access
     }
   })
 
