@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { readFileSync } from 'fs'
 import * as path from 'path'
 
@@ -59,6 +59,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   processDroppedFiles: (filePaths: string[]) => ipcRenderer.invoke('file:processDroppedFiles', filePaths),
 
   /**
+   * Get file path from File object (for drag-and-drop)
+   * Uses webUtils.getPathForFile() which is the only way to get paths in modern Electron
+   */
+  getPathForFile: (file: File) => {
+    try {
+      return webUtils.getPathForFile(file)
+    } catch (err) {
+      console.error('[preload] Error getting path for file:', err)
+      return null
+    }
+  },
+
+  /**
    * Check if running in Electron
    */
   isElectron: true,
@@ -110,29 +123,29 @@ window.addEventListener('DOMContentLoaded', () => {
       return
     }
 
-    // With webSecurity: false, file.path should now be available
+    // Use webUtils.getPathForFile() to get file paths (only way in modern Electron)
     const filePaths: string[] = []
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
-      const path = (file as any).path
       console.log('[preload] File', i, ':', {
         name: file.name,
         type: file.type,
-        size: file.size,
-        path: path
+        size: file.size
       })
 
-      if (path) {
-        filePaths.push(path)
-        console.log('[preload]   ✓ Got path:', path)
-      } else {
-        console.log('[preload]   ✗ No path property (webSecurity might still be blocking)')
+      try {
+        // Use webUtils.getPathForFile() - this is the ONLY way to get paths in modern Electron
+        const filePath = webUtils.getPathForFile(file)
+        console.log('[preload]   ✓ Got path using webUtils.getPathForFile():', filePath)
+        filePaths.push(filePath)
+      } catch (err) {
+        console.error('[preload]   ✗ Error getting path for file:', err)
       }
     }
 
     if (filePaths.length > 0) {
-      console.log('[preload] ✓ Extracted', filePaths.length, 'file paths')
+      console.log('[preload] ✓ Extracted', filePaths.length, 'file paths using webUtils')
       console.log('[preload] ✓ Sending to main process:', filePaths)
       ipcRenderer.send('files-dropped-in-preload', filePaths)
       console.log('[preload] ✓ IPC message sent')
