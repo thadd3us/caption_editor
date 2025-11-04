@@ -59,13 +59,8 @@ function createWindow() {
     }
   })
 
-  // Handle file drops - intercept at main process level to get full paths
-  mainWindow.webContents.session.on('will-download', (event, item) => {
-    // Prevent downloads from file drops
-    event.preventDefault()
-  })
-
-  // Intercept file drops using webContents
+  // Handle file drops at the webContents level to capture file paths
+  // This is the proper way to handle drag-and-drop in Electron
   mainWindow.webContents.on('will-navigate', (event, url) => {
     console.log('[main] will-navigate event triggered with URL:', url)
 
@@ -103,6 +98,12 @@ function createWindow() {
     } else {
       console.log('[main] ✗ Not a file:// URL, allowing navigation to proceed')
     }
+  })
+
+  // Prevent file drops from triggering downloads
+  mainWindow.webContents.session.on('will-download', (event, item) => {
+    event.preventDefault()
+    console.log('[main] Prevented download for:', item.getFilename())
   })
 
   // Set up protocol handling for file drops
