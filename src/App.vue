@@ -165,23 +165,42 @@ onMounted(() => {
 
   // Listen for files dropped (intercepted by main process with full paths)
   if ((window as any).electronAPI?.onFileDropped) {
+    console.log('[App] ✓ electronAPI.onFileDropped is available, registering handler');
     (window as any).electronAPI.onFileDropped(async (filePaths: string[]) => {
-      console.log('[App] Received file drop from main process:', filePaths)
+      console.log('[App] ✓ File drop handler called!')
+      console.log('[App] ✓ Received file paths:', filePaths)
+      console.log('[App] ✓ Number of files:', filePaths.length)
+
       // Use the FileDropZone component to handle the files
       if (fileDropZone.value && (window as any).electronAPI?.processDroppedFiles) {
+        console.log('[App] ✓ Calling electronAPI.processDroppedFiles')
         const results = await (window as any).electronAPI.processDroppedFiles(filePaths)
-        console.log('[App] Processed dropped files:', results)
+        console.log('[App] ✓ Processed dropped files, got results:', results)
+        console.log('[App] ✓ Number of results:', results.length)
 
         // Process the results directly
         for (const result of results) {
+          console.log('[App] ✓ Processing result:', result)
           if (result.type === 'vtt') {
+            console.log('[App] ✓ Loading VTT file:', result.filePath)
             store.loadFromFile(result.content, result.filePath)
+            console.log('[App] ✓ VTT file loaded successfully')
           } else if (result.type === 'media') {
+            console.log('[App] ✓ Loading media file:', result.filePath)
             store.loadMediaFile(result.url, result.filePath)
+            console.log('[App] ✓ Media file loaded successfully')
           }
         }
+        console.log('[App] ✓ All files processed successfully')
+      } else {
+        console.log('[App] ✗ Cannot process files - missing fileDropZone or processDroppedFiles API')
+        console.log('[App]   - fileDropZone.value:', fileDropZone.value)
+        console.log('[App]   - electronAPI.processDroppedFiles:', (window as any).electronAPI?.processDroppedFiles)
       }
     })
+    console.log('[App] ✓ File drop handler registered successfully')
+  } else {
+    console.log('[App] ✗ electronAPI.onFileDropped not available')
   }
 })
 </script>

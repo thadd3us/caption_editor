@@ -64,7 +64,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * Listen for files dropped (intercepted by main process)
    */
   onFileDropped: (callback: (filePaths: string[]) => void) => {
-    ipcRenderer.on('file-dropped-from-main', (_event, filePaths) => callback(filePaths))
+    console.log('[preload] Registering onFileDropped callback')
+    ipcRenderer.on('file-dropped-from-main', (_event, filePaths) => {
+      console.log('[preload] ✓ Received file-dropped-from-main IPC message')
+      console.log('[preload] ✓ File paths received:', filePaths)
+      console.log('[preload] ✓ Calling renderer callback with paths')
+      callback(filePaths)
+      console.log('[preload] ✓ Callback executed successfully')
+    })
   }
 })
 

@@ -85,6 +85,11 @@ export interface ElectronAPI {
    * Listen for files opened from the OS (double-click, right-click > Open With)
    */
   onFileOpen: (callback: (filePath: string) => void) => void
+
+  /**
+   * Listen for files dropped (intercepted by main process)
+   */
+  onFileDropped: (callback: (filePaths: string[]) => void) => void
 }
 
 declare global {
