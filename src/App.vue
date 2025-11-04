@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <MenuBar @open-files="handleOpenFiles" />
+    <MenuBar :version="APP_VERSION" @open-files="handleOpenFiles" />
     <div class="main-content">
       <div class="resizable-container">
         <div class="left-panel" :style="{ width: leftPanelWidth + '%' }">
@@ -23,9 +23,12 @@ import MenuBar from './components/MenuBar.vue'
 import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
+import packageJson from '../package.json'
+
+// Read version from package.json (single source of truth)
+const APP_VERSION = packageJson.version
 
 // Log version on startup
-const APP_VERSION = '1.0.5'
 console.log(`========================================`)
 console.log(`VTT Caption Editor v${APP_VERSION}`)
 console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' : 'Browser'}`)

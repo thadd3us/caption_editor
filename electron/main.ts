@@ -2,12 +2,17 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
+import { readFileSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// Read version from package.json (single source of truth)
+const packageJsonPath = path.join(__dirname, '../package.json')
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+const APP_VERSION = packageJson.version
+
 // Log version on startup
-const APP_VERSION = '1.0.5'
 console.log(`[main] ========================================`)
 console.log(`[main] VTT Caption Editor v${APP_VERSION}`)
 console.log(`[main] Electron v${process.versions.electron}`)

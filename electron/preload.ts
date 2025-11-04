@@ -1,7 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { readFileSync } from 'fs'
+import * as path from 'path'
+
+// Read version from package.json (single source of truth)
+const packageJsonPath = path.join(__dirname, '../package.json')
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+const APP_VERSION = packageJson.version
 
 // Log version on startup
-const APP_VERSION = '1.0.5'
 console.log(`[preload] VTT Caption Editor v${APP_VERSION} - Preload script loaded`)
 
 // Expose protected methods that allow the renderer process to use
