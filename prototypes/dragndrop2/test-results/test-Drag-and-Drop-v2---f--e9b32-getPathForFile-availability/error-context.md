@@ -1,0 +1,219 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e15]:
+    - navigation "Main toolbar" [ref=e16]:
+      - toolbar [ref=e17]:
+        - generic:
+          - generic "Select an element in the page to inspect it" [ref=e18]:
+            - button "Select an element in the page to inspect it - Ctrl + Shift + C" [ref=e19]
+          - generic "Toggle device toolbar" [ref=e21]:
+            - button "Toggle device toolbar - Ctrl + Shift + M" [ref=e22]
+      - generic:
+        - tablist "Panels":
+          - tab "Elements" [selected] [ref=e25]:
+            - generic [ref=e26]: Elements
+          - tab "Console" [ref=e27]:
+            - generic [ref=e28]: Console
+          - tab "Sources" [ref=e29]:
+            - generic [ref=e30]: Sources
+          - tab "Network" [ref=e31]:
+            - generic [ref=e32]: Network
+        - button "More tabs" [ref=e33]
+      - toolbar [ref=e36]:
+        - generic:
+          - generic "Open Console to view 1 warning" [ref=e39]:
+            - button "Open Console to view 1 warning" [ref=e40]:
+              - generic [ref=e42]: "1"
+          - generic "Settings" [ref=e44]:
+            - button "Settings - F1 - Shift + ?" [ref=e45]
+          - button "Customize and control DevTools" [ref=e47]:
+            - button "Customize and control DevTools" [ref=e48]
+          - generic "Close" [ref=e50]:
+            - button "Close" [ref=e51]
+    - tabpanel "Elements panel" [ref=e54]:
+      - generic "elements" [ref=e55]:
+        - generic [ref=e57]:
+          - generic [ref=e60]:
+            - generic:
+              - generic [ref=e61]:
+                - button "Switch to Accessibility Tree view" [ref=e63]
+                - main "DOM tree explorer" [ref=e65]:
+                  - tree "Page DOM" [ref=e69]:
+                    - treeitem "<!DOCTYPE html>" [ref=e70]:
+                      - generic [ref=e74]: <!DOCTYPE html>
+                    - treeitem "<html> scroll" [expanded] [ref=e75]:
+                      - generic [ref=e76]:
+                        - generic "<html>" [ref=e79]
+                        - generic "scroll" [ref=e81]:
+                          - generic [ref=e83]: scroll
+                    - group [ref=e84]:
+                      - treeitem "<head> Expand …</head>" [ref=e85]:
+                        - generic [ref=e88]:
+                          - generic "<head>" [ref=e89]
+                          - button "Expand" [ref=e91]
+                          - text: …
+                          - generic "</head>" [ref=e93]
+                      - treeitem "<body>" [expanded] [selected] [ref=e94]:
+                        - generic [ref=e95]:
+                          - generic "<body>" [ref=e100]
+                          - generic [ref=e101]: == $0
+                      - group [ref=e102]:
+                        - treeitem "<div class=\"container\"> Expand …</div>" [ref=e103]:
+                          - generic [ref=e106]:
+                            - generic "<div class=\"container\">" [ref=e107]:
+                              - text: <div
+                              - generic [ref=e108]: class="container"
+                              - text: ">"
+                            - button "Expand" [ref=e110]
+                            - text: …
+                            - generic "</div>" [ref=e112]
+                        - treeitem "<script> Expand …</script>" [ref=e113]:
+                          - generic [ref=e116]:
+                            - generic "<script>" [ref=e117]
+                            - button "Expand" [ref=e119]
+                            - text: …
+                            - generic "</script>" [ref=e121]
+                        - treeitem "</body>" [ref=e122]:
+                          - generic "</body>" [ref=e126]
+                      - treeitem "</html>" [ref=e127]:
+                        - generic "</html>" [ref=e131]
+              - navigation "DOM tree breadcrumbs" [ref=e134]:
+                - list [ref=e136]:
+                  - listitem [ref=e137]:
+                    - link "html" [ref=e138] [cursor=pointer]:
+                      - /url: "#"
+                      - generic [ref=e140]: html
+                  - listitem [ref=e141]:
+                    - link "body" [ref=e142] [cursor=pointer]:
+                      - /url: "#"
+                      - generic [ref=e144]: body
+          - generic [ref=e147]:
+            - navigation "Side panel toolbar" [ref=e148]:
+              - generic:
+                - tablist:
+                  - tab "Styles" [selected] [ref=e149]:
+                    - generic [ref=e150]: Styles
+                  - tab "Computed" [ref=e151]:
+                    - generic [ref=e152]: Computed
+                  - tab "Layout" [ref=e153]:
+                    - generic [ref=e154]: Layout
+                  - tab "Event Listeners" [ref=e155]:
+                    - generic [ref=e156]: Event Listeners
+                  - tab "DOM Breakpoints" [ref=e157]:
+                    - generic [ref=e158]: DOM Breakpoints
+                  - tab "Properties" [ref=e159]:
+                    - generic [ref=e160]: Properties
+                - button "More tabs" [ref=e161]
+            - complementary "Side panel content" [ref=e164]:
+              - tabpanel "Styles panel" [ref=e165]:
+                - generic [ref=e170]:
+                  - generic [ref=e172]:
+                    - toolbar [ref=e173]:
+                      - generic [ref=e174]:
+                        - generic:
+                          - textbox "Filter" [ref=e179]
+                          - generic "Toggle Element State" [ref=e180]:
+                            - button "Toggle Element State" [ref=e181]
+                          - generic "Element Classes" [ref=e183]:
+                            - button "Element Classes" [ref=e184]
+                          - generic "New Style Rule" [ref=e186]:
+                            - button "New Style Rule" [ref=e187]
+                          - generic "Toggle common rendering emulations" [ref=e190]:
+                            - button "Toggle common rendering emulations" [ref=e191]
+                          - generic "Show Computed Styles sidebar" [ref=e193]:
+                            - button "Show Computed Styles sidebar" [ref=e194]
+                    - list [ref=e196]:
+                      - listitem "element.style, css selector" [ref=e197]:
+                        - generic [ref=e199]:
+                          - generic [ref=e201]:
+                            - text: element.style
+                            - text: "{"
+                          - generic [ref=e202]:
+                            - generic:
+                              - tree
+                          - generic [ref=e203]: "}"
+                      - listitem "body, css selector" [ref=e204]:
+                        - link "renderer.html:7" [ref=e206] [cursor=pointer]
+                        - generic [ref=e207]:
+                          - generic [ref=e209]:
+                            - generic "CSS selector" [ref=e210]: body
+                            - text: "{"
+                          - tree [ref=e213]:
+                            - 'treeitem "CSS property name: font-family : CSS property value: -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif;" [ref=e214]':
+                              - text: font-family
+                              - generic [ref=e215]: ":"
+                              - 'generic "CSS property value: -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif" [ref=e216]': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                              - text: ;
+                            - 'treeitem "CSS property name: margin : CSS property value: 0;" [ref=e217]':
+                              - text: margin
+                              - generic [ref=e218]: ":"
+                              - 'generic "CSS property value: 0" [ref=e220]': "0"
+                              - text: ;
+                            - 'treeitem "CSS property name: padding : CSS property value: 20px;" [ref=e221]':
+                              - text: padding
+                              - generic [ref=e222]: ":"
+                              - 'generic "CSS property value: 20px" [ref=e224]': 20px
+                              - text: ;
+                            - 'treeitem "CSS property name: background : CSS property value: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" [ref=e225]':
+                              - text: background
+                              - generic [ref=e226]: ":"
+                              - 'generic "CSS property value: linear-gradient(135deg, #667eea 0%, #764ba2 100%)" [ref=e228]':
+                                - text: linear-gradient(
+                                - generic [ref=e229]: 135deg
+                                - text: ","
+                                - generic "Open color picker. Shift + Click to change color format." [ref=e236]
+                                - text: "#667eea 0% ,"
+                                - generic "Open color picker. Shift + Click to change color format." [ref=e239]
+                                - text: "#764ba2 100% )"
+                              - text: ;
+                            - 'treeitem "CSS property name: min-height : CSS property value: 100vh;" [ref=e241]':
+                              - text: min-height
+                              - generic [ref=e242]: ":"
+                              - 'generic "CSS property value: 100vh" [ref=e243]': 100vh
+                              - text: ;
+                          - generic [ref=e244]: "}"
+                      - listitem "body, css selector" [ref=e245]:
+                        - generic [ref=e246]: user agent stylesheet
+                        - generic [ref=e247]:
+                          - generic [ref=e249]:
+                            - generic "CSS selector" [ref=e250]: body
+                            - text: "{"
+                          - tree [ref=e253]:
+                            - 'treeitem "CSS property name: display : CSS property value: block;" [ref=e254]':
+                              - text: display
+                              - generic [ref=e255]: ":"
+                              - 'generic "CSS property value: block" [ref=e256]': block
+                              - text: ;
+                            - 'treeitem "CSS property name: margin : CSS property value: 8px;" [ref=e257]':
+                              - text: margin
+                              - generic [ref=e258]: ":"
+                              - 'generic "CSS property value: 8px" [ref=e260]': 8px
+                              - text: ;
+                          - generic [ref=e261]: "}"
+                  - generic [ref=e265]:
+                    - generic [ref=e266]: margin
+                    - generic [ref=e267]: "0"
+                    - generic [ref=e268]: "0"
+                    - generic [ref=e269]:
+                      - generic [ref=e270]: border
+                      - generic [ref=e271]: "0"
+                      - generic [ref=e272]: "0"
+                      - generic [ref=e273]:
+                        - generic [ref=e274]: padding
+                        - generic [ref=e275]: "20"
+                        - generic [ref=e276]: "20"
+                        - generic [ref=e277]:
+                          - generic [ref=e278]: "190"
+                          - generic [ref=e279]: ×
+                          - generic [ref=e280]: "1135.440"
+                        - generic [ref=e281]: "20"
+                        - generic [ref=e282]: "20"
+                      - generic [ref=e283]: "0"
+                      - generic [ref=e284]: "0"
+                    - generic [ref=e285]: "0"
+                    - generic [ref=e286]: "0"
+  - alert [ref=e289]: DevTools is docked to right
+  - status
+```

@@ -40,87 +40,91 @@ test.describe('Drag and Drop v2 - f.path Test', () => {
     }
   })
 
-  test('should test if f.path is available in renderer', async () => {
+  test('should test webUtils.getPathForFile availability', async () => {
     console.log('[test] ========== TEST START ==========')
+    console.log('[test] Testing if webUtils.getPathForFile is available')
 
     // Capture console logs
+    const logs = []
     window.on('console', msg => {
-      console.log('[browser-console]', msg.text())
+      const text = msg.text()
+      logs.push(text)
+      console.log('[browser-console]', text)
     })
 
-    // Create test file
-    const testFile = path.join(__dirname, 'test-drop-file.txt')
-    fs.writeFileSync(testFile, 'Test content for f.path test')
-    console.log('[test] Created test file:', testFile)
-
-    // Wait for dropzone
+    // Wait for page to be ready
     await window.waitForSelector('#dropzone')
     console.log('[test] Dropzone ready')
 
-    // Take before screenshot
-    await window.screenshot({ path: path.join(__dirname, 'before-test.png') })
+    // Take screenshot
+    await window.screenshot({ path: path.join(__dirname, 'test-screenshot.png') })
 
-    // Try to simulate drop - check if f.path exists
+    // Check if webUtils API is available
     const result = await window.evaluate(() => {
-      // Create a fake File object
-      const file = new File(['test'], 'test.txt', { type: 'text/plain' })
+      console.log('[eval] Checking window.fileDrop API...')
+      console.log('[eval] window.fileDrop:', !!window.fileDrop)
+      console.log('[eval] window.fileDrop.getPathForFile:', !!window.fileDrop?.getPathForFile)
 
-      console.log('[eval] Created File object')
-      console.log('[eval] file.name:', file.name)
-      console.log('[eval] file.path:', file.path)
-      console.log('[eval] typeof file.path:', typeof file.path)
+      // Try to call it with a synthetic File (will fail, but we can see if API exists)
+      let apiExists = false
+      let apiCallable = false
+      let error = null
 
-      // Check all properties
-      const allKeys = []
-      let obj = file
-      let depth = 0
-      while (obj && depth < 3) {
-        const keys = Object.getOwnPropertyNames(obj)
-        allKeys.push({ depth, keys })
-        obj = Object.getPrototypeOf(obj)
-        depth++
+      if (window.fileDrop && window.fileDrop.getPathForFile) {
+        apiExists = true
+        console.log('[eval] ✓ getPathForFile API exists!')
+
+        try {
+          // Try calling with a fake file - this won't give us a path but proves the API works
+          const fakeFile = new File(['test'], 'test.txt', { type: 'text/plain' })
+          const result = window.fileDrop.getPathForFile(fakeFile)
+          console.log('[eval] API call result:', result)
+          console.log('[eval] Result type:', typeof result)
+          apiCallable = true
+        } catch (e) {
+          error = e.message
+          console.log('[eval] API call error:', e.message)
+        }
+      } else {
+        console.log('[eval] ✗ getPathForFile API NOT available')
       }
 
       return {
-        hasPath: file.path !== undefined,
-        pathValue: file.path,
-        typeofPath: typeof file.path,
-        allKeys: allKeys
+        apiExists,
+        apiCallable,
+        error
       }
     })
 
-    console.log('[test] ========== EVALUATION RESULT ==========')
-    console.log('[test] file.path available?', result.hasPath)
-    console.log('[test] file.path value:', result.pathValue)
-    console.log('[test] typeof file.path:', result.typeofPath)
-    console.log('[test] Object keys:', JSON.stringify(result.allKeys, null, 2))
+    console.log('[test] ========== TEST RESULTS ==========')
+    console.log('[test] API exists:', result.apiExists)
+    console.log('[test] API callable:', result.apiCallable)
+    if (result.error) {
+      console.log('[test] Error:', result.error)
+    }
 
-    // Wait a bit
+    // Check preload logs for webUtils
+    const preloadLogs = logs.filter(l => l.includes('[preload]') && l.includes('webUtils'))
+    console.log('[test] Preload webUtils logs:', preloadLogs)
+
+    // Wait to see console output
     await window.waitForTimeout(1000)
 
-    // Take after screenshot
-    await window.screenshot({ path: path.join(__dirname, 'after-test.png') })
-
-    // Check console for logs
-    const consoleText = await window.locator('.console').textContent()
-    console.log('[test] Console output:', consoleText)
-
-    // Cleanup
-    fs.unlinkSync(testFile)
-    console.log('[test] Cleaned up test file')
-
-    // Assert the key finding
     console.log('[test] ========================================')
-    if (result.hasPath) {
-      console.log('[test] ✓ SUCCESS: f.path IS available!')
-      console.log('[test] This configuration WORKS for drag-and-drop')
+    if (result.apiExists) {
+      console.log('[test] ✓ SUCCESS: webUtils.getPathForFile API is available!')
+      console.log('[test] The API can be called from renderer')
+      if (!result.apiCallable) {
+        console.log('[test] Note: Synthetic File objects don\'t have paths (expected)')
+        console.log('[test] Real drag-dropped files should work')
+      }
     } else {
-      console.log('[test] ✗ FAILURE: f.path is NOT available')
-      console.log('[test] This configuration does NOT work for drag-and-drop')
+      console.log('[test] ✗ FAILURE: webUtils.getPathForFile API is NOT available')
+      console.log('[test] Check preload script imports and contextBridge setup')
     }
     console.log('[test] ========================================')
 
-    // The test doesn't fail either way - we're just documenting findings
-    expect(result).toBeDefined()
+    // Assert that the API exists
+    expect(result.apiExists).toBe(true)
   })
 })
