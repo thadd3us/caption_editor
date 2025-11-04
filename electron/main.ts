@@ -137,6 +137,20 @@ app.whenReady().then(() => {
       fileToOpen = filePath
     }
   }
+
+  // Handle files dropped in preload (alternative to will-navigate)
+  ipcMain.on('files-dropped-in-preload', (_event, filePaths: string[]) => {
+    console.log('[main] ✓ Received files-dropped-in-preload IPC from preload')
+    console.log('[main] ✓ File paths:', filePaths)
+    console.log('[main] ✓ Forwarding to renderer via file-dropped-from-main')
+
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('file-dropped-from-main', filePaths)
+      console.log('[main] ✓ Forwarded successfully')
+    } else {
+      console.log('[main] ✗ No main window available to forward to')
+    }
+  })
 })
 
 app.on('window-all-closed', () => {
