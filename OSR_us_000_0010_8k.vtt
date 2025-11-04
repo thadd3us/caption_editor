@@ -1,20 +1,20 @@
 WEBVTT
 
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"6cfe7b64-4705-4f91-aa3c-e643019cd96f"}
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"6bccaf88-5833-4e8f-a7a6-a03df98fa265"}
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","rating":3,"timestamp":"2025-10-31T21:04:44.031-07:00"}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","rating":3,"timestamp":"2025-10-31T21:09:36.489-07:00"}
 
 84ec6681-574b-4570-aecb-5bcaea9415a9
 00:00:00.000 --> 00:00:03.000
 The birch canoe slid on the smooth planks.
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c"}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c","rating":2,"timestamp":"2025-10-31T21:09:37.264-07:00"}
 
 ead5dd22-5dd3-4d27-8cc8-c09df813a71c
 00:00:03.944 --> 00:00:07.000
 Glue the sheet to the dark blue background.
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"db8f6b03-f1a0-426b-80bd-6d39382e8417"}
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"db8f6b03-f1a0-426b-80bd-6d39382e8417","rating":4,"timestamp":"2025-10-31T21:09:38.660-07:00"}
 
 db8f6b03-f1a0-426b-80bd-6d39382e8417
 00:00:16.243 --> 00:00:20.000
@@ -26,4 +26,4 @@ NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"18a4869f-8cab-4bb5-ba5b-f55900d26076"}
 00:00:30.000 --> 00:00:33.000
 A large size of stockings is hard to sell.
 
-NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"id":"cafb1632-ea82-4efe-afda-c7d78a3994e4","action":"modified","actionTimestamp":"2025-10-31T21:04:44.031-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks."}}]}
+NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"id":"8d2183a0-46ad-46a0-86bc-5cb0af4a9b58","action":"modified","actionTimestamp":"2025-10-31T21:09:36.490-07:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks."}},{"id":"64eb2688-1e50-4dfe-877d-c4998021dadc","action":"modified","actionTimestamp":"2025-10-31T21:09:37.264-07:00","cue":{"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background."}},{"id":"61fbb8da-061d-4a7e-974a-0a7a5e747812","action":"modified","actionTimestamp":"2025-10-31T21:09:38.660-07:00","cue":{"id":"db8f6b03-f1a0-426b-80bd-6d39382e8417","startTime":16.243,"endTime":20,"text":"The juice of lemons makes fine punch."}}]}

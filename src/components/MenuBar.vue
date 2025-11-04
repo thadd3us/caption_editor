@@ -1,7 +1,7 @@
 <template>
   <div class="menu-bar">
     <div class="menu-left">
-      <h1>VTT Editor</h1>
+      <h1>VTT Editor <span class="version">v{{ version }}</span></h1>
       <div class="menu-items">
         <div class="menu-dropdown">
           <button @click="toggleFileMenu" class="menu-item" ref="fileMenuButton">
@@ -41,6 +41,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
+
+// Accept version as prop from parent (read from package.json)
+defineProps<{
+  version: string
+}>()
 
 const store = useVTTStore()
 const showFileMenu = ref(false)
@@ -223,6 +228,13 @@ h1 {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
+}
+
+.version {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 8px;
 }
 
 .menu-items {

@@ -2,9 +2,24 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
+import { readFileSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+// Read version from package.json (single source of truth)
+const packageJsonPath = path.join(__dirname, '../package.json')
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+const APP_VERSION = packageJson.version
+
+// Log version on startup
+console.log(`[main] ========================================`)
+console.log(`[main] VTT Caption Editor v${APP_VERSION}`)
+console.log(`[main] Electron v${process.versions.electron}`)
+console.log(`[main] Chrome v${process.versions.chrome}`)
+console.log(`[main] Node v${process.versions.node}`)
+console.log(`[main] Platform: ${process.platform}`)
+console.log(`[main] ========================================`)
 
 // Store security-scoped bookmarks for macOS
 const fileBookmarks = new Map<string, Buffer>()
@@ -127,6 +142,20 @@ app.whenReady().then(() => {
       fileToOpen = filePath
     }
   }
+
+  // Handle files dropped in preload (alternative to will-navigate)
+  ipcMain.on('files-dropped-in-preload', (_event, filePaths: string[]) => {
+    console.log('[main] ✓ Received files-dropped-in-preload IPC from preload')
+    console.log('[main] ✓ File paths:', filePaths)
+    console.log('[main] ✓ Forwarding to renderer via file-dropped-from-main')
+
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('file-dropped-from-main', filePaths)
+      console.log('[main] ✓ Forwarded successfully')
+    } else {
+      console.log('[main] ✗ No main window available to forward to')
+    }
+  })
 })
 
 app.on('window-all-closed', () => {

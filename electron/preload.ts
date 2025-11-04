@@ -1,4 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { readFileSync } from 'fs'
+import * as path from 'path'
+
+// Read version from package.json (single source of truth)
+const packageJsonPath = path.join(__dirname, '../package.json')
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+const APP_VERSION = packageJson.version
+
+// Log version on startup
+console.log(`[preload] VTT Caption Editor v${APP_VERSION} - Preload script loaded`)
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -76,21 +86,51 @@ contextBridge.exposeInMainWorld('electronAPI', {
 })
 
 // Handle file drop events
-// NOTE: Due to sandbox limitations, file.path is not available on File objects
-// The preload script must use IPC to get the main process to resolve file paths
+// With sandbox: false, we CAN access file.path property
 window.addEventListener('DOMContentLoaded', () => {
   console.log('[preload] Registered drop handler on document')
 
-  // Don't intercept drops at all - let them bubble to default handlers
-  // The main process will intercept navigation events
   document.addEventListener('dragover', (e) => {
     e.preventDefault()
     e.stopPropagation()
+    console.log('[preload] Dragover event - allowing drop')
   })
 
-  // Log drop events but don't prevent default - let navigation happen
-  document.addEventListener('drop', (e) => {
-    console.log('[preload] Drop event detected - allowing default navigation for main process to intercept')
-    // Don't call e.preventDefault() - let it navigate so main process can intercept
+  document.addEventListener('drop', async (e) => {
+    console.log('[preload] ✓ Drop event detected!')
+    e.preventDefault()
+    e.stopPropagation()
+
+    const files = e.dataTransfer?.files
+    console.log('[preload] ✓ Number of files dropped:', files?.length || 0)
+
+    if (!files || files.length === 0) {
+      console.log('[preload] ✗ No files in drop event')
+      return
+    }
+
+    // With sandbox: false, file.path is available
+    const filePaths: string[] = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const path = (file as any).path
+      console.log('[preload] ✓ File', i, '- name:', file.name, 'path:', path, 'type:', file.type)
+      if (path) {
+        filePaths.push(path)
+      } else {
+        console.log('[preload] ✗ File has no path property! Sandbox might still be enabled.')
+      }
+    }
+
+    console.log('[preload] ✓ Extracted file paths:', filePaths)
+
+    if (filePaths.length > 0) {
+      console.log('[preload] ✓ Triggering file processing with paths:', filePaths)
+      // Send to main process to trigger the onFileDropped callback
+      ipcRenderer.send('files-dropped-in-preload', filePaths)
+      console.log('[preload] ✓ Sent IPC message to main process')
+    } else {
+      console.log('[preload] ✗ No valid file paths extracted')
+    }
   })
 })
