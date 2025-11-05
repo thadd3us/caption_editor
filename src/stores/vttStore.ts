@@ -50,22 +50,27 @@ export const useVTTStore = defineStore('vtt', () => {
 
       // Convert relative media file path to absolute path
       // According to architecture: paths are stored as absolute internally, relative only on export
-      const electronAPI = (window as any).electronAPI
-      if (loadedDoc.metadata.mediaFilePath && filePath && electronAPI?.path) {
-        const mediaPath = loadedDoc.metadata.mediaFilePath
-        // Only convert if it's a relative path
-        if (!electronAPI.path.isAbsolute(mediaPath)) {
-          const vttDir = electronAPI.path.dirname(filePath)
-          const absoluteMediaPath = electronAPI.path.resolve(vttDir, mediaPath)
-          console.log('Converting relative media path to absolute:')
-          console.log('  Relative:', mediaPath)
-          console.log('  VTT dir:', vttDir)
-          console.log('  Absolute:', absoluteMediaPath)
-          loadedDoc.metadata = {
-            ...loadedDoc.metadata,
-            mediaFilePath: absoluteMediaPath
+      try {
+        const electronAPI = (window as any).electronAPI
+        if (loadedDoc.metadata.mediaFilePath && filePath && electronAPI?.path) {
+          const mediaPath = loadedDoc.metadata.mediaFilePath
+          // Only convert if it's a relative path
+          if (!electronAPI.path.isAbsolute(mediaPath)) {
+            const vttDir = electronAPI.path.dirname(filePath)
+            const absoluteMediaPath = electronAPI.path.resolve(vttDir, mediaPath)
+            console.log('Converting relative media path to absolute:')
+            console.log('  Relative:', mediaPath)
+            console.log('  VTT dir:', vttDir)
+            console.log('  Absolute:', absoluteMediaPath)
+            loadedDoc.metadata = {
+              ...loadedDoc.metadata,
+              mediaFilePath: absoluteMediaPath
+            }
           }
         }
+      } catch (error) {
+        console.error('Error converting media path to absolute:', error)
+        // Continue loading even if path conversion fails
       }
 
       document.value = loadedDoc
