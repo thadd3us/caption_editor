@@ -33,6 +33,32 @@ test.describe('File Association - Open VTT files from OS', () => {
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
 
+    // Capture console output for debugging
+    window.on('console', msg => {
+      const type = msg.type()
+      const text = msg.text()
+      if (type === 'error') {
+        console.error('[Browser Error]', text)
+      } else if (type === 'warning') {
+        console.warn('[Browser Warning]', text)
+      } else {
+        console.log('[Browser]', text)
+      }
+    })
+
+    // Check store state before waiting
+    const initialCheck = await window.evaluate(() => {
+      const store = (window as any).$store
+      return {
+        storeExists: !!store,
+        documentExists: !!store?.document,
+        cuesLength: store?.document?.cues?.length || 0,
+        filePath: store?.document?.filePath,
+        metadataMediaPath: store?.document?.metadata?.mediaFilePath
+      }
+    })
+    console.log('Initial store state:', initialCheck)
+
     // Wait for the VTT file to be loaded (check that cues are loaded)
     await window.waitForFunction(
       () => {
