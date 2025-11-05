@@ -57,39 +57,20 @@ export const useVTTStore = defineStore('vtt', () => {
   /**
    * Load a media file for playback (Electron mode)
    * @param path - file:// URL to use as media element src
-   * @param filePath - Absolute file path to store in document metadata
+   * @param filePath - Absolute file path to store in document metadata (will be converted to relative on export)
    */
   function loadMediaFile(path: string, filePath?: string) {
     console.log('Loading media file:', path, 'with file path:', filePath)
     mediaPath.value = path
 
-    // Store mediaFilePath in document metadata
+    // Store the ABSOLUTE file path in metadata
+    // We'll convert it to a relative path only when exporting/saving the VTT file
     if (filePath) {
-      // Convert to relative path if possible (relative to VTT file location)
-      let mediaFilePathToStore = filePath
-
-      if (document.value.filePath) {
-        // Try to make the path relative to the VTT file's directory
-        const vttDir = document.value.filePath.substring(0, Math.max(
-          document.value.filePath.lastIndexOf('/'),
-          document.value.filePath.lastIndexOf('\\')
-        ))
-
-        // Extract just the filename if the media file is in the same directory as the VTT
-        if (mediaFilePathToStore.startsWith(vttDir)) {
-          const relativePath = mediaFilePathToStore.substring(vttDir.length + 1)
-          if (relativePath && !relativePath.includes('/') && !relativePath.includes('\\')) {
-            // It's in the same directory, just use the filename
-            mediaFilePathToStore = relativePath
-          }
-        }
-      }
-
       document.value = {
         ...document.value,
         metadata: {
           ...document.value.metadata,
-          mediaFilePath: mediaFilePathToStore
+          mediaFilePath: filePath  // Store absolute path
         }
       }
     }
@@ -97,8 +78,52 @@ export const useVTTStore = defineStore('vtt', () => {
 
   function exportToString(): string {
     console.log('Exporting VTT document')
-    // mediaFilePath is already in document.metadata, just serialize directly
-    return serializeVTT(document.value)
+    console.log('  document.value.filePath:', document.value.filePath || '(null)')
+    console.log('  document.value.metadata.mediaFilePath:', document.value.metadata.mediaFilePath || '(null)')
+
+    // Convert absolute media path to relative path for VTT file export
+    // This is important for portability and for Save As operations where the VTT file moves
+    let documentToExport = document.value
+
+    const absoluteMediaPath = document.value.metadata.mediaFilePath
+    const electronAPI = (window as any).electronAPI
+
+    if (absoluteMediaPath && document.value.filePath && electronAPI?.path) {
+      try {
+        // Check if the media path is already absolute (using Node.js path module)
+        if (electronAPI.path.isAbsolute(absoluteMediaPath)) {
+          // Compute the relative path from the VTT file directory to the media file
+          const vttDir = electronAPI.path.dirname(document.value.filePath)
+          console.log('  VTT directory:', vttDir)
+          console.log('  Computing relative path from', vttDir, 'to', absoluteMediaPath)
+
+          // Use Node.js path.relative() to compute the relative path
+          const relativeMediaPath = electronAPI.path.relative(vttDir, absoluteMediaPath)
+
+          console.log('Converting media path for export:')
+          console.log('  VTT file path:', document.value.filePath)
+          console.log('  Absolute media path:', absoluteMediaPath)
+          console.log('  Relative path:', relativeMediaPath)
+
+          // Update the document metadata with the relative path for export
+          documentToExport = {
+            ...document.value,
+            metadata: {
+              ...document.value.metadata,
+              mediaFilePath: relativeMediaPath
+            }
+          }
+        } else {
+          // It's already a relative path, no conversion needed
+          console.log('  Media path is already relative:', absoluteMediaPath)
+        }
+      } catch (error) {
+        console.error('Error converting media path to relative:', error)
+        // Fall back to original document
+      }
+    }
+
+    return serializeVTT(documentToExport)
   }
 
   function updateFilePath(filePath: string) {

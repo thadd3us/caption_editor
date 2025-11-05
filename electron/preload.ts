@@ -95,6 +95,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback(filePaths)
       console.log('[preload] ✓ Callback executed successfully')
     })
+  },
+
+  /**
+   * Path utilities - expose Node.js path module functions for use in renderer
+   */
+  path: {
+    dirname: (p: string) => path.dirname(p),
+    basename: (p: string) => path.basename(p),
+    relative: (from: string, to: string) => path.relative(from, to),
+    isAbsolute: (p: string) => path.isAbsolute(p),
+    normalize: (p: string) => path.normalize(p),
+    join: (...paths: string[]) => path.join(...paths)
   }
 })
 

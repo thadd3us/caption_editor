@@ -15,9 +15,9 @@ Tests should run quickly to maintain development velocity:
 - ✅ TypeScript Unit Tests: 96/96 passing ⭐ **ALL PASSING!**
 - ✅ Python Tests: 2/2 passing ⭐ **ALL PASSING!**
 - ✅ UI/Interaction E2E Tests: 15/15 passing ⭐ **ALL PASSING!**
-- ✅ Electron Platform E2E Tests: 18/18 passing ⭐ **ALL PASSING!**
+- ✅ Electron Platform E2E Tests: 23/23 passing ⭐ **ALL PASSING!**
 
-**Total: 131/131 tests passing (100%)! 🎉**
+**Total: 136/136 tests passing (100%)! 🎉**
 
 **Test Organization:**
 - **UI/Interaction E2E** (`tests/*.spec.ts`): Tests UI functionality, user interactions, media playback controls
@@ -248,6 +248,20 @@ npx playwright show-report
   - Cue metadata: `NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"<uuid>","rating":<number>,"timestamp":"..."}`
   - History: `NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[...]}`
 - The sentinel allows the parser to distinguish app-specific metadata from regular VTT NOTE comments
+
+### Media File Path Handling
+- **Internal storage**: Media file paths are stored as **absolute paths** in `document.metadata.mediaFilePath` while the document is in memory
+- **Export/serialization**: Paths are converted to **relative paths** (relative to VTT file location) only when exporting to VTT format via `serializeVTT()`
+- **Rationale**: Storing absolute paths internally allows the VTT file location to change (e.g., via Save As) without losing track of the media file location. The relative path is recomputed at export time based on the current VTT file location.
+- **Implementation**: Uses Node.js `path` module functions exposed via Electron preload (`electronAPI.path.relative()`, `electronAPI.path.dirname()`, etc.)
+- **Example**:
+  - VTT file: `/projects/video/captions.vtt`
+  - Media file: `/projects/video/audio.wav`
+  - Stored internally: `/projects/video/audio.wav` (absolute)
+  - Exported to VTT: `audio.wav` (relative)
+  - After Save As to `/projects/video/subfolder/captions.vtt`:
+    - Still stored internally: `/projects/video/audio.wav` (absolute, unchanged)
+    - Exported to VTT: `../audio.wav` (relative, updated)
 
 ### Key Utilities
 - `findIndexOfRowForTime(cues, time)`: Find cue index for a given time

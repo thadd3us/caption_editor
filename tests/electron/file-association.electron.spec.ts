@@ -57,8 +57,9 @@ test.describe('File Association - Open VTT files from OS', () => {
     expect(storeState.filePath).toBe(vttFilePath)
 
     // Verify metadata contains media file reference
+    // Note: After auto-load, the path is stored as absolute path internally
     expect(storeState.metadata).toBeTruthy()
-    expect(storeState.metadata.mediaFilePath).toBe('OSR_us_000_0010_8k.wav')
+    expect(storeState.metadata.mediaFilePath).toBe(audioFilePath)
 
     // Wait for media auto-load to complete
     await window.waitForTimeout(2000)
@@ -77,9 +78,9 @@ test.describe('File Association - Open VTT files from OS', () => {
     // Verify media file was auto-loaded
     expect(mediaState.mediaPath).toBeTruthy()
     expect(mediaState.mediaPath).toContain('OSR_us_000_0010_8k.wav')
-    // mediaFilePath is stored as a relative path when in the same directory as VTT
+    // mediaFilePath is now stored as absolute path internally
     if (mediaState.mediaFilePath) {
-      expect(mediaState.mediaFilePath).toBe('OSR_us_000_0010_8k.wav')
+      expect(mediaState.mediaFilePath).toBe(audioFilePath)
     }
 
     // Verify the audio element has the media loaded
