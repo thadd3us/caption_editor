@@ -73,40 +73,10 @@ test.describe('Electron VTT Media Auto-loading', () => {
     // Verify VTT was loaded
     expect(result).toBeTruthy()
     expect(result!.cueCount).toBe(3)
-    expect(result!.metadata.mediaFilePath).toBe('OSR_us_000_0010_8k.wav')
+    // Media path should be converted to absolute path internally
+    expect(result!.metadata.mediaFilePath).toBe(mediaPath)
 
-    // Now trigger the auto-load function
-    await window.evaluate(async (vttPath) => {
-      const store = (window as any).$store
-      const metadata = store.document.metadata
-      const mediaFilePath = metadata?.mediaFilePath
-
-      if (!mediaFilePath || !window.electronAPI) return
-
-      // Skip if media already loaded
-      if (store.mediaPath) return
-
-      // Resolve the media file path relative to the VTT file directory
-      const vttDir = vttPath.substring(0, vttPath.lastIndexOf('/') || vttPath.lastIndexOf('\\'))
-      const resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
-
-      console.log('Attempting to auto-load media from:', resolvedMediaPath)
-
-      // Check if the file exists
-      const stats = await window.electronAPI.statFile(resolvedMediaPath)
-
-      if (stats.success && stats.exists && stats.isFile) {
-        // Convert to URL and load
-        const urlResult = await window.electronAPI.fileToURL(resolvedMediaPath)
-
-        if (urlResult.success && urlResult.url) {
-          store.loadMediaFile(urlResult.url, resolvedMediaPath)
-          console.log('Successfully auto-loaded media file')
-        }
-      }
-    }, vttPath)
-
-    // Wait for media to load
+    // Wait for auto-load to happen (App.vue handles this via watch)
     await window.waitForTimeout(1000)
 
     // Verify media was auto-loaded
@@ -170,27 +140,7 @@ Test caption
       }
     }, testVTTPath)
 
-    // Try to auto-load media (should fail gracefully)
-    await window.evaluate(async (vttPath) => {
-      const store = (window as any).$store
-      const metadata = store.document.metadata
-      const mediaFilePath = metadata?.mediaFilePath
-
-      if (!mediaFilePath || !window.electronAPI) return
-
-      const vttDir = vttPath.substring(0, vttPath.lastIndexOf('/') || vttPath.lastIndexOf('\\'))
-      const resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
-
-      const stats = await window.electronAPI.statFile(resolvedMediaPath)
-
-      if (stats.success && stats.exists && stats.isFile) {
-        const urlResult = await window.electronAPI.fileToURL(resolvedMediaPath)
-        if (urlResult.success && urlResult.url) {
-          store.loadMediaFile(urlResult.url, resolvedMediaPath)
-        }
-      }
-    }, testVTTPath)
-
+    // Wait for auto-load attempt (App.vue handles this, should fail gracefully)
     await window.waitForTimeout(500)
 
     // Verify media was NOT loaded
@@ -254,32 +204,7 @@ Test caption
       }
     }, vttPath)
 
-    // Try to auto-load (should skip because media is already loaded)
-    await window.evaluate(async (vttPath) => {
-      const store = (window as any).$store
-      const metadata = store.document.metadata
-      const mediaFilePath = metadata?.mediaFilePath
-
-      if (!mediaFilePath || !window.electronAPI) return
-
-      // This should skip because store.mediaPath is already set
-      if (store.mediaPath) {
-        console.log('Skipping auto-load, media already loaded')
-        return
-      }
-
-      const vttDir = vttPath.substring(0, vttPath.lastIndexOf('/') || vttPath.lastIndexOf('\\'))
-      const resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
-
-      const stats = await window.electronAPI.statFile(resolvedMediaPath)
-      if (stats.success && stats.exists && stats.isFile) {
-        const urlResult = await window.electronAPI.fileToURL(resolvedMediaPath)
-        if (urlResult.success && urlResult.url) {
-          store.loadMediaFile(urlResult.url, resolvedMediaPath)
-        }
-      }
-    }, vttPath)
-
+    // Wait for any potential auto-load attempt (App.vue should skip since media is already loaded)
     await window.waitForTimeout(500)
 
     // Verify media path hasn't changed

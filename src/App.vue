@@ -121,12 +121,25 @@ async function attemptMediaAutoLoad() {
       const electronAPI = (window as any).electronAPI
       const vttFilePath = store.document.filePath
 
-      // Resolve the media file path relative to the VTT file directory
-      const vttDir = vttFilePath.substring(0, Math.max(
-        vttFilePath.lastIndexOf('/'),
-        vttFilePath.lastIndexOf('\\')
-      ))
-      const resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
+      // Check if the media path is already absolute
+      let resolvedMediaPath: string
+      if (electronAPI.path && electronAPI.path.isAbsolute(mediaFilePath)) {
+        // Path is already absolute, use it directly
+        resolvedMediaPath = mediaFilePath
+      } else {
+        // Path is relative, resolve it relative to the VTT file directory
+        if (electronAPI.path) {
+          const vttDir = electronAPI.path.dirname(vttFilePath)
+          resolvedMediaPath = electronAPI.path.resolve(vttDir, mediaFilePath)
+        } else {
+          // Fallback to manual path concatenation if path API not available
+          const vttDir = vttFilePath.substring(0, Math.max(
+            vttFilePath.lastIndexOf('/'),
+            vttFilePath.lastIndexOf('\\')
+          ))
+          resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
+        }
+      }
 
       console.log('[Auto-load] Attempting to load media file from:', resolvedMediaPath)
 
