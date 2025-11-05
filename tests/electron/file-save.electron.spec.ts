@@ -19,10 +19,10 @@ test.describe('File Save - Save VTT files correctly', () => {
 
   test('should include mediaFilePath in saved VTT metadata', async () => {
     // Create a temporary VTT file
-    const tempDir = path.join(process.cwd(), 'tests/fixtures/temp')
+    const tempDir = path.join(process.cwd(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
     const tempVttPath = path.join(tempDir, 'test-media-save.vtt')
-    const audioFilePath = path.join(process.cwd(), 'tests/fixtures/OSR_us_000_0010_8k.wav')
+    const audioFilePath = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
 
     // Start with a simple VTT file
     const initialVtt = `WEBVTT

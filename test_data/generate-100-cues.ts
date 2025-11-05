@@ -23,7 +23,7 @@ const document: VTTDocument = {
 
 const vttContent = serializeVTT(document)
 
-const outputPath = path.join(process.cwd(), 'tests', 'fixtures', '100-cues.vtt')
+const outputPath = path.join(process.cwd(), 'test_data', '100-cues.vtt')
 fs.writeFileSync(outputPath, vttContent, 'utf-8')
 
 console.log(`Generated VTT file with 100 cues: ${outputPath}`)

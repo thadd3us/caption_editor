@@ -34,7 +34,8 @@ out
 /playwright/.cache/
 test-results.json
 tests/electron/screenshots/
-tests/fixtures/temp/
+test_data/temp/
+test_data/temp-*/
 
 # Coverage
 .nyc_output/

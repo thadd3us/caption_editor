@@ -21,7 +21,7 @@ echo "✓ Build successful"
 echo ""
 
 # Create a test VTT file
-TEST_FILE="tests/fixtures/drag-drop-test.vtt"
+TEST_FILE="test_data/drag-drop-test.vtt"
 echo "Step 2: Creating test VTT file..."
 cat > "$TEST_FILE" << 'EOF'
 WEBVTT

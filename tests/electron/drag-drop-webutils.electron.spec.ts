@@ -36,9 +36,9 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     await window.waitForSelector('.app', { timeout: 10000 })
 
     // Create a test VTT file
-    const testVttPath = path.join(process.cwd(), 'tests/fixtures/sample.vtt.copy')
+    const testVttPath = path.join(process.cwd(), 'test_data/sample.vtt.copy')
     const originalContent = fs.readFileSync(
-      path.join(process.cwd(), 'tests/fixtures/sample.vtt'),
+      path.join(process.cwd(), 'test_data/sample.vtt'),
       'utf-8'
     )
     fs.writeFileSync(testVttPath, originalContent, 'utf-8')

@@ -35,8 +35,8 @@ test.describe('Electron VTT Media Auto-loading', () => {
     test.setTimeout(30000)
 
     // Use the actual test fixture files
-    const vttPath = path.join(process.cwd(), 'tests/fixtures/with-media-reference.vtt')
-    const mediaPath = path.join(process.cwd(), 'tests/fixtures/OSR_us_000_0010_8k.wav')
+    const vttPath = path.join(process.cwd(), 'test_data/with-media-reference.vtt')
+    const mediaPath = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
 
     // Verify both files exist
     await fs.access(vttPath)
@@ -140,7 +140,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
     await window.waitForTimeout(200)
 
     // Create a VTT with a non-existent media reference
-    const testVTTPath = path.join(process.cwd(), 'tests/fixtures/missing-media-ref.vtt')
+    const testVTTPath = path.join(process.cwd(), 'test_data/missing-media-ref.vtt')
     const vttContent = `WEBVTT
 
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"550e8400-e29b-41d4-a716-446655440000","mediaFilePath":"nonexistent-file.wav"}
@@ -152,7 +152,7 @@ NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9",
 Test caption
 `
 
-    await fs.mkdir(path.join(process.cwd(), 'tests/fixtures'), { recursive: true })
+    await fs.mkdir(path.join(process.cwd(), 'test_data'), { recursive: true })
     await fs.writeFile(testVTTPath, vttContent)
 
     // Load the VTT
@@ -213,7 +213,7 @@ Test caption
     test.setTimeout(30000)
 
     // First, manually load a media file
-    const mediaPath = path.join(process.cwd(), 'tests/fixtures/OSR_us_000_0010_8k.wav')
+    const mediaPath = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
 
     await window.evaluate(async (filePath) => {
       if (!window.electronAPI) return
@@ -238,7 +238,7 @@ Test caption
     expect(initialMediaPath).toBeTruthy()
 
     // Now load VTT with media reference
-    const vttPath = path.join(process.cwd(), 'tests/fixtures/with-media-reference.vtt')
+    const vttPath = path.join(process.cwd(), 'test_data/with-media-reference.vtt')
 
     await window.evaluate(async (filePath) => {
       if (!window.electronAPI) return

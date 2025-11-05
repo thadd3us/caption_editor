@@ -42,11 +42,11 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
   test.beforeEach(async () => {
     // Create a temporary directory for test files
-    tempDir = path.join(process.cwd(), 'tests/fixtures/temp-save-test')
+    tempDir = path.join(process.cwd(), 'test_data/temp-save-test')
     await fs.mkdir(tempDir, { recursive: true })
 
     // Copy sample.vtt to temp directory for testing
-    const sourceVtt = path.join(process.cwd(), 'tests/fixtures/sample.vtt')
+    const sourceVtt = path.join(process.cwd(), 'test_data/sample.vtt')
     testVttPath = path.join(tempDir, 'test-captions.vtt')
     await fs.copyFile(sourceVtt, testVttPath)
 
@@ -162,7 +162,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   test('should save-as VTT file to new location and update UI', async () => {
     // Setup: Copy the original sample file
     console.log('Setup: Creating initial VTT file for save-as test')
-    const sourceVtt = path.join(process.cwd(), 'tests/fixtures/sample.vtt')
+    const sourceVtt = path.join(process.cwd(), 'test_data/sample.vtt')
     await fs.copyFile(sourceVtt, testVttPath)
 
     electronApp = await electron.launch({

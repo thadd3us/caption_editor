@@ -457,7 +457,7 @@ The `file-association.electron.spec.ts` tests verify that:
 3. Media files referenced in VTT metadata auto-load
 4. The `onFileOpen` API is exposed to the renderer
 
-These tests use real VTT and audio files from `tests/fixtures/`:
+These tests use real VTT and audio files from `test_data/`:
 - `with-media-reference.vtt` - VTT file with media metadata
 - `OSR_us_000_0010_8k.wav` - Audio file for testing
 

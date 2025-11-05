@@ -74,7 +74,7 @@ test.describe('Electron App', () => {
 
   test('should load and display VTT content', async () => {
     // Create a temporary VTT file
-    const testVTTPath = path.join(process.cwd(), 'tests/fixtures/test.vtt')
+    const testVTTPath = path.join(process.cwd(), 'test_data/test.vtt')
     const vttContent = `WEBVTT
 
 00:00:00.000 --> 00:00:05.000
@@ -84,8 +84,8 @@ First caption
 Second caption
 `
 
-    // Ensure fixtures directory exists
-    await fs.mkdir(path.join(process.cwd(), 'tests/fixtures'), { recursive: true })
+    // Ensure test_data directory exists
+    await fs.mkdir(path.join(process.cwd(), 'test_data'), { recursive: true })
     await fs.writeFile(testVTTPath, vttContent)
 
     // Load VTT file programmatically
@@ -149,14 +149,14 @@ Test caption
 
   test('should handle file drops', async () => {
     // Create a test VTT file
-    const testVTTPath = path.join(process.cwd(), 'tests/fixtures/drop-test.vtt')
+    const testVTTPath = path.join(process.cwd(), 'test_data/drop-test.vtt')
     const vttContent = `WEBVTT
 
 00:00:00.000 --> 00:00:05.000
 Dropped caption
 `
 
-    await fs.mkdir(path.join(process.cwd(), 'tests/fixtures'), { recursive: true })
+    await fs.mkdir(path.join(process.cwd(), 'test_data'), { recursive: true })
     await fs.writeFile(testVTTPath, vttContent)
 
     // Simulate file drop via electronAPI

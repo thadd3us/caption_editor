@@ -16,7 +16,7 @@ test.describe('Scrub Bar Navigation with Jump Buttons', () => {
     test.setTimeout(15000) // Set test timeout to 15 seconds
 
     // Load the test WAV file via HTTP (served by vite dev server)
-    const audioUrl = '/tests/fixtures/OSR_us_000_0010_8k.wav'
+    const audioUrl = '/test_data/OSR_us_000_0010_8k.wav'
     const expectedFilePath = '/home/user/audio/OSR_us_000_0010_8k.wav'
 
     await page.evaluate(({ url, filePath }) => {
