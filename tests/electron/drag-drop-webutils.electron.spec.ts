@@ -16,6 +16,7 @@
 import { test, expect, _electron as electron } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
+import { enableConsoleCapture } from '../helpers/console'
 
 test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
   test('should expose getPathForFile API (note: returns empty for synthetic File objects)', async () => {
@@ -31,6 +32,8 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     })
 
     const window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
 
     // Wait for app to be ready
     await window.waitForSelector('.app', { timeout: 10000 })
@@ -114,6 +117,8 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     })
 
     const window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
     await window.waitForSelector('.app', { timeout: 10000 })
 
     try {

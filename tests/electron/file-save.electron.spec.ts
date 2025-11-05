@@ -3,6 +3,7 @@ import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
+import { enableConsoleCapture } from '../helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -53,6 +54,7 @@ Test caption
 
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
     await window.waitForTimeout(2000)
 
     // Load a media file

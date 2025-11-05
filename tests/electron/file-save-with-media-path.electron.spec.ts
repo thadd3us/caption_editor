@@ -3,6 +3,7 @@ import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
+import { enableConsoleCapture } from '../helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -95,11 +96,7 @@ Second caption
 
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
-
-    // Capture ALL console logs from the browser for debugging
-    window.on('console', msg => {
-      console.log('[Browser]', msg.text())
-    })
+    enableConsoleCapture(window)
 
     // Wait for the VTT file to be loaded (check that document.filePath is set)
     await window.waitForFunction(

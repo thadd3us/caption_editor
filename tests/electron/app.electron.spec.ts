@@ -3,6 +3,7 @@ import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
+import { enableConsoleCapture } from '../helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -25,6 +26,7 @@ test.describe('Electron App', () => {
     // Wait for the first window
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
   })
 
   test.afterAll(async () => {

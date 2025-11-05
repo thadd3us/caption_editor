@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { enableConsoleCapture } from '../helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,17 +35,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     await window.waitForLoadState('domcontentloaded')
 
     // Capture console output for debugging
-    window.on('console', msg => {
-      const type = msg.type()
-      const text = msg.text()
-      if (type === 'error') {
-        console.error('[Browser Error]', text)
-      } else if (type === 'warning') {
-        console.warn('[Browser Warning]', text)
-      } else {
-        console.log('[Browser]', text)
-      }
-    })
+    enableConsoleCapture(window)
 
     // Check store state before waiting
     const initialCheck = await window.evaluate(() => {
@@ -159,6 +150,7 @@ test.describe('File Association - Open VTT files from OS', () => {
 
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
 
     // Simulate macOS open-file event by calling the IPC handler directly
     await electronApp.evaluate(async ({ app }, filePath) => {
@@ -204,6 +196,7 @@ test.describe('File Association - Open VTT files from OS', () => {
 
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
 
     // Check that onFileOpen API is available
     const hasOnFileOpen = await window.evaluate(() => {
