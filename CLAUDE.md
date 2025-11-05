@@ -158,8 +158,14 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 # UI/Interaction E2E test
 npx playwright test vtt-editor.spec.ts
 
-# Electron Platform E2E test
+# Electron Platform E2E test (macOS)
 npx playwright test tests/electron/file-save.electron.spec.ts
+
+# Electron Platform E2E test (Linux/Docker)
+DISPLAY=:99 npx playwright test tests/electron/file-save.electron.spec.ts
+
+# Run specific test by name (grep)
+npx playwright test tests/electron/file-association.electron.spec.ts --grep "should open VTT file passed as command line argument"
 
 # Python test
 cd transcribe
@@ -167,6 +173,11 @@ uv run pytest tests/test_transcribe.py -v
 
 # With specific test function
 uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio -v
+```
+
+**Note:** Electron tests require the app to be built first:
+```bash
+npm run build && npm run build:electron
 ```
 
 #### Run All Tests (Full Suite)

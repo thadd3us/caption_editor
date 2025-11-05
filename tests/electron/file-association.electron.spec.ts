@@ -33,8 +33,14 @@ test.describe('File Association - Open VTT files from OS', () => {
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
 
-    // Give the app time to process the file open event
-    await window.waitForTimeout(2000)
+    // Wait for the VTT file to be loaded (check that cues are loaded)
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store?.document?.cues?.length > 0
+      },
+      { timeout: 5000 }
+    )
 
     // Check that the VTT file was loaded by checking the store
     const storeState = await window.evaluate(() => {
@@ -61,8 +67,14 @@ test.describe('File Association - Open VTT files from OS', () => {
     expect(storeState.metadata).toBeTruthy()
     expect(storeState.metadata.mediaFilePath).toBe(audioFilePath)
 
-    // Wait for media auto-load to complete
-    await window.waitForTimeout(2000)
+    // Wait for media auto-load to complete (check that mediaPath is set)
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store?.mediaPath !== null && store?.mediaPath !== undefined
+      },
+      { timeout: 5000 }
+    )
 
     // Check that media was auto-loaded
     const mediaState = await window.evaluate(() => {
@@ -128,8 +140,14 @@ test.describe('File Association - Open VTT files from OS', () => {
       app.emit('open-file', { preventDefault: () => {} } as any, filePath)
     }, vttFilePath)
 
-    // Give the app time to process
-    await window.waitForTimeout(2000)
+    // Wait for the VTT file to be loaded (check that cues are loaded)
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store?.document?.cues?.length > 0
+      },
+      { timeout: 5000 }
+    )
 
     // Check that the file was loaded
     const storeState = await window.evaluate(() => {
