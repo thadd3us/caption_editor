@@ -124,10 +124,10 @@ Current performance: ~13s for 15 tests ✅
 **Electron Platform E2E Tests:**
 ```bash
 # macOS:
-npm run build && npm run build:electron && npx playwright test tests/electron/
+npm run build:all && npx playwright test tests/electron/
 
 # Linux/Docker (requires Xvfb):
-npm run build && npm run build:electron && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
+npm run build:all && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
 ```
 
 Current performance: ~21s for 18 tests ✅
@@ -177,7 +177,7 @@ uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio -v
 
 **Note:** Electron tests require the app to be built first:
 ```bash
-npm run build && npm run build:electron
+npm run build:all
 ```
 
 #### Run All Tests (Full Suite)
@@ -355,8 +355,7 @@ On macOS, Electron tests work out of the box - no special display setup needed:
 
 ```bash
 # Build the apps
-npm run build
-npm run build:electron
+npm run build:all
 
 # Run Electron tests directly
 npx playwright test tests/electron/
@@ -407,12 +406,12 @@ The tests are configured to work on both platforms:
 
 **macOS:**
 ```bash
-npm run build && npm run build:electron && npx playwright test tests/electron/
+npm run build:all && npx playwright test tests/electron/
 ```
 
 **Linux/Docker:**
 ```bash
-npm run build && npm run build:electron && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
+npm run build:all && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
 ```
 
 ### Test Results
@@ -443,9 +442,8 @@ DISPLAY=:99 npx playwright test tests/electron/
 
 **Tests fail with "Process failed to launch" (Any platform):**
 ```bash
-# Make sure both build steps completed
-npm run build
-npm run build:electron
+# Make sure build completed
+npm run build:all
 
 # Verify build artifacts exist
 ls -la dist/index.html
@@ -517,7 +515,7 @@ cd transcribe && uv run pytest tests/ -v && cd ..
 npx playwright test --grep-invert "electron"
 
 # 5. Build and run Electron tests
-npm run build && npm run build:electron
+npm run build:all
 npx playwright test tests/electron/
 ```
 
@@ -537,7 +535,7 @@ cd transcribe && uv run pytest tests/ -v && cd ..
 npx playwright test --grep-invert "electron"
 
 # 5. Build and run Electron tests (requires Xvfb)
-npm run build && npm run build:electron
+npm run build:all
 start-xvfb.sh
 DISPLAY=:99 npx playwright test tests/electron/
 ```
