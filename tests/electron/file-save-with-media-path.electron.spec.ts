@@ -101,7 +101,14 @@ Second caption
       console.log('[Browser]', msg.text())
     })
 
-    await window.waitForTimeout(2000)
+    // Wait for the VTT file to be loaded (check that document.filePath is set)
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store?.document?.filePath !== undefined
+      },
+      { timeout: 5000 }
+    )
 
     // Step 2: Verify the VTT file loaded with media reference
     const initialState = await window.evaluate(() => {
