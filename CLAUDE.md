@@ -1,5 +1,36 @@
 # Claude Development Notes
 
+## Development Workflow
+
+### Committing Work
+
+**IMPORTANT: Always commit your work when you reach a good checkpoint!**
+
+A "good checkpoint" is when:
+- Tests are passing
+- Code is in a working state
+- A logical unit of work is complete (bug fix, feature addition, refactor, etc.)
+- Documentation has been updated to reflect changes
+
+This ensures:
+- Work is not lost if something goes wrong
+- Changes can be easily reviewed and understood
+- It's easy to revert if needed
+- Progress is tracked in git history
+
+**Example commit workflow:**
+```bash
+# 1. Make sure all tests pass
+npm test
+DISPLAY=:99 npx playwright test tests/electron/
+
+# 2. Stage all changes
+git add -A
+
+# 3. Commit with descriptive message and co-author trailer
+git commit -m "Your detailed commit message" --trailer "Co-authored-by: Sculptor <sculptor@imbue.com>"
+```
+
 ## Testing Guidelines
 
 ### Performance Requirements
