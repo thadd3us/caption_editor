@@ -104,6 +104,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     dirname: (p: string) => path.dirname(p),
     basename: (p: string) => path.basename(p),
     relative: (from: string, to: string) => path.relative(from, to),
+    resolve: (...paths: string[]) => path.resolve(...paths),
     isAbsolute: (p: string) => path.isAbsolute(p),
     normalize: (p: string) => path.normalize(p),
     join: (...paths: string[]) => path.join(...paths)

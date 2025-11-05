@@ -90,6 +90,19 @@ export interface ElectronAPI {
    * Listen for files dropped (intercepted by main process)
    */
   onFileDropped: (callback: (filePaths: string[]) => void) => void
+
+  /**
+   * Path utilities - Node.js path module functions
+   */
+  path: {
+    dirname: (p: string) => string
+    basename: (p: string) => string
+    relative: (from: string, to: string) => string
+    resolve: (...paths: string[]) => string
+    isAbsolute: (p: string) => boolean
+    normalize: (p: string) => string
+    join: (...paths: string[]) => string
+  }
 }
 
 declare global {
