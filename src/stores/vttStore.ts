@@ -43,10 +43,32 @@ export const useVTTStore = defineStore('vtt', () => {
     const result = parseVTT(content)
 
     if (result.success && result.document) {
-      document.value = {
+      const loadedDoc = {
         ...result.document,
         filePath
       }
+
+      // Convert relative media file path to absolute path
+      // According to architecture: paths are stored as absolute internally, relative only on export
+      const electronAPI = (window as any).electronAPI
+      if (loadedDoc.metadata.mediaFilePath && filePath && electronAPI?.path) {
+        const mediaPath = loadedDoc.metadata.mediaFilePath
+        // Only convert if it's a relative path
+        if (!electronAPI.path.isAbsolute(mediaPath)) {
+          const vttDir = electronAPI.path.dirname(filePath)
+          const absoluteMediaPath = electronAPI.path.resolve(vttDir, mediaPath)
+          console.log('Converting relative media path to absolute:')
+          console.log('  Relative:', mediaPath)
+          console.log('  VTT dir:', vttDir)
+          console.log('  Absolute:', absoluteMediaPath)
+          loadedDoc.metadata = {
+            ...loadedDoc.metadata,
+            mediaFilePath: absoluteMediaPath
+          }
+        }
+      }
+
+      document.value = loadedDoc
       console.log('Loaded document with', document.value.cues.length, 'cues')
     } else {
       console.error('Failed to load VTT:', result.error)
