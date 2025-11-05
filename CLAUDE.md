@@ -537,3 +537,19 @@ DISPLAY=:99 npx playwright test tests/electron/
 - Electron E2E: All passing (17/17) ✅
 
 **Total: 160/160 tests passing (100%)! 🎉**
+
+#### Test Timeout Philosophy
+
+**All test timeouts are deliberately kept very short (100-200ms)** to catch stalled tests immediately:
+
+- UI operations should complete in milliseconds, not seconds
+- A test taking >10 seconds total indicates a real problem (infinite loop, missing element, etc.)
+- Short timeouts = fast feedback when something breaks
+- If a test times out, it's **always** a bug - either in the code or the test itself
+
+**Timeout Guidelines:**
+- Page interactions (clicks, seeks): 100ms wait
+- File loading/initialization: 200ms wait
+- Entire test suite should complete in <1 minute
+
+If you see timeout failures, don't just increase the timeout - investigate why the operation is slow!
