@@ -130,11 +130,13 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 4: Save the file (overwrite original)
     console.log('Step 4: Saving file (overwrite)')
 
-    // Trigger save directly via keyboard shortcut (Ctrl+S)
-    await window.keyboard.press('Control+s')
+    // Trigger save directly via keyboard shortcut (Cmd+S on macOS, Ctrl+S on others)
+    const isMac = process.platform === 'darwin'
+    const saveShortcut = isMac ? 'Meta+s' : 'Control+s'
+    await window.keyboard.press(saveShortcut)
     await window.waitForTimeout(1500)
 
-    console.log('✓ Save triggered via Ctrl+S')
+    console.log(`✓ Save triggered via ${saveShortcut}`)
 
     // Step 5: Check the contents of the saved VTT file
     console.log('Step 5: Verifying saved VTT file contents')
