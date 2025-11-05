@@ -482,6 +482,7 @@ Use the helper script that automatically detects your platform:
 ```
 
 The script automatically:
+- Runs TypeScript type checking (`tsc --noEmit`)
 - Detects macOS vs Linux
 - Starts Xvfb on Linux if needed
 - Builds Electron app before tests

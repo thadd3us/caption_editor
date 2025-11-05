@@ -39,7 +39,12 @@ done
 echo "🧪 Running complete test suite on $PLATFORM..."
 echo ""
 
-# 1. TypeScript unit tests
+# 1. TypeScript type checking
+echo "🔍 Running TypeScript type checking..."
+npx tsc --noEmit
+echo ""
+
+# 2. TypeScript unit tests
 echo "📝 Running TypeScript unit tests..."
 if [ "$COVERAGE" = true ]; then
   npm test -- --coverage
@@ -48,12 +53,12 @@ else
 fi
 echo ""
 
-# 2. Browser E2E tests
+# 3. Browser E2E tests
 echo "🌐 Running browser E2E tests..."
 npx playwright test --grep-invert "electron"
 echo ""
 
-# 3. Electron E2E tests
+# 4. Electron E2E tests
 if [ "$SKIP_ELECTRON" = false ]; then
   echo "⚡ Building and running Electron tests..."
 
@@ -89,7 +94,7 @@ else
   echo ""
 fi
 
-# 4. Python tests
+# 5. Python tests
 echo "🐍 Running Python tests..."
 cd transcribe
 uv run pytest tests/ -v
@@ -99,6 +104,7 @@ echo ""
 echo "✅ Test suite complete!"
 echo ""
 echo "📊 Summary:"
+echo "  - TypeScript type checking: Check output above"
 echo "  - TypeScript unit tests: Check output above"
 echo "  - Browser E2E tests: Check output above"
 if [ "$SKIP_ELECTRON" = false ]; then
