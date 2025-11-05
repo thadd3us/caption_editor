@@ -1,10 +1,22 @@
 WEBVTT
 
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"ce239d45-78c8-4483-9e74-4ac155a4c757"}
+
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"ad07aca4-ece4-443a-9f9f-6eea33f1ebea"}
+
+ad07aca4-ece4-443a-9f9f-6eea33f1ebea
 00:00:01.000 --> 00:00:04.000
 Welcome to the VTT Editor!
 
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"61855564-04f0-4df7-b552-7db2f5c4334c"}
+
+61855564-04f0-4df7-b552-7db2f5c4334c
 00:00:05.000 --> 00:00:08.000
 This is a sample caption file.
 
+NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"177397aa-8b13-447f-b099-1654fa05015c"}
+
+177397aa-8b13-447f-b099-1654fa05015c
 00:00:10.000 --> 00:00:15.000
 You can edit captions, add ratings, and play media.
+
