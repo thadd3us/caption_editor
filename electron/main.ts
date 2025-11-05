@@ -137,8 +137,10 @@ app.whenReady().then(() => {
     }
   })
 
-  // Check if app was launched with a file path (Windows/Linux)
-  if (process.platform !== 'darwin' && process.argv.length >= 2) {
+  // Check if app was launched with a file path (Windows/Linux/macOS)
+  // On macOS, this handles test scenarios where files are passed as arguments
+  // In production, macOS uses the 'open-file' event instead
+  if (process.argv.length >= 2) {
     const filePath = process.argv[process.argv.length - 1]
     if (filePath && !filePath.startsWith('-') && filePath.endsWith('.vtt')) {
       fileToOpen = filePath

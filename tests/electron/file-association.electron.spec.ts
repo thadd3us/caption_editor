@@ -37,7 +37,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     await window.waitForFunction(
       () => {
         const store = (window as any).$store
-        return store?.document?.cues?.length > 0
+        return store && store.document && store.document.cues && store.document.cues.length > 0
       },
       { timeout: 5000 }
     )
@@ -144,7 +144,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     await window.waitForFunction(
       () => {
         const store = (window as any).$store
-        return store?.document?.cues?.length > 0
+        return store && store.document && store.document.cues && store.document.cues.length > 0
       },
       { timeout: 5000 }
     )
