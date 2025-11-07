@@ -105,19 +105,21 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     expect(storeFilePath).toBe(testVttPath)
     console.log('✓ Store file path is correct:', storeFilePath)
 
-    // Step 3: Add a new cue segment
-    console.log('Step 3: Adding new cue segment')
+    // Step 3: Add a new cue segment and edit it multiple times to create history
+    console.log('Step 3: Adding new cue segment and editing it')
 
     // Set current time to 20 seconds and add a cue
     const newCueId = await window.evaluate(() => {
       const store = (window as any).$store
       store.setCurrentTime(20)
       const cueId = store.addCue(20, 5) // Add cue from 20s to 25s
+      store.updateCue(cueId, { text: 'First version of caption' })
+      store.updateCue(cueId, { text: 'Second version of caption' })
       store.updateCue(cueId, { text: 'This is a new test caption added by the E2E test!' })
       return cueId
     })
 
-    console.log('✓ Added new cue with ID:', newCueId)
+    console.log('✓ Added new cue with ID:', newCueId, 'and edited it 3 times')
 
     // Verify the cue was added
     const cueCount = await window.evaluate(() => {
