@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTCue, VTTDocument, VTTCueMetadata, ParseResult, SegmentHistoryEntry, TranscriptMetadata, TranscriptHistory } from '../types/vtt'
+import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata, TranscriptHistory } from '../types/vtt'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files
@@ -89,7 +89,7 @@ export function parseVTT(content: string): ParseResult {
 
     const cues: VTTCue[] = []
     let i = 1
-    let pendingMetadata: VTTCueMetadata | null = null
+    let pendingCue: VTTCue | null = null
     let transcriptHistory: TranscriptHistory | undefined = undefined
     let transcriptMetadata: TranscriptMetadata | undefined = undefined
 
@@ -131,9 +131,9 @@ export function parseVTT(content: string): ParseResult {
               if (typeName === 'TranscriptMetadata' && !transcriptMetadata) {
                 transcriptMetadata = parsed as TranscriptMetadata
                 console.log('Found transcript metadata:', transcriptMetadata.id)
-              } else if (typeName === 'VTTCueMetadata') {
-                pendingMetadata = parsed as VTTCueMetadata
-                console.log('Found cue metadata:', pendingMetadata.id)
+              } else if (typeName === 'VTTCue') {
+                pendingCue = parsed as VTTCue
+                console.log('Found cue:', pendingCue.id)
               } else if (typeName === 'TranscriptHistory') {
                 transcriptHistory = parsed as TranscriptHistory
                 console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
@@ -178,10 +178,10 @@ export function parseVTT(content: string): ParseResult {
             i++
           }
 
-          // Generate or use metadata ID
-          const id = pendingMetadata?.id || uuidv4()
-          const rating = pendingMetadata?.rating
-          const timestamp = pendingMetadata?.timestamp
+          // Use pending cue data if available, otherwise generate new
+          const id = pendingCue?.id || uuidv4()
+          const rating = pendingCue?.rating
+          const timestamp = pendingCue?.timestamp
 
           cues.push({
             id,
@@ -193,7 +193,7 @@ export function parseVTT(content: string): ParseResult {
           })
 
           console.log(`Parsed cue: ${id}, ${startStr} --> ${endStr}`)
-          pendingMetadata = null
+          pendingCue = null
 
         } catch (err) {
           console.warn('Failed to parse cue timing:', err)
@@ -232,12 +232,12 @@ export function parseVTT(content: string): ParseResult {
                 i++
               }
 
-              // Use identifier as ID if it looks like a UUID, otherwise generate
+              // Use identifier as ID if it looks like a UUID, otherwise use pending cue or generate
               const id = identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
                 ? identifier
-                : (pendingMetadata?.id || uuidv4())
-              const rating = pendingMetadata?.rating
-              const timestamp = pendingMetadata?.timestamp
+                : (pendingCue?.id || uuidv4())
+              const rating = pendingCue?.rating
+              const timestamp = pendingCue?.timestamp
 
               cues.push({
                 id,
@@ -249,7 +249,7 @@ export function parseVTT(content: string): ParseResult {
               })
 
               console.log(`Parsed cue with identifier: ${id}, ${startStr} --> ${endStr}`)
-              pendingMetadata = null
+              pendingCue = null
 
             } catch (err) {
               console.warn('Failed to parse cue timing:', err)
@@ -304,13 +304,8 @@ export function serializeVTT(document: VTTDocument): string {
   })
 
   for (const cue of sortedCues) {
-    // Always add NOTE with metadata using sentinel format
-    const metadata: VTTCueMetadata = {
-      id: cue.id,
-      rating: cue.rating,
-      timestamp: cue.timestamp
-    }
-    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:VTTCueMetadata ${JSON.stringify(metadata)}\n\n`
+    // Always add NOTE with entire cue using sentinel format
+    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:VTTCue ${JSON.stringify(cue)}\n\n`
 
     // Add cue identifier (UUID)
     output += `${cue.id}\n`

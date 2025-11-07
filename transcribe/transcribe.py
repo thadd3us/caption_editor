@@ -314,24 +314,21 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
         current_timestamp = datetime.now().astimezone().isoformat()
 
     for idx, cue in enumerate(cues):
-        # Generate ID
+        # Generate ID and set timestamp if not already set
         if deterministic_ids:
             cue_id = generate_cue_id(audio_hash, cue.start_time, deterministic_index=idx)
         else:
             cue_id = generate_cue_id(audio_hash, cue.start_time)
 
-        # Set timestamp if not already set
         cue_timestamp = cue.timestamp if cue.timestamp else current_timestamp
 
-        # Always add NOTE with metadata using CAPTION_EDITOR sentinel
-        metadata = {
-            "id": cue_id,
-            "rating": cue.rating,
-            "timestamp": cue_timestamp
-        }
-        # Remove None values for cleaner JSON
-        metadata = {k: v for k, v in metadata.items() if v is not None}
-        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:VTTCueMetadata {json.dumps(metadata)}\n")
+        # Update the cue with id and timestamp
+        cue.id = cue_id
+        cue.timestamp = cue_timestamp
+
+        # Always add NOTE with entire cue using CAPTION_EDITOR sentinel
+        cue_json = cue.model_dump(by_alias=True, exclude_none=True)
+        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:VTTCue {json.dumps(cue_json)}\n")
 
         # Format timestamps
         start = format_timestamp(cue.start_time)

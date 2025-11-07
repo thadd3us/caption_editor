@@ -36,16 +36,6 @@ export interface VTTDocument {
 }
 
 /**
- * Metadata stored in NOTE comments for app-specific data
- * TODO: Delete this.  Anywhere it was used, just use an entire VTTCue object.  Update serialization format to use that instead.
- */
-export interface VTTCueMetadata {
-  id: string
-  rating?: number
-  timestamp?: string
-}
-
-/**
  * Result of parsing a VTT file
  */
 export interface ParseResult {

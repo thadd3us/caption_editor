@@ -287,7 +287,7 @@ npx playwright show-report
 - Sentinel constant: `CAPTION_EDITOR_SENTINEL` (defined in both TypeScript and Python)
 - Format examples:
   - Document metadata: `NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"<uuid>","mediaFilePath":"..."}`
-  - Cue metadata: `NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"<uuid>","rating":<number>,"timestamp":"..."}`
+  - Cue data: `NOTE CAPTION_EDITOR:VTTCue {"id":"<uuid>","startTime":<number>,"endTime":<number>,"text":"...","rating":<number>,"timestamp":"..."}`
   - History: `NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[...]}`
 - The sentinel allows the parser to distinguish app-specific metadata from regular VTT NOTE comments
 

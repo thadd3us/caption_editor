@@ -6,70 +6,70 @@
   NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00000", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00000", "startTime": 0.24, "endTime": 3.44, "text": "The birch canoe slid on the smooth planks.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00000
   00:00:00.240 --> 00:00:03.440
   The birch canoe slid on the smooth planks.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00001", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00001", "startTime": 4.0, "endTime": 7.2, "text": "Glue the sheet to the dark blue background.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00001
   00:00:04.000 --> 00:00:07.200
   Glue the sheet to the dark blue background.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00002", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00002", "startTime": 7.44, "endTime": 9.76, "text": "It is easy to tell the depth of a well.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00002
   00:00:07.440 --> 00:00:09.760
   It is easy to tell the depth of a well.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00003", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00003", "startTime": 10.48, "endTime": 13.52, "text": "These days a chicken leg is a rare dish.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00003
   00:00:10.480 --> 00:00:13.520
   These days a chicken leg is a rare dish.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00004", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00004", "startTime": 14.0, "endTime": 16.72, "text": "Rice is often served in round bowls.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00004
   00:00:14.000 --> 00:00:16.720
   Rice is often served in round bowls.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00005", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00005", "startTime": 17.0, "endTime": 19.8, "text": "The juice of lemons makes fine punch.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00005
   00:00:17.000 --> 00:00:19.800
   The juice of lemons makes fine punch.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00006", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00006", "startTime": 20.24, "endTime": 22.88, "text": "The box was thrown beside the parked truck.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00006
   00:00:20.240 --> 00:00:22.880
   The box was thrown beside the parked truck.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00007", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00007", "startTime": 23.44, "endTime": 26.240000000000002, "text": "The hogs were fed chopped corn and garbage.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00007
   00:00:23.440 --> 00:00:26.240
   The hogs were fed chopped corn and garbage.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00008", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00008", "startTime": 26.8, "endTime": 29.28, "text": "Four hours of steady work faced us.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00008
   00:00:26.800 --> 00:00:29.280
   Four hours of steady work faced us.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00009", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00009", "startTime": 29.8, "endTime": 32.44, "text": "A large size in stockings is hard to sell.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00009
   00:00:29.800 --> 00:00:32.440
@@ -84,56 +84,56 @@
   NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00000", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00000", "startTime": 0.0, "endTime": 4.0, "text": "The birch can use lid on the smooth planks.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00000
   00:00:00.000 --> 00:00:04.000
   The birch can use lid on the smooth planks.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00001", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00001", "startTime": 4.0, "endTime": 7.0, "text": "Glue the sheet to the dark blue background.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00001
   00:00:04.000 --> 00:00:07.000
   Glue the sheet to the dark blue background.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00002", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00002", "startTime": 7.0, "endTime": 10.0, "text": "It is easy to tell the depth of a well.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00002
   00:00:07.000 --> 00:00:10.000
   It is easy to tell the depth of a well.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00003", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00003", "startTime": 11.8, "endTime": 15.0, "text": "make it a rare dish, rice is often", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00003
   00:00:11.800 --> 00:00:15.000
   make it a rare dish, rice is often
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00004", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00004", "startTime": 17.759999999999998, "endTime": 19.28, "text": "of lemons makes fine punch.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00004
   00:00:17.760 --> 00:00:19.280
   of lemons makes fine punch.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00005", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00005", "startTime": 21.72, "endTime": 23.72, "text": "the puncture.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00005
   00:00:21.720 --> 00:00:23.720
   the puncture.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00006", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00006", "startTime": 23.72, "endTime": 25.72, "text": "The haves are fed chocolate.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00006
   00:00:23.720 --> 00:00:25.720
   The haves are fed chocolate.
   
   
-  NOTE CAPTION_EDITOR:VTTCueMetadata {"id": "id_00007", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00007", "startTime": 27.0, "endTime": 29.0, "text": "Four hours of steady work faced us.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00007
   00:00:27.000 --> 00:00:29.000

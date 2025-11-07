@@ -101,7 +101,7 @@ Caption with UUID`
       const uuid = '550e8400-e29b-41d4-a716-446655440000'
       const content = `WEBVTT
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"${uuid}","rating":5}
+NOTE CAPTION_EDITOR:VTTCue {"id":"${uuid}","startTime":1,"endTime":4,"text":"Rated caption","rating":5}
 
 00:00:01.000 --> 00:00:04.000
 Rated caption`
