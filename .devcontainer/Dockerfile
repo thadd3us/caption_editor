@@ -114,10 +114,9 @@ RUN cd /tmp/python-deps && \
     uv sync --frozen && \
     echo "Python virtual environment created successfully at $UV_PROJECT_ENVIRONMENT"
 
-# Copy pre-built torchcodec wheel for aarch64 Linux
-# This wheel is built from source since PyPI doesn't provide aarch64 builds
-COPY --chown=dev:dev .devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl /home/dev/wheels/
-RUN echo "TorchCodec wheel copied to /home/dev/wheels/"
+# Note: Pre-built torchcodec wheel for aarch64 Linux is available in the repo at:
+# .devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl
+# It will be available in the workspace mount and can be used by python/diarization/
 
 # Pre-download ASR models for transcription
 RUN cd /tmp/python-deps && \
