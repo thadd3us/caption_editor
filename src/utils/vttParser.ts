@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata, TranscriptHistory } from '../types/vtt'
+import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata } from '../types/vtt'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files
@@ -90,7 +90,7 @@ export function parseVTT(content: string): ParseResult {
     const cues: VTTCue[] = []
     let i = 1
     let pendingCue: VTTCue | null = null
-    let transcriptHistory: TranscriptHistory | undefined = undefined
+    const historyEntries: SegmentHistoryEntry[] = []
     let transcriptMetadata: TranscriptMetadata | undefined = undefined
 
     while (i < lines.length) {
@@ -134,9 +134,10 @@ export function parseVTT(content: string): ParseResult {
               } else if (typeName === 'VTTCue') {
                 pendingCue = parsed as VTTCue
                 console.log('Found cue:', pendingCue.id)
-              } else if (typeName === 'TranscriptHistory') {
-                transcriptHistory = parsed as TranscriptHistory
-                console.log('Found transcript history with', transcriptHistory.entries.length, 'entries')
+              } else if (typeName === 'SegmentHistoryEntry') {
+                const entry = parsed as SegmentHistoryEntry
+                historyEntries.push(entry)
+                console.log('Found history entry:', entry.id, entry.action)
               } else {
                 console.log(`Unknown ${CAPTION_EDITOR_SENTINEL} type:`, typeName)
               }
@@ -270,7 +271,7 @@ export function parseVTT(content: string): ParseResult {
       document: {
         metadata: transcriptMetadata || { id: uuidv4() },
         cues: Object.freeze(cues),
-        history: transcriptHistory
+        history: historyEntries.length > 0 ? Object.freeze(historyEntries) : undefined
       }
     }
 
@@ -317,9 +318,11 @@ export function serializeVTT(document: VTTDocument): string {
     output += `${cue.text}\n\n`
   }
 
-  // Add TranscriptHistory at the end if it exists
-  if (document.history && document.history.entries.length > 0) {
-    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:TranscriptHistory ${JSON.stringify(document.history)}\n`
+  // Add history entries at the end if they exist (one NOTE per entry)
+  if (document.history && document.history.length > 0) {
+    for (const entry of document.history) {
+      output += `NOTE ${CAPTION_EDITOR_SENTINEL}:SegmentHistoryEntry ${JSON.stringify(entry)}\n`
+    }
   }
 
   return output
@@ -394,10 +397,8 @@ function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: 'modified' 
     cue // Preserve the original cue state including its original timestamp
   }
 
-  const existingEntries = document.history?.entries || []
-  const newHistory: TranscriptHistory = {
-    entries: Object.freeze([...existingEntries, newEntry])
-  }
+  const existingEntries = document.history || []
+  const newHistory = Object.freeze([...existingEntries, newEntry])
 
   return {
     ...document,

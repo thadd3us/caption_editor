@@ -72,12 +72,6 @@ class SegmentHistoryEntry(BaseModel):
     cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")
 
 
-class TranscriptHistory(BaseModel):
-    """Historical record of segment changes."""
-
-    entries: List[SegmentHistoryEntry] = Field(description="List of historical changes to segments")
-
-
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
     """Extract audio from media file using ffmpeg."""
     output_path = temp_dir / "audio.wav"

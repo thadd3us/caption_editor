@@ -288,8 +288,9 @@ npx playwright show-report
 - Format examples:
   - Document metadata: `NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"<uuid>","mediaFilePath":"..."}`
   - Cue data: `NOTE CAPTION_EDITOR:VTTCue {"id":"<uuid>","startTime":<number>,"endTime":<number>,"text":"...","rating":<number>,"timestamp":"..."}`
-  - History: `NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[...]}`
+  - History entry: `NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<uuid>","action":"modified|deleted","actionTimestamp":"...","cue":{...}}`
 - The sentinel allows the parser to distinguish app-specific metadata from regular VTT NOTE comments
+- History entries are serialized as separate NOTE comments (one per entry) at the end of the file for readability
 
 ### Media File Path Handling
 - **Internal storage**: Media file paths are stored as **absolute paths** in `document.metadata.mediaFilePath` while the document is in memory

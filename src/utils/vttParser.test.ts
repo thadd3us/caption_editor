@@ -573,12 +573,12 @@ Caption with short format`
       const updatedDoc = updateCue(doc, 'test-1', { text: 'Updated text' })
 
       expect(updatedDoc.history).toBeDefined()
-      expect(updatedDoc.history?.entries).toHaveLength(1)
-      expect(updatedDoc.history?.entries[0].action).toBe('modified')
-      expect(updatedDoc.history?.entries[0].actionTimestamp).toBeDefined()
-      expect(updatedDoc.history?.entries[0].cue.id).toBe('test-1')
-      expect(updatedDoc.history?.entries[0].cue.text).toBe('Original text')
-      expect(updatedDoc.history?.entries[0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z') // Original timestamp preserved
+      expect(updatedDoc.history).toHaveLength(1)
+      expect(updatedDoc.history![0].action).toBe('modified')
+      expect(updatedDoc.history![0].actionTimestamp).toBeDefined()
+      expect(updatedDoc.history![0].cue.id).toBe('test-1')
+      expect(updatedDoc.history![0].cue.text).toBe('Original text')
+      expect(updatedDoc.history![0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z') // Original timestamp preserved
     })
 
     it('should record history when deleting a cue', () => {
@@ -598,13 +598,13 @@ Caption with short format`
       const updatedDoc = deleteCue(doc, 'test-1')
 
       expect(updatedDoc.history).toBeDefined()
-      expect(updatedDoc.history?.entries).toHaveLength(1)
-      expect(updatedDoc.history?.entries[0].action).toBe('deleted')
-      expect(updatedDoc.history?.entries[0].actionTimestamp).toBeDefined()
-      expect(updatedDoc.history?.entries[0].cue.id).toBe('test-1')
-      expect(updatedDoc.history?.entries[0].cue.text).toBe('To be deleted')
-      expect(updatedDoc.history?.entries[0].cue.rating).toBe(5)
-      expect(updatedDoc.history?.entries[0].cue.timestamp).toBe('2024-01-01T12:00:00.000Z') // Original timestamp preserved
+      expect(updatedDoc.history).toHaveLength(1)
+      expect(updatedDoc.history![0].action).toBe('deleted')
+      expect(updatedDoc.history![0].actionTimestamp).toBeDefined()
+      expect(updatedDoc.history![0].cue.id).toBe('test-1')
+      expect(updatedDoc.history![0].cue.text).toBe('To be deleted')
+      expect(updatedDoc.history![0].cue.rating).toBe(5)
+      expect(updatedDoc.history![0].cue.timestamp).toBe('2024-01-01T12:00:00.000Z') // Original timestamp preserved
     })
 
     it('should append to existing history', () => {
@@ -629,13 +629,13 @@ Caption with short format`
 
       // First update
       let updatedDoc = updateCue(doc, 'test-1', { text: 'First updated' })
-      expect(updatedDoc.history?.entries).toHaveLength(1)
+      expect(updatedDoc.history).toHaveLength(1)
 
       // Second update
       updatedDoc = updateCue(updatedDoc, 'test-2', { text: 'Second updated' })
-      expect(updatedDoc.history?.entries).toHaveLength(2)
-      expect(updatedDoc.history?.entries[0].cue.id).toBe('test-1')
-      expect(updatedDoc.history?.entries[1].cue.id).toBe('test-2')
+      expect(updatedDoc.history).toHaveLength(2)
+      expect(updatedDoc.history![0].cue.id).toBe('test-1')
+      expect(updatedDoc.history![1].cue.id).toBe('test-2')
     })
 
     it('should serialize history to NOTE at end of VTT', () => {
@@ -657,18 +657,18 @@ Caption with short format`
       const serialized = serializeVTT(doc)
 
       expect(serialized).toContain('NOTE')
-      expect(serialized).toContain('"entries"')
+      expect(serialized).toContain('SegmentHistoryEntry')
       expect(serialized).toContain('"action":"modified"')
       expect(serialized).toContain('test-1')
 
       // History should be at the end
       const noteIndex = serialized.lastIndexOf('NOTE')
-      const historyMatch = serialized.substring(noteIndex).match(/NOTE (?:CAPTION_EDITOR:TranscriptHistory )?(.+)/)
+      const historyMatch = serialized.substring(noteIndex).match(/NOTE CAPTION_EDITOR:SegmentHistoryEntry (.+)/)
       expect(historyMatch).toBeDefined()
 
-      const historyData = JSON.parse(historyMatch![1])
-      expect(historyData.entries).toBeDefined()
-      expect(historyData.entries).toHaveLength(1)
+      const historyEntry = JSON.parse(historyMatch![1])
+      expect(historyEntry.action).toBe('modified')
+      expect(historyEntry.cue).toBeDefined()
     })
 
     it('should parse history from NOTE at end of VTT', () => {
@@ -678,18 +678,18 @@ test-1
 00:00:01.000 --> 00:00:04.000
 Updated text
 
-NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","cue":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}]}`
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","cue":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}`
 
       const result = parseVTT(content)
 
       expect(result.success).toBe(true)
       expect(result.document?.history).toBeDefined()
-      expect(result.document?.history?.entries).toHaveLength(1)
-      expect(result.document?.history?.entries[0].action).toBe('modified')
-      expect(result.document?.history?.entries[0].actionTimestamp).toBe('2024-01-01T12:00:00.000Z')
-      expect(result.document?.history?.entries[0].cue.id).toBe('test-1')
-      expect(result.document?.history?.entries[0].cue.text).toBe('Original text')
-      expect(result.document?.history?.entries[0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z')
+      expect(result.document?.history).toHaveLength(1)
+      expect(result.document?.history![0].action).toBe('modified')
+      expect(result.document?.history![0].actionTimestamp).toBe('2024-01-01T12:00:00.000Z')
+      expect(result.document?.history![0].cue.id).toBe('test-1')
+      expect(result.document?.history![0].cue.text).toBe('Original text')
+      expect(result.document?.history![0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z')
     })
 
     it('should preserve history through round-trip', () => {
@@ -713,9 +713,9 @@ NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"action":"modified","actionTi
       const parsed = parseVTT(serialized)
 
       expect(parsed.success).toBe(true)
-      expect(parsed.document?.history?.entries).toHaveLength(2)
-      expect(parsed.document?.history?.entries[0].cue.text).toBe('Current text')
-      expect(parsed.document?.history?.entries[1].cue.rating).toBe(3)
+      expect(parsed.document?.history).toHaveLength(2)
+      expect(parsed.document?.history![0].cue.text).toBe('Current text')
+      expect(parsed.document?.history![1].cue.rating).toBe(3)
     })
 
     it('should not serialize history if no entries exist', () => {
@@ -737,7 +737,7 @@ NOTE CAPTION_EDITOR:TranscriptHistory {"entries":[{"action":"modified","actionTi
       // Should contain one NOTE for the document metadata and one NOTE for the cue metadata, but not for history
       const noteCount = (serialized.match(/NOTE/g) || []).length
       expect(noteCount).toBe(2) // One NOTE for document metadata, one for cue metadata, no history NOTE
-      expect(serialized).not.toContain('"entries"')
+      expect(serialized).not.toContain('SegmentHistoryEntry')
     })
   })
 })

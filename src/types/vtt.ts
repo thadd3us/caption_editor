@@ -19,20 +19,13 @@ export interface TranscriptMetadata {
 }
 
 /**
- * Historical record of segment changes
- */
-export interface TranscriptHistory {
-  readonly entries: readonly SegmentHistoryEntry[]
-}
-
-/**
  * Complete VTT document with metadata
  */
 export interface VTTDocument {
   readonly metadata: TranscriptMetadata // Document metadata (id, media file path)
   readonly cues: readonly VTTCue[]
   readonly filePath?: string // Original file path if loaded from file
-  readonly history?: TranscriptHistory // Historical record of segment changes
+  readonly history?: readonly SegmentHistoryEntry[] // Historical record of segment changes
 }
 
 /**
