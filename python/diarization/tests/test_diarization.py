@@ -25,7 +25,7 @@ def test_diarize_osr_audio(snapshot, hf_token):
     assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
     # Run diarization
-    results = diarize_audio(TEST_AUDIO, token=hf_token)
+    results = diarize_audio(TEST_AUDIO)
 
     # Format results for snapshot comparison
     # Round to 3 decimal places for stability
