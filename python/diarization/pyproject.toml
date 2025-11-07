@@ -31,6 +31,8 @@ dev = [
 [tool.uv]
 
 [tool.uv.sources]
+# Use locally built torchcodec wheel only on Linux aarch64, where PyPI doesn't have wheels.
+# On macOS and other platforms, uv will use the regular PyPI version (0.8.1) instead.
 torchcodec = { path = "../../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'" }
 
 [tool.pytest.ini_options]
