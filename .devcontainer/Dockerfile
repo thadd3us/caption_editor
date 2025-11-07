@@ -49,6 +49,17 @@ RUN apt-get update && apt-get install -y \
     # Additional dependencies for NeMo toolkit
     libsndfile1 \
     sox \
+    # TorchCodec build dependencies
+    cmake \
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libavdevice-dev \
+    libavfilter-dev \
+    libswscale-dev \
+    libswresample-dev \
+    pkg-config \
+    pybind11-dev \
     # Disk usage analyzer
     ncdu \
     # Sudo for non-root user

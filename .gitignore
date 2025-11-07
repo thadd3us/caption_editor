@@ -58,6 +58,8 @@ build/
 !build/icon.icns
 !build/icon.ico
 !build/icon.png
+.uv/
+.python-version
 
 # NeMo toolkit artifacts
 *.err
