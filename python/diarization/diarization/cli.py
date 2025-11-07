@@ -44,9 +44,10 @@ def diarize_audio(
     # Run diarization
     output = pipeline(str(audio_path))
 
-    # Extract speaker turns
+    # Extract speaker turns from the speaker_diarization annotation
+    # (pyannote v4 returns a DiarizeOutput object with speaker_diarization attribute)
     results = []
-    for turn, _, speaker in output.itertracks(yield_label=True):
+    for turn, _, speaker in output.speaker_diarization.itertracks(yield_label=True):
         results.append((turn.start, turn.end, speaker))
 
     return results

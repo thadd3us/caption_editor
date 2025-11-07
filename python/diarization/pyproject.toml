@@ -31,7 +31,7 @@ dev = [
 [tool.uv]
 
 [tool.uv.sources]
-#torchcodec = { path = "../../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" }
+torchcodec = { path = "../../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
