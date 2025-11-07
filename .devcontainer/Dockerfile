@@ -114,6 +114,11 @@ RUN cd /tmp/python-deps && \
     uv sync --frozen && \
     echo "Python virtual environment created successfully at $UV_PROJECT_ENVIRONMENT"
 
+# Copy pre-built torchcodec wheel for aarch64 Linux
+# This wheel is built from source since PyPI doesn't provide aarch64 builds
+COPY --chown=dev:dev .devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl /home/dev/wheels/
+RUN echo "TorchCodec wheel copied to /home/dev/wheels/"
+
 # Pre-download ASR models for transcription
 RUN cd /tmp/python-deps && \
     uv run python -c "from transformers import pipeline; pipeline('automatic-speech-recognition', model='openai/whisper-tiny')" && \

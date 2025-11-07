@@ -64,6 +64,8 @@ The `I_CONFIRM_THIS_IS_NOT_A_LICENSE_VIOLATION` flag is required because torchco
 The wheel will be created in `/tmp/torchcodec/dist/`:
 - `torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl`
 
+**For this project:** The wheel is already included in `.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl` and will be available in the Docker image.
+
 To use it in a uv project, add to your `pyproject.toml`:
 
 ```toml
@@ -74,7 +76,8 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-torchcodec = { path = "/tmp/torchcodec/dist/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" }
+# Path relative to pyproject.toml location
+torchcodec = { path = "../../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" }
 ```
 
 ## ABI Compatibility Note

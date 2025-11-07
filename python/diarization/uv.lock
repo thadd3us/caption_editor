@@ -603,7 +603,7 @@ requires-dist = [
     { name = "pybind11", specifier = ">=3.0.1" },
     { name = "torch", specifier = ">=2.0.0" },
     { name = "torchaudio", specifier = ">=2.0.0" },
-    { name = "torchcodec", path = "../../../tmp/torchcodec/dist/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" },
+    { name = "torchcodec", path = "../../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" },
     { name = "torchvision", specifier = ">=0.15.0" },
     { name = "typer", specifier = ">=0.9.0" },
 ]
@@ -3149,7 +3149,7 @@ wheels = [
 [[package]]
 name = "torchcodec"
 version = "0.9.0a0"
-source = { path = "../../../tmp/torchcodec/dist/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" }
+source = { path = "../../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl" }
 wheels = [
     { filename = "torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl", hash = "sha256:e658963eeafdf5d3e5639b1b29f81ecf73b282c1f82274ee281776338987bc6b" },
 ]
