@@ -1,15 +1,23 @@
-# Media Transcription Tool
+# Media Transcription and Speaker Diarization
 
-A Python CLI tool for transcribing media files to VTT (WebVTT) format using NVIDIA's Parakeet TDT ASR model.
+A unified Python environment providing:
+- **Transcription**: Convert media files to VTT (WebVTT) format using NVIDIA's Parakeet TDT ASR model
+- **Speaker Diarization**: Identify and label different speakers in audio using pyannote.audio
 
 ## Features
 
+### Transcription
 - **Multi-format support**: Converts nearly any media format to transcribed VTT using ffmpeg
 - **Chunked processing**: Handles long audio files (hours) by processing in configurable chunks
 - **Overlap handling**: Prevents word cutoffs at chunk boundaries with intelligent overlap resolution
 - **Segment-level transcripts**: Produces sentence-level segments with timestamps
 - **Deterministic UUIDs**: Generates consistent segment IDs based on audio hash and timestamps
 - **Multi-language support**: Uses NVIDIA Parakeet TDT 0.6b v3 with multi-language capabilities
+
+### Speaker Diarization
+- **Speaker identification**: Detects and labels different speakers in audio
+- **Powered by pyannote.audio v4**: State-of-the-art speaker diarization
+- **Simple CLI interface**: Easy to use command-line tool
 
 ## Installation
 
@@ -26,17 +34,49 @@ uvx --from . transcribe --help
 
 ## Usage
 
-### Basic usage
+### Transcription
 
 ```bash
 # Transcribe a media file
-python transcribe.py input.mp4
+uv run python transcribe.py input.mp4
 
 # Specify output location
-python transcribe.py input.mp4 --output output.vtt
+uv run python transcribe.py input.mp4 --output output.vtt
 
 # Adjust chunk size and overlap
-python transcribe.py long_audio.wav --chunk-size 120 --overlap 10
+uv run python transcribe.py long_audio.wav --chunk-size 120 --overlap 10
+```
+
+### Speaker Diarization
+
+**Prerequisites:**
+
+1. **Accept the model terms on HuggingFace:**
+   - Visit https://huggingface.co/pyannote/speaker-diarization-community-1
+   - Click "Agree and access repository"
+   - Accept the user agreement
+   - Wait a few minutes for access to propagate
+
+2. **Set your HuggingFace token:**
+   ```bash
+   export HF_TOKEN=your_huggingface_token_here
+   ```
+
+**Run diarization:**
+
+```bash
+# Basic usage
+uv run diarize path/to/audio.wav
+
+# Use a specific model
+uv run diarize audio.wav --model pyannote/speaker-diarization-3.1
+```
+
+**Output example:**
+```
+SPEAKER_00 speaks between t=0.000s and t=3.500s
+SPEAKER_01 speaks between t=3.500s and t=7.200s
+SPEAKER_00 speaks between t=7.200s and t=10.000s
 ```
 
 ### Options
@@ -98,11 +138,18 @@ Each segment has:
 ## Testing
 
 ```bash
-# Run tests
-uv run pytest
+# Run all tests
+uv run pytest -v
 
-# Run specific test
-uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio
+# Run transcription tests
+uv run pytest tests/test_transcribe.py -v
+
+# Run diarization tests (requires HF_TOKEN environment variable)
+export HF_TOKEN=your_token_here
+uv run pytest tests/test_diarization.py -v
+
+# Update snapshots after intentional changes
+uv run pytest tests/ -v --snapshot-update
 ```
 
 ## Requirements
@@ -113,7 +160,7 @@ uv run pytest tests/test_transcribe.py::test_transcribe_osr_audio
 
 ## TODO
 
-- [ ] Add speaker identification to segments
+- [ ] Integrate diarization with transcription (speaker-attributed transcripts)
 - [ ] Support custom vocabulary or language hints
 - [ ] Add confidence scores to segments
 - [ ] Batch processing of multiple files

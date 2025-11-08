@@ -11,7 +11,7 @@ assert torchcodec
 from diarization.cli import diarize_audio
 
 # Path to test audio file
-TEST_AUDIO = Path(__file__).parent.parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
+TEST_AUDIO = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
 
 
 def test_diarize_osr_audio(snapshot):

@@ -1,14 +1,14 @@
-[project] 
+[project]
 name = "transcribe"
 version = "0.1.0"
-description = "Media transcription tool using NVIDIA Parakeet TDT for VTT generation"
+description = "Media transcription and speaker diarization tool using NVIDIA Parakeet TDT and pyannote.audio"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [
     "librosa>=0.11.0",
     "megatron-core>=0.10.0",
     "nemo-toolkit[asr]>=2.5.0",
-    "numpy>=1.24,<2.0",
+    "numpy>=2.0",  # Try numpy 2.0 - may work with both nemo and pyannote v4
     "pydantic>=2.12.3",
     "soundfile>=0.13.1",
     "syrupy>=5.0.0",
@@ -18,12 +18,28 @@ dependencies = [
     "transformers>=4.53.0,<4.54",
     "typer>=0.20.0",
     "webvtt-py>=0.5.1",
+    # Diarization dependencies
+    "pyannote-audio>=4.0.0",
+    "torchvision>=0.15.0",
+    "pybind11>=3.0.1",
+    "torchcodec",
 ]
 
 [project.scripts]
 transcribe = "transcribe:app"
+diarize = "diarization.cli:app"
 
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
 ]
+
+[tool.uv]
+# Override nemo-toolkit's numpy constraint to allow numpy 2.x
+# nemo-toolkit works with numpy 2.x despite the conservative <2.0 constraint
+override-dependencies = ["numpy>=2.0"]
+
+[tool.uv.sources]
+# Use locally built torchcodec wheel only on Linux aarch64, where PyPI doesn't have wheels.
+# On macOS and other platforms, uv will use the regular PyPI version (0.8.1) instead.
+torchcodec = { path = "../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'" }
