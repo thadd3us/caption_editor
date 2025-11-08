@@ -13,6 +13,15 @@
  */
 
 /**
+ * Action types for segment history entries
+ */
+export enum HistoryAction {
+  Modified = 'modified',
+  Deleted = 'deleted',
+  SpeakerRenamed = 'speakerRenamed'
+}
+
+/**
  * Immutable VTT caption entry with UUID, timestamps, rating, and text
  */
 export interface VTTCue {
@@ -65,7 +74,7 @@ export interface TimeRange {
  */
 export interface SegmentHistoryEntry {
   readonly id: string // UUID for this history entry
-  readonly action: 'modified' | 'deleted' | 'renameSpeaker' // Type of action performed
+  readonly action: HistoryAction // Type of action performed
   readonly actionTimestamp: string // ISO 8601 timestamp of when this action occurred
   readonly cue: VTTCue // The segment's state before the change (preserves the original timestamp)
 }

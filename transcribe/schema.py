@@ -20,6 +20,7 @@ When adding or modifying fields:
 5. Run both Python and TypeScript tests to verify compatibility
 """
 
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -27,6 +28,14 @@ from pydantic import BaseModel, ConfigDict, Field
 # Sentinel prefix for app-specific NOTE comments in VTT files
 # Format: NOTE CAPTION_EDITOR:TypeName {json}
 CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
+
+
+class HistoryAction(str, Enum):
+    """Action types for segment history entries."""
+
+    MODIFIED = "modified"
+    DELETED = "deleted"
+    SPEAKER_RENAMED = "speakerRenamed"
 
 
 class VTTCue(BaseModel):
@@ -58,6 +67,6 @@ class SegmentHistoryEntry(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(description="UUID for this history entry")
-    action: str = Field(description="Type of action performed: 'modified', 'deleted', or 'renameSpeaker'")
+    action: HistoryAction = Field(description="Type of action performed")
     action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
     cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")

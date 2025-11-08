@@ -246,8 +246,8 @@ Message 2`
       if (!vttStore) return 0
 
       const history = vttStore.document.history || []
-      const renameSpeakerEntries = history.filter((entry: any) => entry.action === 'renameSpeaker')
-      return renameSpeakerEntries.length
+      const speakerRenamedEntries = history.filter((entry: any) => entry.action === 'speakerRenamed')
+      return speakerRenamedEntries.length
     })
 
     // Should have 2 history entries (one for each renamed cue)

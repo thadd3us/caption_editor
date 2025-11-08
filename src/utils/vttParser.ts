@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata } from '../types/schema'
+import { HistoryAction } from '../types/schema'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files
@@ -396,7 +397,7 @@ export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): nu
 /**
  * Add a history entry to the document
  */
-function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: 'modified' | 'deleted' | 'renameSpeaker'): VTTDocument {
+function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: HistoryAction): VTTDocument {
   const newEntry: SegmentHistoryEntry = {
     id: uuidv4(),
     action,
@@ -453,7 +454,7 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
   }
 
   // Add history entry (with the original cue before modification)
-  newDocument = addHistoryEntry(newDocument, originalCue, 'modified')
+  newDocument = addHistoryEntry(newDocument, originalCue, HistoryAction.Modified)
 
   return newDocument
 }
@@ -479,7 +480,7 @@ export function deleteCue(document: VTTDocument, cueId: string): VTTDocument {
   }
 
   // Add history entry
-  newDocument = addHistoryEntry(newDocument, deletedCue, 'deleted')
+  newDocument = addHistoryEntry(newDocument, deletedCue, HistoryAction.Deleted)
 
   return newDocument
 }
@@ -498,7 +499,7 @@ export function renameSpeaker(document: VTTDocument, oldName: string, newName: s
   for (const cue of document.cues) {
     if (cue.speakerName === oldName) {
       // Add history entry for this cue before modification
-      newDocument = addHistoryEntry(newDocument, cue, 'renameSpeaker')
+      newDocument = addHistoryEntry(newDocument, cue, HistoryAction.SpeakerRenamed)
     }
   }
 
