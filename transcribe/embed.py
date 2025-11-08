@@ -54,9 +54,10 @@ def convert_to_wav(media_file: Path, temp_dir: Path) -> Path:
     ]
 
     try:
-        subprocess.run(cmd, check=True, capture_output=True, stderr=subprocess.PIPE)
+        subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
-        raise ValueError(f"Error converting audio: {e.stderr.decode()}")
+        stderr = e.stderr.decode() if e.stderr else "Unknown error"
+        raise ValueError(f"Error converting audio: {stderr}")
 
     return output_path
 
