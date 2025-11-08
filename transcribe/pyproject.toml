@@ -11,6 +11,7 @@ dependencies = [
     "numpy>=2.0",  # Try numpy 2.0 - may work with both nemo and pyannote v4
     "pandas>=2.0.0",
     "pydantic>=2.12.3",
+    "scikit-learn>=1.6.0",
     "soundfile>=0.13.1",
     "syrupy>=5.0.0",
     "tqdm>=4.66.0",

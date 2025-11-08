@@ -14,9 +14,12 @@ import soundfile as sf
 import torch
 import typer
 from pyannote.audio import Inference, Model
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_distances
 from tqdm import tqdm
 
 from schema import CAPTION_EDITOR_SENTINEL, TranscriptMetadata, VTTCue
+from vtt_lib import parse_vtt_file, serialize_vtt
 
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
 
@@ -61,49 +64,6 @@ def convert_to_wav(media_file: Path, temp_dir: Path) -> Path:
         raise ValueError(f"Error converting audio: {stderr}")
 
     return output_path
-
-
-def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[VTTCue]]:
-    """Parse VTT file and extract metadata and cues from NOTE comments.
-
-    Args:
-        vtt_path: Path to the VTT file
-
-    Returns:
-        Tuple of (metadata, cues)
-    """
-    content = vtt_path.read_text()
-    lines = content.split("\n")
-
-    metadata = None
-    cues = []
-
-    # Pattern to match NOTE CAPTION_EDITOR: lines
-    pattern = re.compile(
-        rf"^NOTE {CAPTION_EDITOR_SENTINEL}:(\w+)\s+(.+)$"
-    )
-
-    for line in lines:
-        match = pattern.match(line.strip())
-        if match:
-            data_type = match.group(1)
-            json_data = match.group(2)
-
-            if data_type == "TranscriptMetadata":
-                metadata = TranscriptMetadata.model_validate_json(json_data)
-            elif data_type == "VTTCue":
-                cue = VTTCue.model_validate_json(json_data)
-                cues.append(cue)
-
-    if metadata is None:
-        raise ValueError(
-            f"No TranscriptMetadata found in VTT file: {vtt_path}"
-        )
-
-    if not cues:
-        raise ValueError(f"No VTTCue entries found in VTT file: {vtt_path}")
-
-    return metadata, cues
 
 
 def extract_audio_segment(
@@ -198,6 +158,16 @@ def main(
         "-m",
         help="Pyannote embedding model to use",
     ),
+    auto_assign_speaker_clusters_to_unknown_names: bool = typer.Option(
+        False,
+        "--auto_assign_speaker_clusters_to_unknown_names",
+        help="Automatically cluster speakers and assign names like 'Unknown Speaker 00?'",
+    ),
+    num_speaker_clusters: int = typer.Option(
+        2,
+        "--num_speaker_clusters",
+        help="Number of speaker clusters to create (only used with --auto_assign_speaker_clusters_to_unknown_names)",
+    ),
 ) -> None:
     """
     Compute speaker embeddings for each segment in a VTT file.
@@ -269,8 +239,54 @@ def main(
             # Convert embedding to bytes for VECTOR storage
             data.append({
                 "segment_id": cue.id,
-                "embedding": embedding.tobytes()
+                "embedding": embedding.tobytes(),
+                "embedding_array": embedding  # Keep array for clustering
             })
+
+        # Perform speaker clustering if requested
+        if auto_assign_speaker_clusters_to_unknown_names:
+            typer.echo(f"Clustering speakers into {num_speaker_clusters} groups...")
+
+            # Extract embeddings as matrix
+            embeddings_matrix = np.array([d["embedding_array"] for d in data])
+
+            # Normalize embeddings for cosine similarity
+            # After normalization, Euclidean distance equals cosine distance
+            norms = np.linalg.norm(embeddings_matrix, axis=1, keepdims=True)
+            embeddings_normalized = embeddings_matrix / norms
+
+            # Perform k-means clustering on normalized embeddings
+            # With normalized vectors, Euclidean distance = cosine distance
+            kmeans = KMeans(
+                n_clusters=num_speaker_clusters,
+                random_state=42,
+                n_init=10
+            )
+            cluster_labels = kmeans.fit_predict(embeddings_normalized)
+
+            # Assign speaker names based on clusters
+            cue_idx = 0
+            for i, cue in enumerate(cues):
+                # Skip cues that don't have embeddings (e.g., empty audio)
+                if cue_idx >= len(data):
+                    break
+
+                if data[cue_idx]["segment_id"] != cue.id:
+                    # This cue was skipped (empty audio), don't assign speaker
+                    continue
+
+                # Only assign speaker name if it's currently empty
+                if not cue.speaker_name:
+                    cluster_id = cluster_labels[cue_idx]
+                    cue.speaker_name = f"Unknown Speaker {cluster_id:02d}?"
+
+                cue_idx += 1
+
+            # Write updated VTT file back
+            typer.echo(f"Updating VTT file with speaker assignments: {vtt_path}")
+            vtt_content = serialize_vtt(metadata, cues)
+            vtt_path.write_text(vtt_content)
+            typer.echo(f"Updated {cue_idx} segments with speaker names")
 
         # Write to libsql database
         typer.echo(f"Writing embeddings to database: {output}")

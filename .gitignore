@@ -39,6 +39,7 @@ test_data/temp-*/
 *.embeddings.jsonl
 *.embeddings.db
 test_data/*.db
+test_data/*_with_clusters.vtt
 
 # Coverage
 .nyc_output/

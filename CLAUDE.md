@@ -1,5 +1,12 @@
 # Claude Development Notes
 
+## Important Reminders
+
+**DO NOT create summary/readme files like CLUSTERING_README.md, IMPLEMENTATION_SUMMARY.md, etc.**
+- Just update this CLAUDE.md file with notes
+- Users can read the code and tests to understand features
+- If documentation is needed, ask the user first
+
 ## Development Workflow
 
 ### Committing Work
@@ -564,3 +571,41 @@ DISPLAY=:99 npx playwright test tests/electron/
 - Entire test suite should complete in <1 minute
 
 If you see timeout failures, don't just increase the timeout - investigate why the operation is slow!
+
+## Python Transcription Tools
+
+### Speaker Clustering (transcribe/embed.py)
+
+Added automatic speaker clustering to `embed.py`:
+
+**New CLI Options:**
+- `--auto_assign_speaker_clusters_to_unknown_names`: Enable speaker clustering
+- `--num_speaker_clusters N`: Number of speaker groups (default: 2)
+
+**Usage:**
+```bash
+cd transcribe
+HF_TOKEN=your_token uv run python embed.py path/to/file.vtt \
+  --auto_assign_speaker_clusters_to_unknown_names \
+  --num_speaker_clusters 2
+```
+
+**How it works:**
+1. Computes speaker embeddings using pyannote.audio
+2. Normalizes embeddings for cosine similarity
+3. Clusters using k-means
+4. Assigns "Unknown Speaker 00?", "Unknown Speaker 01?", etc.
+5. Preserves existing non-empty speaker names
+6. Overwrites input VTT file with updated assignments
+
+**New Files:**
+- `transcribe/vtt_lib.py`: Shared VTT parsing/serialization utilities
+  - `parse_vtt_file()`: Parse VTT NOTE comments
+  - `serialize_vtt()`: Serialize back to VTT format
+  - `format_timestamp()`: Format timestamps
+
+**Tests:**
+- `tests/test_vtt_lib.py`: Tests parsing and serialization (3 tests)
+- `tests/test_speaker_clustering.py`: Tests clustering with real embeddings (2 tests)
+- All use syrupy snapshots and tmp_path fixture
+- Total: 5 new tests, all passing
