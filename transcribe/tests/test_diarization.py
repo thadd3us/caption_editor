@@ -4,9 +4,8 @@ import os
 from pathlib import Path
 
 import pytest
-
-import torchcodec
-assert torchcodec
+import torch
+import torchaudio
 
 from diarization.cli import diarize_audio
 

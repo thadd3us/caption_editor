@@ -22,7 +22,7 @@ dependencies = [
     "pyannote-audio>=4.0.0",
     "torchvision>=0.15.0",
     "pybind11>=3.0.1",
-    "torchcodec",
+#    "torchcodec",
 ]
 
 [project.scripts]
@@ -37,9 +37,14 @@ dev = [
 [tool.uv]
 # Override nemo-toolkit's numpy constraint to allow numpy 2.x
 # nemo-toolkit works with numpy 2.x despite the conservative <2.0 constraint
-override-dependencies = ["numpy>=2.0"]
+# Override torchcodec to only install on platforms with available wheels
+# pyannote-audio 4.0+ made torchcodec optional and will fall back to torchaudio
+override-dependencies = [
+    "numpy>=2.0",
+    "torchcodec>=0.6.0; (sys_platform == 'darwin') or (sys_platform == 'win32') or (sys_platform == 'linux' and platform_machine == 'x86_64')"
+]
 
 [tool.uv.sources]
-# Use locally built torchcodec wheel only on Linux aarch64, where PyPI doesn't have wheels.
-# On macOS and other platforms, uv will use the regular PyPI version (0.8.1) instead.
-torchcodec = { path = "../.devcontainer/torchcodec-0.9.0a0-cp312-cp312-linux_aarch64.whl", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'" }
+# torchcodec is made optional via override-dependencies above
+# On platforms without torchcodec wheels (Linux aarch64), pyannote.audio will use torchaudio for audio loading
+# See diarization/cli.py which preloads audio using torchaudio to support both scenarios
