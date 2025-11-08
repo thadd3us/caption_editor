@@ -3,6 +3,8 @@
 import json
 import os
 import re
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -27,6 +29,36 @@ def get_hf_token() -> str:
             "Please set it with your HuggingFace token."
         )
     return token
+
+
+def convert_to_wav(media_file: Path, temp_dir: Path) -> Path:
+    """Convert media file to WAV format using ffmpeg.
+
+    Args:
+        media_file: Path to the input media file
+        temp_dir: Temporary directory for output
+
+    Returns:
+        Path to the converted WAV file
+    """
+    output_path = temp_dir / "audio.wav"
+
+    cmd = [
+        "ffmpeg",
+        "-i", str(media_file),
+        "-ar", "16000",  # 16kHz sample rate
+        "-ac", "1",      # Mono
+        "-f", "wav",
+        "-y",            # Overwrite
+        str(output_path),
+    ]
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        raise ValueError(f"Error converting audio: {e.stderr.decode()}")
+
+    return output_path
 
 
 def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[VTTCue]]:
@@ -171,6 +203,10 @@ def main(
     Requires HF_TOKEN environment variable to be set.
     Outputs a JSONL file with segment IDs and embedding vectors.
     """
+    # Use a temporary directory that persists through the whole function
+    temp_dir_obj = tempfile.TemporaryDirectory()
+    temp_dir = Path(temp_dir_obj.name)
+
     try:
         # Get HuggingFace token
         token = get_hf_token()
@@ -192,6 +228,16 @@ def main(
         typer.echo(f"Media file: {media_path}")
         typer.echo(f"Found {len(cues)} segments")
 
+        # Check if media file needs conversion
+        audio_path = media_path
+        if media_path.suffix.lower() not in ['.wav', '.wave']:
+            typer.echo(f"Converting {media_path.suffix} to WAV format...")
+            try:
+                audio_path = convert_to_wav(media_path, temp_dir)
+                typer.echo(f"Conversion complete")
+            except ValueError as e:
+                raise ValueError(f"Failed to convert audio file: {e}")
+
         # Load embedding model
         typer.echo(f"Loading embedding model: {model}")
         embedding_model = Model.from_pretrained(model, use_auth_token=token)
@@ -208,7 +254,7 @@ def main(
         for cue in tqdm(cues, desc="Processing segments", unit="segment"):
             # Extract audio segment
             audio, sample_rate = extract_audio_segment(
-                media_path, cue.start_time, cue.end_time
+                audio_path, cue.start_time, cue.end_time
             )
 
             if len(audio) == 0:
@@ -240,6 +286,9 @@ def main(
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=1)
+    finally:
+        # Clean up temporary directory
+        temp_dir_obj.cleanup()
 
 
 if __name__ == "__main__":
