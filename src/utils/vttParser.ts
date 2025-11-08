@@ -396,7 +396,7 @@ export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): nu
 /**
  * Add a history entry to the document
  */
-function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: 'modified' | 'deleted'): VTTDocument {
+function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: 'modified' | 'deleted' | 'renameSpeaker'): VTTDocument {
   const newEntry: SegmentHistoryEntry = {
     id: uuidv4(),
     action,
@@ -482,4 +482,35 @@ export function deleteCue(document: VTTDocument, cueId: string): VTTDocument {
   newDocument = addHistoryEntry(newDocument, deletedCue, 'deleted')
 
   return newDocument
+}
+
+/**
+ * Rename all occurrences of a speaker name (returns new document)
+ * Records all modified cues in history
+ */
+export function renameSpeaker(document: VTTDocument, oldName: string, newName: string): VTTDocument {
+  console.log('Renaming speaker:', oldName, '->', newName)
+
+  const currentTimestamp = getCurrentTimestamp()
+  let newDocument = document
+
+  // Find all cues with the old speaker name and update them
+  for (const cue of document.cues) {
+    if (cue.speakerName === oldName) {
+      // Add history entry for this cue before modification
+      newDocument = addHistoryEntry(newDocument, cue, 'renameSpeaker')
+    }
+  }
+
+  // Update all cues with the new speaker name
+  const updatedCues = newDocument.cues.map(cue =>
+    cue.speakerName === oldName
+      ? { ...cue, speakerName: newName, timestamp: currentTimestamp }
+      : cue
+  )
+
+  return {
+    ...newDocument,
+    cues: Object.freeze(updatedCues)
+  }
 }

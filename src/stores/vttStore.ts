@@ -9,6 +9,7 @@ import {
   addCue as addCueToDoc,
   updateCue as updateCueInDoc,
   deleteCue as deleteCueFromDoc,
+  renameSpeaker as renameSpeakerInDoc,
   getCurrentTimestamp
 } from '../utils/vttParser'
 
@@ -207,6 +208,11 @@ export const useVTTStore = defineStore('vtt', () => {
     }
   }
 
+  function renameSpeaker(oldName: string, newName: string) {
+    console.log('Renaming speaker in store:', oldName, '->', newName)
+    document.value = renameSpeakerInDoc(document.value, oldName, newName)
+  }
+
   function setCurrentTime(time: number) {
     currentTime.value = time
 
@@ -250,6 +256,7 @@ export const useVTTStore = defineStore('vtt', () => {
     addCue,
     updateCue,
     deleteCue,
+    renameSpeaker,
     setCurrentTime,
     setPlaying,
     selectCue,

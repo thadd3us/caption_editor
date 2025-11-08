@@ -58,6 +58,6 @@ class SegmentHistoryEntry(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(description="UUID for this history entry")
-    action: str = Field(description="Type of action performed: 'modified' or 'deleted'")
+    action: str = Field(description="Type of action performed: 'modified', 'deleted', or 'renameSpeaker'")
     action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
     cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")

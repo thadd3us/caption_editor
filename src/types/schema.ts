@@ -65,7 +65,7 @@ export interface TimeRange {
  */
 export interface SegmentHistoryEntry {
   readonly id: string // UUID for this history entry
-  readonly action: 'modified' | 'deleted' // Type of action performed
+  readonly action: 'modified' | 'deleted' | 'renameSpeaker' // Type of action performed
   readonly actionTimestamp: string // ISO 8601 timestamp of when this action occurred
   readonly cue: VTTCue // The segment's state before the change (preserves the original timestamp)
 }

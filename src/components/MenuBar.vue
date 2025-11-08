@@ -19,6 +19,16 @@
             </button>
           </div>
         </div>
+        <div class="menu-dropdown">
+          <button @click="toggleEditMenu" class="menu-item" ref="editMenuButton">
+            Edit
+          </button>
+          <div v-if="showEditMenu" class="dropdown-content" ref="editMenuDropdown">
+            <button @click="openRenameSpeakerDialog" class="dropdown-item" :disabled="!hasAnySpeakers">
+              Rename Speaker...
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="menu-actions">
@@ -39,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 
 // Accept version as prop from parent (read from package.json)
@@ -49,26 +59,52 @@ defineProps<{
 
 const store = useVTTStore()
 const showFileMenu = ref(false)
+const showEditMenu = ref(false)
 const fileMenuButton = ref<HTMLButtonElement | null>(null)
 const fileMenuDropdown = ref<HTMLDivElement | null>(null)
+const editMenuButton = ref<HTMLButtonElement | null>(null)
+const editMenuDropdown = ref<HTMLDivElement | null>(null)
 const isDragOver = ref(false)
+
+// Check if there are any speakers in the document
+const hasAnySpeakers = computed(() => {
+  return store.document.cues.some(cue => cue.speakerName && cue.speakerName.trim() !== '')
+})
 
 // Menu state management
 function toggleFileMenu() {
   showFileMenu.value = !showFileMenu.value
+  showEditMenu.value = false
+}
+
+function toggleEditMenu() {
+  showEditMenu.value = !showEditMenu.value
+  showFileMenu.value = false
 }
 
 function closeFileMenu() {
   showFileMenu.value = false
 }
 
+function closeEditMenu() {
+  showEditMenu.value = false
+}
+
 // Click outside handler
 function handleClickOutside(event: MouseEvent) {
+  const target = event.target as Node
+
   if (showFileMenu.value) {
-    const target = event.target as Node
     if (fileMenuButton.value && !fileMenuButton.value.contains(target) &&
         fileMenuDropdown.value && !fileMenuDropdown.value.contains(target)) {
       closeFileMenu()
+    }
+  }
+
+  if (showEditMenu.value) {
+    if (editMenuButton.value && !editMenuButton.value.contains(target) &&
+        editMenuDropdown.value && !editMenuDropdown.value.contains(target)) {
+      closeEditMenu()
     }
   }
 }
@@ -105,14 +141,20 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
 })
 
-// Emit event to trigger file picker from FileDropZone
+// Emit events
 const emit = defineEmits<{
   openFiles: []
+  openRenameSpeaker: []
 }>()
 
 function openFile() {
   closeFileMenu()
   emit('openFiles')
+}
+
+function openRenameSpeakerDialog() {
+  closeEditMenu()
+  emit('openRenameSpeaker')
 }
 
 // Drag and drop handlers for Open Files button

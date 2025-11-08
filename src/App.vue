@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <MenuBar :version="APP_VERSION" @open-files="handleOpenFiles" />
+    <MenuBar :version="APP_VERSION" @open-files="handleOpenFiles" @open-rename-speaker="openRenameSpeakerDialog" />
     <div class="main-content">
       <div class="resizable-container">
         <div class="left-panel" :style="{ width: leftPanelWidth + '%' }">
@@ -13,6 +13,11 @@
       </div>
     </div>
     <FileDropZone ref="fileDropZone" />
+    <RenameSpeakerDialog
+      :is-open="isRenameSpeakerDialogOpen"
+      @close="closeRenameSpeakerDialog"
+      @rename="handleRenameSpeaker"
+    />
   </div>
 </template>
 
@@ -23,6 +28,7 @@ import MenuBar from './components/MenuBar.vue'
 import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
+import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
 import packageJson from '../package.json'
 
 // Read version from package.json (single source of truth)
@@ -37,6 +43,7 @@ console.log(`========================================`)
 const store = useVTTStore()
 const leftPanelWidth = ref(60)
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
+const isRenameSpeakerDialogOpen = ref(false)
 let isResizing = false
 
 // Track if we've already attempted auto-load for the current document
@@ -44,6 +51,19 @@ const attemptedAutoLoad = ref<string | null>(null)
 
 function handleOpenFiles() {
   fileDropZone.value?.triggerFileInput()
+}
+
+function openRenameSpeakerDialog() {
+  isRenameSpeakerDialogOpen.value = true
+}
+
+function closeRenameSpeakerDialog() {
+  isRenameSpeakerDialogOpen.value = false
+}
+
+function handleRenameSpeaker({ oldName, newName }: { oldName: string; newName: string }) {
+  console.log('Renaming speaker:', oldName, '->', newName)
+  store.renameSpeaker(oldName, newName)
 }
 
 function startResize(e: MouseEvent) {
