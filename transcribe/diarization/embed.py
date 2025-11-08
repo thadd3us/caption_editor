@@ -11,6 +11,7 @@ import soundfile as sf
 import torch
 import typer
 from pyannote.audio import Inference, Model
+from tqdm import tqdm
 
 from schema import CAPTION_EDITOR_SENTINEL, TranscriptMetadata, VTTCue
 
@@ -204,15 +205,15 @@ def main(
         typer.echo(f"Computing embeddings...")
         results = []
 
-        for cue in cues:
+        for cue in tqdm(cues, desc="Processing segments", unit="segment"):
             # Extract audio segment
             audio, sample_rate = extract_audio_segment(
                 media_path, cue.start_time, cue.end_time
             )
 
             if len(audio) == 0:
-                typer.echo(
-                    f"Warning: Empty audio for segment {cue.id}", err=True
+                tqdm.write(
+                    f"Warning: Empty audio for segment {cue.id}"
                 )
                 continue
 
@@ -227,11 +228,6 @@ def main(
                 "embedding": embedding.tolist(),
             }
             results.append(result)
-
-            typer.echo(
-                f"  {cue.id}: {cue.start_time:.3f}s - {cue.end_time:.3f}s "
-                f"(embedding shape: {embedding.shape})"
-            )
 
         # Write output as JSONL
         typer.echo(f"Writing embeddings to: {output}")
