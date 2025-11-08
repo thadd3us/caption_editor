@@ -37,6 +37,8 @@ tests/electron/screenshots/
 test_data/temp/
 test_data/temp-*/
 *.embeddings.jsonl
+*.embeddings.db
+test_data/*.db
 
 # Coverage
 .nyc_output/

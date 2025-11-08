@@ -100,10 +100,11 @@ def test_embed_osr_audio(snapshot):
     with tempfile.TemporaryDirectory() as temp_dir:
         db_path = Path(temp_dir) / "test.db"
 
-        # Run embed.py as subprocess
+        # Run embed.py as subprocess from transcribe directory
+        embed_script = Path(__file__).parent.parent / "embed.py"
         result = subprocess.run(
             [
-                "python", "embed.py",
+                "python", str(embed_script),
                 str(TEST_VTT),
                 "--output", str(db_path),
             ],
