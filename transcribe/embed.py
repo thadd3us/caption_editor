@@ -1,6 +1,5 @@
 """Command-line interface for computing speaker embeddings from VTT files."""
 
-import json
 import os
 import re
 import subprocess
@@ -8,7 +7,9 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
+import libsql_client as libsql
 import numpy as np
+import pandas as pd
 import soundfile as sf
 import torch
 import typer
@@ -189,7 +190,7 @@ def main(
         None,
         "--output",
         "-o",
-        help="Output JSONL file path (default: <vtt_file>.embeddings.jsonl)",
+        help="Output libsql database path (default: <vtt_file>.embeddings.db)",
     ),
     model: str = typer.Option(
         "pyannote/embedding",
@@ -202,7 +203,7 @@ def main(
     Compute speaker embeddings for each segment in a VTT file.
 
     Requires HF_TOKEN environment variable to be set.
-    Outputs a JSONL file with segment IDs and embedding vectors.
+    Outputs to libsql database with speaker_embedding table.
     """
     # Use a temporary directory that persists through the whole function
     temp_dir_obj = tempfile.TemporaryDirectory()
@@ -246,11 +247,11 @@ def main(
 
         # Determine output path
         if output is None:
-            output = vtt_path.with_suffix(".embeddings.jsonl")
+            output = vtt_path.with_suffix(".embeddings.db")
 
         # Process each segment
         typer.echo(f"Computing embeddings...")
-        results = []
+        data = []
 
         for cue in tqdm(cues, desc="Processing segments", unit="segment"):
             # Extract audio segment
@@ -259,30 +260,39 @@ def main(
             )
 
             if len(audio) == 0:
-                tqdm.write(
-                    f"Warning: Empty audio for segment {cue.id}"
-                )
+                tqdm.write(f"Warning: Empty audio for segment {cue.id}")
                 continue
 
             # Compute embedding
             embedding = compute_embedding(inference, audio, sample_rate)
 
-            # Store result
-            result = {
+            # Convert embedding to bytes for VECTOR storage
+            data.append({
                 "segment_id": cue.id,
-                "start_time": cue.start_time,
-                "end_time": cue.end_time,
-                "embedding": embedding.tolist(),
-            }
-            results.append(result)
+                "embedding": embedding.tobytes()
+            })
 
-        # Write output as JSONL
-        typer.echo(f"Writing embeddings to: {output}")
-        with open(output, "w") as f:
-            for result in results:
-                f.write(json.dumps(result) + "\n")
+        # Write to libsql database
+        typer.echo(f"Writing embeddings to database: {output}")
+        client = libsql.create_client_sync(f"file:{output}")
 
-        typer.echo(f"Done! Computed {len(results)} embeddings")
+        # Create table
+        client.execute("""
+            CREATE TABLE IF NOT EXISTS speaker_embedding (
+                segment_id TEXT PRIMARY KEY,
+                embedding BLOB
+            )
+        """)
+
+        # Insert embeddings
+        for row in data:
+            client.execute(
+                "INSERT OR REPLACE INTO speaker_embedding (segment_id, embedding) VALUES (?, ?)",
+                [row["segment_id"], row["embedding"]]
+            )
+
+        client.close()
+        typer.echo(f"Done! Computed {len(data)} embeddings")
 
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)

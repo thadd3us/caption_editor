@@ -9,6 +9,7 @@ dependencies = [
     "megatron-core>=0.10.0",
     "nemo-toolkit[asr]>=2.5.0",
     "numpy>=2.0",  # Try numpy 2.0 - may work with both nemo and pyannote v4
+    "pandas>=2.0.0",
     "pydantic>=2.12.3",
     "soundfile>=0.13.1",
     "syrupy>=5.0.0",
@@ -22,6 +23,7 @@ dependencies = [
     "pyannote-audio>=4.0.0",
     "torchvision>=0.15.0",
     "pybind11>=3.0.1",
+    "libsql-client>=0.3.0",
 #    "torchcodec",
 ]
 
