@@ -2,17 +2,20 @@
 
 import json
 import os
+import sqlite3
+import subprocess
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import pytest
-import subprocess
 
 from diarize import diarize_audio
 from embed import convert_to_wav
 
-# Path to test audio file
+# Path to test files
 TEST_AUDIO = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
+TEST_VTT = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.vtt"
 
 
 def test_diarize_osr_audio(snapshot):
@@ -88,3 +91,44 @@ def test_convert_to_wav():
         assert stream["codec_name"] == "pcm_s16le", "Incorrect codec"
         assert int(stream["sample_rate"]) == 16000, "Incorrect sample rate"
         assert int(stream["channels"]) == 1, "Incorrect channel count"
+
+
+def test_embed_osr_audio(snapshot):
+    """Test embedding computation with snapshot comparison."""
+    assert TEST_VTT.exists(), f"Test VTT file not found: {TEST_VTT}"
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        db_path = Path(temp_dir) / "test.db"
+
+        # Run embed.py as subprocess
+        result = subprocess.run(
+            [
+                "python", "embed.py",
+                str(TEST_VTT),
+                "--output", str(db_path),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        assert db_path.exists(), "Database was not created"
+
+        # Read embeddings from database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.execute("SELECT segment_id, embedding FROM speaker_embedding ORDER BY segment_id")
+
+        embeddings = []
+        for segment_id, embedding_bytes in cursor:
+            embedding = np.frombuffer(embedding_bytes, dtype=np.float32)
+            # Round to 2 decimal places for snapshot stability
+            rounded = np.round(embedding, 2).tolist()
+            embeddings.append({
+                "segment_id": segment_id,
+                "embedding": rounded[:10],  # First 10 values for compact snapshot
+                "shape": len(embedding),
+            })
+
+        conn.close()
+
+        assert embeddings == snapshot
