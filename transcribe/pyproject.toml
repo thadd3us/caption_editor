@@ -27,8 +27,8 @@ dependencies = [
 
 [project.scripts]
 transcribe = "transcribe:app"
-diarize = "diarization.cli:app"
-embed = "diarization.embed:app"
+diarize = "diarize:app"
+embed = "embed:app"
 
 [dependency-groups]
 dev = [
