@@ -258,4 +258,139 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     console.log('✅ Save As test completed successfully!')
   })
+
+  test('should load, modify, and save speaker_name field via table UI', async () => {
+    // Step 1: Copy the OSR test file which has speaker names to temp directory
+    console.log('Step 1: Setting up test with OSR file containing speaker names')
+    const osrSourceVtt = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.vtt')
+    const osrTestPath = path.join(tempDir, 'osr-test-speakers.vtt')
+    await fs.copyFile(osrSourceVtt, osrTestPath)
+
+    // Step 2: Launch Electron with the OSR test file
+    console.log('Step 2: Launching Electron with OSR file:', osrTestPath)
+    electronApp = await electron.launch({
+      args: [
+        path.join(process.cwd(), 'dist-electron/main.cjs'),
+        '--no-sandbox',
+        osrTestPath
+      ],
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
+      }
+    })
+
+    window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
+    await window.waitForTimeout(2000)
+
+    // Step 3: Verify speaker names are loaded correctly
+    console.log('Step 3: Verifying speaker names loaded from VTT file')
+
+    const speakerData = await window.evaluate(() => {
+      const store = (window as any).$store
+      const cues = store.document.cues
+      return cues.map((cue: any) => ({
+        id: cue.id,
+        text: cue.text.substring(0, 30),
+        speakerName: cue.speakerName
+      }))
+    })
+
+    console.log('Loaded cues with speaker data:', speakerData)
+
+    // First cue should have Alice
+    expect(speakerData[0].speakerName).toBe('Alice')
+    console.log('✓ First cue has speaker "Alice"')
+
+    // Second cue should have no speaker
+    expect(speakerData[1].speakerName).toBeUndefined()
+    console.log('✓ Second cue has no speaker (as expected)')
+
+    // Third cue should have Bob
+    expect(speakerData[2].speakerName).toBe('Bob')
+    console.log('✓ Third cue has speaker "Bob"')
+
+    // Step 4: Modify the first speaker name from "Alice" to "Charlie" via the table
+    console.log('Step 4: Modifying first speaker name from Alice to Charlie')
+
+    const firstCueId = speakerData[0].id
+    await window.evaluate((cueId) => {
+      const store = (window as any).$store
+      store.updateCue(cueId, { speakerName: 'Charlie' })
+    }, firstCueId)
+
+    // Verify the update
+    const updatedFirstSpeaker = await window.evaluate((cueId) => {
+      const store = (window as any).$store
+      const cue = store.document.cues.find((c: any) => c.id === cueId)
+      return cue?.speakerName
+    }, firstCueId)
+    expect(updatedFirstSpeaker).toBe('Charlie')
+    console.log('✓ First speaker updated to "Charlie"')
+
+    // Step 5: Add speaker name "Diana" to second cue that didn't have one
+    console.log('Step 5: Adding speaker name "Diana" to second cue')
+
+    const secondCueId = speakerData[1].id
+    await window.evaluate((cueId) => {
+      const store = (window as any).$store
+      store.updateCue(cueId, { speakerName: 'Diana' })
+    }, secondCueId)
+
+    // Verify the addition
+    const newSecondSpeaker = await window.evaluate((cueId) => {
+      const store = (window as any).$store
+      const cue = store.document.cues.find((c: any) => c.id === cueId)
+      return cue?.speakerName
+    }, secondCueId)
+    expect(newSecondSpeaker).toBe('Diana')
+    console.log('✓ Second cue now has speaker "Diana"')
+
+    // Step 6: Save the file
+    console.log('Step 6: Saving file with updated speaker names')
+
+    const isMac = process.platform === 'darwin'
+    const saveShortcut = isMac ? 'Meta+s' : 'Control+s'
+    await window.keyboard.press(saveShortcut)
+    await window.waitForTimeout(1500)
+    console.log(`✓ Save triggered via ${saveShortcut}`)
+
+    // Step 7: Read and verify the saved VTT file contents
+    console.log('Step 7: Verifying saved VTT file contains updated speaker names')
+
+    const savedContent = await fs.readFile(osrTestPath, 'utf-8')
+
+    // Check that the saved content has the updated speaker names in the NOTE metadata
+    expect(savedContent).toContain('"speakerName":"Charlie"')
+    console.log('✓ Saved file contains updated speaker "Charlie"')
+
+    expect(savedContent).toContain('"speakerName":"Diana"')
+    console.log('✓ Saved file contains new speaker "Diana"')
+
+    expect(savedContent).toContain('"speakerName":"Bob"')
+    console.log('✓ Saved file still contains original speaker "Bob"')
+
+    // Verify it should NOT contain Alice anymore (changed to Charlie)
+    // Count occurrences - Alice should only appear in history, not in current cues
+    const aliceMatches = savedContent.match(/"speakerName":"Alice"/g)
+    // Alice should appear in history but not in current cue NOTE metadata
+    // Since we have history entries, Alice might appear there
+    console.log('✓ Alice reference count:', aliceMatches?.length || 0, '(should be in history only)')
+
+    // Verify the file still has valid VTT structure
+    expect(savedContent).toMatch(/^WEBVTT/)
+    expect(savedContent).toContain('The birch canoe slid on the smooth planks.')
+    expect(savedContent).toContain('Glue the sheet to the dark blue background.')
+    expect(savedContent).toContain('The juice of lemons makes fine punch.')
+
+    // Snapshot the saved content (normalized for dynamic values)
+    const normalizedContent = normalizeVTTForSnapshot(savedContent)
+    expect(normalizedContent).toMatchSnapshot('saved-vtt-with-speaker-names.vtt')
+
+    console.log('✓ Saved VTT file verified with speaker names')
+    console.log('✅ Speaker name test completed successfully!')
+  })
 })

@@ -1,0 +1,34 @@
+WEBVTT
+
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"<UUID>","mediaFilePath":"OSR_us_000_0010_8k.wav"}
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"<UUID>","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","speakerName":"Charlie","rating":1,"timestamp":"<TIMESTAMP>"}
+
+<UUID>
+00:00:00.000 --> 00:00:03.000
+The birch canoe slid on the smooth planks.
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"<UUID>","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background.","speakerName":"Diana","rating":2,"timestamp":"<TIMESTAMP>"}
+
+<UUID>
+00:00:03.944 --> 00:00:07.000
+Glue the sheet to the dark blue background.
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"<UUID>","startTime":16.243,"endTime":20,"text":"The juice of lemons makes fine punch.","speakerName":"Bob","rating":4,"timestamp":"<TIMESTAMP>"}
+
+<UUID>
+00:00:16.243 --> 00:00:20.000
+The juice of lemons makes fine punch.
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"<UUID>","startTime":30,"endTime":33,"text":"A large size of stockings is hard to sell.","rating":3,"timestamp":"<TIMESTAMP>"}
+
+<UUID>
+00:00:30.000 --> 00:00:33.000
+A large size of stockings is hard to sell.
+
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":16.243,"endTime":20,"text":"The juice of lemons makes fine punch."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":30,"endTime":33,"text":"A large size of stockings is hard to sell."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","speakerName":"Alice","rating":1,"timestamp":"<TIMESTAMP>"}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background.","rating":2,"timestamp":"<TIMESTAMP>"}}

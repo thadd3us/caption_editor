@@ -183,12 +183,14 @@ export function parseVTT(content: string): ParseResult {
           const id = pendingCue?.id || uuidv4()
           const rating = pendingCue?.rating
           const timestamp = pendingCue?.timestamp
+          const speakerName = pendingCue?.speakerName
 
           cues.push({
             id,
             startTime,
             endTime,
             text: text.trim(),
+            speakerName,
             rating,
             timestamp
           })
@@ -239,12 +241,14 @@ export function parseVTT(content: string): ParseResult {
                 : (pendingCue?.id || uuidv4())
               const rating = pendingCue?.rating
               const timestamp = pendingCue?.timestamp
+              const speakerName = pendingCue?.speakerName
 
               cues.push({
                 id,
                 startTime,
                 endTime,
                 text: text.trim(),
+                speakerName,
                 rating,
                 timestamp
               })
