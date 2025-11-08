@@ -64,6 +64,7 @@ const rowData = computed(() => {
     startTimeFormatted: formatTimestamp(cue.startTime),
     endTimeFormatted: formatTimestamp(cue.endTime),
     text: cue.text,
+    speakerName: cue.speakerName,
     rating: cue.rating
   }))
 })
@@ -85,6 +86,16 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateCue(params.data.id, { text: params.newValue })
+    }
+  },
+  {
+    field: 'speakerName',
+    headerName: 'Speaker',
+    width: 150,
+    editable: true,
+    onCellValueChanged: (params) => {
+      console.log('Speaker name edited:', params.newValue)
+      store.updateCue(params.data.id, { speakerName: params.newValue })
     }
   },
   {

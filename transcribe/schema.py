@@ -25,6 +25,7 @@ class VTTCue(BaseModel):
     start_time: float = Field(description="Start time in seconds", alias="startTime")
     end_time: float = Field(description="End time in seconds", alias="endTime")
     text: str = Field(description="Caption text")
+    speaker_name: Optional[str] = Field(None, description="Optional speaker name", alias="speakerName")
     rating: Optional[int] = Field(None, description="Optional rating 1-5")
     timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of when the cue was created/last modified")
 

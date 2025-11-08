@@ -6,6 +6,7 @@ export interface VTTCue {
   readonly startTime: number // Start time in seconds
   readonly endTime: number // End time in seconds
   readonly text: string // Caption text
+  readonly speakerName?: string // Optional speaker name
   readonly rating?: number // Optional rating 1-5
   readonly timestamp?: string // ISO 8601 timestamp of when the cue was created/last modified
 }
