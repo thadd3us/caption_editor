@@ -43,23 +43,28 @@ function parseTimestamp(timestamp: string): number {
 }
 
 /**
- * Build a VTTCue object from parsed components, using pending metadata if available
+ * Complete a pending cue by adding timing and text.
+ * If no pending cue exists, creates a new one with generated ID.
  */
-function buildCue(
+function completeCue(
+  pendingCue: Partial<VTTCue> | null,
   id: string,
   startTime: number,
   endTime: number,
-  text: string,
-  pendingCue: VTTCue | null
+  text: string
 ): VTTCue {
+  // Start with pending metadata or empty object
+  const cue = pendingCue || {}
+
+  // Fill in the parsed fields
   return {
-    id,
+    id: cue.id || id,
     startTime,
     endTime,
     text: text.trim(),
-    speakerName: pendingCue?.speakerName,
-    rating: pendingCue?.rating,
-    timestamp: pendingCue?.timestamp
+    speakerName: cue.speakerName,
+    rating: cue.rating,
+    timestamp: cue.timestamp
   }
 }
 
@@ -200,12 +205,11 @@ export function parseVTT(content: string): ParseResult {
             i++
           }
 
-          // Use pending cue data if available, otherwise generate new
-          const id = pendingCue?.id || uuidv4()
-          const cue = buildCue(id, startTime, endTime, text, pendingCue)
+          // Complete the cue with timing and text
+          const cue = completeCue(pendingCue, uuidv4(), startTime, endTime, text)
           cues.push(cue)
 
-          console.log(`Parsed cue: ${id}, ${startStr} --> ${endStr}`)
+          console.log(`Parsed cue: ${cue.id}, ${startStr} --> ${endStr}`)
           pendingCue = null
 
         } catch (err) {
@@ -245,14 +249,14 @@ export function parseVTT(content: string): ParseResult {
                 i++
               }
 
-              // Use identifier as ID if it looks like a UUID, otherwise use pending cue or generate
+              // Use identifier as ID if it looks like a UUID, otherwise generate
               const id = identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
                 ? identifier
-                : (pendingCue?.id || uuidv4())
-              const cue = buildCue(id, startTime, endTime, text, pendingCue)
+                : uuidv4()
+              const cue = completeCue(pendingCue, id, startTime, endTime, text)
               cues.push(cue)
 
-              console.log(`Parsed cue with identifier: ${id}, ${startStr} --> ${endStr}`)
+              console.log(`Parsed cue with identifier: ${cue.id}, ${startStr} --> ${endStr}`)
               pendingCue = null
 
             } catch (err) {
