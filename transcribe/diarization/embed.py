@@ -3,7 +3,6 @@
 import json
 import os
 import re
-import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -12,40 +11,10 @@ import soundfile as sf
 import torch
 import typer
 from pyannote.audio import Inference, Model
-from pydantic import BaseModel, ConfigDict, Field
+
+from schema import CAPTION_EDITOR_SENTINEL, TranscriptMetadata, VTTCue
 
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
-
-# Sentinel prefix for app-specific NOTE comments in VTT files
-CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
-
-
-class VTTCue(BaseModel):
-    """VTT cue matching the frontend data model."""
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    id: str = Field(description="UUID - cue identifier")
-    start_time: float = Field(description="Start time in seconds", alias="startTime")
-    end_time: float = Field(description="End time in seconds", alias="endTime")
-    text: str = Field(description="Caption text")
-    rating: Optional[int] = Field(None, description="Optional rating 1-5")
-    timestamp: Optional[str] = Field(
-        None, description="ISO 8601 timestamp of when the cue was created/last modified"
-    )
-
-
-class TranscriptMetadata(BaseModel):
-    """Metadata for the transcript document."""
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    id: str = Field(description="UUID for the document")
-    media_file_path: Optional[str] = Field(
-        None,
-        description="Optional path to the media file (relative to VTT file directory if possible)",
-        alias="mediaFilePath",
-    )
 
 
 def get_hf_token() -> str:
