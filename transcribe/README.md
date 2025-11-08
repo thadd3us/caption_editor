@@ -16,8 +16,9 @@ A unified Python environment providing:
 
 ### Speaker Diarization
 - **Speaker identification**: Detects and labels different speakers in audio
+- **Speaker embeddings**: Compute embedding vectors for each segment in a VTT file
 - **Powered by pyannote.audio v4**: State-of-the-art speaker diarization
-- **Simple CLI interface**: Easy to use command-line tool
+- **Simple CLI interface**: Easy to use command-line tools
 
 ## Installation
 
@@ -78,6 +79,53 @@ SPEAKER_00 speaks between t=0.000s and t=3.500s
 SPEAKER_01 speaks between t=3.500s and t=7.200s
 SPEAKER_00 speaks between t=7.200s and t=10.000s
 ```
+
+### Speaker Embeddings
+
+Compute speaker embedding vectors for each segment in a VTT file. This is useful for speaker clustering, comparison, and identification tasks.
+
+**Prerequisites:**
+
+1. **Accept the model terms on HuggingFace:**
+   - Visit https://huggingface.co/pyannote/embedding
+   - Click "Agree and access repository"
+   - Accept the user agreement
+   - Wait a few minutes for access to propagate
+
+2. **Set your HuggingFace token:**
+   ```bash
+   export HF_TOKEN=your_huggingface_token_here
+   ```
+
+3. **Have a VTT file with CAPTION_EDITOR metadata:**
+   - VTT file must include `NOTE CAPTION_EDITOR:TranscriptMetadata` with media file path
+   - VTT file must include `NOTE CAPTION_EDITOR:VTTCue` for each segment
+   - Media file path is relative to the VTT file directory
+
+**Run embedding computation:**
+
+```bash
+# Basic usage (outputs to <vtt_file>.embeddings.jsonl)
+uv run embed path/to/transcript.vtt
+
+# Specify output file
+uv run embed transcript.vtt --output embeddings.jsonl
+
+# Use a different model
+uv run embed transcript.vtt --model pyannote/wespeaker-voxceleb-resnet34-LM
+```
+
+**Output format (JSONL):**
+```json
+{"segment_id": "uuid-1", "start_time": 0.0, "end_time": 3.0, "embedding": [0.123, -0.456, ...]}
+{"segment_id": "uuid-2", "start_time": 3.944, "end_time": 7.0, "embedding": [0.789, -0.234, ...]}
+```
+
+Each line contains:
+- `segment_id`: UUID of the VTT segment
+- `start_time`: Start time in seconds
+- `end_time`: End time in seconds
+- `embedding`: 512-dimensional vector (for pyannote/embedding model)
 
 ### Options
 

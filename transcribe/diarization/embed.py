@@ -1,0 +1,281 @@
+"""Command-line interface for computing speaker embeddings from VTT files."""
+
+import json
+import os
+import re
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+import soundfile as sf
+import torch
+import typer
+from pyannote.audio import Inference, Model
+from pydantic import BaseModel, ConfigDict, Field
+
+app = typer.Typer(help="Compute speaker embeddings from VTT files")
+
+# Sentinel prefix for app-specific NOTE comments in VTT files
+CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
+
+
+class VTTCue(BaseModel):
+    """VTT cue matching the frontend data model."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(description="UUID - cue identifier")
+    start_time: float = Field(description="Start time in seconds", alias="startTime")
+    end_time: float = Field(description="End time in seconds", alias="endTime")
+    text: str = Field(description="Caption text")
+    rating: Optional[int] = Field(None, description="Optional rating 1-5")
+    timestamp: Optional[str] = Field(
+        None, description="ISO 8601 timestamp of when the cue was created/last modified"
+    )
+
+
+class TranscriptMetadata(BaseModel):
+    """Metadata for the transcript document."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(description="UUID for the document")
+    media_file_path: Optional[str] = Field(
+        None,
+        description="Optional path to the media file (relative to VTT file directory if possible)",
+        alias="mediaFilePath",
+    )
+
+
+def get_hf_token() -> str:
+    """Get HuggingFace token from environment."""
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        raise ValueError(
+            "HF_TOKEN environment variable not set. "
+            "Please set it with your HuggingFace token."
+        )
+    return token
+
+
+def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[VTTCue]]:
+    """Parse VTT file and extract metadata and cues from NOTE comments.
+
+    Args:
+        vtt_path: Path to the VTT file
+
+    Returns:
+        Tuple of (metadata, cues)
+    """
+    content = vtt_path.read_text()
+    lines = content.split("\n")
+
+    metadata = None
+    cues = []
+
+    # Pattern to match NOTE CAPTION_EDITOR: lines
+    pattern = re.compile(
+        rf"^NOTE {CAPTION_EDITOR_SENTINEL}:(\w+)\s+(.+)$"
+    )
+
+    for line in lines:
+        match = pattern.match(line.strip())
+        if match:
+            data_type = match.group(1)
+            json_data = match.group(2)
+
+            if data_type == "TranscriptMetadata":
+                metadata = TranscriptMetadata.model_validate_json(json_data)
+            elif data_type == "VTTCue":
+                cue = VTTCue.model_validate_json(json_data)
+                cues.append(cue)
+
+    if metadata is None:
+        raise ValueError(
+            f"No TranscriptMetadata found in VTT file: {vtt_path}"
+        )
+
+    if not cues:
+        raise ValueError(f"No VTTCue entries found in VTT file: {vtt_path}")
+
+    return metadata, cues
+
+
+def extract_audio_segment(
+    audio_path: Path, start_time: float, end_time: float
+) -> tuple[np.ndarray, int]:
+    """Extract a segment of audio from a file.
+
+    Args:
+        audio_path: Path to the audio file
+        start_time: Start time in seconds
+        end_time: End time in seconds
+
+    Returns:
+        Tuple of (audio_data, sample_rate)
+    """
+    info = sf.info(audio_path)
+    sample_rate = info.samplerate
+
+    start_frame = int(start_time * sample_rate)
+    end_frame = int(end_time * sample_rate)
+    num_frames = end_frame - start_frame
+
+    # Clamp to file bounds
+    if start_frame >= info.frames:
+        return np.array([]), sample_rate
+
+    num_frames = min(num_frames, info.frames - start_frame)
+
+    audio, sr = sf.read(
+        audio_path, start=start_frame, frames=num_frames, dtype="float32"
+    )
+    return audio, sr
+
+
+def compute_embedding(
+    inference: Inference, audio: np.ndarray, sample_rate: int
+) -> np.ndarray:
+    """Compute embedding for an audio segment.
+
+    Args:
+        inference: Pyannote Inference object
+        audio: Audio data as numpy array
+        sample_rate: Sample rate of the audio
+
+    Returns:
+        Embedding vector as numpy array
+    """
+    # Convert audio to torch tensor for in-memory processing
+    # pyannote expects (channel, time) shape
+    if audio.ndim == 1:
+        # Mono audio - add channel dimension
+        waveform = torch.from_numpy(audio).unsqueeze(0)
+    else:
+        # Multi-channel - transpose to (channel, time)
+        waveform = torch.from_numpy(audio.T)
+
+    # Create audio dict for pyannote
+    audio_dict = {
+        "waveform": waveform,
+        "sample_rate": sample_rate,
+    }
+
+    # Compute embedding using the inference model
+    embedding = inference(audio_dict)
+
+    # Convert to numpy array if needed
+    if not isinstance(embedding, np.ndarray):
+        embedding = np.array(embedding)
+
+    return embedding
+
+
+@app.command()
+def main(
+    vtt_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Path to the VTT file",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output JSONL file path (default: <vtt_file>.embeddings.jsonl)",
+    ),
+    model: str = typer.Option(
+        "pyannote/embedding",
+        "--model",
+        "-m",
+        help="Pyannote embedding model to use",
+    ),
+) -> None:
+    """
+    Compute speaker embeddings for each segment in a VTT file.
+
+    Requires HF_TOKEN environment variable to be set.
+    Outputs a JSONL file with segment IDs and embedding vectors.
+    """
+    try:
+        # Get HuggingFace token
+        token = get_hf_token()
+
+        # Parse VTT file
+        typer.echo(f"Parsing VTT file: {vtt_path}")
+        metadata, cues = parse_vtt_file(vtt_path)
+
+        # Get media file path (relative to VTT directory)
+        if not metadata.media_file_path:
+            raise ValueError("No media file path found in VTT metadata")
+
+        vtt_dir = vtt_path.parent
+        media_path = vtt_dir / metadata.media_file_path
+
+        if not media_path.exists():
+            raise ValueError(f"Media file not found: {media_path}")
+
+        typer.echo(f"Media file: {media_path}")
+        typer.echo(f"Found {len(cues)} segments")
+
+        # Load embedding model
+        typer.echo(f"Loading embedding model: {model}")
+        embedding_model = Model.from_pretrained(model, use_auth_token=token)
+        inference = Inference(embedding_model, window="whole")
+
+        # Determine output path
+        if output is None:
+            output = vtt_path.with_suffix(".embeddings.jsonl")
+
+        # Process each segment
+        typer.echo(f"Computing embeddings...")
+        results = []
+
+        for cue in cues:
+            # Extract audio segment
+            audio, sample_rate = extract_audio_segment(
+                media_path, cue.start_time, cue.end_time
+            )
+
+            if len(audio) == 0:
+                typer.echo(
+                    f"Warning: Empty audio for segment {cue.id}", err=True
+                )
+                continue
+
+            # Compute embedding
+            embedding = compute_embedding(inference, audio, sample_rate)
+
+            # Store result
+            result = {
+                "segment_id": cue.id,
+                "start_time": cue.start_time,
+                "end_time": cue.end_time,
+                "embedding": embedding.tolist(),
+            }
+            results.append(result)
+
+            typer.echo(
+                f"  {cue.id}: {cue.start_time:.3f}s - {cue.end_time:.3f}s "
+                f"(embedding shape: {embedding.shape})"
+            )
+
+        # Write output as JSONL
+        typer.echo(f"Writing embeddings to: {output}")
+        with open(output, "w") as f:
+            for result in results:
+                f.write(json.dumps(result) + "\n")
+
+        typer.echo(f"Done! Computed {len(results)} embeddings")
+
+    except Exception as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+
+
+if __name__ == "__main__":
+    app()
