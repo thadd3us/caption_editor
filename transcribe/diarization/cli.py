@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+import torch
+import torchaudio
 import typer
 from pyannote.audio import Pipeline
 
@@ -41,8 +43,13 @@ def diarize_audio(
     # always auto-detect HF_TOKEN from environment
     pipeline = Pipeline.from_pretrained(model, token=token)
 
-    # Run diarization
-    output = pipeline(str(audio_path), return_embeddings=True)
+    # Load audio using torchaudio since torchcodec may not be available
+    # pyannote.audio accepts audio as {'waveform': tensor, 'sample_rate': int}
+    waveform, sample_rate = torchaudio.load(str(audio_path))
+    audio_dict = {"waveform": waveform, "sample_rate": sample_rate}
+
+    # Run diarization with preloaded audio
+    output = pipeline(audio_dict, return_embeddings=True)
 
     # Extract speaker turns from the speaker_diarization annotation
     # (pyannote v4 returns a DiarizeOutput object with speaker_diarization attribute)
