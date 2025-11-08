@@ -9,7 +9,7 @@ import {
   updateCue,
   deleteCue
 } from './vttParser'
-import type { VTTDocument, VTTCue } from '../types/vtt'
+import type { VTTDocument, VTTCue } from '../types/schema'
 
 describe('vttParser', () => {
   describe('formatTimestamp', () => {

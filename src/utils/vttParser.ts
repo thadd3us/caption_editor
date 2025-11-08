@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata } from '../types/vtt'
+import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata } from '../types/schema'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files

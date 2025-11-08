@@ -1,4 +1,18 @@
 /**
+ * TypeScript/Python Schema Sync
+ *
+ * IMPORTANT: This file defines the data schema for VTT documents and must be kept
+ * in sync with the Python schema defined in transcribe/schema.py.
+ *
+ * When adding or modifying fields:
+ * 1. Update both TypeScript (this file) and Python (transcribe/schema.py) schemas
+ * 2. Use camelCase in TypeScript and snake_case in Python with Field aliases for conversion
+ * 3. Ensure optional fields are marked consistently (readonly field?: type in TS, Optional[type] in Python)
+ * 4. Update serialization/parsing logic in src/utils/vttParser.ts if needed
+ * 5. Run both TypeScript and Python tests to verify compatibility
+ */
+
+/**
  * Immutable VTT caption entry with UUID, timestamps, rating, and text
  */
 export interface VTTCue {

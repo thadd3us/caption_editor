@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { serializeVTT } from '../../src/utils/vttParser'
-import type { VTTDocument } from '../../src/types/vtt'
+import type { VTTDocument } from '../../src/types/schema'
 import * as fs from 'fs'
 import * as path from 'path'
 

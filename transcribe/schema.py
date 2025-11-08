@@ -5,6 +5,19 @@ This module defines the data models used by the caption editor for VTT files,
 including cues, metadata, and history entries. These models are shared between
 the Python transcription tools and can be used by other tools that need to
 work with the VTT format.
+
+TypeScript/Python Schema Sync
+==============================
+
+IMPORTANT: This file must be kept in sync with the TypeScript schema
+defined in src/types/schema.ts.
+
+When adding or modifying fields:
+1. Update both Python (this file) and TypeScript (src/types/schema.ts) schemas
+2. Use snake_case in Python with Field aliases for camelCase conversion to match TypeScript
+3. Ensure optional fields are marked consistently (Optional[type] in Python, readonly field?: type in TS)
+4. Update serialization/parsing logic in src/utils/vttParser.ts if needed
+5. Run both Python and TypeScript tests to verify compatibility
 """
 
 from typing import Optional
