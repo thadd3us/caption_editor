@@ -43,6 +43,27 @@ function parseTimestamp(timestamp: string): number {
 }
 
 /**
+ * Build a VTTCue object from parsed components, using pending metadata if available
+ */
+function buildCue(
+  id: string,
+  startTime: number,
+  endTime: number,
+  text: string,
+  pendingCue: VTTCue | null
+): VTTCue {
+  return {
+    id,
+    startTime,
+    endTime,
+    text: text.trim(),
+    speakerName: pendingCue?.speakerName,
+    rating: pendingCue?.rating,
+    timestamp: pendingCue?.timestamp
+  }
+}
+
+/**
  * Format seconds to VTT timestamp HH:MM:SS.mmm
  */
 export function formatTimestamp(seconds: number): string {
@@ -181,19 +202,8 @@ export function parseVTT(content: string): ParseResult {
 
           // Use pending cue data if available, otherwise generate new
           const id = pendingCue?.id || uuidv4()
-          const rating = pendingCue?.rating
-          const timestamp = pendingCue?.timestamp
-          const speakerName = pendingCue?.speakerName
-
-          cues.push({
-            id,
-            startTime,
-            endTime,
-            text: text.trim(),
-            speakerName,
-            rating,
-            timestamp
-          })
+          const cue = buildCue(id, startTime, endTime, text, pendingCue)
+          cues.push(cue)
 
           console.log(`Parsed cue: ${id}, ${startStr} --> ${endStr}`)
           pendingCue = null
@@ -239,19 +249,8 @@ export function parseVTT(content: string): ParseResult {
               const id = identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
                 ? identifier
                 : (pendingCue?.id || uuidv4())
-              const rating = pendingCue?.rating
-              const timestamp = pendingCue?.timestamp
-              const speakerName = pendingCue?.speakerName
-
-              cues.push({
-                id,
-                startTime,
-                endTime,
-                text: text.trim(),
-                speakerName,
-                rating,
-                timestamp
-              })
+              const cue = buildCue(id, startTime, endTime, text, pendingCue)
+              cues.push(cue)
 
               console.log(`Parsed cue with identifier: ${id}, ${startStr} --> ${endStr}`)
               pendingCue = null
