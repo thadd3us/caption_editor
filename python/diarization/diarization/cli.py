@@ -42,7 +42,7 @@ def diarize_audio(
     pipeline = Pipeline.from_pretrained(model, token=token)
 
     # Run diarization
-    output = pipeline(str(audio_path))
+    output = pipeline(str(audio_path), return_embeddings=True)
 
     # Extract speaker turns from the speaker_diarization annotation
     # (pyannote v4 returns a DiarizeOutput object with speaker_diarization attribute)
