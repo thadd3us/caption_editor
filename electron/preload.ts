@@ -108,6 +108,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isAbsolute: (p: string) => path.isAbsolute(p),
     normalize: (p: string) => path.normalize(p),
     join: (...paths: string[]) => path.join(...paths)
+  },
+
+  /**
+   * IPC renderer for menu events
+   */
+  ipcRenderer: {
+    on: (channel: string, callback: () => void) => {
+      ipcRenderer.on(channel, callback)
+    }
   }
 })
 

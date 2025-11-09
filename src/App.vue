@@ -1,6 +1,5 @@
 <template>
   <div class="app">
-    <MenuBar :version="APP_VERSION" @open-files="handleOpenFiles" @open-rename-speaker="openRenameSpeakerDialog" />
     <div class="main-content">
       <div class="resizable-container">
         <div class="left-panel" :style="{ width: leftPanelWidth + '%' }">
@@ -24,19 +23,15 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useVTTStore } from './stores/vttStore'
-import MenuBar from './components/MenuBar.vue'
 import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
 import packageJson from '../package.json'
 
-// Read version from package.json (single source of truth)
-const APP_VERSION = packageJson.version
-
 // Log version on startup
 console.log(`========================================`)
-console.log(`VTT Caption Editor v${APP_VERSION}`)
+console.log(`VTT Caption Editor v${packageJson.version}`)
 console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' : 'Browser'}`)
 console.log(`========================================`)
 
@@ -48,10 +43,6 @@ let isResizing = false
 
 // Track if we've already attempted auto-load for the current document
 const attemptedAutoLoad = ref<string | null>(null)
-
-function handleOpenFiles() {
-  fileDropZone.value?.triggerFileInput()
-}
 
 function openRenameSpeakerDialog() {
   isRenameSpeakerDialogOpen.value = true
@@ -200,11 +191,95 @@ watch(
   { immediate: true, deep: true }
 )
 
+// Menu action handlers
+async function handleMenuOpenFile() {
+  fileDropZone.value?.triggerFileInput()
+}
+
+async function handleMenuSaveFile() {
+  if (!window.electronAPI) {
+    console.error('Electron API not available')
+    return
+  }
+
+  if (!store.document.filePath) {
+    console.log('No file path stored, doing Save As')
+    await handleMenuSaveAs()
+    return
+  }
+
+  console.log('Saving VTT file to:', store.document.filePath)
+  try {
+    const content = store.exportToString()
+
+    const result = await window.electronAPI.saveExistingFile({
+      filePath: store.document.filePath,
+      content
+    })
+
+    if (result.success) {
+      console.log('VTT file saved successfully to:', result.filePath)
+      if (result.filePath && result.filePath !== store.document.filePath) {
+        store.updateFilePath(result.filePath)
+      }
+    } else {
+      console.error('Failed to save VTT:', result.error)
+      alert('Failed to save VTT file: ' + result.error)
+    }
+  } catch (err) {
+    console.error('Failed to save VTT:', err)
+    alert('Failed to save VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+  }
+}
+
+async function handleMenuSaveAs() {
+  if (!window.electronAPI) {
+    console.error('Electron API not available')
+    return
+  }
+
+  console.log('Exporting VTT file')
+  try {
+    const content = store.exportToString()
+
+    const result = await window.electronAPI.saveFile({
+      content,
+      suggestedName: store.document.filePath || 'captions.vtt'
+    })
+
+    if (result.success) {
+      console.log('VTT file saved successfully:', result.filePath)
+      if (result.filePath) {
+        store.updateFilePath(result.filePath)
+      }
+    } else if (result.error !== 'Save canceled') {
+      console.error('Failed to save VTT:', result.error)
+      alert('Failed to save VTT file: ' + result.error)
+    }
+  } catch (err) {
+    console.error('Failed to export VTT:', err)
+    alert('Failed to export VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+  }
+}
+
 // Also attempt auto-load on mount (for localStorage recovery)
 onMounted(() => {
   setTimeout(() => {
     attemptMediaAutoLoad()
   }, 200)
+
+  // Set up native menu IPC listeners
+  if ((window as any).electronAPI) {
+    const { ipcRenderer } = (window as any).electronAPI
+
+    if (ipcRenderer) {
+      ipcRenderer.on('menu-open-file', handleMenuOpenFile)
+      ipcRenderer.on('menu-save-file', handleMenuSaveFile)
+      ipcRenderer.on('menu-save-as', handleMenuSaveAs)
+      ipcRenderer.on('menu-rename-speaker', openRenameSpeakerDialog)
+      console.log('[App] ✓ Native menu IPC listeners registered')
+    }
+  }
 
   // Listen for files dropped (intercepted by main process with full paths)
   if ((window as any).electronAPI?.onFileDropped) {

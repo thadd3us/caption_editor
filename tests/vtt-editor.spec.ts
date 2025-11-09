@@ -14,15 +14,17 @@ test.describe('VTT Editor', () => {
 
   test('should load the application', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('h1')).toContainText('VTT Editor')
+    // Check that the app container loaded (no menu bar in native app)
+    await expect(page.locator('.app')).toBeVisible()
     console.log('Application loaded successfully')
   })
 
-  test('should show file upload button', async ({ page }) => {
+  test('should show caption table', async ({ page }) => {
     await page.goto('/')
-    const uploadButton = page.locator('button', { hasText: 'Open Files' })
-    await expect(uploadButton).toBeVisible()
-    console.log('Upload button is visible')
+    // Check that caption table is visible (replaces menu bar button test)
+    const captionTable = page.locator('.caption-table')
+    await expect(captionTable).toBeVisible()
+    console.log('Caption table is visible')
   })
 
   test('should load VTT file via drag and drop', async ({ page }) => {
