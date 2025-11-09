@@ -74,6 +74,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'text',
     headerName: 'Caption',
     flex: 1,
+    minWidth: 200,
     editable: true,
     cellEditor: 'agLargeTextCellEditor',
     cellEditorParams: {
@@ -400,5 +401,12 @@ onUnmounted(() => {
 :deep(.ag-cell[col-id="startTime"].ag-cell-inline-editing),
 :deep(.ag-cell[col-id="endTime"].ag-cell-inline-editing) {
   direction: ltr !important;
+}
+
+/* Reduce line spacing for wrapped text in caption column */
+:deep(.ag-cell[col-id="text"]) {
+  line-height: 1.3;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 </style>

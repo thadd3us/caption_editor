@@ -161,7 +161,7 @@ def main(
     auto_assign_speaker_clusters_to_unknown_names: bool = typer.Option(
         False,
         "--auto_assign_speaker_clusters_to_unknown_names",
-        help="Automatically cluster speakers and assign names like 'Unknown Speaker 00?'",
+        help="Automatically cluster speakers and assign names like 'Unknown 00?'",
     ),
     num_speaker_clusters: int = typer.Option(
         2,
@@ -278,7 +278,7 @@ def main(
                 # Only assign speaker name if it's currently empty
                 if not cue.speaker_name:
                     cluster_id = cluster_labels[cue_idx]
-                    cue.speaker_name = f"Unknown Speaker {cluster_id:02d}?"
+                    cue.speaker_name = f"Unknown {cluster_id:02d}?"
 
                 cue_idx += 1
 

@@ -9,6 +9,15 @@
 
 ## Development Workflow
 
+### Version Management
+
+**IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version by 0.01!**
+
+After making changes to Node.js/TypeScript code:
+1. Open `package.json`
+2. Increment the `version` field by 0.01 (e.g., `1.0.8` → `1.0.9`)
+3. This ensures users can track which version they're running and helps with debugging
+
 ### Committing Work
 
 **IMPORTANT: Always commit your work when you reach a good checkpoint!**
@@ -611,7 +620,7 @@ HF_TOKEN=your_token uv run python embed.py path/to/file.vtt \
 1. Computes speaker embeddings using pyannote.audio
 2. Normalizes embeddings for cosine similarity
 3. Clusters using k-means
-4. Assigns "Unknown Speaker 00?", "Unknown Speaker 01?", etc.
+4. Assigns "Unknown 00?", "Unknown 01?", etc.
 5. Preserves existing non-empty speaker names
 6. Overwrites input VTT file with updated assignments
 
