@@ -278,6 +278,23 @@ npx playwright show-report
 
 ## Architecture Notes
 
+### Native Electron Menu
+- Uses Electron's native `Menu` API instead of custom HTML/CSS menu bar
+- Menu configured in `electron/main.ts` with `Menu.buildFromTemplate()`
+- Provides platform-native experience:
+  - **macOS**: Menu bar at top of screen
+  - **Windows/Linux**: Menu bar at top of window
+- Menu actions communicate with renderer via IPC:
+  - Menu clicks send IPC events (`menu-open-file`, `menu-save-file`, etc.)
+  - Renderer listens for events in `App.vue` via `electronAPI.ipcRenderer.on()`
+- Keyboard shortcuts handled by Electron (Cmd/Ctrl+O, Cmd/Ctrl+S, etc.)
+- Menu includes:
+  - **File**: Open, Save, Save As
+  - **Edit**: Standard editing commands + Rename Speaker
+  - **View**: Zoom, reload, dev tools
+  - **Window**: Minimize, zoom, close
+  - **Help**: Version info
+
 ### State Management
 - Uses Pinia for global state (`vttStore.ts`)
 - Document model is immutable - all operations return new objects
