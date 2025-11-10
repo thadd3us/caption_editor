@@ -1,0 +1,94 @@
+# serializer version: 1
+# name: test_chunked_10s_processing
+  dict({
+    'cues': list([
+      dict({
+        'duration': 9.54,
+        'end_time': 9.54,
+        'start_time': 0.0,
+        'text': 'The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a',
+      }),
+      dict({
+        'duration': 8.200000000000001,
+        'end_time': 18.98,
+        'start_time': 10.78,
+        'text': 'These  days  a  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemon  makes  fine',
+      }),
+      dict({
+        'duration': 8.3,
+        'end_time': 28.64,
+        'start_time': 20.34,
+        'text': 'The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  Four  hours  of  steady  work  faced',
+      }),
+    ]),
+    'num_cues': 3,
+  })
+# ---
+# name: test_chunked_20s_processing
+  dict({
+    'cues': list([
+      dict({
+        'duration': 9.54,
+        'end_time': 9.54,
+        'start_time': 0.0,
+        'text': 'The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a',
+      }),
+      dict({
+        'duration': 9.440000000000001,
+        'end_time': 18.98,
+        'start_time': 9.54,
+        'text': 'well.  These  days  a  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemon  makes  fine',
+      }),
+    ]),
+    'num_cues': 2,
+  })
+# ---
+# name: test_full_file_processing
+  dict({
+    'cues': list([
+      dict({
+        'duration': 4.02,
+        'end_time': 4.02,
+        'start_time': 0.0,
+        'text': 'The  birch  can  use  lid  on  the  smooth  planks.',
+      }),
+      dict({
+        'duration': 2.0199999999999996,
+        'end_time': 6.64,
+        'start_time': 4.62,
+        'text': 'Glue  the  sheet  to  the  dark  blue  background.',
+      }),
+      dict({
+        'duration': 2.62,
+        'end_time': 10.5,
+        'start_time': 7.88,
+        'text': 'It  is  easy  to  tell  the  depth  of  a  well.',
+      }),
+      dict({
+        'duration': 3.119999999999999,
+        'end_time': 14.04,
+        'start_time': 10.92,
+        'text': 'These  days,  the  chicken  leg  is  a  rare  dish.',
+      }),
+      dict({
+        'duration': 5.82,
+        'end_time': 20.16,
+        'start_time': 14.34,
+        'text': 'Rice  is  often  served  in  round  bowls.  The  juice  of  lemons  makes  fine  punch.',
+      }),
+      dict({
+        'duration': 9.86,
+        'end_time': 30.3,
+        'start_time': 20.44,
+        'text': 'The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  For  hours  of  steady  work  faced  us,  a',
+      }),
+      dict({
+        'duration': 7.139999999999997,
+        'end_time': 37.44,
+        'start_time': 30.3,
+        'text': 'large  size  in  stockings  is  hard  to  sell.',
+      }),
+    ]),
+    'num_cues': 7,
+  })
+# ---
