@@ -542,7 +542,7 @@ def parse_transformers_result_with_words(
             'timestamp': (
                 chunk_start + chunk['timestamp'][0] if chunk['timestamp'][0] is not None else None,
                 chunk_start + chunk['timestamp'][1] if chunk['timestamp'][1] is not None else None,
-            ) if isinstance(chunk.get('timestamp'), tuple) else None,
+            ) if isinstance(chunk.get('timestamp'), (tuple, list)) else None,
         }
         for chunk in result['chunks']
     ]
