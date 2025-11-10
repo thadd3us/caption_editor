@@ -226,7 +226,7 @@ def main(
         help="Hugging Face model name",
     ),
     max_intra_segment_gap_seconds: float = typer.Option(
-        0.20,
+        0.50,
         "--max-intra-segment-gap-seconds",
         help="Maximum gap between words before splitting segment",
     ),
