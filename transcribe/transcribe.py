@@ -218,9 +218,12 @@ def compute_audio_hash(audio_path: Path) -> str:
 
 @app.command()
 def main(
-    media_file: Path = typer.Argument(..., help="Input media file to transcribe"),
+    media_file: Path = typer.Argument(..., help="Input media file to transcribe", 
+    exists=True, file_okay=True, dir_okay=False, readable=True,
+    ),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output VTT file path"
+        None, "--output", "-o", help="Output VTT file path",
+        exists=False, file_okay=True, dir_okay=False, writable=True,
     ),
     chunk_size: int = typer.Option(
         60, "--chunk-size", "-c", help="Chunk size in seconds"
@@ -235,14 +238,14 @@ def main(
         help="Hugging Face model name",
     ),
     max_intra_segment_gap_seconds: float = typer.Option(
-        2.0,
+        0.20,
         "--max-intra-segment-gap-seconds",
-        help="Maximum gap between words before splitting segment (default: 2.0s)",
+        help="Maximum gap between words before splitting segment",
     ),
     max_segment_duration_seconds: float = typer.Option(
         10.0,
         "--max-segment-duration-seconds",
-        help="Maximum segment duration before splitting (default: 10.0s)",
+        help="Maximum segment duration before splitting",
     ),
     deterministic_ids: bool = typer.Option(
         False,
@@ -258,10 +261,6 @@ def main(
 
     TODO: Add speaker identification to segments.
     """
-    if not media_file.exists():
-        typer.echo(f"Error: Media file not found: {media_file}", err=True)
-        raise typer.Exit(1)
-
     # Determine output path
     if output is None:
         output = media_file.with_suffix(".vtt")
@@ -374,21 +373,9 @@ def main(
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Copy media file with same name to output directory
-        media_filename = media_file.name
-        copied_media_path = output_dir / media_filename
-
-        # Only copy if source and destination are different
-        if media_file.resolve() != copied_media_path.resolve():
-            typer.echo(f"Copying media file to: {copied_media_path}")
-            shutil.copy2(media_file, copied_media_path)
-
-        # Media file path is just the filename (same directory as VTT)
-        media_file_path = media_filename
-
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file_path, deterministic_ids=deterministic_ids)
+        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file, deterministic_ids=deterministic_ids)
 
         # Write output
         output.write_text(vtt_content)
