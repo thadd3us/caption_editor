@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 from asr_results_to_vtt import (
     asr_segments_to_vtt_cues,
+    group_segments_by_gap,
     parse_nemo_result_with_words,
     parse_transformers_result_with_words,
     resolve_overlap_conflicts,
@@ -340,17 +341,22 @@ def main(
             all_segments.extend(chunk_segments)
 
         # Three-pass segment processing pipeline:
-        # 1. Split by word gaps
-        typer.echo(f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s...")
-        after_gap_split = split_segments_by_word_gap(all_segments, max_intra_segment_gap_seconds)
-
-        # 2. Split long segments
-        typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
-        after_duration_split = split_long_segments(after_gap_split, max_segment_duration_seconds)
-
-        # 3. Resolve overlaps from chunked processing
+        # 1. Resolve overlaps from chunked processing (deduplicate at word level)
         typer.echo("Resolving overlaps from chunked processing...")
-        final_segments = resolve_overlap_conflicts(after_duration_split, chunk_size, overlap)
+        after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
+
+        # 2a. For Whisper (word-level segments), group by gaps to form sentences
+        # 2b. For Parakeet (sentence-level segments), split by word gaps if needed
+        if "whisper" in model_name.lower():
+            typer.echo(f"Grouping word segments with gaps < {max_intra_segment_gap_seconds}s...")
+            after_grouping = group_segments_by_gap(after_overlap, max_intra_segment_gap_seconds)
+        else:
+            typer.echo(f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s...")
+            after_grouping = split_segments_by_word_gap(after_overlap, max_intra_segment_gap_seconds)
+
+        # 3. Split long segments
+        typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
+        final_segments = split_long_segments(after_grouping, max_segment_duration_seconds)
 
         # Convert ASRSegments to VTTCues
         typer.echo("Converting segments to VTT cues...")

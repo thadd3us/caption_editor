@@ -108,22 +108,25 @@ def parse_transformers_segment(chunk_data: dict, all_chunks: List[dict]) -> Opti
 
 
 def group_whisper_words_into_segments(chunks: List[dict]) -> List[ASRSegment]:
-    """Group Whisper word-level chunks into one big segment.
+    """Convert Whisper word-level chunks into individual word segments.
 
     Whisper with return_timestamps="word" gives us individual words.
-    We put all words into one large segment, and let the splitting passes
-    (split_by_word_gap and split_long_segments) handle breaking it up properly.
+    We create one tiny segment per word, and let the gap-based splitting
+    handle grouping them into proper sentence-level segments.
+
+    This approach allows overlap resolution to work on word-level granularity
+    before we group into sentences.
 
     Args:
         chunks: Word-level chunks from Whisper pipeline
 
     Returns:
-        List containing a single ASRSegment with all words
+        List of ASRSegment objects, one per word
     """
     if not chunks:
         return []
 
-    all_words = []
+    segments = []
 
     for chunk in chunks:
         timestamp = chunk.get('timestamp')
@@ -139,19 +142,86 @@ def group_whisper_words_into_segments(chunks: List[dict]) -> List[ASRSegment]:
             start=start,
             end=end,
         )
-        all_words.append(word_obj)
 
-    if not all_words:
+        # Create a segment for each individual word
+        segments.append(ASRSegment(
+            text=chunk['text'].strip(),
+            start=start,
+            end=end,
+            words=[word_obj],
+        ))
+
+    return segments
+
+
+def group_segments_by_gap(
+    segments: List[ASRSegment],
+    max_gap_seconds: float = 0.5,
+) -> List[ASRSegment]:
+    """Group consecutive segments when gaps between them are small.
+
+    This is useful for grouping individual word segments into sentence-level segments.
+    Segments are grouped together as long as the gap between consecutive segments
+    is less than max_gap_seconds.
+
+    Args:
+        segments: Input segments (e.g., individual words)
+        max_gap_seconds: Maximum gap to allow within a group (default 0.5s)
+
+    Returns:
+        List of grouped segments
+    """
+    if not segments:
         return []
 
-    # Create one big segment with all words
-    text = ' '.join(w.word for w in all_words).strip()
-    return [ASRSegment(
-        text=text,
-        start=all_words[0].start,
-        end=all_words[-1].end,
-        words=all_words,
-    )]
+    # Sort by start time first
+    sorted_segs = sorted(segments, key=lambda s: s.start)
+
+    result = []
+    current_group_segs = [sorted_segs[0]]
+
+    for i in range(1, len(sorted_segs)):
+        prev_seg = sorted_segs[i - 1]
+        curr_seg = sorted_segs[i]
+
+        gap = curr_seg.start - prev_seg.end
+
+        if gap <= max_gap_seconds:
+            # Continue current group
+            current_group_segs.append(curr_seg)
+        else:
+            # Finalize current group and start new one
+            if current_group_segs:
+                # Merge all segments in group
+                all_words = []
+                for seg in current_group_segs:
+                    all_words.extend(seg.words)
+
+                text = ' '.join(w.word for w in all_words).strip()
+                result.append(ASRSegment(
+                    text=text,
+                    start=current_group_segs[0].start,
+                    end=current_group_segs[-1].end,
+                    words=all_words,
+                ))
+
+            current_group_segs = [curr_seg]
+
+    # Add final group
+    if current_group_segs:
+        all_words = []
+        for seg in current_group_segs:
+            all_words.extend(seg.words)
+
+        text = ' '.join(w.word for w in all_words).strip()
+        result.append(ASRSegment(
+            text=text,
+            start=current_group_segs[0].start,
+            end=current_group_segs[-1].end,
+            words=all_words,
+        ))
+
+    return result
 
 
 def split_segments_by_word_gap(
