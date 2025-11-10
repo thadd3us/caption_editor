@@ -362,7 +362,7 @@ def main(
 
         # Generate document metadata
         doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
-        metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file)
+        metadata = TranscriptMetadata(id=doc_id, media_file_path=str(media_file))
 
         # Copy media file to output directory to keep VTT and media together
         import shutil
