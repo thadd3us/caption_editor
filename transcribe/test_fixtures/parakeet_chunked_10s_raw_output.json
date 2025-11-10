@@ -1,8 +1,6 @@
 [
   {
-    "chunk_index": 0,
-    "chunk_start_time": 0.0,
-    "chunk_duration": 10.0,
+    "text": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It is easy to tell the depth of a well.",
     "segments": [
       {
         "text": "The birch canoe slid on the smooth planks.",
@@ -154,16 +152,11 @@
     ]
   },
   {
-    "chunk_index": 1,
-    "chunk_start_time": 5.0,
-    "chunk_duration": 10.0,
     "segments": [],
     "words": []
   },
   {
-    "chunk_index": 2,
-    "chunk_start_time": 10.0,
-    "chunk_duration": 10.0,
+    "text": "These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch",
     "segments": [
       {
         "text": "These days a chicken leg is a rare dish.",
@@ -300,9 +293,7 @@
     ]
   },
   {
-    "chunk_index": 3,
-    "chunk_start_time": 15.0,
-    "chunk_duration": 10.0,
+    "text": "Served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the park truck.",
     "segments": [
       {
         "text": "Served in round bowls.",
@@ -419,9 +410,7 @@
     ]
   },
   {
-    "chunk_index": 4,
-    "chunk_start_time": 20.0,
-    "chunk_duration": 10.0,
+    "text": "The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of steady work faced us.",
     "segments": [
       {
         "text": "The box was thrown beside the parked truck.",
@@ -558,9 +547,7 @@
     ]
   },
   {
-    "chunk_index": 5,
-    "chunk_start_time": 25.0,
-    "chunk_duration": 8.623125000000002,
+    "text": "Corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell.",
     "segments": [
       {
         "text": "Corn and garbage.",

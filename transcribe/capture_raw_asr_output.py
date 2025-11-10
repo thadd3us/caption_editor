@@ -84,9 +84,9 @@ def load_asr_model(model_name: str):
 def capture(
     audio_file: Path = typer.Argument(..., help="Path to audio file (e.g., test_data/OSR_us_000_0010_8k.wav)"),
     model: str = typer.Option("openai/whisper-tiny", "--model", "-m", help="Model name (e.g., openai/whisper-tiny, nvidia/parakeet-tdt-0.6b-v3)"),
-    chunk_size: float = typer.Option(None, "--chunk-size", help="Chunk size in seconds (None = full file)"),
+    chunk_size: float = typer.Option(60, "--chunk-size", help="Chunk size in seconds"),
     overlap: float = typer.Option(5.0, "--overlap", help="Overlap in seconds for chunked processing"),
-    output: Path = typer.Option(None, "--output", "-o", help="Output JSON file path (auto-generated if not provided)"),
+    output: Path = typer.Option(..., "--output", "-o", help="Output JSON file path (auto-generated if not provided)"),
 ):
     """Capture raw ASR output from audio file using production transcription pipeline."""
 
@@ -107,78 +107,55 @@ def capture(
     typer.echo(f"Sample rate: {sample_rate}Hz")
     typer.echo()
 
-    # Determine output path
-    if output is None:
-        model_slug = model.split("/")[-1].replace("-", "_")
-        if chunk_size is None:
-            output = Path("test_fixtures") / f"{model_slug}_full_file_raw_output.json"
-        else:
-            output = Path("test_fixtures") / f"{model_slug}_chunked_{int(chunk_size)}s_raw_output.json"
-        output.parent.mkdir(exist_ok=True)
+    # Chunked processing
+    typer.echo(f"Processing in {chunk_size}s chunks with {overlap}s overlap...")
 
-    if chunk_size is None:
-        # Full file processing
-        typer.echo("Processing full file...")
-        audio, sr = load_audio_chunk(audio_file, 0.0, duration)
+    num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
+    typer.echo(f"  Number of chunks: {num_chunks}")
+    typer.echo()
+
+    chunk_results = []
+
+    for i in range(num_chunks):
+        chunk_start = i * (chunk_size - overlap)
+        chunk_duration = min(chunk_size, duration - chunk_start)
+
+        if chunk_duration <= 0:
+            break
+
+        typer.echo(f"  Processing chunk {i} ({chunk_start:.1f}s)...")
+        audio, sr = load_audio_chunk(audio_file, chunk_start, chunk_duration)
+
+        if len(audio) == 0:
+            continue
+
+        # Use production transcribe_chunk with chunk_start=0 to get relative times
         segments = transcribe_chunk(audio, asr_pipeline, chunk_start=0.0, sample_rate=sr, is_nemo=is_nemo)
 
-        result = serialize_asr_segments(segments)
-        typer.echo(f"  Text: {result['text'][:100]}...")
-        typer.echo(f"  Segments: {len(result['segments'])}")
-        typer.echo(f"  Words: {len(result['words'])}")
+        serialized = serialize_asr_segments(segments)
+        chunk_results.append(serialized)
 
-        with open(output, "w") as f:
-            json.dump(result, f, indent=2)
+        # chunk_result = {
+        #     "chunk_index": i,
+        #     "chunk_start_time": chunk_start,
+        #     "chunk_duration": chunk_duration,
+        #     # "text": serialized["text"],
+        #     "segments": serialized["segments"],
+        #     "words": serialized["words"],
+        # }
 
-    else:
-        # Chunked processing
-        typer.echo(f"Processing in {chunk_size}s chunks with {overlap}s overlap...")
+        # # For Whisper compatibility, also include "chunks" key (word list)
+        # if not is_nemo:
+        #     chunk_result["chunks"] = [
+        #         {"text": w["word"], "timestamp": [w["start"], w["end"]]}
+        #         for w in serialized["words"]
+        #     ]
 
-        num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
-        typer.echo(f"  Number of chunks: {num_chunks}")
-        typer.echo()
+        # chunk_results.append(chunk_result)
+        # typer.echo(f"    Segments: {len(serialized['segments'])}, Words: {len(serialized['words'])}")
 
-        chunk_results = []
-
-        for i in range(num_chunks):
-            chunk_start = i * (chunk_size - overlap)
-            chunk_duration = min(chunk_size, duration - chunk_start)
-
-            if chunk_duration <= 0:
-                break
-
-            typer.echo(f"  Processing chunk {i} ({chunk_start:.1f}s)...")
-            audio, sr = load_audio_chunk(audio_file, chunk_start, chunk_duration)
-
-            if len(audio) == 0:
-                continue
-
-            # Use production transcribe_chunk with chunk_start=0 to get relative times
-            segments = transcribe_chunk(audio, asr_pipeline, chunk_start=0.0, sample_rate=sr, is_nemo=is_nemo)
-
-            serialized = serialize_asr_segments(segments)
-
-            chunk_result = {
-                "chunk_index": i,
-                "chunk_start_time": chunk_start,
-                "chunk_duration": chunk_duration,
-                # "text": serialized["text"],
-                "segments": serialized["segments"],
-                "words": serialized["words"],
-            }
-
-            # For Whisper compatibility, also include "chunks" key (word list)
-            if not is_nemo:
-                chunk_result["chunks"] = [
-                    {"text": w["word"], "timestamp": [w["start"], w["end"]]}
-                    for w in serialized["words"]
-                ]
-
-            chunk_results.append(chunk_result)
-            typer.echo(f"    Segments: {len(serialized['segments'])}, Words: {len(serialized['words'])}")
-
-        with open(output, "w") as f:
-            json.dump(chunk_results, f, indent=2)
+    with open(output, "w") as f:
+        json.dump(chunk_results, f, indent=2)
 
     typer.echo()
     typer.echo(f"Saved to: {output}")
