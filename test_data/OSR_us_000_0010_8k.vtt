@@ -1,31 +1,32 @@
 WEBVTT
 
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "3d325759-41a8-13c3-567c-d0cd2448b986", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"6c3f5031-ee11-4e08-b512-523c1e9d836f","mediaFilePath":"OSR_us_000_0010_8k.wav"}
 
+NOTE CAPTION_EDITOR:VTTCue {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","speakerName":"Alice","rating":1,"timestamp":"2025-11-08T03:02:57.200-08:00"}
 
-NOTE CAPTION_EDITOR:VTTCue {"id": "37adfe03-6110-a6b6-1561-15c046347e1b", "startTime": 0.0, "endTime": 9.56, "text": "The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a", "timestamp": "2025-11-10T00:18:39.875872+00:00"}
+84ec6681-574b-4570-aecb-5bcaea9415a9
+00:00:00.000 --> 00:00:03.000
+The birch canoe slid on the smooth planks.
 
-37adfe03-6110-a6b6-1561-15c046347e1b
-00:00:00.000 --> 00:00:09.560
-The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a
+NOTE CAPTION_EDITOR:VTTCue {"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background.","rating":2,"timestamp":"2025-11-08T03:03:03.807-08:00"}
 
+ead5dd22-5dd3-4d27-8cc8-c09df813a71c
+00:00:03.944 --> 00:00:07.000
+Glue the sheet to the dark blue background.
 
-NOTE CAPTION_EDITOR:VTTCue {"id": "da3bf06a-42d0-094a-c6e0-6ba0afe912ce", "startTime": 9.56, "endTime": 18.98, "text": "well.  These  days,  the  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemons  makes  fine", "timestamp": "2025-11-10T00:18:39.875872+00:00"}
+NOTE CAPTION_EDITOR:VTTCue {"id":"db8f6b03-f1a0-426b-80bd-6d39382e8417","startTime":16.243,"endTime":20,"text":"The juice of lemons makes fine punch.","speakerName":"Bob","rating":4,"timestamp":"2025-11-08T03:03:04.974-08:00"}
 
-da3bf06a-42d0-094a-c6e0-6ba0afe912ce
-00:00:09.560 --> 00:00:18.980
-well.  These  days,  the  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemons  makes  fine
+db8f6b03-f1a0-426b-80bd-6d39382e8417
+00:00:16.243 --> 00:00:20.000
+The juice of lemons makes fine punch.
 
+NOTE CAPTION_EDITOR:VTTCue {"id":"18a4869f-8cab-4bb5-ba5b-f55900d26076","startTime":30,"endTime":33,"text":"A large size of stockings is hard to sell.","rating":3,"timestamp":"2025-11-08T03:03:06.412-08:00"}
 
-NOTE CAPTION_EDITOR:VTTCue {"id": "506162f1-d82e-969a-cc43-8bad989c73c0", "startTime": 18.98, "endTime": 28.62, "text": "punch.  The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  For  hours  of  steady  work  faced", "timestamp": "2025-11-10T00:18:39.875872+00:00"}
+18a4869f-8cab-4bb5-ba5b-f55900d26076
+00:00:30.000 --> 00:00:33.000
+A large size of stockings is hard to sell.
 
-506162f1-d82e-969a-cc43-8bad989c73c0
-00:00:18.980 --> 00:00:28.620
-punch.  The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  For  hours  of  steady  work  faced
-
-
-NOTE CAPTION_EDITOR:VTTCue {"id": "11ea2924-761e-3615-1418-1ea43b278ddc", "startTime": 28.62, "endTime": 37.44, "text": "us,  a  large  size  in  stockings  is  hard  to  sell.", "timestamp": "2025-11-10T00:18:39.875872+00:00"}
-
-11ea2924-761e-3615-1418-1ea43b278ddc
-00:00:28.620 --> 00:00:37.440
-us,  a  large  size  in  stockings  is  hard  to  sell.
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"0c3ce70a-f048-4aab-b407-15136d18cefa","action":"modified","actionTimestamp":"2025-11-08T03:02:57.201-08:00","cue":{"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"3e77878e-563e-4a81-b203-787f92da0ee4","action":"modified","actionTimestamp":"2025-11-08T03:03:03.807-08:00","cue":{"id":"ead5dd22-5dd3-4d27-8cc8-c09df813a71c","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"a0c30de8-f0da-4983-b7ee-c1e6166a1d3e","action":"modified","actionTimestamp":"2025-11-08T03:03:04.974-08:00","cue":{"id":"db8f6b03-f1a0-426b-80bd-6d39382e8417","startTime":16.243,"endTime":20,"text":"The juice of lemons makes fine punch."}}
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"78a40cc1-2204-4db7-9811-428a89850052","action":"modified","actionTimestamp":"2025-11-08T03:03:06.412-08:00","cue":{"id":"18a4869f-8cab-4bb5-ba5b-f55900d26076","startTime":30,"endTime":33,"text":"A large size of stockings is hard to sell."}}
