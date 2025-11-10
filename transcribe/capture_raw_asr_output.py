@@ -162,7 +162,7 @@ def capture(
                 "chunk_index": i,
                 "chunk_start_time": chunk_start,
                 "chunk_duration": chunk_duration,
-                "text": serialized["text"],
+                # "text": serialized["text"],
                 "segments": serialized["segments"],
                 "words": serialized["words"],
             }
