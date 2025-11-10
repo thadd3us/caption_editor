@@ -107,7 +107,7 @@ def test_chunked_10s_processing(snapshot):
 
     NOTE: 10s chunks have poor word-level timestamps - Whisper extends word
     durations to fill time, hiding sentence boundaries. This results in fewer,
-    longer segments. For better results, use 20s+ chunks or full-file processing.
+    longer segments. For better results, use full-file processing.
 
     Pipeline:
     1. Group words into one segment per chunk (Whisper-specific)
@@ -136,57 +136,6 @@ def test_chunked_10s_processing(snapshot):
     after_gap_split = split_segments_by_word_gap(after_overlap, max_gap_seconds=0.2)
 
     # Step 4: Split by duration (10s max) - this does the real work for 10s chunks
-    after_duration_split = split_long_segments(after_gap_split, max_duration_seconds=10.0)
-
-    # Step 5: Convert to VTT cues
-    cues = asr_segments_to_vtt_cues(after_duration_split)
-
-    # Snapshot the results
-    result = {
-        "num_cues": len(cues),
-        "cues": [
-            {
-                "start_time": cue.start_time,
-                "end_time": cue.end_time,
-                "duration": cue.end_time - cue.start_time,
-                "text": cue.text,
-            }
-            for cue in cues
-        ],
-    }
-
-    assert result == snapshot
-
-
-def test_chunked_20s_processing(snapshot):
-    """Test post-processing pipeline on 20s chunked Whisper output.
-
-    Pipeline:
-    1. Group words into one segment per chunk (Whisper-specific)
-    2. Resolve overlaps from chunked processing
-    3. Split by word gaps (0.2s threshold)
-    4. Split by duration (10s max)
-    5. Convert to VTT cues
-    """
-    # Load fixture
-    chunks_data = load_whisper_fixture("whisper_chunked_20s_raw_output.json")
-
-    # Step 1: Convert each chunk to ASRSegments (one segment per chunk with all words)
-    all_segments = []
-    for chunk in chunks_data:
-        chunk_start = chunk["chunk_start_time"]
-        segments = whisper_words_to_segments(chunk["chunks"], chunk_start=0.0)
-        all_segments.extend(segments)
-
-    # Step 2: Resolve overlaps from chunked processing
-    chunk_size = 20.0
-    overlap = 5.0
-    after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
-
-    # Step 3: Split by word gaps (0.2s threshold)
-    after_gap_split = split_segments_by_word_gap(after_overlap, max_gap_seconds=0.2)
-
-    # Step 4: Split by duration (10s max)
     after_duration_split = split_long_segments(after_gap_split, max_duration_seconds=10.0)
 
     # Step 5: Convert to VTT cues

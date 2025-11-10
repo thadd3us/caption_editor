@@ -17,51 +17,42 @@
 
 **Conclusion:** With 0.2s threshold, we get perfect sentence-level segmentation (5 natural sentence boundaries detected).
 
-### 2. Chunked Processing (whisper_chunked_raw_output.json)
+### 2. Chunked Processing (whisper_chunked_10s_raw_output.json)
 
-**Processing:** 10s chunks with 5s overlap (first 3 chunks captured)
+**Processing:** 10s chunks with 5s overlap (6 chunks total)
 
 **Output:**
-- Chunk 0 (0-10s): **325 words**
-- Chunk 1 (5-15s): **334 words**
-- Chunk 2 (10-20s): **412 words**
+- 6 chunks processing the full audio
+- **136 words** total across all chunks
 
-**TOTAL: 1071 words vs 82 words in full file!**
+**Issue:** Whisper with 10s chunks extends word durations to fill time, **hiding sentence boundaries**. Even with correct sample rate, 10s chunks produce poor word-level timestamps.
 
-**Critical Issue:** Whisper is **hallucinating heavily** when given short audio chunks. The chunked approach produces 13x more "words" than actually exist in the audio.
+**Example:** The gap between "planks." and "Glue" is:
+- Full-file: **0.600s gap** (clear sentence boundary)
+- 10s chunks: **0.000s gap** (no boundary detected)
 
-## Problem with Current Chunked Approach
+## Problem with 10s Chunked Approach
 
-1. Each chunk produces hundreds of hallucinated words
-2. These words have timestamps, but they're mostly gibberish
-3. The overlap resolution tries to pick between two sets of hallucinations
-4. The result is unpredictable and incorrect
+1. Whisper extends word durations in short chunks
+2. Gaps between words disappear (filled with extended duration)
+3. Gap-based splitting cannot detect sentence boundaries
+4. Duration-based splitting becomes the only option (less natural segmentation)
 
 ## Recommendations
 
-### Option 1: Use Full-File Processing (Recommended for Short Files)
+### Option 1: Use Full-File Processing (Recommended)
 
-For files < 60s, process the entire file at once:
-- Accurate transcription
-- No hallucinations
+For accurate word-level timestamps and natural sentence boundaries:
+- Process the entire file at once
 - Clean sentence boundaries with 0.2s threshold
-- **Result: Perfect segmentation**
+- **Result: 7 sentence-level segments with proper gaps**
 
-### Option 2: Fix Chunked Processing
+### Option 2: Use Larger Chunks (If Chunking Required)
 
-The chunked approach needs fixing:
-
-1. **Root cause:** Whisper hallucinates on short clips
-2. **Potential solutions:**
-   - Use larger chunks (30-60s minimum)
-   - Use a different model for chunked processing
-   - Add hallucination detection/filtering
-   - Use Whisper's VAD (voice activity detection) features
-
-### Option 3: Hybrid Approach
-
-- Use full-file for files < 60s
-- Use chunked only for very long files (with larger chunk sizes)
+If chunking is needed for memory constraints:
+- Use chunks ≥ 30s (longer is better)
+- 10s chunks hide sentence boundaries
+- Duration-based splitting will be primary segmentation method
 
 ## Word-Level Timestamp Quality
 
@@ -72,6 +63,6 @@ Within sentences, most consecutive words have gaps < 0.05s, many exactly 0.0s:
 
 ## Files Generated
 
-- `whisper_full_file_raw_output.json` - Full file processing (accurate)
-- `whisper_chunked_raw_output.json` - Chunked processing (hallucinations)
+- `whisper_full_file_raw_output.json` - Full file processing (82 words, clean gaps)
+- `whisper_chunked_10s_raw_output.json` - 10s chunked processing (136 words, gaps hidden)
 - `capture_raw_asr_output.py` - Script to regenerate these files

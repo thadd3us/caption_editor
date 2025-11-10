@@ -153,23 +153,11 @@ def main():
     print(f"  Saved to: {chunked_10s_path}")
     print()
 
-    # Capture chunked output with 20s chunks
-    print("3. CHUNKED PROCESSING (20s chunks, 5s overlap)")
-    print("-" * 80)
-    chunked_20s = capture_chunked_output(test_audio, model_name, chunk_size=20.0, overlap=5.0)
-
-    chunked_20s_path = output_dir / "whisper_chunked_20s_raw_output.json"
-    with open(chunked_20s_path, "w") as f:
-        json.dump(chunked_20s, f, indent=2)
-    print(f"  Saved to: {chunked_20s_path}")
-    print()
-
     print("=" * 80)
     print("SUMMARY")
     print("=" * 80)
     print(f"Full file: {len(full_result['chunks'])} words")
     print(f"Chunked (10s): {sum(len(c['chunks']) for c in chunked_10s)} total words across {len(chunked_10s)} chunks")
-    print(f"Chunked (20s): {sum(len(c['chunks']) for c in chunked_20s)} total words across {len(chunked_20s)} chunks")
     print()
     print("Files saved to:", output_dir)
 

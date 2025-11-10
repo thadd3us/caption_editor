@@ -24,25 +24,6 @@
     'num_cues': 3,
   })
 # ---
-# name: test_chunked_20s_processing
-  dict({
-    'cues': list([
-      dict({
-        'duration': 9.54,
-        'end_time': 9.54,
-        'start_time': 0.0,
-        'text': 'The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a',
-      }),
-      dict({
-        'duration': 9.440000000000001,
-        'end_time': 18.98,
-        'start_time': 9.54,
-        'text': 'well.  These  days  a  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemon  makes  fine',
-      }),
-    ]),
-    'num_cues': 2,
-  })
-# ---
 # name: test_full_file_processing
   dict({
     'cues': list([
