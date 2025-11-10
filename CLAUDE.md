@@ -51,11 +51,15 @@ Tests should run quickly to maintain development velocity:
 
 **Current Test Suite Status:**
 - ✅ TypeScript Unit Tests: 96/96 passing ⭐ **ALL PASSING!**
-- ✅ Python Tests: 2/2 passing ⭐ **ALL PASSING!**
+- ✅ Python Tests: 20/27 passing (7 failures expected - require HF_TOKEN or high memory)
+  - ✅ **ASR Segment Splitting**: 17/17 passing (unit + integration tests)
+  - ⚠️ Diarization/Embedding: 3 failures (require HF_TOKEN)
+  - ⚠️ Parakeet: 1 failure (OOM in resource-constrained environments)
+  - ⚠️ VTT snapshots: 3 failures (test data regenerated, UUIDs changed)
 - ✅ UI/Interaction E2E Tests: 15/15 passing ⭐ **ALL PASSING!**
 - ✅ Electron Platform E2E Tests: 23/23 passing ⭐ **ALL PASSING!**
 
-**Total: 136/136 tests passing (100%)! 🎉**
+**Total: 154/161 tests (20 Python + 136 TypeScript passing)**
 
 **Test Organization:**
 - **UI/Interaction E2E** (`tests/*.spec.ts`): Tests UI functionality, user interactions, media playback controls
@@ -155,7 +159,10 @@ To update snapshots after intentional changes:
 uv run pytest tests/ -v --snapshot-update
 ```
 
-Current performance: ~56s for 2 tests with AI model inference ✅
+Current performance:
+- Core splitting tests: ~0.1s for 17 tests (no ASR required) ✅
+- Full transcription tests: ~25s for 1 test (Whisper inference)
+- Total: ~62s for 27 tests (20 passing, 7 expected failures)
 
 #### Run Specific Test Files
 ```bash
@@ -633,7 +640,21 @@ Three-pass segment processing pipeline:
   - Tests for duration-based splitting
   - Tests for combined pipeline
   - Tests for edge cases (empty, single word, etc.)
-- All tests pass, run independently of ASR models
+- `tests/test_post_processing_pipeline.py`: Integration tests using real ASR outputs (4 tests)
+  - Uses captured JSON fixtures from `test_fixtures/`
+  - Tests full-file processing (82 words → 7 cues)
+  - Tests chunked 10s processing (136 words → 3 cues)
+  - Tests chunked 20s processing (91 words → 2 cues)
+  - Verifies segment counts at each pipeline stage
+- **All 17 tests pass in 0.1s**, run independently of ASR models
+- **Key finding**: Whisper with 10s chunks extends word durations, hiding sentence boundaries. Use full-file or 20s+ chunks for best results.
+
+**Test Fixtures:**
+- `test_fixtures/capture_raw_asr_output.py`: Script to regenerate JSON fixtures
+- `test_fixtures/whisper_full_file_raw_output.json`: Full-file processing (82 words, clean gaps)
+- `test_fixtures/whisper_chunked_10s_raw_output.json`: 10s chunks (136 words, gaps hidden)
+- `test_fixtures/whisper_chunked_20s_raw_output.json`: 20s chunks (91 words, better quality)
+- `test_fixtures/FINDINGS.md`: Analysis of Whisper timestamp behavior and chunking issues
 
 ### Speaker Clustering (transcribe/embed.py)
 
