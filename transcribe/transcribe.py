@@ -29,6 +29,7 @@ from asr_results_to_vtt import (
     split_segments_by_word_gap,
 )
 from schema import CAPTION_EDITOR_SENTINEL, SegmentHistoryEntry, TranscriptMetadata, VTTCue
+from vtt_lib import serialize_vtt
 
 try:
     import nemo.collections.asr as nemo_asr
@@ -141,32 +142,39 @@ def generate_cue_id(audio_hash: str, start_time: float, deterministic_index: Opt
     return str(uuid.UUID(bytes=hash_bytes[:16]))
 
 
-def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[str] = None, deterministic_ids: bool = False) -> str:
-    """Convert cues to VTT format string with NOTE metadata using CAPTION_EDITOR sentinel format.
+def generate_document_id(audio_hash: str, deterministic: bool = False) -> str:
+    """Generate document ID based on audio hash.
 
     Args:
-        cues: List of VTT cues to convert
         audio_hash: Hash of the audio file
-        media_file_path: Optional path to the media file
-        deterministic_ids: If True, use simple incremental IDs (id_00000, id_00001, etc.) for testing
+        deterministic: If True, use simple 'doc_id' for testing
+
+    Returns:
+        Document ID string
     """
-    lines = ["WEBVTT\n"]
+    if deterministic:
+        return "doc_id"
+    hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
+    return str(uuid.UUID(bytes=hash_bytes[:16]))
 
-    # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
-    # Generate deterministic document UUID based on audio hash
-    if deterministic_ids:
-        doc_id = "doc_id"
-    else:
-        hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
-        doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
 
-    transcript_metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file_path)
-    metadata_json = transcript_metadata.model_dump(by_alias=True, exclude_none=True)
-    lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
+def assign_cue_ids_and_timestamps(
+    cues: List[VTTCue],
+    audio_hash: str,
+    deterministic_ids: bool = False
+) -> List[VTTCue]:
+    """Assign IDs and timestamps to cues in-place.
 
+    Args:
+        cues: List of VTT cues to modify
+        audio_hash: Hash of the audio file
+        deterministic_ids: If True, use simple incremental IDs for testing
+
+    Returns:
+        The same cues list (modified in-place)
+    """
     # Get current timestamp for all cues (local timezone)
     if deterministic_ids:
-        # Use deterministic timestamp for testing
         current_timestamp = "2025-01-01T00:00:00.000000+00:00"
     else:
         current_timestamp = datetime.now().astimezone().isoformat()
@@ -184,27 +192,7 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
         cue.id = cue_id
         cue.timestamp = cue_timestamp
 
-        # Always add NOTE with entire cue using CAPTION_EDITOR sentinel
-        cue_json = cue.model_dump(by_alias=True, exclude_none=True)
-        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:VTTCue {json.dumps(cue_json)}\n")
-
-        # Format timestamps
-        start = format_timestamp(cue.start_time)
-        end = format_timestamp(cue.end_time)
-
-        lines.append(f"{cue_id}")
-        lines.append(f"{start} --> {end}")
-        lines.append(f"{cue.text}\n")
-
-    return "\n".join(lines)
-
-
-def format_timestamp(seconds: float) -> str:
-    """Format seconds as VTT timestamp (HH:MM:SS.mmm)."""
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
+    return cues
 
 
 def compute_audio_hash(audio_path: Path) -> str:
@@ -368,6 +356,14 @@ def main(
         typer.echo("Converting segments to VTT cues...")
         final_cues = asr_segments_to_vtt_cues(final_segments)
 
+        # Assign IDs and timestamps to cues
+        typer.echo("Assigning IDs and timestamps...")
+        assign_cue_ids_and_timestamps(final_cues, audio_hash, deterministic_ids=deterministic_ids)
+
+        # Generate document metadata
+        doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
+        metadata = TranscriptMetadata(id=doc_id, media_file_path=str(media_file))
+
         # Copy media file to output directory to keep VTT and media together
         import shutil
         output_dir = output.resolve().parent
@@ -375,7 +371,7 @@ def main(
 
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file, deterministic_ids=deterministic_ids)
+        vtt_content = serialize_vtt(metadata, final_cues)
 
         # Write output
         output.write_text(vtt_content)
