@@ -551,3 +551,161 @@ def parse_transformers_result_with_words(
     segments = group_whisper_words_into_segments(adjusted_chunks)
 
     return segments
+
+
+def parse_whisper_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List[ASRSegment]:
+    """Parse raw Whisper JSON output chunk into ASRSegment list.
+
+    Whisper's raw output has 'segments' (word-level) and 'words' (also word-level, same data).
+    We use 'segments' which contains individual words with start/end times.
+
+    Args:
+        chunk_data: Raw chunk from Whisper output (dict with 'text', 'segments', 'words')
+        chunk_start: Start time offset for this chunk
+
+    Returns:
+        List of ASRSegment objects (one per word)
+    """
+    segments = []
+
+    if not isinstance(chunk_data, dict):
+        return segments
+
+    # Whisper segments are actually word-level
+    word_segments = chunk_data.get('segments', [])
+
+    for word_data in word_segments:
+        if not isinstance(word_data, dict):
+            continue
+
+        text = word_data.get('text', '').strip()
+        start = word_data.get('start')
+        end = word_data.get('end')
+
+        if text and start is not None and end is not None:
+            word_obj = WordTimestamp(
+                word=text,
+                start=chunk_start + start,
+                end=chunk_start + end,
+            )
+
+            segments.append(ASRSegment(
+                text=text,
+                start=chunk_start + start,
+                end=chunk_start + end,
+                words=[word_obj],
+            ))
+
+    return segments
+
+
+def parse_parakeet_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List[ASRSegment]:
+    """Parse raw Parakeet (NeMo) JSON output chunk into ASRSegment list.
+
+    Parakeet's raw output has 'segments' (sentence-level) and 'words' (word-level).
+    We parse the sentence-level segments and match words to them based on time overlap.
+
+    Args:
+        chunk_data: Raw chunk from Parakeet output (dict with 'text', 'segments', 'words')
+        chunk_start: Start time offset for this chunk
+
+    Returns:
+        List of ASRSegment objects (sentence-level with word timestamps)
+    """
+    segments = []
+
+    if not isinstance(chunk_data, dict):
+        return segments
+
+    sentence_segments = chunk_data.get('segments', [])
+    all_words = chunk_data.get('words', [])
+
+    # If no segments, return empty list
+    if not sentence_segments:
+        return segments
+
+    # Parse each sentence segment
+    for segment_data in sentence_segments:
+        if not isinstance(segment_data, dict):
+            continue
+
+        text = segment_data.get('text', '').strip()
+        seg_start = segment_data.get('start')
+        seg_end = segment_data.get('end')
+
+        if not text or seg_start is None or seg_end is None:
+            continue
+
+        # Find words that belong to this segment based on time overlap
+        segment_words = []
+        for word_data in all_words:
+            if not isinstance(word_data, dict):
+                continue
+
+            word_text = word_data.get('word', '').strip()
+            word_start = word_data.get('start')
+            word_end = word_data.get('end')
+
+            if word_text and word_start is not None and word_end is not None:
+                # Word belongs to segment if it overlaps with segment time range
+                # Use a small tolerance for floating point comparison
+                if word_start >= seg_start - 0.01 and word_end <= seg_end + 0.01:
+                    segment_words.append(WordTimestamp(
+                        word=word_text,
+                        start=chunk_start + word_start,
+                        end=chunk_start + word_end,
+                    ))
+
+        segments.append(ASRSegment(
+            text=text,
+            start=chunk_start + seg_start,
+            end=chunk_start + seg_end,
+            words=segment_words,
+        ))
+
+    return segments
+
+
+def post_process_asr_segments(
+    segments: List[ASRSegment],
+    chunk_size: float,
+    overlap: float,
+    gap_threshold: float,
+    max_duration: float,
+    is_whisper: bool,
+) -> List[VTTCue]:
+    """Apply the complete post-processing pipeline to ASR segments.
+
+    This is the production pipeline used by transcribe.py. It performs:
+    1. Resolve overlaps from chunked processing
+    2. Group/split by gap (model-specific: Whisper groups, Parakeet splits)
+    3. Split long segments
+    4. Convert to VTTCues
+
+    Args:
+        segments: Raw ASR segments with word timestamps
+        chunk_size: Size of audio chunks in seconds
+        overlap: Overlap between chunks in seconds
+        gap_threshold: For Whisper: max gap to group words. For Parakeet: max gap before splitting.
+        max_duration: Maximum segment duration before splitting
+        is_whisper: True for Whisper (groups word segments), False for Parakeet (splits sentence segments)
+
+    Returns:
+        List of VTTCue objects
+    """
+    # Step 1: Resolve overlaps from chunked processing
+    segments = resolve_overlap_conflicts(segments, chunk_size, overlap)
+
+    # Step 2: Group or split by gap (model-specific)
+    if is_whisper:
+        # Whisper: group word-level segments into sentences
+        segments = group_segments_by_gap(segments, max_gap_seconds=gap_threshold)
+    else:
+        # Parakeet: split sentence-level segments at large gaps
+        segments = split_segments_by_word_gap(segments, max_gap_seconds=gap_threshold)
+
+    # Step 3: Split long segments
+    segments = split_long_segments(segments, max_duration_seconds=max_duration)
+
+    # Step 4: Convert to VTT cues
+    return asr_segments_to_vtt_cues(segments)
