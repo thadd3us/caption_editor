@@ -221,9 +221,18 @@ def main(
 
         # Process each segment
         typer.echo(f"Computing embeddings...")
-        data = []
+        # Map from segment ID to embedding
+        segment_id_to_embedding = {}
+        skipped_count = 0
 
         for cue in tqdm(cues, desc="Processing segments", unit="segment"):
+            # Skip segments shorter than 0.5 seconds
+            duration = cue.end_time - cue.start_time
+            if duration < 0.5:
+                tqdm.write(f"Skipping short segment {cue.id} (duration: {duration:.3f}s)")
+                skipped_count += 1
+                continue
+
             # Extract audio segment
             audio, sample_rate = extract_audio_segment(
                 audio_path, cue.start_time, cue.end_time
@@ -236,19 +245,21 @@ def main(
             # Compute embedding
             embedding = compute_embedding(inference, audio, sample_rate)
 
-            # Convert embedding to bytes for VECTOR storage
-            data.append({
-                "segment_id": cue.id,
-                "embedding": embedding.tobytes(),
-                "embedding_array": embedding  # Keep array for clustering
-            })
+            # Store in map
+            segment_id_to_embedding[cue.id] = embedding
+
+        typer.echo(f"Skipped {skipped_count} segments shorter than 0.5s")
+        typer.echo(f"Computed {len(segment_id_to_embedding)} embeddings")
 
         # Perform speaker clustering if requested
         if auto_assign_speaker_clusters_to_unknown_names:
             typer.echo(f"Clustering speakers into {num_speaker_clusters} groups...")
 
+            # Build a list of (segment_id, embedding) for segments with embeddings
+            segments_with_embeddings = list(segment_id_to_embedding.items())
+
             # Extract embeddings as matrix
-            embeddings_matrix = np.array([d["embedding_array"] for d in data])
+            embeddings_matrix = np.array([emb for _, emb in segments_with_embeddings])
 
             # Normalize embeddings for cosine similarity
             # After normalization, Euclidean distance equals cosine distance
@@ -264,29 +275,30 @@ def main(
             )
             cluster_labels = kmeans.fit_predict(embeddings_normalized)
 
-            # Assign speaker names based on clusters
-            cue_idx = 0
-            for i, cue in enumerate(cues):
-                # Skip cues that don't have embeddings (e.g., empty audio)
-                if cue_idx >= len(data):
-                    break
+            # Map from segment ID to cluster label
+            segment_id_to_cluster = {
+                seg_id: cluster_labels[i]
+                for i, (seg_id, _) in enumerate(segments_with_embeddings)
+            }
 
-                if data[cue_idx]["segment_id"] != cue.id:
-                    # This cue was skipped (empty audio), don't assign speaker
+            # Assign speaker names based on clusters
+            assigned_count = 0
+            for cue in cues:
+                # Check if this segment has a cluster assignment
+                if cue.id not in segment_id_to_cluster:
                     continue
 
                 # Only assign speaker name if it's currently empty
                 if not cue.speaker_name:
-                    cluster_id = cluster_labels[cue_idx]
+                    cluster_id = segment_id_to_cluster[cue.id]
                     cue.speaker_name = f"Unknown {cluster_id:02d}?"
-
-                cue_idx += 1
+                    assigned_count += 1
 
             # Write updated VTT file back
             typer.echo(f"Updating VTT file with speaker assignments: {vtt_path}")
             vtt_content = serialize_vtt(metadata, cues)
             vtt_path.write_text(vtt_content)
-            typer.echo(f"Updated {cue_idx} segments with speaker names")
+            typer.echo(f"Updated {assigned_count} segments with speaker names")
 
         # Write to libsql database
         typer.echo(f"Writing embeddings to database: {output}")
@@ -301,14 +313,14 @@ def main(
         """)
 
         # Insert embeddings
-        for row in data:
+        for segment_id, embedding in segment_id_to_embedding.items():
             client.execute(
                 "INSERT OR REPLACE INTO speaker_embedding (segment_id, embedding) VALUES (?, ?)",
-                [row["segment_id"], row["embedding"]]
+                [segment_id, embedding.tobytes()]
             )
 
         client.close()
-        typer.echo(f"Done! Computed {len(data)} embeddings")
+        typer.echo(f"Done! Computed {len(segment_id_to_embedding)} embeddings")
 
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)

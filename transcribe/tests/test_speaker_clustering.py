@@ -47,10 +47,10 @@ def test_embed_with_clustering(repo_root: Path, tmp_path: Path, snapshot):
 
     # Check that speaker names follow the expected format
     for cue in cues:
-        assert cue.speaker_name.startswith("Unknown Speaker ")
+        assert cue.speaker_name.startswith("Unknown ")
         assert cue.speaker_name.endswith("?")
         # Extract cluster number
-        cluster_num = cue.speaker_name.replace("Unknown Speaker ", "").replace("?", "")
+        cluster_num = cue.speaker_name.replace("Unknown ", "").replace("?", "")
         assert cluster_num in ["00", "01"], f"Unexpected cluster number: {cluster_num}"
 
     # Snapshot the assigned speakers

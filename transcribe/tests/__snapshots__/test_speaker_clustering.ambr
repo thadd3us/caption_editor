@@ -6,7 +6,7 @@
       'text': 'The birch canoe slid on the smooth planks.',
     }),
     dict({
-      'speaker_name': 'Unknown Speaker 00?',
+      'speaker_name': 'Unknown 00?',
       'text': 'Glue the sheet to the dark blue background.',
     }),
     dict({
@@ -14,7 +14,7 @@
       'text': 'The juice of lemons makes fine punch.',
     }),
     dict({
-      'speaker_name': 'Unknown Speaker 01?',
+      'speaker_name': 'Unknown 01?',
       'text': 'A large size of stockings is hard to sell.',
     }),
   ])
@@ -22,19 +22,19 @@
 # name: test_embed_with_clustering
   list([
     dict({
-      'speaker_name': 'Unknown Speaker 01?',
+      'speaker_name': 'Unknown 01?',
       'text': 'The birch canoe slid on the smooth planks.',
     }),
     dict({
-      'speaker_name': 'Unknown Speaker 00?',
+      'speaker_name': 'Unknown 00?',
       'text': 'Glue the sheet to the dark blue background.',
     }),
     dict({
-      'speaker_name': 'Unknown Speaker 00?',
+      'speaker_name': 'Unknown 00?',
       'text': 'The juice of lemons makes fine punch.',
     }),
     dict({
-      'speaker_name': 'Unknown Speaker 01?',
+      'speaker_name': 'Unknown 01?',
       'text': 'A large size of stockings is hard to sell.',
     }),
   ])
