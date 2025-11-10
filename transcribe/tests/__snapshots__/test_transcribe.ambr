@@ -84,60 +84,25 @@
   NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00000", "startTime": 0.0, "endTime": 4.0, "text": "The birch can use lid on the smooth planks.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00000", "startTime": 0.0, "endTime": 9.54, "text": "The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00000
-  00:00:00.000 --> 00:00:04.000
-  The birch can use lid on the smooth planks.
+  00:00:00.000 --> 00:00:09.540
+  The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00001", "startTime": 4.0, "endTime": 7.0, "text": "Glue the sheet to the dark blue background.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00001", "startTime": 10.78, "endTime": 18.98, "text": "These  days  a  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemon  makes  fine", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00001
-  00:00:04.000 --> 00:00:07.000
-  Glue the sheet to the dark blue background.
+  00:00:10.780 --> 00:00:18.980
+  These  days  a  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemon  makes  fine
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00002", "startTime": 7.0, "endTime": 10.0, "text": "It is easy to tell the depth of a well.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00002", "startTime": 20.34, "endTime": 28.64, "text": "The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  Four  hours  of  steady  work  faced", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00002
-  00:00:07.000 --> 00:00:10.000
-  It is easy to tell the depth of a well.
-  
-  
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00003", "startTime": 11.8, "endTime": 15.0, "text": "make it a rare dish, rice is often", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
-  
-  id_00003
-  00:00:11.800 --> 00:00:15.000
-  make it a rare dish, rice is often
-  
-  
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00004", "startTime": 17.759999999999998, "endTime": 19.28, "text": "of lemons makes fine punch.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
-  
-  id_00004
-  00:00:17.760 --> 00:00:19.280
-  of lemons makes fine punch.
-  
-  
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00005", "startTime": 21.72, "endTime": 23.72, "text": "the puncture.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
-  
-  id_00005
-  00:00:21.720 --> 00:00:23.720
-  the puncture.
-  
-  
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00006", "startTime": 23.72, "endTime": 25.72, "text": "The haves are fed chocolate.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
-  
-  id_00006
-  00:00:23.720 --> 00:00:25.720
-  The haves are fed chocolate.
-  
-  
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00007", "startTime": 27.0, "endTime": 29.0, "text": "Four hours of steady work faced us.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
-  
-  id_00007
-  00:00:27.000 --> 00:00:29.000
-  Four hours of steady work faced us.
+  00:00:20.340 --> 00:00:28.640
+  The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  Four  hours  of  steady  work  faced
   
   '''
 # ---

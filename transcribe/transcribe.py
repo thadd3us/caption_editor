@@ -19,6 +19,14 @@ import torch
 import typer
 from tqdm import tqdm
 
+from asr_results_to_vtt import (
+    asr_segments_to_vtt_cues,
+    parse_nemo_result_with_words,
+    parse_transformers_result_with_words,
+    resolve_overlap_conflicts,
+    split_long_segments,
+    split_segments_by_word_gap,
+)
 from schema import CAPTION_EDITOR_SENTINEL, SegmentHistoryEntry, TranscriptMetadata, VTTCue
 
 try:
@@ -81,148 +89,32 @@ def load_audio_chunk(
     return audio, sr
 
 
-def parse_nemo_result(result, chunk_start: float, audio_duration: float) -> List[VTTCue]:
-    """Parse NeMo transcription result into VTT cues."""
-    cues = []
-
-    if not result or len(result) == 0:
-        return cues
-
-    output = result[0]
-
-    # Check if we have segment timestamps
-    if hasattr(output, 'timestamp') and 'segment' in output.timestamp:
-        for segment in output.timestamp['segment']:
-            if not segment['segment'].strip():
-                continue
-
-            cues.append(
-                VTTCue(
-                    id="",  # Will be set later with hash
-                    start_time=chunk_start + segment['start'],
-                    end_time=chunk_start + segment['end'],
-                    text=segment['segment'].strip(),
-                )
-            )
-    else:
-        # No timestamps available, create single cue for entire chunk
-        if hasattr(output, 'text') and output.text.strip():
-            cues.append(
-                VTTCue(
-                    id="",
-                    start_time=chunk_start,
-                    end_time=chunk_start + audio_duration,
-                    text=output.text.strip(),
-                )
-            )
-
-    return cues
-
-
-def parse_transformers_result(result, chunk_start: float, audio_duration: float) -> List[VTTCue]:
-    """Parse Transformers pipeline result into VTT cues."""
-    cues = []
-
-    # Process chunks from the model
-    if isinstance(result, dict) and "chunks" in result:
-        for chunk in result["chunks"]:
-            if not chunk["text"].strip():
-                continue
-
-            timestamp = chunk.get("timestamp", (0.0, None))
-            start = chunk_start + (timestamp[0] if timestamp[0] is not None else 0.0)
-            end = chunk_start + (
-                timestamp[1] if timestamp[1] is not None else audio_duration
-            )
-
-            cues.append(
-                VTTCue(
-                    id="",  # Will be set later with hash
-                    start_time=start,
-                    end_time=end,
-                    text=chunk["text"].strip(),
-                )
-            )
-
-    return cues
-
-
-def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nemo: bool = False) -> List[VTTCue]:
-    """Transcribe a single audio chunk using the model's native segment-level timestamps.
+def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nemo: bool = False):
+    """Transcribe a single audio chunk and return ASR segments with word-level timestamps.
 
     Both NEMO and HuggingFace models now use a unified file-based input approach.
+
+    Returns:
+        List of ASRSegment objects with word-level timestamps
     """
     if len(audio) == 0:
         return []
-
-    # Calculate audio duration
-    audio_duration = len(audio) / 16000
 
     # Save audio chunk to temporary file (unified approach for both models)
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp_file:
         tmp_path = tmp_file.name
         sf.write(tmp_path, audio, 16000)
 
-        # Get transcription with timestamps
+        # Get transcription with word-level timestamps
         if is_nemo:
             result = asr_pipeline.transcribe([tmp_path], timestamps=True)
-            cues = parse_nemo_result(result, chunk_start, audio_duration)
+            segments = parse_nemo_result_with_words(result, chunk_start)
         else:
-            # HuggingFace transformers pipeline accepts file paths
-            result = asr_pipeline(tmp_path, return_timestamps=True)
-            cues = parse_transformers_result(result, chunk_start, audio_duration)
+            # HuggingFace transformers pipeline with word-level timestamps
+            result = asr_pipeline(tmp_path, return_timestamps="word")
+            segments = parse_transformers_result_with_words(result, chunk_start)
 
-        return cues
-
-
-def resolve_overlap_conflicts(
-    all_cues: List[VTTCue], chunk_size: float, overlap: float
-) -> List[VTTCue]:
-    """
-    Resolve overlapping cues by keeping those with greater distance to chunk edge.
-    """
-    if not all_cues:
-        return []
-
-    # Sort by start time
-    sorted_cues = sorted(all_cues, key=lambda c: c.start_time)
-    result = []
-
-    for cue in sorted_cues:
-        if not result:
-            result.append(cue)
-            continue
-
-        prev_cue = result[-1]
-
-        # Check if they overlap
-        if cue.start_time < prev_cue.end_time:
-            # Determine which chunk each cue belongs to
-            prev_chunk_idx = int(prev_cue.start_time / (chunk_size - overlap))
-            curr_chunk_idx = int(cue.start_time / (chunk_size - overlap))
-
-            prev_chunk_start = prev_chunk_idx * (chunk_size - overlap)
-            curr_chunk_start = curr_chunk_idx * (chunk_size - overlap)
-
-            prev_chunk_end = prev_chunk_start + chunk_size
-            curr_chunk_end = curr_chunk_start + chunk_size
-
-            # Calculate distance to edges
-            prev_dist = min(
-                prev_cue.start_time - prev_chunk_start,
-                prev_chunk_end - prev_cue.end_time,
-            )
-            curr_dist = min(
-                cue.start_time - curr_chunk_start, curr_chunk_end - cue.end_time
-            )
-
-            # Keep the one with greater distance (more reliable)
-            if curr_dist > prev_dist:
-                result[-1] = cue
-        else:
-            result.append(cue)
-
-    return result
+        return segments
 
 
 def generate_cue_id(audio_hash: str, start_time: float, deterministic_index: Optional[int] = None) -> str:
@@ -334,6 +226,16 @@ def main(
         "-m",
         help="Hugging Face model name",
     ),
+    max_intra_segment_gap_seconds: float = typer.Option(
+        2.0,
+        "--max-intra-segment-gap-seconds",
+        help="Maximum gap between words before splitting segment (default: 2.0s)",
+    ),
+    max_segment_duration_seconds: float = typer.Option(
+        10.0,
+        "--max-segment-duration-seconds",
+        help="Maximum segment duration before splitting (default: 10.0s)",
+    ),
     deterministic_ids: bool = typer.Option(
         False,
         "--deterministic-ids",
@@ -415,8 +317,8 @@ def main(
 
             )
 
-        # Process chunks
-        all_cues = []
+        # Process chunks - get ASR segments with word-level timestamps
+        all_segments = []
         num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
 
         typer.echo(f"Processing {num_chunks} chunks...")
@@ -433,13 +335,26 @@ def main(
             if len(audio) == 0:
                 continue
 
-            # Transcribe
-            chunk_cues = transcribe_chunk(audio, asr_pipeline, chunk_start, is_nemo=is_nemo)
-            all_cues.extend(chunk_cues)
+            # Transcribe - returns ASRSegment objects with word-level timestamps
+            chunk_segments = transcribe_chunk(audio, asr_pipeline, chunk_start, is_nemo=is_nemo)
+            all_segments.extend(chunk_segments)
 
-        # Resolve overlaps
-        typer.echo("Resolving overlaps...")
-        final_cues = resolve_overlap_conflicts(all_cues, chunk_size, overlap)
+        # Three-pass segment processing pipeline:
+        # 1. Split by word gaps
+        typer.echo(f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s...")
+        after_gap_split = split_segments_by_word_gap(all_segments, max_intra_segment_gap_seconds)
+
+        # 2. Split long segments
+        typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
+        after_duration_split = split_long_segments(after_gap_split, max_segment_duration_seconds)
+
+        # 3. Resolve overlaps from chunked processing
+        typer.echo("Resolving overlaps from chunked processing...")
+        final_segments = resolve_overlap_conflicts(after_duration_split, chunk_size, overlap)
+
+        # Convert ASRSegments to VTTCues
+        typer.echo("Converting segments to VTT cues...")
+        final_cues = asr_segments_to_vtt_cues(final_segments)
 
         # Copy media file to output directory to keep VTT and media together
         import shutil

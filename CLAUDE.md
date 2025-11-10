@@ -591,6 +591,50 @@ If you see timeout failures, don't just increase the timeout - investigate why t
 
 ## Python Transcription Tools
 
+### ASR Segment Splitting (transcribe/transcribe.py)
+
+Added intelligent segment splitting to prevent overly long VTT cues that interfere with speaker ID and UI usability.
+
+**New CLI Options:**
+- `--max-intra-segment-gap-seconds`: Maximum gap between words before splitting (default: 2.0s)
+- `--max-segment-duration-seconds`: Maximum segment duration before splitting (default: 10.0s)
+
+**Usage:**
+```bash
+cd transcribe
+uv run python transcribe.py audio.wav \
+  --max-intra-segment-gap-seconds 2.0 \
+  --max-segment-duration-seconds 10.0
+```
+
+**How it works:**
+
+Three-pass segment processing pipeline:
+
+1. **Split by word gaps**: If any two consecutive words within a segment have a gap > 2s (configurable), split the segment at that point.
+2. **Split long segments**: If any segment exceeds 10s duration (configurable), split it after the last word whose end time doesn't exceed that distance from the segment start.
+3. **Resolve overlaps**: Handle overlapping segments from chunked audio processing by keeping segments with greater distance to chunk edges.
+
+**Implementation:**
+
+- **New library**: `transcribe/asr_results_to_vtt.py`
+  - Data structures: `WordTimestamp`, `ASRSegment`
+  - Functions: `split_segments_by_word_gap()`, `split_long_segments()`, `resolve_overlap_conflicts()`
+  - Parsing: `parse_nemo_result_with_words()`, `parse_transformers_result_with_words()`
+  - Conversion: `asr_segments_to_vtt_cues()`
+
+- **Model-specific handling**:
+  - **Parakeet (NeMo)**: Provides both segment-level and word-level timestamps. Uses native segment boundaries and only splits when needed.
+  - **Whisper (Transformers)**: With `return_timestamps="word"`, provides only word-level data. All words are initially grouped into one large segment, then the splitting passes break it up based on gaps and duration.
+
+**Tests:**
+- `tests/test_asr_results_to_vtt.py`: Unit tests for splitting logic (13 tests)
+  - Tests for gap-based splitting
+  - Tests for duration-based splitting
+  - Tests for combined pipeline
+  - Tests for edge cases (empty, single word, etc.)
+- All tests pass, run independently of ASR models
+
 ### Speaker Clustering (transcribe/embed.py)
 
 Added automatic speaker clustering to `embed.py`:
