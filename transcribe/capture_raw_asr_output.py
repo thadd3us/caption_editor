@@ -1,166 +1,188 @@
 #!/usr/bin/env python3
 """
-Capture raw ASR output from Whisper in JSON format for analysis.
+Capture raw ASR output in JSON format for test fixtures.
 
-This script captures the EXACT output from Whisper's ASR pipeline in two ways:
-1. Processing the full file in one pass
-2. Processing in chunks (using the same chunking logic as transcribe.py)
+This script uses the actual production code from transcribe.py to process audio
+and captures the raw ASR output for use in unit tests.
 
-The raw outputs are saved as JSON files for inspection and use in unit tests.
+Supports both Whisper (transformers) and Parakeet (NeMo) models.
 """
 
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 import soundfile as sf
-import torch
-from transformers import pipeline
+import typer
 
-# Import the actual functions from transcribe.py
-sys.path.insert(0, str(Path(__file__).parent))
-from transcribe import load_audio_chunk, transcribe_chunk
+# Import production code
+from transcribe import load_audio_chunk, transcribe_chunk, NEMO_AVAILABLE, TRANSFORMERS_AVAILABLE
 
-
-def capture_full_file_output(audio_path: Path, model_name: str) -> dict:
-    """Capture Whisper output when processing the entire file at once."""
-    print(f"Processing full file: {audio_path}")
-
-    asr_pipeline = pipeline(
-        "automatic-speech-recognition",
-        model=model_name,
-        device=-1,  # CPU
-    )
-
-    # Process full audio with word-level timestamps
-    result = asr_pipeline(str(audio_path), return_timestamps="word")
-
-    print(f"  Full text: {result['text'][:100]}...")
-    print(f"  Number of chunks (words): {len(result['chunks'])}")
-
-    return result
+app = typer.Typer()
 
 
-def capture_chunked_output(audio_path: Path, model_name: str, chunk_size: float = 10.0, overlap: float = 5.0) -> list:
-    """Capture Whisper output when processing in chunks with overlap.
+def serialize_asr_segments(segments: list) -> dict:
+    """Convert ASRSegment objects to JSON-serializable format."""
+    if not segments:
+        return {"segments": [], "words": []}
 
-    Uses the exact same chunking logic as transcribe.py.
-    """
-    print(f"Processing in {chunk_size}s chunks with {overlap}s overlap: {audio_path}")
+    # For compatibility with existing fixtures, return in the format expected by tests
+    result_segments = []
+    result_words = []
+
+    for seg in segments:
+        result_segments.append({
+            "text": seg.text,
+            "start": float(seg.start),
+            "end": float(seg.end),
+        })
+
+        for word in seg.words:
+            result_words.append({
+                "word": word.word,
+                "start": float(word.start),
+                "end": float(word.end),
+            })
+
+    return {
+        "text": " ".join(seg.text for seg in segments),
+        "segments": result_segments,
+        "words": result_words,
+    }
+
+
+def load_asr_model(model_name: str):
+    """Load the appropriate ASR model based on model name."""
+    is_nemo = "parakeet" in model_name.lower() or "nvidia" in model_name.lower()
+
+    if is_nemo:
+        if not NEMO_AVAILABLE:
+            typer.echo("Error: NeMo not available. Install with: pip install nemo_toolkit[asr]", err=True)
+            raise typer.Exit(1)
+
+        import nemo.collections.asr as nemo_asr
+        typer.echo(f"Loading NeMo model: {model_name}")
+        asr_model = nemo_asr.models.ASRModel.from_pretrained(model_name)
+        asr_model.eval()
+        return asr_model, True
+    else:
+        if not TRANSFORMERS_AVAILABLE:
+            typer.echo("Error: transformers not available. Install with: pip install transformers", err=True)
+            raise typer.Exit(1)
+
+        from transformers import pipeline
+        typer.echo(f"Loading Transformers model: {model_name}")
+        asr_pipeline = pipeline(
+            "automatic-speech-recognition",
+            model=model_name,
+            device=-1,  # CPU
+        )
+        return asr_pipeline, False
+
+
+@app.command()
+def capture(
+    audio_file: Path = typer.Argument(..., help="Path to audio file (e.g., test_data/OSR_us_000_0010_8k.wav)"),
+    model: str = typer.Option("openai/whisper-tiny", "--model", "-m", help="Model name (e.g., openai/whisper-tiny, nvidia/parakeet-tdt-0.6b-v3)"),
+    chunk_size: float = typer.Option(None, "--chunk-size", help="Chunk size in seconds (None = full file)"),
+    overlap: float = typer.Option(5.0, "--overlap", help="Overlap in seconds for chunked processing"),
+    output: Path = typer.Option(None, "--output", "-o", help="Output JSON file path (auto-generated if not provided)"),
+):
+    """Capture raw ASR output from audio file using production transcription pipeline."""
+
+    if not audio_file.exists():
+        typer.echo(f"Error: Audio file not found: {audio_file}", err=True)
+        raise typer.Exit(1)
+
+    # Load model
+    asr_pipeline, is_nemo = load_asr_model(model)
 
     # Get audio info
-    info = sf.info(audio_path)
+    info = sf.info(audio_file)
     duration = info.duration
-    print(f"  Audio duration: {duration:.2f}s")
+    sample_rate = info.samplerate
 
-    # Set device
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    typer.echo(f"Audio file: {audio_file}")
+    typer.echo(f"Duration: {duration:.2f}s")
+    typer.echo(f"Sample rate: {sample_rate}Hz")
+    typer.echo()
 
-    # Load model (using transformers pipeline like transcribe.py does for Whisper)
-    asr_pipeline = pipeline(
-        "automatic-speech-recognition",
-        model=model_name,
-        device=0 if device == "cuda" else -1,
-    )
+    # Determine output path
+    if output is None:
+        model_slug = model.split("/")[-1].replace("-", "_")
+        if chunk_size is None:
+            output = Path("test_fixtures") / f"{model_slug}_full_file_raw_output.json"
+        else:
+            output = Path("test_fixtures") / f"{model_slug}_chunked_{int(chunk_size)}s_raw_output.json"
+        output.parent.mkdir(exist_ok=True)
 
-    # Process chunks using same logic as transcribe.py
-    num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
-    print(f"  Processing {num_chunks} chunks...")
+    if chunk_size is None:
+        # Full file processing
+        typer.echo("Processing full file...")
+        audio, sr = load_audio_chunk(audio_file, 0.0, duration)
+        segments = transcribe_chunk(audio, asr_pipeline, chunk_start=0.0, sample_rate=sr, is_nemo=is_nemo)
 
-    chunk_results = []
+        result = serialize_asr_segments(segments)
+        typer.echo(f"  Text: {result['text'][:100]}...")
+        typer.echo(f"  Segments: {len(result['segments'])}")
+        typer.echo(f"  Words: {len(result['words'])}")
 
-    for i in range(num_chunks):
-        chunk_start = i * (chunk_size - overlap)
-        chunk_duration = min(chunk_size, duration - chunk_start)
+        with open(output, "w") as f:
+            json.dump(result, f, indent=2)
 
-        if chunk_duration <= 0:
-            break
+    else:
+        # Chunked processing
+        typer.echo(f"Processing in {chunk_size}s chunks with {overlap}s overlap...")
 
-        # Use transcribe.py's load_audio_chunk function
-        audio, sr = load_audio_chunk(audio_path, chunk_start, chunk_duration)
+        num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
+        typer.echo(f"  Number of chunks: {num_chunks}")
+        typer.echo()
 
-        if len(audio) == 0:
-            continue
+        chunk_results = []
 
-        # Use transcribe.py's transcribe_chunk function to get ASR segments
-        # This returns ASRSegment objects with word-level timestamps
-        asr_segments = transcribe_chunk(audio, asr_pipeline, chunk_start, sr, is_nemo=False)
+        for i in range(num_chunks):
+            chunk_start = i * (chunk_size - overlap)
+            chunk_duration = min(chunk_size, duration - chunk_start)
 
-        # Convert ASRSegments back to raw format for comparison
-        # Each segment has words with timestamps
-        chunk_words = []
-        for seg in asr_segments:
-            for word in seg.words:
-                chunk_words.append({
-                    "text": word.word,
-                    "timestamp": [word.start, word.end]
-                })
+            if chunk_duration <= 0:
+                break
 
-        # Reconstruct text from words
-        chunk_text = " ".join(w["text"] for w in chunk_words)
+            typer.echo(f"  Processing chunk {i} ({chunk_start:.1f}s)...")
+            audio, sr = load_audio_chunk(audio_file, chunk_start, chunk_duration)
 
-        chunk_result = {
-            "chunk_index": i,
-            "chunk_start_time": chunk_start,
-            "chunk_duration": chunk_duration,
-            "text": chunk_text,
-            "chunks": chunk_words,
-        }
-        chunk_results.append(chunk_result)
+            if len(audio) == 0:
+                continue
 
-        print(f"    Chunk {i} ({chunk_start:.1f}s): {len(chunk_words)} words")
+            # Use production transcribe_chunk with chunk_start=0 to get relative times
+            segments = transcribe_chunk(audio, asr_pipeline, chunk_start=0.0, sample_rate=sr, is_nemo=is_nemo)
 
-    return chunk_results
+            serialized = serialize_asr_segments(segments)
 
+            chunk_result = {
+                "chunk_index": i,
+                "chunk_start_time": chunk_start,
+                "chunk_duration": chunk_duration,
+                "text": serialized["text"],
+                "segments": serialized["segments"],
+                "words": serialized["words"],
+            }
 
-def main():
-    test_audio = Path(__file__).parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
-    model_name = "openai/whisper-tiny"
+            # For Whisper compatibility, also include "chunks" key (word list)
+            if not is_nemo:
+                chunk_result["chunks"] = [
+                    {"text": w["word"], "timestamp": [w["start"], w["end"]]}
+                    for w in serialized["words"]
+                ]
 
-    if not test_audio.exists():
-        print(f"Error: Test audio not found: {test_audio}")
-        return
+            chunk_results.append(chunk_result)
+            typer.echo(f"    Segments: {len(serialized['segments'])}, Words: {len(serialized['words'])}")
 
-    print("=" * 80)
-    print("CAPTURING RAW WHISPER ASR OUTPUT")
-    print("=" * 80)
-    print()
+        with open(output, "w") as f:
+            json.dump(chunk_results, f, indent=2)
 
-    # Capture full-file output
-    print("1. FULL FILE PROCESSING")
-    print("-" * 80)
-    full_result = capture_full_file_output(test_audio, model_name)
-
-    # Save to JSON
-    output_dir = Path(__file__).parent / "test_fixtures"
-    output_dir.mkdir(exist_ok=True)
-
-    full_output_path = output_dir / "whisper_full_file_raw_output.json"
-    with open(full_output_path, "w") as f:
-        json.dump(full_result, f, indent=2)
-    print(f"  Saved to: {full_output_path}")
-    print()
-
-    # Capture chunked output with 10s chunks
-    print("2. CHUNKED PROCESSING (10s chunks, 5s overlap)")
-    print("-" * 80)
-    chunked_10s = capture_chunked_output(test_audio, model_name, chunk_size=10.0, overlap=5.0)
-
-    chunked_10s_path = output_dir / "whisper_chunked_10s_raw_output.json"
-    with open(chunked_10s_path, "w") as f:
-        json.dump(chunked_10s, f, indent=2)
-    print(f"  Saved to: {chunked_10s_path}")
-    print()
-
-    print("=" * 80)
-    print("SUMMARY")
-    print("=" * 80)
-    print(f"Full file: {len(full_result['chunks'])} words")
-    print(f"Chunked (10s): {sum(len(c['chunks']) for c in chunked_10s)} total words across {len(chunked_10s)} chunks")
-    print()
-    print("Files saved to:", output_dir)
+    typer.echo()
+    typer.echo(f"Saved to: {output}")
 
 
 if __name__ == "__main__":
-    main()
+    app()
