@@ -1,0 +1,655 @@
+[
+  {
+    "chunk_index": 0,
+    "chunk_start_time": 0.0,
+    "chunk_duration": 20.0,
+    "text": " The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  to  the  dark  blue  background.  It  is  easy  to  tell  the  depth  of  a  well.  These  days  a  chicken  leg  is  a  rare  dish.  Rice  is  often  served  in  round  bowls.  The  juice  of  lemon  makes  fine",
+    "chunks": [
+      {
+        "text": " The",
+        "timestamp": [
+          0.0,
+          0.68
+        ]
+      },
+      {
+        "text": " birch",
+        "timestamp": [
+          0.68,
+          1.12
+        ]
+      },
+      {
+        "text": " can",
+        "timestamp": [
+          1.12,
+          1.38
+        ]
+      },
+      {
+        "text": " use",
+        "timestamp": [
+          1.38,
+          1.66
+        ]
+      },
+      {
+        "text": " lid",
+        "timestamp": [
+          1.66,
+          1.96
+        ]
+      },
+      {
+        "text": " on",
+        "timestamp": [
+          1.96,
+          2.24
+        ]
+      },
+      {
+        "text": " the",
+        "timestamp": [
+          2.24,
+          2.34
+        ]
+      },
+      {
+        "text": " smooth",
+        "timestamp": [
+          2.34,
+          2.7
+        ]
+      },
+      {
+        "text": " planks.",
+        "timestamp": [
+          2.7,
+          4.62
+        ]
+      },
+      {
+        "text": " Glue",
+        "timestamp": [
+          4.62,
+          4.62
+        ]
+      },
+      {
+        "text": " the",
+        "timestamp": [
+          4.62,
+          4.9
+        ]
+      },
+      {
+        "text": " sheet",
+        "timestamp": [
+          4.9,
+          5.06
+        ]
+      },
+      {
+        "text": " to",
+        "timestamp": [
+          5.06,
+          5.3
+        ]
+      },
+      {
+        "text": " the",
+        "timestamp": [
+          5.3,
+          5.44
+        ]
+      },
+      {
+        "text": " dark",
+        "timestamp": [
+          5.44,
+          5.62
+        ]
+      },
+      {
+        "text": " blue",
+        "timestamp": [
+          5.62,
+          5.84
+        ]
+      },
+      {
+        "text": " background.",
+        "timestamp": [
+          5.84,
+          7.98
+        ]
+      },
+      {
+        "text": " It",
+        "timestamp": [
+          7.98,
+          8.02
+        ]
+      },
+      {
+        "text": " is",
+        "timestamp": [
+          8.02,
+          8.14
+        ]
+      },
+      {
+        "text": " easy",
+        "timestamp": [
+          8.14,
+          8.3
+        ]
+      },
+      {
+        "text": " to",
+        "timestamp": [
+          8.3,
+          8.6
+        ]
+      },
+      {
+        "text": " tell",
+        "timestamp": [
+          8.6,
+          8.72
+        ]
+      },
+      {
+        "text": " the",
+        "timestamp": [
+          8.72,
+          8.94
+        ]
+      },
+      {
+        "text": " depth",
+        "timestamp": [
+          8.94,
+          9.16
+        ]
+      },
+      {
+        "text": " of",
+        "timestamp": [
+          9.16,
+          9.46
+        ]
+      },
+      {
+        "text": " a",
+        "timestamp": [
+          9.46,
+          9.54
+        ]
+      },
+      {
+        "text": " well.",
+        "timestamp": [
+          9.54,
+          10.98
+        ]
+      },
+      {
+        "text": " These",
+        "timestamp": [
+          10.98,
+          11.18
+        ]
+      },
+      {
+        "text": " days",
+        "timestamp": [
+          11.18,
+          11.38
+        ]
+      },
+      {
+        "text": " a",
+        "timestamp": [
+          11.38,
+          11.64
+        ]
+      },
+      {
+        "text": " chicken",
+        "timestamp": [
+          11.64,
+          11.82
+        ]
+      },
+      {
+        "text": " leg",
+        "timestamp": [
+          11.82,
+          12.02
+        ]
+      },
+      {
+        "text": " is",
+        "timestamp": [
+          12.02,
+          12.24
+        ]
+      },
+      {
+        "text": " a",
+        "timestamp": [
+          12.24,
+          12.38
+        ]
+      },
+      {
+        "text": " rare",
+        "timestamp": [
+          12.38,
+          12.56
+        ]
+      },
+      {
+        "text": " dish.",
+        "timestamp": [
+          12.56,
+          14.36
+        ]
+      },
+      {
+        "text": " Rice",
+        "timestamp": [
+          14.36,
+          14.54
+        ]
+      },
+      {
+        "text": " is",
+        "timestamp": [
+          14.54,
+          14.82
+        ]
+      },
+      {
+        "text": " often",
+        "timestamp": [
+          14.82,
+          15.12
+        ]
+      },
+      {
+        "text": " served",
+        "timestamp": [
+          15.12,
+          15.38
+        ]
+      },
+      {
+        "text": " in",
+        "timestamp": [
+          15.38,
+          15.64
+        ]
+      },
+      {
+        "text": " round",
+        "timestamp": [
+          15.64,
+          15.86
+        ]
+      },
+      {
+        "text": " bowls.",
+        "timestamp": [
+          15.86,
+          17.5
+        ]
+      },
+      {
+        "text": " The",
+        "timestamp": [
+          17.5,
+          17.56
+        ]
+      },
+      {
+        "text": " juice",
+        "timestamp": [
+          17.56,
+          17.76
+        ]
+      },
+      {
+        "text": " of",
+        "timestamp": [
+          17.76,
+          18.0
+        ]
+      },
+      {
+        "text": " lemon",
+        "timestamp": [
+          18.0,
+          18.26
+        ]
+      },
+      {
+        "text": " makes",
+        "timestamp": [
+          18.26,
+          18.58
+        ]
+      },
+      {
+        "text": " fine",
+        "timestamp": [
+          18.58,
+          18.98
+        ]
+      }
+    ]
+  },
+  {
+    "chunk_index": 1,
+    "chunk_start_time": 15.0,
+    "chunk_duration": 18.623125,
+    "text": " served  in  round  bowls.  The  juice  of  lemons  makes  fine  punch.  The  box  was  thrown  beside  the  pork  chuck.  The  hogs  were  fed  chopped  corn  and  garbage.  Four  hours  of  steady  work  faced  us.  A  large  size  in  stockings  is  hard  to",
+    "chunks": [
+      {
+        "text": " served",
+        "timestamp": [
+          15.0,
+          15.4
+        ]
+      },
+      {
+        "text": " in",
+        "timestamp": [
+          15.4,
+          15.62
+        ]
+      },
+      {
+        "text": " round",
+        "timestamp": [
+          15.62,
+          15.86
+        ]
+      },
+      {
+        "text": " bowls.",
+        "timestamp": [
+          15.86,
+          17.54
+        ]
+      },
+      {
+        "text": " The",
+        "timestamp": [
+          17.54,
+          17.54
+        ]
+      },
+      {
+        "text": " juice",
+        "timestamp": [
+          17.54,
+          17.759999999999998
+        ]
+      },
+      {
+        "text": " of",
+        "timestamp": [
+          17.759999999999998,
+          18.02
+        ]
+      },
+      {
+        "text": " lemons",
+        "timestamp": [
+          18.02,
+          18.28
+        ]
+      },
+      {
+        "text": " makes",
+        "timestamp": [
+          18.28,
+          18.62
+        ]
+      },
+      {
+        "text": " fine",
+        "timestamp": [
+          18.62,
+          19.0
+        ]
+      },
+      {
+        "text": " punch.",
+        "timestamp": [
+          19.0,
+          20.56
+        ]
+      },
+      {
+        "text": " The",
+        "timestamp": [
+          20.56,
+          20.66
+        ]
+      },
+      {
+        "text": " box",
+        "timestamp": [
+          20.66,
+          20.92
+        ]
+      },
+      {
+        "text": " was",
+        "timestamp": [
+          20.92,
+          21.14
+        ]
+      },
+      {
+        "text": " thrown",
+        "timestamp": [
+          21.14,
+          21.38
+        ]
+      },
+      {
+        "text": " beside",
+        "timestamp": [
+          21.38,
+          21.7
+        ]
+      },
+      {
+        "text": " the",
+        "timestamp": [
+          21.7,
+          22.08
+        ]
+      },
+      {
+        "text": " pork",
+        "timestamp": [
+          22.08,
+          22.18
+        ]
+      },
+      {
+        "text": " chuck.",
+        "timestamp": [
+          22.18,
+          23.84
+        ]
+      },
+      {
+        "text": " The",
+        "timestamp": [
+          23.84,
+          23.98
+        ]
+      },
+      {
+        "text": " hogs",
+        "timestamp": [
+          23.98,
+          24.32
+        ]
+      },
+      {
+        "text": " were",
+        "timestamp": [
+          24.32,
+          24.42
+        ]
+      },
+      {
+        "text": " fed",
+        "timestamp": [
+          24.42,
+          24.619999999999997
+        ]
+      },
+      {
+        "text": " chopped",
+        "timestamp": [
+          24.619999999999997,
+          24.939999999999998
+        ]
+      },
+      {
+        "text": " corn",
+        "timestamp": [
+          24.939999999999998,
+          25.240000000000002
+        ]
+      },
+      {
+        "text": " and",
+        "timestamp": [
+          25.240000000000002,
+          25.4
+        ]
+      },
+      {
+        "text": " garbage.",
+        "timestamp": [
+          25.4,
+          27.22
+        ]
+      },
+      {
+        "text": " Four",
+        "timestamp": [
+          27.22,
+          27.380000000000003
+        ]
+      },
+      {
+        "text": " hours",
+        "timestamp": [
+          27.380000000000003,
+          27.68
+        ]
+      },
+      {
+        "text": " of",
+        "timestamp": [
+          27.68,
+          27.880000000000003
+        ]
+      },
+      {
+        "text": " steady",
+        "timestamp": [
+          27.880000000000003,
+          28.02
+        ]
+      },
+      {
+        "text": " work",
+        "timestamp": [
+          28.02,
+          28.32
+        ]
+      },
+      {
+        "text": " faced",
+        "timestamp": [
+          28.32,
+          28.64
+        ]
+      },
+      {
+        "text": " us.",
+        "timestamp": [
+          28.64,
+          30.22
+        ]
+      },
+      {
+        "text": " A",
+        "timestamp": [
+          30.22,
+          30.3
+        ]
+      },
+      {
+        "text": " large",
+        "timestamp": [
+          30.3,
+          30.54
+        ]
+      },
+      {
+        "text": " size",
+        "timestamp": [
+          30.54,
+          30.759999999999998
+        ]
+      },
+      {
+        "text": " in",
+        "timestamp": [
+          30.759999999999998,
+          31.0
+        ]
+      },
+      {
+        "text": " stockings",
+        "timestamp": [
+          31.0,
+          31.36
+        ]
+      },
+      {
+        "text": " is",
+        "timestamp": [
+          31.36,
+          31.56
+        ]
+      },
+      {
+        "text": " hard",
+        "timestamp": [
+          31.56,
+          31.78
+        ]
+      },
+      {
+        "text": " to",
+        "timestamp": [
+          31.78,
+          32.019999999999996
+        ]
+      }
+    ]
+  }
+]

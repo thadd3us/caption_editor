@@ -90,10 +90,17 @@ def load_audio_chunk(
     return audio, sr
 
 
-def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nemo: bool = False):
+def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, sample_rate: int, is_nemo: bool = False):
     """Transcribe a single audio chunk and return ASR segments with word-level timestamps.
 
     Both NEMO and HuggingFace models now use a unified file-based input approach.
+
+    Args:
+        audio: Audio data as numpy array
+        asr_pipeline: The ASR model pipeline
+        chunk_start: Start time of this chunk in seconds
+        sample_rate: Sample rate of the audio
+        is_nemo: Whether this is a NeMo model
 
     Returns:
         List of ASRSegment objects with word-level timestamps
@@ -104,7 +111,7 @@ def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nem
     # Save audio chunk to temporary file (unified approach for both models)
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp_file:
         tmp_path = tmp_file.name
-        sf.write(tmp_path, audio, 16000)
+        sf.write(tmp_path, audio, sample_rate)
 
         # Get transcription with word-level timestamps
         if is_nemo:
@@ -331,13 +338,13 @@ def main(
                 break
 
             # Load audio chunk
-            audio, _ = load_audio_chunk(audio_path, chunk_start, chunk_duration)
+            audio, sr = load_audio_chunk(audio_path, chunk_start, chunk_duration)
 
             if len(audio) == 0:
                 continue
 
             # Transcribe - returns ASRSegment objects with word-level timestamps
-            chunk_segments = transcribe_chunk(audio, asr_pipeline, chunk_start, is_nemo=is_nemo)
+            chunk_segments = transcribe_chunk(audio, asr_pipeline, chunk_start, sr, is_nemo=is_nemo)
             all_segments.extend(chunk_segments)
 
         # Three-pass segment processing pipeline:
