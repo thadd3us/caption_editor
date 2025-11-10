@@ -1,0 +1,579 @@
+{
+  "text": " The birch can use lid on the smooth planks. Glue the sheet to the dark blue background. It is easy to tell the depth of a well. These days, the chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the pork chuck. The hogs were fed chopped corn and garbage. For hours of steady work faced us, a large size in stockings is hard to sell.",
+  "chunks": [
+    {
+      "text": " The",
+      "timestamp": [
+        0.0,
+        0.68
+      ]
+    },
+    {
+      "text": " birch",
+      "timestamp": [
+        0.68,
+        1.12
+      ]
+    },
+    {
+      "text": " can",
+      "timestamp": [
+        1.12,
+        1.38
+      ]
+    },
+    {
+      "text": " use",
+      "timestamp": [
+        1.38,
+        1.66
+      ]
+    },
+    {
+      "text": " lid",
+      "timestamp": [
+        1.66,
+        1.96
+      ]
+    },
+    {
+      "text": " on",
+      "timestamp": [
+        1.96,
+        2.22
+      ]
+    },
+    {
+      "text": " the",
+      "timestamp": [
+        2.22,
+        2.4
+      ]
+    },
+    {
+      "text": " smooth",
+      "timestamp": [
+        2.4,
+        2.7
+      ]
+    },
+    {
+      "text": " planks.",
+      "timestamp": [
+        2.7,
+        4.02
+      ]
+    },
+    {
+      "text": " Glue",
+      "timestamp": [
+        4.62,
+        4.62
+      ]
+    },
+    {
+      "text": " the",
+      "timestamp": [
+        4.62,
+        4.9
+      ]
+    },
+    {
+      "text": " sheet",
+      "timestamp": [
+        4.9,
+        5.04
+      ]
+    },
+    {
+      "text": " to",
+      "timestamp": [
+        5.04,
+        5.3
+      ]
+    },
+    {
+      "text": " the",
+      "timestamp": [
+        5.3,
+        5.44
+      ]
+    },
+    {
+      "text": " dark",
+      "timestamp": [
+        5.44,
+        5.62
+      ]
+    },
+    {
+      "text": " blue",
+      "timestamp": [
+        5.62,
+        5.82
+      ]
+    },
+    {
+      "text": " background.",
+      "timestamp": [
+        5.82,
+        6.64
+      ]
+    },
+    {
+      "text": " It",
+      "timestamp": [
+        7.88,
+        8.02
+      ]
+    },
+    {
+      "text": " is",
+      "timestamp": [
+        8.02,
+        8.16
+      ]
+    },
+    {
+      "text": " easy",
+      "timestamp": [
+        8.16,
+        8.34
+      ]
+    },
+    {
+      "text": " to",
+      "timestamp": [
+        8.34,
+        8.6
+      ]
+    },
+    {
+      "text": " tell",
+      "timestamp": [
+        8.6,
+        8.72
+      ]
+    },
+    {
+      "text": " the",
+      "timestamp": [
+        8.72,
+        8.96
+      ]
+    },
+    {
+      "text": " depth",
+      "timestamp": [
+        8.96,
+        9.16
+      ]
+    },
+    {
+      "text": " of",
+      "timestamp": [
+        9.16,
+        9.44
+      ]
+    },
+    {
+      "text": " a",
+      "timestamp": [
+        9.44,
+        9.56
+      ]
+    },
+    {
+      "text": " well.",
+      "timestamp": [
+        9.56,
+        10.5
+      ]
+    },
+    {
+      "text": " These",
+      "timestamp": [
+        10.92,
+        11.18
+      ]
+    },
+    {
+      "text": " days,",
+      "timestamp": [
+        11.18,
+        11.56
+      ]
+    },
+    {
+      "text": " the",
+      "timestamp": [
+        11.56,
+        11.68
+      ]
+    },
+    {
+      "text": " chicken",
+      "timestamp": [
+        11.68,
+        11.82
+      ]
+    },
+    {
+      "text": " leg",
+      "timestamp": [
+        11.82,
+        12.04
+      ]
+    },
+    {
+      "text": " is",
+      "timestamp": [
+        12.04,
+        12.24
+      ]
+    },
+    {
+      "text": " a",
+      "timestamp": [
+        12.24,
+        12.4
+      ]
+    },
+    {
+      "text": " rare",
+      "timestamp": [
+        12.4,
+        12.56
+      ]
+    },
+    {
+      "text": " dish.",
+      "timestamp": [
+        12.56,
+        14.04
+      ]
+    },
+    {
+      "text": " Rice",
+      "timestamp": [
+        14.34,
+        14.56
+      ]
+    },
+    {
+      "text": " is",
+      "timestamp": [
+        14.56,
+        14.82
+      ]
+    },
+    {
+      "text": " often",
+      "timestamp": [
+        14.82,
+        15.12
+      ]
+    },
+    {
+      "text": " served",
+      "timestamp": [
+        15.12,
+        15.38
+      ]
+    },
+    {
+      "text": " in",
+      "timestamp": [
+        15.38,
+        15.64
+      ]
+    },
+    {
+      "text": " round",
+      "timestamp": [
+        15.64,
+        15.86
+      ]
+    },
+    {
+      "text": " bowls.",
+      "timestamp": [
+        15.86,
+        17.4
+      ]
+    },
+    {
+      "text": " The",
+      "timestamp": [
+        17.4,
+        17.56
+      ]
+    },
+    {
+      "text": " juice",
+      "timestamp": [
+        17.56,
+        17.76
+      ]
+    },
+    {
+      "text": " of",
+      "timestamp": [
+        17.76,
+        18.0
+      ]
+    },
+    {
+      "text": " lemons",
+      "timestamp": [
+        18.0,
+        18.26
+      ]
+    },
+    {
+      "text": " makes",
+      "timestamp": [
+        18.26,
+        18.62
+      ]
+    },
+    {
+      "text": " fine",
+      "timestamp": [
+        18.62,
+        18.98
+      ]
+    },
+    {
+      "text": " punch.",
+      "timestamp": [
+        18.98,
+        20.16
+      ]
+    },
+    {
+      "text": " The",
+      "timestamp": [
+        20.44,
+        20.68
+      ]
+    },
+    {
+      "text": " box",
+      "timestamp": [
+        20.68,
+        20.92
+      ]
+    },
+    {
+      "text": " was",
+      "timestamp": [
+        20.92,
+        21.14
+      ]
+    },
+    {
+      "text": " thrown",
+      "timestamp": [
+        21.14,
+        21.38
+      ]
+    },
+    {
+      "text": " beside",
+      "timestamp": [
+        21.38,
+        21.7
+      ]
+    },
+    {
+      "text": " the",
+      "timestamp": [
+        21.7,
+        22.06
+      ]
+    },
+    {
+      "text": " pork",
+      "timestamp": [
+        22.06,
+        22.16
+      ]
+    },
+    {
+      "text": " chuck.",
+      "timestamp": [
+        22.16,
+        23.46
+      ]
+    },
+    {
+      "text": " The",
+      "timestamp": [
+        23.64,
+        23.98
+      ]
+    },
+    {
+      "text": " hogs",
+      "timestamp": [
+        23.98,
+        24.34
+      ]
+    },
+    {
+      "text": " were",
+      "timestamp": [
+        24.34,
+        24.42
+      ]
+    },
+    {
+      "text": " fed",
+      "timestamp": [
+        24.42,
+        24.64
+      ]
+    },
+    {
+      "text": " chopped",
+      "timestamp": [
+        24.64,
+        24.96
+      ]
+    },
+    {
+      "text": " corn",
+      "timestamp": [
+        24.96,
+        25.24
+      ]
+    },
+    {
+      "text": " and",
+      "timestamp": [
+        25.24,
+        25.4
+      ]
+    },
+    {
+      "text": " garbage.",
+      "timestamp": [
+        25.4,
+        27.04
+      ]
+    },
+    {
+      "text": " For",
+      "timestamp": [
+        27.02,
+        27.36
+      ]
+    },
+    {
+      "text": " hours",
+      "timestamp": [
+        27.36,
+        27.68
+      ]
+    },
+    {
+      "text": " of",
+      "timestamp": [
+        27.68,
+        27.88
+      ]
+    },
+    {
+      "text": " steady",
+      "timestamp": [
+        27.88,
+        28.02
+      ]
+    },
+    {
+      "text": " work",
+      "timestamp": [
+        28.02,
+        28.32
+      ]
+    },
+    {
+      "text": " faced",
+      "timestamp": [
+        28.32,
+        28.62
+      ]
+    },
+    {
+      "text": " us,",
+      "timestamp": [
+        28.62,
+        30.28
+      ]
+    },
+    {
+      "text": " a",
+      "timestamp": [
+        30.28,
+        30.3
+      ]
+    },
+    {
+      "text": " large",
+      "timestamp": [
+        30.3,
+        30.54
+      ]
+    },
+    {
+      "text": " size",
+      "timestamp": [
+        30.54,
+        30.78
+      ]
+    },
+    {
+      "text": " in",
+      "timestamp": [
+        30.78,
+        30.98
+      ]
+    },
+    {
+      "text": " stockings",
+      "timestamp": [
+        30.98,
+        31.36
+      ]
+    },
+    {
+      "text": " is",
+      "timestamp": [
+        31.36,
+        31.54
+      ]
+    },
+    {
+      "text": " hard",
+      "timestamp": [
+        31.54,
+        31.76
+      ]
+    },
+    {
+      "text": " to",
+      "timestamp": [
+        31.76,
+        31.96
+      ]
+    },
+    {
+      "text": " sell.",
+      "timestamp": [
+        31.96,
+        37.44
+      ]
+    }
+  ]
+}

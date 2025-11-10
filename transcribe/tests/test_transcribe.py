@@ -22,6 +22,9 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
     # Path to transcribe script
     transcribe_script = repo_root / "transcribe" / "transcribe.py"
 
+    # Use tighter gap threshold for Whisper to split on sentence boundaries
+    gap_threshold = "0.2" if "whisper" in model_name.lower() else "2.0"
+
     # Run transcription using the current Python interpreter
     result = subprocess.run(
         [
@@ -36,6 +39,8 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
             "5",
             "--model",
             model_name,
+            "--max-intra-segment-gap-seconds",
+            gap_threshold,
             "--deterministic-ids",
         ],
         capture_output=True,
