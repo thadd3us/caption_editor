@@ -105,10 +105,14 @@ def test_full_file_processing(snapshot):
 def test_chunked_10s_processing(snapshot):
     """Test post-processing pipeline on 10s chunked Whisper output.
 
+    NOTE: 10s chunks have poor word-level timestamps - Whisper extends word
+    durations to fill time, hiding sentence boundaries. This results in fewer,
+    longer segments. For better results, use 20s+ chunks or full-file processing.
+
     Pipeline:
     1. Group words into one segment per chunk (Whisper-specific)
     2. Resolve overlaps from chunked processing
-    3. Split by word gaps (0.2s threshold)
+    3. Split by word gaps (not effective for 10s chunks - no gaps preserved)
     4. Split by duration (10s max)
     5. Convert to VTT cues
     """
@@ -128,10 +132,10 @@ def test_chunked_10s_processing(snapshot):
     overlap = 5.0
     after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
 
-    # Step 3: Split by word gaps (0.2s threshold)
+    # Step 3: Split by word gaps (0.2s threshold - won't find any in 10s chunks!)
     after_gap_split = split_segments_by_word_gap(after_overlap, max_gap_seconds=0.2)
 
-    # Step 4: Split by duration (10s max)
+    # Step 4: Split by duration (10s max) - this does the real work for 10s chunks
     after_duration_split = split_long_segments(after_gap_split, max_duration_seconds=10.0)
 
     # Step 5: Convert to VTT cues
