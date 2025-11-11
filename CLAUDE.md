@@ -680,12 +680,19 @@ HF_TOKEN=your_token uv run python embed.py path/to/file.vtt \
 ```
 
 **How it works:**
-1. Computes speaker embeddings using pyannote.audio
-2. Normalizes embeddings for cosine similarity
-3. Clusters using k-means
-4. Assigns "Unknown 00?", "Unknown 01?", etc.
-5. Preserves existing non-empty speaker names
-6. Overwrites input VTT file with updated assignments
+1. Skips segments shorter than 0.5 seconds (too short for reliable embeddings)
+2. Computes speaker embeddings using pyannote.audio
+3. Normalizes embeddings for cosine similarity
+4. Clusters using k-means
+5. Assigns "Unknown 00?", "Unknown 01?", etc.
+6. Preserves existing non-empty speaker names
+7. Overwrites input VTT file with updated assignments
+
+**Implementation details:**
+- Uses a map-based approach: `segment_id -> embedding`
+- K-means runs on embeddings from segments with valid embeddings
+- Another pass through cues checks if each segment has a cluster assignment
+- Short segments are skipped but not assigned speaker names
 
 **New Files:**
 - `transcribe/vtt_lib.py`: Shared VTT parsing/serialization utilities
