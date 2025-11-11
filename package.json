@@ -56,5 +56,17 @@
     "vite-plugin-istanbul": "^7.2.0",
     "vitest": "^3.2.4",
     "vue-tsc": "^2.0.6"
+  },
+  "mac": {
+    "identity": "Developer ID Application: Christopher Thaddeus Hughes (RWVMRK3723)",
+    "category": "public.app-category.productivity",
+    "target": [
+      "dmg",
+      "zip"
+    ],
+    "hardenedRuntime": true,
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist",
+    "gatekeeperAssess": false
   }
 }
