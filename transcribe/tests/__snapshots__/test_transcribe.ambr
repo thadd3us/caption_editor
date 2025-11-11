@@ -84,60 +84,95 @@
   NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00000", "startTime": 0.0, "endTime": 4.0, "text": "The birch can use lid on the smooth planks.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00000", "startTime": 0.0, "endTime": 5.06, "text": "The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00000
-  00:00:00.000 --> 00:00:04.000
-  The birch can use lid on the smooth planks.
+  00:00:00.000 --> 00:00:05.060
+  The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00001", "startTime": 4.0, "endTime": 7.0, "text": "Glue the sheet to the dark blue background.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00001", "startTime": 5.44, "endTime": 5.82, "text": "dark  blue", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00001
-  00:00:04.000 --> 00:00:07.000
-  Glue the sheet to the dark blue background.
+  00:00:05.440 --> 00:00:05.820
+  dark  blue
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00002", "startTime": 7.0, "endTime": 10.0, "text": "It is easy to tell the depth of a well.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00002", "startTime": 7.94, "endTime": 8.3, "text": "It  It  is  easy", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00002
-  00:00:07.000 --> 00:00:10.000
-  It is easy to tell the depth of a well.
+  00:00:07.940 --> 00:00:08.300
+  It  It  is  easy
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00003", "startTime": 11.8, "endTime": 15.0, "text": "make it a rare dish, rice is often", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00003", "startTime": 8.6, "endTime": 8.94, "text": "tell  the", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00003
-  00:00:11.800 --> 00:00:15.000
-  make it a rare dish, rice is often
+  00:00:08.600 --> 00:00:08.940
+  tell  the
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00004", "startTime": 17.759999999999998, "endTime": 19.28, "text": "of lemons makes fine punch.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00004", "startTime": 9.48, "endTime": 11.18, "text": "a  well.  These", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00004
-  00:00:17.760 --> 00:00:19.280
-  of lemons makes fine punch.
+  00:00:09.480 --> 00:00:11.180
+  a  well.  These
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00005", "startTime": 21.72, "endTime": 23.72, "text": "the puncture.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00005", "startTime": 11.440000000000001, "endTime": 12.54, "text": "a  chicken  leg  is  a  rare", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00005
-  00:00:21.720 --> 00:00:23.720
-  the puncture.
+  00:00:11.440 --> 00:00:12.540
+  a  chicken  leg  is  a  rare
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00006", "startTime": 23.72, "endTime": 25.72, "text": "The haves are fed chocolate.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00006", "startTime": 14.379999999999999, "endTime": 15.86, "text": "Rice  is  often  served  in  round", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00006
-  00:00:23.720 --> 00:00:25.720
-  The haves are fed chocolate.
+  00:00:14.380 --> 00:00:15.860
+  Rice  is  often  served  in  round
   
   
-  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00007", "startTime": 27.0, "endTime": 29.0, "text": "Four hours of steady work faced us.", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00007", "startTime": 17.54, "endTime": 17.759999999999998, "text": "The  juice", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
   
   id_00007
-  00:00:27.000 --> 00:00:29.000
-  Four hours of steady work faced us.
+  00:00:17.540 --> 00:00:17.760
+  The  juice
+  
+  
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00008", "startTime": 18.6, "endTime": 21.38, "text": "fine  punch.  The  box  was  thrown", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  
+  id_00008
+  00:00:18.600 --> 00:00:21.380
+  fine  punch.  The  box  was  thrown
+  
+  
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00009", "startTime": 21.72, "endTime": 23.96, "text": "the  chuck.  The", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  
+  id_00009
+  00:00:21.720 --> 00:00:23.960
+  the  chuck.  The
+  
+  
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00010", "startTime": 24.34, "endTime": 27.36, "text": "were  fed  chopped  corn  in  garbage.  Four", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  
+  id_00010
+  00:00:24.340 --> 00:00:27.360
+  were  fed  chopped  corn  in  garbage.  Four
+  
+  
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00011", "startTime": 27.7, "endTime": 28.32, "text": "of  steady  work", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  
+  id_00011
+  00:00:27.700 --> 00:00:28.320
+  of  steady  work
+  
+  
+  NOTE CAPTION_EDITOR:VTTCue {"id": "id_00012", "startTime": 28.62, "endTime": 32.0, "text": "us.  A  large  size  in  stockings  is  hard  to", "timestamp": "2025-01-01T00:00:00.000000+00:00"}
+  
+  id_00012
+  00:00:28.620 --> 00:00:32.000
+  us.  A  large  size  in  stockings  is  hard  to
   
   '''
 # ---

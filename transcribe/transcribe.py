@@ -19,7 +19,17 @@ import torch
 import typer
 from tqdm import tqdm
 
+from asr_results_to_vtt import (
+    asr_segments_to_vtt_cues,
+    group_segments_by_gap,
+    parse_nemo_result_with_words,
+    parse_transformers_result_with_words,
+    resolve_overlap_conflicts,
+    split_long_segments,
+    split_segments_by_word_gap,
+)
 from schema import CAPTION_EDITOR_SENTINEL, SegmentHistoryEntry, TranscriptMetadata, VTTCue
+from vtt_lib import serialize_vtt
 
 try:
     import nemo.collections.asr as nemo_asr
@@ -81,148 +91,39 @@ def load_audio_chunk(
     return audio, sr
 
 
-def parse_nemo_result(result, chunk_start: float, audio_duration: float) -> List[VTTCue]:
-    """Parse NeMo transcription result into VTT cues."""
-    cues = []
-
-    if not result or len(result) == 0:
-        return cues
-
-    output = result[0]
-
-    # Check if we have segment timestamps
-    if hasattr(output, 'timestamp') and 'segment' in output.timestamp:
-        for segment in output.timestamp['segment']:
-            if not segment['segment'].strip():
-                continue
-
-            cues.append(
-                VTTCue(
-                    id="",  # Will be set later with hash
-                    start_time=chunk_start + segment['start'],
-                    end_time=chunk_start + segment['end'],
-                    text=segment['segment'].strip(),
-                )
-            )
-    else:
-        # No timestamps available, create single cue for entire chunk
-        if hasattr(output, 'text') and output.text.strip():
-            cues.append(
-                VTTCue(
-                    id="",
-                    start_time=chunk_start,
-                    end_time=chunk_start + audio_duration,
-                    text=output.text.strip(),
-                )
-            )
-
-    return cues
-
-
-def parse_transformers_result(result, chunk_start: float, audio_duration: float) -> List[VTTCue]:
-    """Parse Transformers pipeline result into VTT cues."""
-    cues = []
-
-    # Process chunks from the model
-    if isinstance(result, dict) and "chunks" in result:
-        for chunk in result["chunks"]:
-            if not chunk["text"].strip():
-                continue
-
-            timestamp = chunk.get("timestamp", (0.0, None))
-            start = chunk_start + (timestamp[0] if timestamp[0] is not None else 0.0)
-            end = chunk_start + (
-                timestamp[1] if timestamp[1] is not None else audio_duration
-            )
-
-            cues.append(
-                VTTCue(
-                    id="",  # Will be set later with hash
-                    start_time=start,
-                    end_time=end,
-                    text=chunk["text"].strip(),
-                )
-            )
-
-    return cues
-
-
-def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, is_nemo: bool = False) -> List[VTTCue]:
-    """Transcribe a single audio chunk using the model's native segment-level timestamps.
+def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, sample_rate: int, is_nemo: bool = False):
+    """Transcribe a single audio chunk and return ASR segments with word-level timestamps.
 
     Both NEMO and HuggingFace models now use a unified file-based input approach.
+
+    Args:
+        audio: Audio data as numpy array
+        asr_pipeline: The ASR model pipeline
+        chunk_start: Start time of this chunk in seconds
+        sample_rate: Sample rate of the audio
+        is_nemo: Whether this is a NeMo model
+
+    Returns:
+        List of ASRSegment objects with word-level timestamps
     """
     if len(audio) == 0:
         return []
 
-    # Calculate audio duration
-    audio_duration = len(audio) / 16000
-
     # Save audio chunk to temporary file (unified approach for both models)
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp_file:
         tmp_path = tmp_file.name
-        sf.write(tmp_path, audio, 16000)
+        sf.write(tmp_path, audio, sample_rate)
 
-        # Get transcription with timestamps
+        # Get transcription with word-level timestamps
         if is_nemo:
             result = asr_pipeline.transcribe([tmp_path], timestamps=True)
-            cues = parse_nemo_result(result, chunk_start, audio_duration)
+            segments = parse_nemo_result_with_words(result, chunk_start)
         else:
-            # HuggingFace transformers pipeline accepts file paths
-            result = asr_pipeline(tmp_path, return_timestamps=True)
-            cues = parse_transformers_result(result, chunk_start, audio_duration)
+            # HuggingFace transformers pipeline with word-level timestamps
+            result = asr_pipeline(tmp_path, return_timestamps="word")
+            segments = parse_transformers_result_with_words(result, chunk_start)
 
-        return cues
-
-
-def resolve_overlap_conflicts(
-    all_cues: List[VTTCue], chunk_size: float, overlap: float
-) -> List[VTTCue]:
-    """
-    Resolve overlapping cues by keeping those with greater distance to chunk edge.
-    """
-    if not all_cues:
-        return []
-
-    # Sort by start time
-    sorted_cues = sorted(all_cues, key=lambda c: c.start_time)
-    result = []
-
-    for cue in sorted_cues:
-        if not result:
-            result.append(cue)
-            continue
-
-        prev_cue = result[-1]
-
-        # Check if they overlap
-        if cue.start_time < prev_cue.end_time:
-            # Determine which chunk each cue belongs to
-            prev_chunk_idx = int(prev_cue.start_time / (chunk_size - overlap))
-            curr_chunk_idx = int(cue.start_time / (chunk_size - overlap))
-
-            prev_chunk_start = prev_chunk_idx * (chunk_size - overlap)
-            curr_chunk_start = curr_chunk_idx * (chunk_size - overlap)
-
-            prev_chunk_end = prev_chunk_start + chunk_size
-            curr_chunk_end = curr_chunk_start + chunk_size
-
-            # Calculate distance to edges
-            prev_dist = min(
-                prev_cue.start_time - prev_chunk_start,
-                prev_chunk_end - prev_cue.end_time,
-            )
-            curr_dist = min(
-                cue.start_time - curr_chunk_start, curr_chunk_end - cue.end_time
-            )
-
-            # Keep the one with greater distance (more reliable)
-            if curr_dist > prev_dist:
-                result[-1] = cue
-        else:
-            result.append(cue)
-
-    return result
+        return segments
 
 
 def generate_cue_id(audio_hash: str, start_time: float, deterministic_index: Optional[int] = None) -> str:
@@ -241,32 +142,39 @@ def generate_cue_id(audio_hash: str, start_time: float, deterministic_index: Opt
     return str(uuid.UUID(bytes=hash_bytes[:16]))
 
 
-def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[str] = None, deterministic_ids: bool = False) -> str:
-    """Convert cues to VTT format string with NOTE metadata using CAPTION_EDITOR sentinel format.
+def generate_document_id(audio_hash: str, deterministic: bool = False) -> str:
+    """Generate document ID based on audio hash.
 
     Args:
-        cues: List of VTT cues to convert
         audio_hash: Hash of the audio file
-        media_file_path: Optional path to the media file
-        deterministic_ids: If True, use simple incremental IDs (id_00000, id_00001, etc.) for testing
+        deterministic: If True, use simple 'doc_id' for testing
+
+    Returns:
+        Document ID string
     """
-    lines = ["WEBVTT\n"]
+    if deterministic:
+        return "doc_id"
+    hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
+    return str(uuid.UUID(bytes=hash_bytes[:16]))
 
-    # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
-    # Generate deterministic document UUID based on audio hash
-    if deterministic_ids:
-        doc_id = "doc_id"
-    else:
-        hash_bytes = hashlib.sha256(f"doc:{audio_hash}".encode()).digest()
-        doc_id = str(uuid.UUID(bytes=hash_bytes[:16]))
 
-    transcript_metadata = TranscriptMetadata(id=doc_id, media_file_path=media_file_path)
-    metadata_json = transcript_metadata.model_dump(by_alias=True, exclude_none=True)
-    lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
+def assign_cue_ids_and_timestamps(
+    cues: List[VTTCue],
+    audio_hash: str,
+    deterministic_ids: bool = False
+) -> List[VTTCue]:
+    """Assign IDs and timestamps to cues in-place.
 
+    Args:
+        cues: List of VTT cues to modify
+        audio_hash: Hash of the audio file
+        deterministic_ids: If True, use simple incremental IDs for testing
+
+    Returns:
+        The same cues list (modified in-place)
+    """
     # Get current timestamp for all cues (local timezone)
     if deterministic_ids:
-        # Use deterministic timestamp for testing
         current_timestamp = "2025-01-01T00:00:00.000000+00:00"
     else:
         current_timestamp = datetime.now().astimezone().isoformat()
@@ -284,27 +192,7 @@ def cues_to_vtt(cues: List[VTTCue], audio_hash: str, media_file_path: Optional[s
         cue.id = cue_id
         cue.timestamp = cue_timestamp
 
-        # Always add NOTE with entire cue using CAPTION_EDITOR sentinel
-        cue_json = cue.model_dump(by_alias=True, exclude_none=True)
-        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:VTTCue {json.dumps(cue_json)}\n")
-
-        # Format timestamps
-        start = format_timestamp(cue.start_time)
-        end = format_timestamp(cue.end_time)
-
-        lines.append(f"{cue_id}")
-        lines.append(f"{start} --> {end}")
-        lines.append(f"{cue.text}\n")
-
-    return "\n".join(lines)
-
-
-def format_timestamp(seconds: float) -> str:
-    """Format seconds as VTT timestamp (HH:MM:SS.mmm)."""
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
+    return cues
 
 
 def compute_audio_hash(audio_path: Path) -> str:
@@ -318,9 +206,12 @@ def compute_audio_hash(audio_path: Path) -> str:
 
 @app.command()
 def main(
-    media_file: Path = typer.Argument(..., help="Input media file to transcribe"),
+    media_file: Path = typer.Argument(..., help="Input media file to transcribe", 
+    exists=True, file_okay=True, dir_okay=False, readable=True,
+    ),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output VTT file path"
+        None, "--output", "-o", help="Output VTT file path",
+        exists=False, file_okay=True, dir_okay=False, writable=True,
     ),
     chunk_size: int = typer.Option(
         60, "--chunk-size", "-c", help="Chunk size in seconds"
@@ -333,6 +224,16 @@ def main(
         "--model",
         "-m",
         help="Hugging Face model name",
+    ),
+    max_intra_segment_gap_seconds: float = typer.Option(
+        0.50,
+        "--max-intra-segment-gap-seconds",
+        help="Maximum gap between words before splitting segment",
+    ),
+    max_segment_duration_seconds: float = typer.Option(
+        10.0,
+        "--max-segment-duration-seconds",
+        help="Maximum segment duration before splitting",
     ),
     deterministic_ids: bool = typer.Option(
         False,
@@ -348,10 +249,6 @@ def main(
 
     TODO: Add speaker identification to segments.
     """
-    if not media_file.exists():
-        typer.echo(f"Error: Media file not found: {media_file}", err=True)
-        raise typer.Exit(1)
-
     # Determine output path
     if output is None:
         output = media_file.with_suffix(".vtt")
@@ -415,8 +312,8 @@ def main(
 
             )
 
-        # Process chunks
-        all_cues = []
+        # Process chunks - get ASR segments with word-level timestamps
+        all_segments = []
         num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
 
         typer.echo(f"Processing {num_chunks} chunks...")
@@ -428,39 +325,53 @@ def main(
                 break
 
             # Load audio chunk
-            audio, _ = load_audio_chunk(audio_path, chunk_start, chunk_duration)
+            audio, sr = load_audio_chunk(audio_path, chunk_start, chunk_duration)
 
             if len(audio) == 0:
                 continue
 
-            # Transcribe
-            chunk_cues = transcribe_chunk(audio, asr_pipeline, chunk_start, is_nemo=is_nemo)
-            all_cues.extend(chunk_cues)
+            # Transcribe - returns ASRSegment objects with word-level timestamps
+            chunk_segments = transcribe_chunk(audio, asr_pipeline, chunk_start, sr, is_nemo=is_nemo)
+            all_segments.extend(chunk_segments)
 
-        # Resolve overlaps
-        typer.echo("Resolving overlaps...")
-        final_cues = resolve_overlap_conflicts(all_cues, chunk_size, overlap)
+        # Three-pass segment processing pipeline:
+        # 1. Resolve overlaps from chunked processing (deduplicate at word level)
+        typer.echo("Resolving overlaps from chunked processing...")
+        after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
+
+        # 2a. For Whisper (word-level segments), group by gaps to form sentences
+        # 2b. For Parakeet (sentence-level segments), split by word gaps if needed
+        if "whisper" in model_name.lower():
+            typer.echo(f"Grouping word segments with gaps < {max_intra_segment_gap_seconds}s...")
+            after_grouping = group_segments_by_gap(after_overlap, max_intra_segment_gap_seconds)
+        else:
+            typer.echo(f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s...")
+            after_grouping = split_segments_by_word_gap(after_overlap, max_intra_segment_gap_seconds)
+
+        # 3. Split long segments
+        typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
+        final_segments = split_long_segments(after_grouping, max_segment_duration_seconds)
+
+        # Convert ASRSegments to VTTCues
+        typer.echo("Converting segments to VTT cues...")
+        final_cues = asr_segments_to_vtt_cues(final_segments)
+
+        # Assign IDs and timestamps to cues
+        typer.echo("Assigning IDs and timestamps...")
+        assign_cue_ids_and_timestamps(final_cues, audio_hash, deterministic_ids=deterministic_ids)
+
+        # Generate document metadata
+        doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
+        metadata = TranscriptMetadata(id=doc_id, media_file_path=str(media_file))
 
         # Copy media file to output directory to keep VTT and media together
         import shutil
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Copy media file with same name to output directory
-        media_filename = media_file.name
-        copied_media_path = output_dir / media_filename
-
-        # Only copy if source and destination are different
-        if media_file.resolve() != copied_media_path.resolve():
-            typer.echo(f"Copying media file to: {copied_media_path}")
-            shutil.copy2(media_file, copied_media_path)
-
-        # Media file path is just the filename (same directory as VTT)
-        media_file_path = media_filename
-
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = cues_to_vtt(final_cues, audio_hash, media_file_path, deterministic_ids=deterministic_ids)
+        vtt_content = serialize_vtt(metadata, final_cues)
 
         # Write output
         output.write_text(vtt_content)
