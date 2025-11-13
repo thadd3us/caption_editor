@@ -136,7 +136,6 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Actions',
     width: 120,
     cellRenderer: ActionButtonsCell,
-    sortable: false,
     filter: false
   },
   {
@@ -316,19 +315,28 @@ function computeSpeakerSimilarity() {
 
   console.log('Computing speaker similarity for', selectedRows.length, 'selected rows')
 
-  // Get embeddings for selected rows
+  // Check if any selected rows are missing embeddings
+  const rowsWithoutEmbeddings: string[] = []
+  for (const row of selectedRows) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
+    if (!embedding || embedding.speakerEmbedding.length === 0) {
+      rowsWithoutEmbeddings.push(row.id)
+    }
+  }
+
+  if (rowsWithoutEmbeddings.length > 0) {
+    console.warn('Selected rows missing embeddings:', rowsWithoutEmbeddings)
+    alert(`Error: ${rowsWithoutEmbeddings.length} selected row(s) are missing speaker embeddings. Please select only rows with embeddings.`)
+    return
+  }
+
+  // Get embeddings for selected rows (all should have embeddings at this point)
   const selectedEmbeddings: Array<{ id: string, embedding: readonly number[] }> = []
   for (const row of selectedRows) {
     const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
     if (embedding && embedding.speakerEmbedding.length > 0) {
       selectedEmbeddings.push({ id: row.id, embedding: embedding.speakerEmbedding })
     }
-  }
-
-  if (selectedEmbeddings.length === 0) {
-    console.warn('No embeddings found for selected rows')
-    alert('No speaker embeddings found for the selected rows. Please ensure embeddings are generated first.')
-    return
   }
 
   console.log('Found embeddings for', selectedEmbeddings.length, 'selected rows')
@@ -339,7 +347,8 @@ function computeSpeakerSimilarity() {
   for (const cue of store.document.cues) {
     const embedding = store.document.embeddings?.find(e => e.segmentId === cue.id)
     if (!embedding || embedding.speakerEmbedding.length === 0) {
-      // No embedding for this row
+      // No embedding for this row - assign 0 similarity
+      newScores.set(cue.id, 0)
       continue
     }
 
@@ -358,6 +367,16 @@ function computeSpeakerSimilarity() {
 
   // Refresh the grid to show new values
   gridApi.value.refreshCells()
+
+  // Auto-sort by speaker similarity in descending order
+  const speakerSimilarityCol = gridApi.value.getColumn('speakerSimilarity')
+  if (speakerSimilarityCol) {
+    gridApi.value.applyColumnState({
+      state: [{ colId: 'speakerSimilarity', sort: 'desc' }],
+      defaultState: { sort: null }
+    })
+    console.log('Auto-sorted by speaker similarity (descending)')
+  }
 }
 
 // Update grid when cues change
