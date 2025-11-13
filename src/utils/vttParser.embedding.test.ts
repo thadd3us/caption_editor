@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { parseVTT, serializeVTT } from './vttParser'
-import type { VTTDocument, SegmentSpeakerEmbedding } from '../types/schema'
 
 describe('SegmentSpeakerEmbedding integration', () => {
   it('should parse and serialize embeddings', () => {
