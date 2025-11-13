@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from schema import CAPTION_EDITOR_SENTINEL, TranscriptMetadata, VTTCue
+from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, VTTCue
 
 
 def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[VTTCue]]:
@@ -67,6 +67,7 @@ def format_timestamp(seconds: float) -> str:
 def serialize_vtt(
     metadata: TranscriptMetadata,
     cues: list[VTTCue],
+    embeddings: Optional[list[SegmentSpeakerEmbedding]] = None,
     include_history: bool = False
 ) -> str:
     """Serialize metadata and cues to VTT format string.
@@ -74,6 +75,7 @@ def serialize_vtt(
     Args:
         metadata: Transcript metadata
         cues: List of VTT cues
+        embeddings: Optional list of speaker embeddings
         include_history: Whether to include history entries (not implemented yet)
 
     Returns:
@@ -97,5 +99,11 @@ def serialize_vtt(
         lines.append(f"{cue.id}")
         lines.append(f"{start} --> {end}")
         lines.append(f"{cue.text}\n")
+
+    # Add speaker embeddings at the end if they exist (one NOTE per embedding)
+    if embeddings:
+        for embedding in embeddings:
+            embedding_json = embedding.model_dump(by_alias=True, exclude_none=True)
+            lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding {json.dumps(embedding_json)}")
 
     return "\n".join(lines)

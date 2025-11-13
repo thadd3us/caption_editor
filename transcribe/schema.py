@@ -70,3 +70,12 @@ class SegmentHistoryEntry(BaseModel):
     action: HistoryAction = Field(description="Type of action performed")
     action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
     cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")
+
+
+class SegmentSpeakerEmbedding(BaseModel):
+    """Speaker embedding vector for a segment."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    segment_id: str = Field(description="UUID of the segment this embedding belongs to", alias="segmentId")
+    speaker_embedding: list[float] = Field(description="Speaker embedding vector", alias="speakerEmbedding")
