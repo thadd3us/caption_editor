@@ -255,10 +255,9 @@ export function parseVTT(content: string): ParseResult {
                 i++
               }
 
-              // Use identifier as ID if it looks like a UUID, otherwise generate
-              const id = identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
-                ? identifier
-                : uuidv4()
+              // Use identifier as ID (any non-empty string is valid)
+              // Only generate UUID if identifier is empty or whitespace
+              const id = identifier.trim() ? identifier.trim() : uuidv4()
               const cue = completeCue(pendingCue, id, startTime, endTime, text)
               cues.push(cue)
 
@@ -278,6 +277,26 @@ export function parseVTT(content: string): ParseResult {
     }
 
     console.log(`Parsed ${cues.length} cues`)
+
+    // Validate UUID uniqueness
+    const cueIds = new Set<string>()
+    const duplicateIds: string[] = []
+    for (const cue of cues) {
+      if (cueIds.has(cue.id)) {
+        duplicateIds.push(cue.id)
+      } else {
+        cueIds.add(cue.id)
+      }
+    }
+
+    if (duplicateIds.length > 0) {
+      const error = `Invalid VTT file: ${duplicateIds.length} duplicate cue ID(s) found. Cue IDs must be unique. Duplicates: ${duplicateIds.slice(0, 5).join(', ')}${duplicateIds.length > 5 ? '...' : ''}`
+      console.error(error)
+      return {
+        success: false,
+        error
+      }
+    }
 
     return {
       success: true,

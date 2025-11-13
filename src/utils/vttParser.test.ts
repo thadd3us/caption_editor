@@ -188,6 +188,66 @@ Caption with short format`
       expect(result.document?.cues[0].startTime).toBe(90.5)
       expect(result.document?.cues[0].endTime).toBe(165)
     })
+
+    it('should reject files with duplicate cue IDs', () => {
+      const duplicateId = 'duplicate-id'
+      const content = `WEBVTT
+
+${duplicateId}
+00:00:00.000 --> 00:00:02.000
+First cue
+
+${duplicateId}
+00:00:02.000 --> 00:00:04.000
+Second cue with same ID (DUPLICATE!)`
+
+      const result = parseVTT(content)
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('duplicate cue ID')
+      expect(result.error).toContain(duplicateId)
+    })
+
+    it('should reject files with multiple duplicate cue IDs', () => {
+      const content = `WEBVTT
+
+dup-1
+00:00:00.000 --> 00:00:01.000
+First
+
+dup-1
+00:00:01.000 --> 00:00:02.000
+Duplicate 1
+
+dup-2
+00:00:02.000 --> 00:00:03.000
+Original 2
+
+dup-2
+00:00:03.000 --> 00:00:04.000
+Duplicate 2
+
+unique-id
+00:00:04.000 --> 00:00:05.000
+Unique cue`
+
+      const result = parseVTT(content)
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('2 duplicate cue ID(s)')
+      expect(result.error).toContain('dup-1')
+      expect(result.error).toContain('dup-2')
+    })
+
+    it('should load test file with duplicate UUIDs and reject it', () => {
+      const fs = require('fs')
+      const path = require('path')
+      const vttPath = path.join(process.cwd(), 'test_data', 'duplicate-uuids.vtt')
+      const content = fs.readFileSync(vttPath, 'utf-8')
+
+      const result = parseVTT(content)
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('duplicate cue ID')
+      expect(result.error).toContain('duplicate-id')
+    })
   })
 
   describe('serializeVTT', () => {
