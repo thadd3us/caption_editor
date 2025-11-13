@@ -107,6 +107,12 @@ function createMenu() {
           click: () => {
             mainWindow?.webContents.send('menu-rename-speaker')
           }
+        },
+        {
+          label: 'Sort Rows by Speaker Similarity',
+          click: () => {
+            mainWindow?.webContents.send('menu-compute-speaker-similarity')
+          }
         }
       ]
     },

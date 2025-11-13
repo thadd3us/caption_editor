@@ -23,7 +23,7 @@
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
-      :rowSelection="'single'"
+      :rowSelection="'multiple'"
       :getRowId="getRowId"
       :immutableData="true"
       @grid-ready="onGridReady"
@@ -55,6 +55,9 @@ let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll sele
 // Force grid re-render when cues array changes
 const gridKey = computed(() => store.document.cues.map(c => c.id).join(','))
 
+// Speaker similarity scores (not persisted, UI-only)
+const speakerSimilarityScores = ref<Map<string, number>>(new Map())
+
 const rowData = computed(() => {
   // Cues are always kept sorted in the document model
   return store.document.cues.map(cue => ({
@@ -65,11 +68,21 @@ const rowData = computed(() => {
     endTimeFormatted: formatTimestamp(cue.endTime),
     text: cue.text,
     speakerName: cue.speakerName,
-    rating: cue.rating
+    rating: cue.rating,
+    speakerSimilarity: speakerSimilarityScores.value.get(cue.id)
   }))
 })
 
 const columnDefs = ref<ColDef[]>([
+  {
+    headerCheckboxSelection: true,
+    checkboxSelection: true,
+    width: 50,
+    pinned: 'left',
+    sortable: false,
+    filter: false,
+    resizable: false
+  },
   {
     field: 'text',
     headerName: 'Caption',
@@ -84,6 +97,7 @@ const columnDefs = ref<ColDef[]>([
     },
     wrapText: true,
     autoHeight: true,
+    sortable: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateCue(params.data.id, { text: params.newValue })
@@ -94,9 +108,20 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Speaker',
     width: 150,
     editable: true,
+    sortable: true,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       store.updateCue(params.data.id, { speakerName: params.newValue })
+    }
+  },
+  {
+    field: 'speakerSimilarity',
+    headerName: 'Speaker Similarity',
+    width: 150,
+    sortable: true,
+    sort: 'desc',
+    valueFormatter: (params) => {
+      return params.value != null ? params.value.toFixed(3) : ''
     }
   },
   {
@@ -104,6 +129,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Rating',
     width: 120,
     cellRenderer: StarRatingCell,
+    sortable: true,
   },
   {
     field: 'actions',
@@ -119,6 +145,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Start',
     width: 120,
     editable: true,
+    sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
@@ -162,6 +189,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'End',
     width: 120,
     editable: true,
+    sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
@@ -199,7 +227,7 @@ const columnDefs = ref<ColDef[]>([
 ])
 
 const defaultColDef = ref<ColDef>({
-  sortable: false,  // Disable sorting by default; only time columns are sortable
+  sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
   resizable: true
 })
@@ -248,6 +276,88 @@ function onSelectionChanged(event: SelectionChangedEvent) {
       store.setPlaying(true)
     }
   }
+}
+
+// Calculate cosine similarity between two vectors
+function cosineSimilarity(vecA: readonly number[], vecB: readonly number[]): number {
+  if (vecA.length !== vecB.length) {
+    throw new Error('Vectors must have the same length')
+  }
+
+  let dotProduct = 0
+  let normA = 0
+  let normB = 0
+
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i]
+    normA += vecA[i] * vecA[i]
+    normB += vecB[i] * vecB[i]
+  }
+
+  normA = Math.sqrt(normA)
+  normB = Math.sqrt(normB)
+
+  if (normA === 0 || normB === 0) {
+    return 0
+  }
+
+  return dotProduct / (normA * normB)
+}
+
+// Compute speaker similarity scores for all rows based on selected rows
+function computeSpeakerSimilarity() {
+  if (!gridApi.value) return
+
+  const selectedRows = gridApi.value.getSelectedRows()
+  if (selectedRows.length === 0) {
+    console.warn('No rows selected for speaker similarity computation')
+    return
+  }
+
+  console.log('Computing speaker similarity for', selectedRows.length, 'selected rows')
+
+  // Get embeddings for selected rows
+  const selectedEmbeddings: Array<{ id: string, embedding: readonly number[] }> = []
+  for (const row of selectedRows) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
+    if (embedding && embedding.speakerEmbedding.length > 0) {
+      selectedEmbeddings.push({ id: row.id, embedding: embedding.speakerEmbedding })
+    }
+  }
+
+  if (selectedEmbeddings.length === 0) {
+    console.warn('No embeddings found for selected rows')
+    alert('No speaker embeddings found for the selected rows. Please ensure embeddings are generated first.')
+    return
+  }
+
+  console.log('Found embeddings for', selectedEmbeddings.length, 'selected rows')
+
+  // Compute similarity scores for all rows
+  const newScores = new Map<string, number>()
+
+  for (const cue of store.document.cues) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === cue.id)
+    if (!embedding || embedding.speakerEmbedding.length === 0) {
+      // No embedding for this row
+      continue
+    }
+
+    // Compute maximum cosine similarity to any selected row
+    let maxSimilarity = -1
+    for (const selected of selectedEmbeddings) {
+      const similarity = cosineSimilarity(embedding.speakerEmbedding, selected.embedding)
+      maxSimilarity = Math.max(maxSimilarity, similarity)
+    }
+
+    newScores.set(cue.id, maxSimilarity)
+  }
+
+  console.log('Computed similarity scores for', newScores.size, 'rows')
+  speakerSimilarityScores.value = newScores
+
+  // Refresh the grid to show new values
+  gridApi.value.refreshCells()
 }
 
 // Update grid when cues change
@@ -305,12 +415,20 @@ function handleJumpToRow(event: Event) {
   }
 }
 
+// Handle computeSpeakerSimilarity event from menu
+function handleComputeSpeakerSimilarity() {
+  console.log('Compute speaker similarity event received')
+  computeSpeakerSimilarity()
+}
+
 onMounted(() => {
   window.addEventListener('jumpToRow', handleJumpToRow)
+  window.addEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 
 onUnmounted(() => {
   window.removeEventListener('jumpToRow', handleJumpToRow)
+  window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 </script>
 

@@ -277,6 +277,10 @@ onMounted(() => {
       ipcRenderer.on('menu-save-file', handleMenuSaveFile)
       ipcRenderer.on('menu-save-as', handleMenuSaveAs)
       ipcRenderer.on('menu-rename-speaker', openRenameSpeakerDialog)
+      ipcRenderer.on('menu-compute-speaker-similarity', () => {
+        // Dispatch custom event that CaptionTable will listen for
+        window.dispatchEvent(new CustomEvent('computeSpeakerSimilarity'))
+      })
       console.log('[App] ✓ Native menu IPC listeners registered')
     }
   }
