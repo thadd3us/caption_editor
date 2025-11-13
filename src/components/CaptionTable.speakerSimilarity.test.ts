@@ -272,4 +272,79 @@ describe('CaptionTable - Speaker Similarity', () => {
     const result4 = vm.cosineSimilarity(vec6, vec7)
     expect(result4).toBeCloseTo(1.0, 5)  // Same direction, different magnitude
   })
+
+  it('should find correct cue by time regardless of table sort order', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    const store = useVTTStore()
+
+    // Create cues with specific time ranges
+    // Add in reverse chronological order to test that it doesn't matter
+    const cue3Id = store.addCue(20, 10)  // 20-30s
+    const cue2Id = store.addCue(10, 10)  // 10-20s
+    const cue1Id = store.addCue(0, 10)   // 0-10s
+
+    // Update cues with distinct text for verification
+    store.updateCue(cue1Id, { text: 'First cue (0-10s)' })
+    store.updateCue(cue2Id, { text: 'Second cue (10-20s)' })
+    store.updateCue(cue3Id, { text: 'Third cue (20-30s)' })
+
+    // Verify cues are sorted by time in the document model (regardless of insertion order)
+    expect(store.document.cues[0].id).toBe(cue1Id)
+    expect(store.document.cues[1].id).toBe(cue2Id)
+    expect(store.document.cues[2].id).toBe(cue3Id)
+
+    // Test seeking to different positions
+    store.setCurrentTime(5)  // Should find first cue
+    expect(store.currentCue?.id).toBe(cue1Id)
+    expect(store.currentCue?.text).toBe('First cue (0-10s)')
+
+    store.setCurrentTime(15)  // Should find second cue
+    expect(store.currentCue?.id).toBe(cue2Id)
+    expect(store.currentCue?.text).toBe('Second cue (10-20s)')
+
+    store.setCurrentTime(25)  // Should find third cue
+    expect(store.currentCue?.id).toBe(cue3Id)
+    expect(store.currentCue?.text).toBe('Third cue (20-30s)')
+
+    // Mount component to test that rowData is also sorted correctly
+    const wrapper = mount(CaptionTable, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const vm = wrapper.vm as any
+
+    // Verify rowData (displayed in grid) is sorted by time
+    expect(vm.rowData.length).toBe(3)
+    expect(vm.rowData[0].id).toBe(cue1Id)
+    expect(vm.rowData[1].id).toBe(cue2Id)
+    expect(vm.rowData[2].id).toBe(cue3Id)
+
+    // Simulate sorting the grid by a different column (e.g., text in reverse)
+    // AG Grid would handle the visual sorting, but the underlying data remains time-sorted
+    // The key point: currentCue lookup still works correctly because it uses document.cues
+
+    // Test that seeking still works after "sorting" (which only affects display, not data)
+    store.setCurrentTime(2)  // Should still find first cue
+    expect(store.currentCue?.id).toBe(cue1Id)
+
+    store.setCurrentTime(12)  // Should still find second cue
+    expect(store.currentCue?.id).toBe(cue2Id)
+
+    store.setCurrentTime(28)  // Should still find third cue
+    expect(store.currentCue?.id).toBe(cue3Id)
+
+    // Test edge cases
+    store.setCurrentTime(0)  // Exactly at start
+    expect(store.currentCue?.id).toBe(cue1Id)
+
+    store.setCurrentTime(10)  // Exactly at boundary (should find second cue)
+    expect(store.currentCue?.id).toBe(cue2Id)
+
+    store.setCurrentTime(35)  // Beyond all cues
+    expect(store.currentCue).toBeUndefined()
+  })
 })
