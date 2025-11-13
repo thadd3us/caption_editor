@@ -663,36 +663,31 @@ Three-pass segment processing pipeline:
 - `test_fixtures/whisper_chunked_10s_raw_output.json`: 10s chunks (136 words, gaps hidden)
 - `test_fixtures/FINDINGS.md`: Analysis of Whisper timestamp behavior and chunking issues
 
-### Speaker Clustering (transcribe/embed.py)
+### Speaker Embeddings (transcribe/embed.py)
 
-Added automatic speaker clustering to `embed.py`:
-
-**New CLI Options:**
-- `--auto_assign_speaker_clusters_to_unknown_names`: Enable speaker clustering
-- `--num_speaker_clusters N`: Number of speaker groups (default: 2)
+Computes speaker embeddings and stores them in the VTT file as NOTE comments.
 
 **Usage:**
 ```bash
 cd transcribe
-HF_TOKEN=your_token uv run python embed.py path/to/file.vtt \
-  --auto_assign_speaker_clusters_to_unknown_names \
-  --num_speaker_clusters 2
+HF_TOKEN=your_token uv run python embed.py path/to/file.vtt
 ```
 
 **How it works:**
 1. Skips segments shorter than 0.5 seconds (too short for reliable embeddings)
 2. Computes speaker embeddings using pyannote.audio
-3. Normalizes embeddings for cosine similarity
-4. Clusters using k-means
-5. Assigns "Unknown 00?", "Unknown 01?", etc.
-6. Preserves existing non-empty speaker names
-7. Overwrites input VTT file with updated assignments
+3. Writes embeddings to VTT file as `SegmentSpeakerEmbedding` NOTE comments
+4. Each embedding is a vector of floats associated with a segment ID
 
 **Implementation details:**
 - Uses a map-based approach: `segment_id -> embedding`
-- K-means runs on embeddings from segments with valid embeddings
-- Another pass through cues checks if each segment has a cluster assignment
-- Short segments are skipped but not assigned speaker names
+- Embeddings are stored in the VTT file format:
+  ```
+  NOTE CAPTION_EDITOR:SegmentSpeakerEmbedding {"segmentId":"uuid","speakerEmbedding":[0.1,0.2,...]}
+  ```
+- Short segments (<0.5s) don't get embeddings
+- Embeddings are parsed and preserved by both Python and TypeScript parsers
+- Can be used later for speaker clustering, diarization, or similarity analysis
 
 **New Files:**
 - `transcribe/vtt_lib.py`: Shared VTT parsing/serialization utilities

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata } from '../types/schema'
+import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, SegmentSpeakerEmbedding, TranscriptMetadata } from '../types/schema'
 import { HistoryAction } from '../types/schema'
 
 /**
@@ -118,6 +118,7 @@ export function parseVTT(content: string): ParseResult {
     let i = 1
     let pendingCue: VTTCue | null = null
     const historyEntries: SegmentHistoryEntry[] = []
+    const embeddings: SegmentSpeakerEmbedding[] = []
     let transcriptMetadata: TranscriptMetadata | undefined = undefined
 
     while (i < lines.length) {
@@ -165,6 +166,10 @@ export function parseVTT(content: string): ParseResult {
                 const entry = parsed as SegmentHistoryEntry
                 historyEntries.push(entry)
                 console.log('Found history entry:', entry.id, entry.action)
+              } else if (typeName === 'SegmentSpeakerEmbedding') {
+                const embedding = parsed as SegmentSpeakerEmbedding
+                embeddings.push(embedding)
+                console.log('Found speaker embedding for segment:', embedding.segmentId)
               } else {
                 console.log(`Unknown ${CAPTION_EDITOR_SENTINEL} type:`, typeName)
               }
@@ -279,7 +284,8 @@ export function parseVTT(content: string): ParseResult {
       document: {
         metadata: transcriptMetadata || { id: uuidv4() },
         cues: Object.freeze(cues),
-        history: historyEntries.length > 0 ? Object.freeze(historyEntries) : undefined
+        history: historyEntries.length > 0 ? Object.freeze(historyEntries) : undefined,
+        embeddings: embeddings.length > 0 ? Object.freeze(embeddings) : undefined
       }
     }
 
@@ -330,6 +336,13 @@ export function serializeVTT(document: VTTDocument): string {
   if (document.history && document.history.length > 0) {
     for (const entry of document.history) {
       output += `NOTE ${CAPTION_EDITOR_SENTINEL}:SegmentHistoryEntry ${JSON.stringify(entry)}\n`
+    }
+  }
+
+  // Add speaker embeddings at the end if they exist (one NOTE per embedding)
+  if (document.embeddings && document.embeddings.length > 0) {
+    for (const embedding of document.embeddings) {
+      output += `\nNOTE ${CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding ${JSON.stringify(embedding)}\n`
     }
   }
 

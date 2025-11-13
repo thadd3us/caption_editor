@@ -50,6 +50,7 @@ export interface VTTDocument {
   readonly cues: readonly VTTCue[]
   readonly filePath?: string // Original file path if loaded from file
   readonly history?: readonly SegmentHistoryEntry[] // Historical record of segment changes
+  readonly embeddings?: readonly SegmentSpeakerEmbedding[] // Speaker embeddings for segments
 }
 
 /**
@@ -77,4 +78,12 @@ export interface SegmentHistoryEntry {
   readonly action: HistoryAction // Type of action performed
   readonly actionTimestamp: string // ISO 8601 timestamp of when this action occurred
   readonly cue: VTTCue // The segment's state before the change (preserves the original timestamp)
+}
+
+/**
+ * Speaker embedding vector for a segment
+ */
+export interface SegmentSpeakerEmbedding {
+  readonly segmentId: string // UUID of the segment this embedding belongs to
+  readonly speakerEmbedding: readonly number[] // Speaker embedding vector
 }
