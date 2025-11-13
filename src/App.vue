@@ -305,12 +305,22 @@ onMounted(() => {
           console.log('[App] ✓ Processing result:', result)
           if (result.type === 'vtt') {
             console.log('[App] ✓ Loading VTT file:', result.filePath)
-            store.loadFromFile(result.content, result.filePath)
-            console.log('[App] ✓ VTT file loaded successfully')
+            try {
+              store.loadFromFile(result.content, result.filePath)
+              console.log('[App] ✓ VTT file loaded successfully')
+            } catch (err) {
+              console.error('[App] ✗ Failed to load VTT file:', err)
+              alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+            }
           } else if (result.type === 'media') {
             console.log('[App] ✓ Loading media file:', result.filePath)
-            store.loadMediaFile(result.url, result.filePath)
-            console.log('[App] ✓ Media file loaded successfully')
+            try {
+              store.loadMediaFile(result.url, result.filePath)
+              console.log('[App] ✓ Media file loaded successfully')
+            } catch (err) {
+              console.error('[App] ✗ Failed to load media file:', err)
+              alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+            }
           }
         }
         console.log('[App] ✓ All files processed successfully')
