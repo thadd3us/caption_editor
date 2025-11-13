@@ -157,6 +157,37 @@ Current performance: ~21s for 18 tests ✅
 npx playwright test
 ```
 
+**Full E2E Pipeline Test (Python + Electron):**
+
+This test covers the complete workflow from audio transcription to UI editing:
+
+```bash
+# Fast mode (uses cached intermediate files, recommended)
+# macOS:
+npx playwright test tests/electron/full-pipeline.electron.spec.ts
+
+# Linux/Docker:
+DISPLAY=:99 npx playwright test tests/electron/full-pipeline.electron.spec.ts
+
+# Full E2E mode (regenerates all intermediate files from scratch)
+# Requires HF_TOKEN for speaker embedding generation
+# macOS:
+HF_TOKEN=your_token FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
+
+# Linux/Docker:
+DISPLAY=:99 HF_TOKEN=your_token FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
+```
+
+Pipeline stages (intermediate outputs in `test_data/full_pipeline/`):
+1. **Stage 1**: `1_after_transcribe.vtt` - Audio transcription with `transcribe.py`
+2. **Stage 2**: `2_after_embed.vtt` - Speaker embeddings added with `embed.py`
+3. **Stage 3**: `3_after_ui_edit.vtt` - UI modifications (rating, speaker name)
+
+The test verifies:
+- Speaker embeddings are preserved after UI edits
+- Rating modifications persist correctly
+- Speaker name updates are saved properly
+
 #### Python Tests
 ```bash
 cd transcribe
