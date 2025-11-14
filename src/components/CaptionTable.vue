@@ -7,6 +7,9 @@
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
+        <button class="open-button" @click="handleOpenFiles" title="Open VTT or media files (Ctrl/Cmd+O)">
+          📁 Open Files
+        </button>
         <label class="checkbox-label">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay (selected row)
@@ -230,6 +233,11 @@ const defaultColDef = ref<ColDef>({
   filter: true,
   resizable: true
 })
+
+function handleOpenFiles() {
+  // Dispatch event that App.vue will handle by triggering FileDropZone
+  window.dispatchEvent(new CustomEvent('openFiles'))
+}
 
 function getRowId(params: { data: { id: string } }) {
   return params.data.id
@@ -518,6 +526,25 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+.open-button {
+  padding: 6px 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.open-button:hover {
+  background: #0056b3;
+}
+
+.open-button:active {
+  background: #004494;
 }
 
 .ag-theme-alpine {

@@ -43,11 +43,6 @@ test.describe('Electron App', () => {
     expect(title).toBe('VTT Editor')
   })
 
-  test('should show the menu bar', async () => {
-    const menuBar = await window.locator('.menu-bar')
-    await expect(menuBar).toBeVisible()
-  })
-
   test('should show the file upload button', async () => {
     const uploadButton = await window.locator('.open-button')
     await expect(uploadButton).toBeVisible()

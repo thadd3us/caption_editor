@@ -268,6 +268,9 @@ onMounted(() => {
     attemptMediaAutoLoad()
   }, 200)
 
+  // Listen for openFiles event from CaptionTable's Open Files button
+  window.addEventListener('openFiles', handleMenuOpenFile as EventListener)
+
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
     const { ipcRenderer } = (window as any).electronAPI
