@@ -35,14 +35,14 @@ Another message from Alice`
 
       try {
         vttStore.loadFromFile(vttContent, '/test/file.vtt')
-        return { success: true, cueCount: vttStore.document.cues.length }
+        return { success: true, cueCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
       }
     })
 
     expect(loadResult.success).toBe(true)
-    expect(loadResult.cueCount).toBe(3)
+    expect(loadResult.segmentCount).toBe(3)
 
     await page.waitForTimeout(200)
 
@@ -92,7 +92,7 @@ Another message from Alice`
     const speakerNames = await page.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return null
-      return vttStore.document.cues.map((cue: any) => cue.speakerName)
+      return vttStore.document.segments.map((cue: any) => cue.speakerName)
     })
 
     // Check that Alice was renamed to Alice Smith

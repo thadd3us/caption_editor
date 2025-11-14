@@ -124,7 +124,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Verify the cue was added
     const cueCount = await window.evaluate(() => {
       const store = (window as any).$store
-      return store.document.cues.length
+      return store.document.segments.length
     })
     expect(cueCount).toBe(4) // Original 3 cues + 1 new cue
     console.log('✓ Cue count is now:', cueCount)
@@ -291,7 +291,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const speakerData = await window.evaluate(() => {
       const store = (window as any).$store
-      const cues = store.document.cues
+      const cues = store.document.segments
       return cues.map((cue: any) => ({
         id: cue.id,
         text: cue.text.substring(0, 30),
@@ -325,7 +325,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Verify the update
     const updatedFirstSpeaker = await window.evaluate((cueId) => {
       const store = (window as any).$store
-      const cue = store.document.cues.find((c: any) => c.id === cueId)
+      const cue = store.document.segments.find((c: any) => c.id === cueId)
       return cue?.speakerName
     }, firstCueId)
     expect(updatedFirstSpeaker).toBe('Charlie')
@@ -343,7 +343,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Verify the addition
     const newSecondSpeaker = await window.evaluate((cueId) => {
       const store = (window as any).$store
-      const cue = store.document.cues.find((c: any) => c.id === cueId)
+      const cue = store.document.segments.find((c: any) => c.id === cueId)
       return cue?.speakerName
     }, secondCueId)
     expect(newSecondSpeaker).toBe('Diana')

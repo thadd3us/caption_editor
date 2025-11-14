@@ -61,7 +61,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
 
       // Return the store state after loading
       return {
-        cueCount: store.document.cues.length,
+        segmentCount: store.document.segments.length,
         metadata: store.document.metadata,
         mediaPath: store.mediaPath,
         mediaFilePath: store.mediaFilePath
@@ -72,7 +72,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
 
     // Verify VTT was loaded
     expect(result).toBeTruthy()
-    expect(result!.cueCount).toBe(3)
+    expect(result!.segmentCount).toBe(3)
     // Media path should be converted to absolute path internally
     expect(result!.metadata.mediaFilePath).toBe(mediaPath)
 
@@ -148,12 +148,12 @@ Test caption
       const store = (window as any).$store
       return {
         mediaPath: store.mediaPath,
-        cueCount: store.document.cues.length,
+        segmentCount: store.document.segments.length,
         hasMetadata: !!store.document.metadata.mediaFilePath
       }
     })
 
-    expect(state.cueCount).toBe(1)
+    expect(state.segmentCount).toBe(1)
     expect(state.hasMetadata).toBe(true)
     expect(state.mediaPath).toBeFalsy() // Should not have loaded any media
 

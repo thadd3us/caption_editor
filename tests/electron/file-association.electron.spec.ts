@@ -43,7 +43,7 @@ test.describe('File Association - Open VTT files from OS', () => {
       return {
         storeExists: !!store,
         documentExists: !!store?.document,
-        cuesLength: store?.document?.cues?.length || 0,
+        segmentsLength: store?.document?.segments?.length || 0,
         filePath: store?.document?.filePath,
         metadataMediaPath: store?.document?.metadata?.mediaFilePath
       }
@@ -54,7 +54,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     await window.waitForFunction(
       () => {
         const store = (window as any).$store
-        return store && store.document && store.document.cues && store.document.cues.length > 0
+        return store && store.document && store.document.segments && store.document.segments.length > 0
       },
       { timeout: 5000 }
     )
@@ -64,7 +64,7 @@ test.describe('File Association - Open VTT files from OS', () => {
       const store = (window as any).$store
       return {
         hasDocument: !!store?.document,
-        cueCount: store?.document?.cues?.length || 0,
+        segmentCount: store?.document?.segments?.length || 0,
         filePath: store?.document?.filePath,
         metadata: store?.document?.metadata,
         mediaPath: store?.mediaPath,
@@ -76,7 +76,7 @@ test.describe('File Association - Open VTT files from OS', () => {
 
     // Verify VTT file was loaded
     expect(storeState.hasDocument).toBe(true)
-    expect(storeState.cueCount).toBe(3) // with-media-reference.vtt has 3 cues
+    expect(storeState.segmentCount).toBe(3) // with-media-reference.vtt has 3 cues
     expect(storeState.filePath).toBe(vttFilePath)
 
     // Verify metadata contains media file reference
@@ -124,12 +124,12 @@ test.describe('File Association - Open VTT files from OS', () => {
     const captionTable = await window.locator('.ag-center-cols-container')
     await expect(captionTable).toBeVisible()
 
-    // Check that the first cue is visible
-    const firstCueText = await window.evaluate(() => {
+    // Check that the first segment is visible
+    const firstSegmentText = await window.evaluate(() => {
       const store = (window as any).$store
-      return store?.document?.cues?.[0]?.text
+      return store?.document?.segments?.[0]?.text
     })
-    expect(firstCueText).toBe('The birch canoe slid on the smooth planks.')
+    expect(firstSegmentText).toBe('The birch canoe slid on the smooth planks.')
 
     // Clean up
     await electronApp.close()
@@ -162,7 +162,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     await window.waitForFunction(
       () => {
         const store = (window as any).$store
-        return store && store.document && store.document.cues && store.document.cues.length > 0
+        return store && store.document && store.document.segments && store.document.segments.length > 0
       },
       { timeout: 5000 }
     )
@@ -171,14 +171,14 @@ test.describe('File Association - Open VTT files from OS', () => {
     const storeState = await window.evaluate(() => {
       const store = (window as any).$store
       return {
-        cueCount: store?.document?.cues?.length || 0,
+        segmentCount: store?.document?.segments?.length || 0,
         filePath: store?.document?.filePath
       }
     })
 
     console.log('Store state after open-file event:', storeState)
 
-    expect(storeState.cueCount).toBe(3)
+    expect(storeState.segmentCount).toBe(3)
     expect(storeState.filePath).toBe(vttFilePath)
 
     await electronApp.close()

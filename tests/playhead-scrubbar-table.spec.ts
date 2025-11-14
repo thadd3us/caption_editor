@@ -75,7 +75,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     expect(rowCount).toBe(1)
 
     // Verify the cue in store spans 2-7 seconds (default 5s duration)
-    let cues = await page.evaluate(() => (window as any).$store.document.cues)
+    let cues = await page.evaluate(() => (window as any).$store.document.segments)
     expect(cues).toHaveLength(1)
     expect(cues[0].startTime).toBeCloseTo(2, 1)
     expect(cues[0].endTime).toBeCloseTo(7, 1)
@@ -98,7 +98,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     expect(rowCount).toBe(2)
 
     // Verify cues are in correct order
-    cues = await page.evaluate(() => (window as any).$store.document.cues)
+    cues = await page.evaluate(() => (window as any).$store.document.segments)
     expect(cues).toHaveLength(2)
 
     // Should be sorted by start time (store keeps them sorted)
@@ -125,7 +125,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     expect(rowCount).toBe(3)
 
     // Verify third cue
-    cues = await page.evaluate(() => (window as any).$store.document.cues)
+    cues = await page.evaluate(() => (window as any).$store.document.segments)
     expect(cues).toHaveLength(3)
 
     // === Test 4: Scrub bar seeking (auto-selection not yet implemented) ===
