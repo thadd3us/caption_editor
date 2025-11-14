@@ -327,7 +327,7 @@ export function parseVTT(content: string): ParseResult {
  * Uses CAPTION_EDITOR sentinel format for metadata
  */
 export function serializeVTT(document: VTTDocument): string {
-  console.log('Serializing VTT document with', document.segments.length, 'cues')
+  console.log('Serializing VTT document with', document.segments.length, 'segments')
 
   let output = 'WEBVTT\n\n'
 

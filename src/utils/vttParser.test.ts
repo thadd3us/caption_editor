@@ -728,7 +728,7 @@ Unique cue`
 
       const historyEntry = JSON.parse(historyMatch![1])
       expect(historyEntry.action).toBe('modified')
-      expect(historyEntry.cue).toBeDefined()
+      expect(historyEntry.segment).toBeDefined()
     })
 
     it('should parse history from NOTE at end of VTT', () => {
@@ -794,10 +794,126 @@ NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","act
 
       const serialized = serializeVTT(doc)
 
-      // Should contain one NOTE for the document metadata and one NOTE for the cue metadata, but not for history
+      // Should contain one NOTE for the document metadata and one NOTE for the segment metadata, but not for history
       const noteCount = (serialized.match(/NOTE/g) || []).length
-      expect(noteCount).toBe(2) // One NOTE for document metadata, one for cue metadata, no history NOTE
+      expect(noteCount).toBe(2) // One NOTE for document metadata, one for segment metadata, no history NOTE
       expect(serialized).not.toContain('SegmentHistoryEntry')
+    })
+  })
+
+  describe('word-level timestamps', () => {
+    it('should parse segments with word-level timestamps', () => {
+      const content = `WEBVTT
+
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"test-1","startTime":0.24,"endTime":3.44,"text":"The birch canoe slid.","words":[{"text":"The","startTime":0.24,"endTime":0.56},{"text":"birch","startTime":0.56,"endTime":1.12},{"text":"canoe","startTime":1.12,"endTime":1.6},{"text":"slid.","startTime":1.6,"endTime":3.44}]}
+
+test-1
+00:00:00.240 --> 00:00:03.440
+The birch canoe slid.`
+
+      const result = parseVTT(content)
+
+      expect(result.success).toBe(true)
+      expect(result.document?.segments).toHaveLength(1)
+      expect(result.document?.segments[0].words).toBeDefined()
+      expect(result.document?.segments[0].words).toHaveLength(4)
+      expect(result.document?.segments[0].words![0].text).toBe('The')
+      expect(result.document?.segments[0].words![0].startTime).toBe(0.24)
+      expect(result.document?.segments[0].words![0].endTime).toBe(0.56)
+    })
+
+    it('should serialize segments with word-level timestamps', () => {
+      const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
+        segments: Object.freeze([
+          {
+            id: 'test-1',
+            startTime: 0.5,
+            endTime: 2.0,
+            text: 'Hello world',
+            words: [
+              { text: 'Hello', startTime: 0.5, endTime: 1.0 },
+              { text: 'world', startTime: 1.5, endTime: 2.0 }
+            ]
+          }
+        ])
+      }
+
+      const output = serializeVTT(doc)
+      expect(output).toContain('"words":[')
+      expect(output).toContain('"text":"Hello"')
+      expect(output).toContain('"text":"world"')
+      expect(output).toContain('"startTime":0.5')
+    })
+
+    it('should preserve word-level timestamps through round-trip', () => {
+      const original: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
+        segments: Object.freeze([
+          {
+            id: 'test-1',
+            startTime: 0.5,
+            endTime: 2.5,
+            text: 'Three words here',
+            words: [
+              { text: 'Three', startTime: 0.5, endTime: 1.0 },
+              { text: 'words', startTime: 1.0, endTime: 1.5 },
+              { text: 'here', startTime: 2.0, endTime: 2.5 }
+            ]
+          }
+        ])
+      }
+
+      const serialized = serializeVTT(original)
+      const parsed = parseVTT(serialized)
+
+      expect(parsed.success).toBe(true)
+      expect(parsed.document?.segments[0].words).toHaveLength(3)
+      expect(parsed.document?.segments[0].words![0].text).toBe('Three')
+      expect(parsed.document?.segments[0].words![1].text).toBe('words')
+      expect(parsed.document?.segments[0].words![2].text).toBe('here')
+      expect(parsed.document?.segments[0].words![2].startTime).toBe(2.0)
+      expect(parsed.document?.segments[0].words![2].endTime).toBe(2.5)
+    })
+
+    it('should handle segments without word-level timestamps', () => {
+      const content = `WEBVTT
+
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"test-1","startTime":1,"endTime":4,"text":"No words here"}
+
+test-1
+00:00:01.000 --> 00:00:04.000
+No words here`
+
+      const result = parseVTT(content)
+
+      expect(result.success).toBe(true)
+      expect(result.document?.segments[0].words).toBeUndefined()
+    })
+
+    it('should preserve word timestamps when editing segment text', () => {
+      const segment: TranscriptSegment = {
+        id: 'test-1',
+        startTime: 0.5,
+        endTime: 2.0,
+        text: 'Original text',
+        words: [
+          { text: 'Original', startTime: 0.5, endTime: 1.0 },
+          { text: 'text', startTime: 1.5, endTime: 2.0 }
+        ]
+      }
+      const doc: VTTDocument = {
+        metadata: { id: 'test-doc-id' },
+        segments: Object.freeze([segment])
+      }
+
+      // Edit the text (words should remain unchanged even though they might be inconsistent)
+      const updatedDoc = updateCue(doc, 'test-1', { text: 'Modified content' })
+
+      expect(updatedDoc.segments[0].text).toBe('Modified content')
+      expect(updatedDoc.segments[0].words).toHaveLength(2)
+      expect(updatedDoc.segments[0].words![0].text).toBe('Original')
+      expect(updatedDoc.segments[0].words![1].text).toBe('text')
     })
   })
 })
