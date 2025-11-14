@@ -3,7 +3,7 @@ WEBVTT
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "6c3f5031-ee11-4e08-b512-523c1e9d836f", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
 
 
-NOTE CAPTION_EDITOR:VTTCue {"id": "84ec6681-574b-4570-aecb-5bcaea9415a9", "startTime": 0.0, "endTime": 3.0, "text": "The birch canoe slid on the smooth planks.", "speakerName": "TestSpeaker", "rating": 3, "timestamp": "2025-11-08T03:02:57.200-08:00"}
+NOTE CAPTION_EDITOR:VTTCue {"id": "84ec6681-574b-4570-aecb-5bcaea9415a9", "startTime": 0.0, "endTime": 3.0, "text": "The birch canoe slid on the smooth planks.", "speakerName": "Alice", "rating": 1, "timestamp": "2025-11-08T03:02:57.200-08:00"}
 
 84ec6681-574b-4570-aecb-5bcaea9415a9
 00:00:00.000 --> 00:00:03.000
