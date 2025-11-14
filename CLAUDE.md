@@ -65,9 +65,9 @@ Tests should run quickly to maintain development velocity:
   - ⚠️ Diarization/Embedding: 3 failures (require HF_TOKEN)
   - ⚠️ Parakeet: 1 failure (OOM in resource-constrained environments)
   - ⚠️ VTT snapshots: 3 failures (test data regenerated, UUIDs changed)
-- ✅ Electron Platform E2E Tests: 24/24 passing ⭐ **ALL PASSING!**
+- ✅ Electron Platform E2E Tests: 25/25 passing ⭐ **ALL PASSING!**
 
-**Total: 157/164 tests (19 Python + 138 TypeScript passing) - 96% pass rate!**
+**Total: 158/165 tests (19 Python + 139 TypeScript passing) - 96% pass rate!**
 
 **Note:** Browser E2E tests have been removed as the app is now Electron-only.
 
