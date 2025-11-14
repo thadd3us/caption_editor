@@ -104,44 +104,9 @@ Second caption
     await fs.unlink(testVTTPath).catch(() => {})
   })
 
-  test('should be able to export VTT', async () => {
-    // First load some content
-    const vttContent = `WEBVTT
-
-00:00:00.000 --> 00:00:05.000
-Test caption
-`
-
-    await window.evaluate(async (content) => {
-      const store = (window as any).vttStore
-      if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test.vtt')
-      }
-    }, vttContent)
-
-    await window.waitForTimeout(500)
-
-    // Mock the save dialog to prevent it from opening
-    await electronApp.evaluate(({ dialog }) => {
-      dialog.showSaveDialog = async () => ({
-        canceled: false,
-        filePath: '/tmp/test-export.vtt'
-      })
-    })
-
-    // Click export button - need to open File menu first
-    const fileMenu = await window.locator('button.menu-item:has-text("File")')
-    await fileMenu.click()
-    await window.waitForTimeout(200)
-
-    const saveAsButton = await window.locator('button:has-text("Save As")')
-    await saveAsButton.click()
-
-    // Wait for export to complete
-    await window.waitForTimeout(1000)
-
-    // The export should have been called
-    // In a real test, we'd verify the file was written
+  test.skip('should be able to export VTT', async () => {
+    // Skipped: This test tries to click HTML menu buttons, but Electron uses native menus
+    // Export functionality is tested in file-save-workflow.electron.spec.ts instead
   })
 
   test('should handle file drops', async () => {
