@@ -46,14 +46,14 @@ describe('CaptionTable - Speaker Similarity', () => {
     store.loadFromFile(content, vttPath)
 
     // Verify document loaded correctly
-    expect(store.document.cues.length).toBe(5)
+    expect(store.document.segments.length).toBe(5)
     expect(store.document.embeddings?.length).toBe(3)
 
     // Check which cues have embeddings
-    const cuesWithEmbeddings = store.document.cues.filter(cue =>
+    const cuesWithEmbeddings = store.document.segments.filter(cue =>
       store.document.embeddings?.some(e => e.segmentId === cue.id)
     )
-    const cuesWithoutEmbeddings = store.document.cues.filter(cue =>
+    const cuesWithoutEmbeddings = store.document.segments.filter(cue =>
       !store.document.embeddings?.some(e => e.segmentId === cue.id)
     )
 
@@ -291,9 +291,9 @@ describe('CaptionTable - Speaker Similarity', () => {
     store.updateCue(cue3Id, { text: 'Third cue (20-30s)' })
 
     // Verify cues are sorted by time in the document model (regardless of insertion order)
-    expect(store.document.cues[0].id).toBe(cue1Id)
-    expect(store.document.cues[1].id).toBe(cue2Id)
-    expect(store.document.cues[2].id).toBe(cue3Id)
+    expect(store.document.segments[0].id).toBe(cue1Id)
+    expect(store.document.segments[1].id).toBe(cue2Id)
+    expect(store.document.segments[2].id).toBe(cue3Id)
 
     // Test seeking to different positions
     store.setCurrentTime(5)  // Should find first cue
@@ -325,7 +325,7 @@ describe('CaptionTable - Speaker Similarity', () => {
 
     // Simulate sorting the grid by a different column (e.g., text in reverse)
     // AG Grid would handle the visual sorting, but the underlying data remains time-sorted
-    // The key point: currentCue lookup still works correctly because it uses document.cues
+    // The key point: currentCue lookup still works correctly because it uses document.segments
 
     // Test that seeking still works after "sorting" (which only affects display, not data)
     store.setCurrentTime(2)  // Should still find first cue

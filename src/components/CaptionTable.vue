@@ -5,7 +5,7 @@
       <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
     <div class="table-header">
-      <h2>Captions ({{ store.document.cues.length }})</h2>
+      <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
         <label class="checkbox-label">
           <input type="checkbox" v-model="autoplayEnabled" />
@@ -53,14 +53,14 @@ const autoScrollEnabled = ref(false)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
 
 // Force grid re-render when cues array changes
-const gridKey = computed(() => store.document.cues.map(c => c.id).join(','))
+const gridKey = computed(() => store.document.segments.map(c => c.id).join(','))
 
 // Speaker similarity scores (not persisted, UI-only)
 const speakerSimilarityScores = ref<Map<string, number>>(new Map())
 
 const rowData = computed(() => {
   // Cues are always kept sorted in the document model
-  return store.document.cues.map(cue => ({
+  return store.document.segments.map(cue => ({
     id: cue.id,
     startTime: cue.startTime,
     endTime: cue.endTime,
@@ -344,7 +344,7 @@ function computeSpeakerSimilarity() {
   // Compute similarity scores for all rows
   const newScores = new Map<string, number>()
 
-  for (const cue of store.document.cues) {
+  for (const cue of store.document.segments) {
     const embedding = store.document.embeddings?.find(e => e.segmentId === cue.id)
     if (!embedding || embedding.speakerEmbedding.length === 0) {
       // No embedding for this row - assign 0 similarity
@@ -380,7 +380,7 @@ function computeSpeakerSimilarity() {
 }
 
 // Update grid when cues change
-watch(() => store.document.cues, () => {
+watch(() => store.document.segments, () => {
   gridApi.value?.refreshCells()
 }, { deep: true })
 
@@ -389,7 +389,7 @@ watch(() => store.currentTime, (currentTime) => {
   if (!autoScrollEnabled.value || !gridApi.value) return
 
   // Find the first cue that the playhead intersects
-  const cue = store.document.cues.find(c =>
+  const cue = store.document.segments.find(c =>
     c.startTime <= currentTime && currentTime < c.endTime
   )
 

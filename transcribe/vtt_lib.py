@@ -10,23 +10,23 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, VTTCue
+from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, TranscriptSegment
 
 
-def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[VTTCue]]:
-    """Parse VTT file and extract metadata and cues from NOTE comments.
+def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[TranscriptSegment]]:
+    """Parse VTT file and extract metadata and segments from NOTE comments.
 
     Args:
         vtt_path: Path to the VTT file
 
     Returns:
-        Tuple of (metadata, cues)
+        Tuple of (metadata, segments)
     """
     content = vtt_path.read_text()
     lines = content.split("\n")
 
     metadata = None
-    cues = []
+    segments = []
 
     # Pattern to match NOTE CAPTION_EDITOR: lines
     pattern = re.compile(
@@ -41,19 +41,23 @@ def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[VTTCue]]:
 
             if data_type == "TranscriptMetadata":
                 metadata = TranscriptMetadata.model_validate_json(json_data)
+            elif data_type == "TranscriptSegment":
+                segment = TranscriptSegment.model_validate_json(json_data)
+                segments.append(segment)
             elif data_type == "VTTCue":
-                cue = VTTCue.model_validate_json(json_data)
-                cues.append(cue)
+                # Backwards compatibility: parse old VTTCue format
+                segment = TranscriptSegment.model_validate_json(json_data)
+                segments.append(segment)
 
     if metadata is None:
         raise ValueError(
             f"No TranscriptMetadata found in VTT file: {vtt_path}"
         )
 
-    if not cues:
-        raise ValueError(f"No VTTCue entries found in VTT file: {vtt_path}")
+    if not segments:
+        raise ValueError(f"No TranscriptSegment entries found in VTT file: {vtt_path}")
 
-    return metadata, cues
+    return metadata, segments
 
 
 def format_timestamp(seconds: float) -> str:
@@ -66,15 +70,15 @@ def format_timestamp(seconds: float) -> str:
 
 def serialize_vtt(
     metadata: TranscriptMetadata,
-    cues: list[VTTCue],
+    segments: list[TranscriptSegment],
     embeddings: Optional[list[SegmentSpeakerEmbedding]] = None,
     include_history: bool = False
 ) -> str:
-    """Serialize metadata and cues to VTT format string.
+    """Serialize metadata and segments to VTT format string.
 
     Args:
         metadata: Transcript metadata
-        cues: List of VTT cues
+        segments: List of transcript segments
         embeddings: Optional list of speaker embeddings
         include_history: Whether to include history entries (not implemented yet)
 
@@ -87,18 +91,18 @@ def serialize_vtt(
     metadata_json = metadata.model_dump(by_alias=True, exclude_none=True)
     lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
 
-    for cue in cues:
-        # Add NOTE with entire cue using CAPTION_EDITOR sentinel
-        cue_json = cue.model_dump(by_alias=True, exclude_none=True)
-        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:VTTCue {json.dumps(cue_json)}\n")
+    for segment in segments:
+        # Add NOTE with entire segment using CAPTION_EDITOR sentinel
+        segment_json = segment.model_dump(by_alias=True, exclude_none=True)
+        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:TranscriptSegment {json.dumps(segment_json)}\n")
 
         # Format timestamps
-        start = format_timestamp(cue.start_time)
-        end = format_timestamp(cue.end_time)
+        start = format_timestamp(segment.start_time)
+        end = format_timestamp(segment.end_time)
 
-        lines.append(f"{cue.id}")
+        lines.append(f"{segment.id}")
         lines.append(f"{start} --> {end}")
-        lines.append(f"{cue.text}\n")
+        lines.append(f"{segment.text}\n")
 
     # Add speaker embeddings at the end if they exist (one NOTE per embedding)
     if embeddings:

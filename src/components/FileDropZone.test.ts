@@ -76,8 +76,8 @@ describe('FileDropZone', () => {
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
 
       // Verify VTT content was loaded into store
-      expect(store.document.cues.length).toBe(1)
-      expect(store.document.cues[0].text).toBe('Test caption')
+      expect(store.document.segments.length).toBe(1)
+      expect(store.document.segments[0].text).toBe('Test caption')
       expect(store.document.filePath).toBe('/path/to/test.vtt')
 
       // Cleanup
@@ -185,7 +185,7 @@ describe('FileDropZone', () => {
 
       // Verify both files were processed
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
-      expect(store.document.cues.length).toBe(1)
+      expect(store.document.segments.length).toBe(1)
       expect(store.mediaPath).toBe('file:///path/to/video.mp4')
 
       // Cleanup
@@ -240,7 +240,7 @@ describe('FileDropZone', () => {
       // Verify error was logged and alert shown
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(alertSpy).toHaveBeenCalled()
-      expect(store.document.cues.length).toBe(0)
+      expect(store.document.segments.length).toBe(0)
 
       // Cleanup
       consoleErrorSpy.mockRestore()
@@ -310,7 +310,7 @@ Second cue with same ID`
       expect(alertMessage).toContain('duplicate-id')
 
       // Verify file was not loaded
-      expect(store.document.cues.length).toBe(0)
+      expect(store.document.segments.length).toBe(0)
 
       // Cleanup
       consoleErrorSpy.mockRestore()

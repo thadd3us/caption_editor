@@ -9,7 +9,7 @@ import {
   updateCue,
   deleteCue
 } from './vttParser'
-import type { VTTDocument, VTTCue } from '../types/schema'
+import type { VTTDocument, TranscriptSegment } from '../types/schema'
 
 describe('vttParser', () => {
   describe('formatTimestamp', () => {
@@ -64,11 +64,11 @@ Second caption`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues).toHaveLength(2)
-      expect(result.document?.cues[0].text).toBe('First caption')
-      expect(result.document?.cues[0].startTime).toBe(1)
-      expect(result.document?.cues[0].endTime).toBe(4)
-      expect(result.document?.cues[1].text).toBe('Second caption')
+      expect(result.document?.segments).toHaveLength(2)
+      expect(result.document?.segments[0].text).toBe('First caption')
+      expect(result.document?.segments[0].startTime).toBe(1)
+      expect(result.document?.segments[0].endTime).toBe(4)
+      expect(result.document?.segments[1].text).toBe('Second caption')
     })
 
     it('should parse VTT with cue identifiers', () => {
@@ -80,8 +80,8 @@ Caption with identifier`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues).toHaveLength(1)
-      expect(result.document?.cues[0].text).toBe('Caption with identifier')
+      expect(result.document?.segments).toHaveLength(1)
+      expect(result.document?.segments[0].text).toBe('Caption with identifier')
     })
 
     it('should parse VTT with UUID identifiers', () => {
@@ -94,7 +94,7 @@ Caption with UUID`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues[0].id).toBe(uuid)
+      expect(result.document?.segments[0].id).toBe(uuid)
     })
 
     it('should parse VTT with NOTE metadata', () => {
@@ -108,8 +108,8 @@ Rated caption`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues[0].id).toBe(uuid)
-      expect(result.document?.cues[0].rating).toBe(5)
+      expect(result.document?.segments[0].id).toBe(uuid)
+      expect(result.document?.segments[0].rating).toBe(5)
     })
 
     it('should handle multi-line captions', () => {
@@ -122,7 +122,7 @@ Line 3`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues[0].text).toBe('Line 1\nLine 2\nLine 3')
+      expect(result.document?.segments[0].text).toBe('Line 1\nLine 2\nLine 3')
     })
 
     it('should skip cues with invalid timing (end <= start)', () => {
@@ -136,8 +136,8 @@ Valid cue`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues).toHaveLength(1)
-      expect(result.document?.cues[0].text).toBe('Valid cue')
+      expect(result.document?.segments).toHaveLength(1)
+      expect(result.document?.segments[0].text).toBe('Valid cue')
     })
 
     it('should reject files without WEBVTT header', () => {
@@ -154,7 +154,7 @@ Caption without header`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues).toHaveLength(0)
+      expect(result.document?.segments).toHaveLength(0)
     })
 
     it('should handle NOTE comments that are not metadata', () => {
@@ -167,8 +167,8 @@ Caption after note`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues).toHaveLength(1)
-      expect(result.document?.cues[0].text).toBe('Caption after note')
+      expect(result.document?.segments).toHaveLength(1)
+      expect(result.document?.segments[0].text).toBe('Caption after note')
     })
 
     it('should handle errors gracefully', () => {
@@ -185,8 +185,8 @@ Caption with short format`
 
       const result = parseVTT(content)
       expect(result.success).toBe(true)
-      expect(result.document?.cues[0].startTime).toBe(90.5)
-      expect(result.document?.cues[0].endTime).toBe(165)
+      expect(result.document?.segments[0].startTime).toBe(90.5)
+      expect(result.document?.segments[0].endTime).toBe(165)
     })
 
     it('should reject files with duplicate cue IDs', () => {
@@ -254,7 +254,7 @@ Unique cue`
     it('should serialize a simple document', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -275,7 +275,7 @@ Unique cue`
     it('should serialize cues in time order', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-2',
             startTime: 5,
@@ -302,7 +302,7 @@ Unique cue`
     it('should include NOTE metadata for rated cues', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -321,7 +321,7 @@ Unique cue`
     it('should always include NOTE metadata for all cues', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -340,7 +340,7 @@ Unique cue`
     it('should handle empty documents', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([])
+        segments: Object.freeze([])
       }
 
       const output = serializeVTT(doc)
@@ -352,7 +352,7 @@ Unique cue`
     it('should sort cues with equal start times by end time', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-2',
             startTime: 1,
@@ -380,15 +380,15 @@ Unique cue`
   describe('createEmptyDocument', () => {
     it('should create an empty document', () => {
       const doc = createEmptyDocument()
-      expect(doc.cues).toHaveLength(0)
-      expect(Object.isFrozen(doc.cues)).toBe(true)
+      expect(doc.segments).toHaveLength(0)
+      expect(Object.isFrozen(doc.segments)).toBe(true)
     })
   })
 
   describe('addCue', () => {
     it('should add a cue to the document', () => {
       const doc = createEmptyDocument()
-      const newCue: VTTCue = {
+      const newCue: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -397,14 +397,14 @@ Unique cue`
       }
 
       const updatedDoc = addCue(doc, newCue)
-      expect(updatedDoc.cues).toHaveLength(1)
-      expect(updatedDoc.cues[0]).toEqual(newCue)
-      expect(Object.isFrozen(updatedDoc.cues)).toBe(true)
+      expect(updatedDoc.segments).toHaveLength(1)
+      expect(updatedDoc.segments[0]).toEqual(newCue)
+      expect(Object.isFrozen(updatedDoc.segments)).toBe(true)
     })
 
     it('should not mutate the original document', () => {
       const doc = createEmptyDocument()
-      const newCue: VTTCue = {
+      const newCue: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -413,13 +413,13 @@ Unique cue`
       }
 
       addCue(doc, newCue)
-      expect(doc.cues).toHaveLength(0)
+      expect(doc.segments).toHaveLength(0)
     })
   })
 
   describe('updateCue', () => {
     it('should update a cue in the document', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -428,16 +428,16 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       const updatedDoc = updateCue(doc, 'test-1', { text: 'Updated text' })
-      expect(updatedDoc.cues[0].text).toBe('Updated text')
-      expect(updatedDoc.cues[0].startTime).toBe(1)
+      expect(updatedDoc.segments[0].text).toBe('Updated text')
+      expect(updatedDoc.segments[0].startTime).toBe(1)
     })
 
     it('should update timing', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -446,16 +446,16 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       const updatedDoc = updateCue(doc, 'test-1', { startTime: 2, endTime: 5 })
-      expect(updatedDoc.cues[0].startTime).toBe(2)
-      expect(updatedDoc.cues[0].endTime).toBe(5)
+      expect(updatedDoc.segments[0].startTime).toBe(2)
+      expect(updatedDoc.segments[0].endTime).toBe(5)
     })
 
     it('should update rating', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -464,15 +464,15 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       const updatedDoc = updateCue(doc, 'test-1', { rating: 5 })
-      expect(updatedDoc.cues[0].rating).toBe(5)
+      expect(updatedDoc.segments[0].rating).toBe(5)
     })
 
     it('should not mutate the original document', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -481,17 +481,17 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       updateCue(doc, 'test-1', { text: 'Updated text' })
-      expect(doc.cues[0].text).toBe('Original text')
+      expect(doc.segments[0].text).toBe('Original text')
     })
 
     it('should leave other cues unchanged', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -510,7 +510,7 @@ Unique cue`
       }
 
       const updatedDoc = updateCue(doc, 'test-1', { text: 'Updated' })
-      expect(updatedDoc.cues[1].text).toBe('Second caption')
+      expect(updatedDoc.segments[1].text).toBe('Second caption')
     })
   })
 
@@ -518,7 +518,7 @@ Unique cue`
     it('should delete a cue from the document', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -537,14 +537,14 @@ Unique cue`
       }
 
       const updatedDoc = deleteCue(doc, 'test-1')
-      expect(updatedDoc.cues).toHaveLength(1)
-      expect(updatedDoc.cues[0].id).toBe('test-2')
+      expect(updatedDoc.segments).toHaveLength(1)
+      expect(updatedDoc.segments[0].id).toBe('test-2')
     })
 
     it('should not mutate the original document', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -556,13 +556,13 @@ Unique cue`
       }
 
       deleteCue(doc, 'test-1')
-      expect(doc.cues).toHaveLength(1)
+      expect(doc.segments).toHaveLength(1)
     })
 
     it('should handle deleting non-existent cue', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,
@@ -574,7 +574,7 @@ Unique cue`
       }
 
       const updatedDoc = deleteCue(doc, 'non-existent')
-      expect(updatedDoc.cues).toHaveLength(1)
+      expect(updatedDoc.segments).toHaveLength(1)
     })
   })
 
@@ -585,7 +585,7 @@ Unique cue`
 
       const original: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: uuid1,
             startTime: 1.5,
@@ -607,17 +607,17 @@ Unique cue`
       const parsed = parseVTT(serialized)
 
       expect(parsed.success).toBe(true)
-      expect(parsed.document?.cues).toHaveLength(2)
-      expect(parsed.document?.cues[0].text).toBe('First caption')
-      expect(parsed.document?.cues[0].id).toBe(uuid1)
-      expect(parsed.document?.cues[0].rating).toBe(5)
-      expect(parsed.document?.cues[1].text).toBe('Second caption\nwith multiple lines')
+      expect(parsed.document?.segments).toHaveLength(2)
+      expect(parsed.document?.segments[0].text).toBe('First caption')
+      expect(parsed.document?.segments[0].id).toBe(uuid1)
+      expect(parsed.document?.segments[0].rating).toBe(5)
+      expect(parsed.document?.segments[1].text).toBe('Second caption\nwith multiple lines')
     })
   })
 
   describe('segment history', () => {
     it('should record history when updating a cue', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -627,7 +627,7 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       const updatedDoc = updateCue(doc, 'test-1', { text: 'Updated text' })
@@ -636,13 +636,13 @@ Unique cue`
       expect(updatedDoc.history).toHaveLength(1)
       expect(updatedDoc.history![0].action).toBe('modified')
       expect(updatedDoc.history![0].actionTimestamp).toBeDefined()
-      expect(updatedDoc.history![0].cue.id).toBe('test-1')
-      expect(updatedDoc.history![0].cue.text).toBe('Original text')
-      expect(updatedDoc.history![0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z') // Original timestamp preserved
+      expect(updatedDoc.history![0].segment.id).toBe('test-1')
+      expect(updatedDoc.history![0].segment.text).toBe('Original text')
+      expect(updatedDoc.history![0].segment.timestamp).toBe('2024-01-01T00:00:00.000Z') // Original timestamp preserved
     })
 
     it('should record history when deleting a cue', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -652,7 +652,7 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       const updatedDoc = deleteCue(doc, 'test-1')
@@ -661,21 +661,21 @@ Unique cue`
       expect(updatedDoc.history).toHaveLength(1)
       expect(updatedDoc.history![0].action).toBe('deleted')
       expect(updatedDoc.history![0].actionTimestamp).toBeDefined()
-      expect(updatedDoc.history![0].cue.id).toBe('test-1')
-      expect(updatedDoc.history![0].cue.text).toBe('To be deleted')
-      expect(updatedDoc.history![0].cue.rating).toBe(5)
-      expect(updatedDoc.history![0].cue.timestamp).toBe('2024-01-01T12:00:00.000Z') // Original timestamp preserved
+      expect(updatedDoc.history![0].segment.id).toBe('test-1')
+      expect(updatedDoc.history![0].segment.text).toBe('To be deleted')
+      expect(updatedDoc.history![0].segment.rating).toBe(5)
+      expect(updatedDoc.history![0].segment.timestamp).toBe('2024-01-01T12:00:00.000Z') // Original timestamp preserved
     })
 
     it('should append to existing history', () => {
-      const cue1: VTTCue = {
+      const cue1: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
         text: 'First',
         rating: undefined
       }
-      const cue2: VTTCue = {
+      const cue2: TranscriptSegment = {
         id: 'test-2',
         startTime: 5,
         endTime: 8,
@@ -684,7 +684,7 @@ Unique cue`
       }
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue1, cue2])
+        segments: Object.freeze([cue1, cue2])
       }
 
       // First update
@@ -694,12 +694,12 @@ Unique cue`
       // Second update
       updatedDoc = updateCue(updatedDoc, 'test-2', { text: 'Second updated' })
       expect(updatedDoc.history).toHaveLength(2)
-      expect(updatedDoc.history![0].cue.id).toBe('test-1')
-      expect(updatedDoc.history![1].cue.id).toBe('test-2')
+      expect(updatedDoc.history![0].segment.id).toBe('test-1')
+      expect(updatedDoc.history![1].segment.id).toBe('test-2')
     })
 
     it('should serialize history to NOTE at end of VTT', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -708,7 +708,7 @@ Unique cue`
       }
       let doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       // Update to create history
@@ -738,7 +738,7 @@ test-1
 00:00:01.000 --> 00:00:04.000
 Updated text
 
-NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","cue":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}`
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","actionTimestamp":"2024-01-01T12:00:00.000Z","segment":{"id":"test-1","startTime":1,"endTime":4,"text":"Original text","timestamp":"2024-01-01T00:00:00.000Z"}}`
 
       const result = parseVTT(content)
 
@@ -747,13 +747,13 @@ NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","act
       expect(result.document?.history).toHaveLength(1)
       expect(result.document?.history![0].action).toBe('modified')
       expect(result.document?.history![0].actionTimestamp).toBe('2024-01-01T12:00:00.000Z')
-      expect(result.document?.history![0].cue.id).toBe('test-1')
-      expect(result.document?.history![0].cue.text).toBe('Original text')
-      expect(result.document?.history![0].cue.timestamp).toBe('2024-01-01T00:00:00.000Z')
+      expect(result.document?.history![0].segment.id).toBe('test-1')
+      expect(result.document?.history![0].segment.text).toBe('Original text')
+      expect(result.document?.history![0].segment.timestamp).toBe('2024-01-01T00:00:00.000Z')
     })
 
     it('should preserve history through round-trip', () => {
-      const cue: VTTCue = {
+      const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 1,
         endTime: 4,
@@ -762,7 +762,7 @@ NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","act
       }
       let doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([cue])
+        segments: Object.freeze([segment])
       }
 
       // Update and delete to create history
@@ -774,14 +774,14 @@ NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"entry-1","action":"modified","act
 
       expect(parsed.success).toBe(true)
       expect(parsed.document?.history).toHaveLength(2)
-      expect(parsed.document?.history![0].cue.text).toBe('Current text')
-      expect(parsed.document?.history![1].cue.rating).toBe(3)
+      expect(parsed.document?.history![0].segment.text).toBe('Current text')
+      expect(parsed.document?.history![1].segment.rating).toBe(3)
     })
 
     it('should not serialize history if no entries exist', () => {
       const doc: VTTDocument = {
         metadata: { id: 'test-doc-id' },
-        cues: Object.freeze([
+        segments: Object.freeze([
           {
             id: 'test-1',
             startTime: 1,

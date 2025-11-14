@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTDocument, VTTCue } from '../types/schema'
+import type { VTTDocument, TranscriptSegment } from '../types/schema'
 import {
   parseVTT,
   serializeVTT,
@@ -29,9 +29,9 @@ export const useVTTStore = defineStore('vtt', () => {
   // Computed
   const currentCue = computed(() => {
     const time = currentTime.value
-    // document.cues is always kept sorted
-    return document.value.cues.find(
-      cue => cue.startTime <= time && time < cue.endTime
+    // document.segments is always kept sorted
+    return document.value.segments.find(
+      segment => segment.startTime <= time && time < segment.endTime
     )
   })
 
@@ -75,7 +75,7 @@ export const useVTTStore = defineStore('vtt', () => {
       }
 
       document.value = loadedDoc
-      console.log('Loaded document with', document.value.cues.length, 'cues')
+      console.log('Loaded document with', document.value.segments.length, 'segments')
     } else {
       console.error('Failed to load VTT:', result.error)
       throw new Error(result.error || 'Failed to parse VTT file')
@@ -164,7 +164,7 @@ export const useVTTStore = defineStore('vtt', () => {
 
   function addCue(startTime: number, duration: number = 5) {
     console.log('Adding new cue at', startTime, 'with duration', duration)
-    const newCue: VTTCue = {
+    const newCue: TranscriptSegment = {
       id: uuidv4(),
       startTime,
       endTime: startTime + duration,
@@ -177,8 +177,8 @@ export const useVTTStore = defineStore('vtt', () => {
     return newCue.id
   }
 
-  function updateCue(cueId: string, updates: Partial<Omit<VTTCue, 'id'>>) {
-    console.log('Updating cue:', cueId, updates)
+  function updateCue(cueId: string, updates: Partial<Omit<TranscriptSegment, 'id'>>) {
+    console.log('Updating segment:', cueId, updates)
 
     // Validate timestamps if provided
     if (updates.startTime !== undefined && updates.endTime !== undefined) {
@@ -186,13 +186,13 @@ export const useVTTStore = defineStore('vtt', () => {
         throw new Error('End time must be greater than start time')
       }
     } else if (updates.startTime !== undefined) {
-      const cue = document.value.cues.find(c => c.id === cueId)
-      if (cue && updates.startTime >= cue.endTime) {
+      const segment = document.value.segments.find(c => c.id === cueId)
+      if (segment && updates.startTime >= segment.endTime) {
         throw new Error('Start time must be less than end time')
       }
     } else if (updates.endTime !== undefined) {
-      const cue = document.value.cues.find(c => c.id === cueId)
-      if (cue && updates.endTime <= cue.startTime) {
+      const segment = document.value.segments.find(c => c.id === cueId)
+      if (segment && updates.endTime <= segment.startTime) {
         throw new Error('End time must be greater than start time')
       }
     }
@@ -201,7 +201,7 @@ export const useVTTStore = defineStore('vtt', () => {
   }
 
   function deleteCue(cueId: string) {
-    console.log('Deleting cue:', cueId)
+    console.log('Deleting segment:', cueId)
     document.value = deleteCueFromDoc(document.value, cueId)
     if (selectedCueId.value === cueId) {
       selectedCueId.value = null

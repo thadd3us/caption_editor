@@ -171,7 +171,7 @@ describe('StarRatingCell', () => {
 
     // Add a cue to the store
     store.addCue(1.0, 3.0)
-    const cueId = store.document.cues[0].id
+    const cueId = store.document.segments[0].id
 
     // Mount component with unrated cue
     const wrapper = mount(StarRatingCell, {

@@ -100,7 +100,7 @@ const mediaFileName = computed(() => {
 })
 
 const currentCaptionText = computed(() => {
-  const cues = store.document.cues
+  const cues = store.document.segments
   const time = store.currentTime
 
   // Find the cue that contains the current time (startTime <= time < endTime)
@@ -128,7 +128,7 @@ function onTimeUpdate() {
       mediaElement.value.pause()
 
       // Seek back to start of snippet
-      const cue = store.document.cues.find(c => c.endTime === snippetEndTime.value)
+      const cue = store.document.segments.find(c => c.endTime === snippetEndTime.value)
       if (cue) {
         mediaElement.value.currentTime = cue.startTime
         store.setCurrentTime(cue.startTime)
@@ -179,7 +179,7 @@ function addCaptionAtCurrentTime() {
 
 function jumpToCurrentRow() {
   const currentTime = store.currentTime
-  const cues = store.document.cues
+  const cues = store.document.segments
 
   const index = findIndexOfRowForTime(cues, currentTime)
   if (index !== -1) {
@@ -210,7 +210,7 @@ watch(() => store.isPlaying, (playing) => {
   if (playing) {
     // Only set up snippet playback if snippetMode is enabled
     if (store.snippetMode && store.selectedCueId) {
-      const selectedCue = store.document.cues.find(c => c.id === store.selectedCueId)
+      const selectedCue = store.document.segments.find(c => c.id === store.selectedCueId)
 
       if (selectedCue) {
         const timeDiff = Math.abs(store.currentTime - selectedCue.startTime)

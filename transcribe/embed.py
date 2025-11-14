@@ -14,7 +14,7 @@ import typer
 from pyannote.audio import Inference, Model
 from tqdm import tqdm
 
-from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, VTTCue
+from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, TranscriptSegment
 from vtt_lib import parse_vtt_file, serialize_vtt
 
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
@@ -165,7 +165,7 @@ def main(
 
         # Parse VTT file
         typer.echo(f"Parsing VTT file: {vtt_path}")
-        metadata, cues = parse_vtt_file(vtt_path)
+        metadata, segments = parse_vtt_file(vtt_path)
 
         # Get media file path (relative to VTT directory)
         if not metadata.media_file_path:
@@ -178,7 +178,7 @@ def main(
             raise ValueError(f"Media file not found: {media_path}")
 
         typer.echo(f"Media file: {media_path}")
-        typer.echo(f"Found {len(cues)} segments")
+        typer.echo(f"Found {len(segments)} segments")
 
         # Check if media file needs conversion
         audio_path = media_path
@@ -201,28 +201,28 @@ def main(
         segment_id_to_embedding = {}
         skipped_count = 0
 
-        for cue in tqdm(cues, desc="Processing segments", unit="segment"):
+        for segment in tqdm(segments, desc="Processing segments", unit="segment"):
             # Skip segments shorter than 0.5 seconds
-            duration = cue.end_time - cue.start_time
+            duration = segment.end_time - segment.start_time
             if duration < 0.5:
-                tqdm.write(f"Skipping short segment {cue.id} (duration: {duration:.3f}s)")
+                tqdm.write(f"Skipping short segment {segment.id} (duration: {duration:.3f}s)")
                 skipped_count += 1
                 continue
 
             # Extract audio segment
             audio, sample_rate = extract_audio_segment(
-                audio_path, cue.start_time, cue.end_time
+                audio_path, segment.start_time, segment.end_time
             )
 
             if len(audio) == 0:
-                tqdm.write(f"Warning: Empty audio for segment {cue.id}")
+                tqdm.write(f"Warning: Empty audio for segment {segment.id}")
                 continue
 
             # Compute embedding
             embedding = compute_embedding(inference, audio, sample_rate)
 
             # Store in map
-            segment_id_to_embedding[cue.id] = embedding
+            segment_id_to_embedding[segment.id] = embedding
 
         typer.echo(f"Skipped {skipped_count} segments shorter than 0.5s")
         typer.echo(f"Computed {len(segment_id_to_embedding)} embeddings")
@@ -241,7 +241,7 @@ def main(
 
         # Write updated VTT file with embeddings
         typer.echo(f"Writing embeddings to VTT file: {vtt_path}")
-        vtt_content = serialize_vtt(metadata, cues, embeddings=embeddings)
+        vtt_content = serialize_vtt(metadata, segments, embeddings=embeddings)
         vtt_path.write_text(vtt_content)
         typer.echo(f"Done! Wrote {len(embeddings)} embeddings to VTT file")
 
