@@ -117,7 +117,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
 
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"550e8400-e29b-41d4-a716-446655440000","mediaFilePath":"nonexistent-file.wav"}
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","timestamp":"2025-10-31T00:00:00.000Z"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0.0,"endTime":3.0,"text":"Test caption","timestamp":"2025-10-31T00:00:00.000Z"}
 
 84ec6681-574b-4570-aecb-5bcaea9415a9
 00:00:00.000 --> 00:00:03.000
