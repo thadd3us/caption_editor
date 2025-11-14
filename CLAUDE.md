@@ -59,16 +59,17 @@ Tests should run quickly to maintain development velocity:
 ### Test Status Overview
 
 **Current Test Suite Status:**
-- ✅ TypeScript Unit Tests: 96/96 passing ⭐ **ALL PASSING!**
+- ✅ TypeScript Unit Tests: 114/114 passing ⭐ **ALL PASSING!**
 - ✅ Python Tests: 19/26 passing (7 failures expected - require HF_TOKEN or high memory)
   - ✅ **ASR Segment Splitting**: 16/16 passing (unit + integration tests)
   - ⚠️ Diarization/Embedding: 3 failures (require HF_TOKEN)
   - ⚠️ Parakeet: 1 failure (OOM in resource-constrained environments)
   - ⚠️ VTT snapshots: 3 failures (test data regenerated, UUIDs changed)
-- ✅ UI/Interaction E2E Tests: 15/15 passing ⭐ **ALL PASSING!**
-- ✅ Electron Platform E2E Tests: 23/23 passing ⭐ **ALL PASSING!**
+- ✅ Electron Platform E2E Tests: 24/24 passing ⭐ **ALL PASSING!**
 
-**Total: 153/160 tests (19 Python + 136 TypeScript passing)**
+**Total: 157/164 tests (19 Python + 138 TypeScript passing) - 96% pass rate!**
+
+**Note:** Browser E2E tests have been removed as the app is now Electron-only.
 
 **Test Organization:**
 - **UI/Interaction E2E** (`tests/*.spec.ts`): Tests UI functionality, user interactions, media playback controls
