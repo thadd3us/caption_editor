@@ -1,73 +1,65 @@
 WEBVTT
 
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "3d325759-41a8-13c3-567c-d0cd2448b986", "mediaFilePath": "/code/test_data/full_pipeline/OSR_us_000_0010_8k.wav"}
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"3d325759-41a8-13c3-567c-d0cd2448b986","mediaFilePath":"OSR_us_000_0010_8k.wav"}
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "3a0b3ac1-3807-a861-ec83-6a8b639b2c9e", "startTime": 0.24, "endTime": 3.44, "text": "The birch canoe slid on the smooth planks.", "words": [{"text": "The", "startTime": 0.24, "endTime": 0.56}, {"text": "birch", "startTime": 0.56, "endTime": 1.12}, {"text": "canoe", "startTime": 1.12, "endTime": 1.6}, {"text": "slid", "startTime": 1.6, "endTime": 2.0}, {"text": "on", "startTime": 2.0, "endTime": 2.16}, {"text": "the", "startTime": 2.16, "endTime": 2.24}, {"text": "smooth", "startTime": 2.24, "endTime": 2.8000000000000003}, {"text": "planks.", "startTime": 2.8000000000000003, "endTime": 3.44}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"3a0b3ac1-3807-a861-ec83-6a8b639b2c9e","startTime":0.24,"endTime":3.44,"text":"The birch canoe slid on the smooth planks.","words":[{"text":"The","startTime":0.24,"endTime":0.56},{"text":"birch","startTime":0.56,"endTime":1.12},{"text":"canoe","startTime":1.12,"endTime":1.6},{"text":"slid","startTime":1.6,"endTime":2},{"text":"on","startTime":2,"endTime":2.16},{"text":"the","startTime":2.16,"endTime":2.24},{"text":"smooth","startTime":2.24,"endTime":2.8000000000000003},{"text":"planks.","startTime":2.8000000000000003,"endTime":3.44}],"speakerName":"TestSpeaker","rating":3,"timestamp":"2025-11-14T02:40:08.270+00:00"}
 
 3a0b3ac1-3807-a861-ec83-6a8b639b2c9e
 00:00:00.240 --> 00:00:03.440
 The birch canoe slid on the smooth planks.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "823bf6e7-08af-bac7-16a0-7134ee934df8", "startTime": 4.0, "endTime": 7.12, "text": "Glue the sheet to the dark blue background.", "words": [{"text": "Glue", "startTime": 4.0, "endTime": 4.48}, {"text": "the", "startTime": 4.5600000000000005, "endTime": 4.72}, {"text": "sheet", "startTime": 4.72, "endTime": 5.04}, {"text": "to", "startTime": 5.04, "endTime": 5.2}, {"text": "the", "startTime": 5.2, "endTime": 5.28}, {"text": "dark", "startTime": 5.28, "endTime": 5.5200000000000005}, {"text": "blue", "startTime": 5.5200000000000005, "endTime": 6.0}, {"text": "background.", "startTime": 6.0, "endTime": 7.12}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"823bf6e7-08af-bac7-16a0-7134ee934df8","startTime":4,"endTime":7.12,"text":"Glue the sheet to the dark blue background.","words":[{"text":"Glue","startTime":4,"endTime":4.48},{"text":"the","startTime":4.5600000000000005,"endTime":4.72},{"text":"sheet","startTime":4.72,"endTime":5.04},{"text":"to","startTime":5.04,"endTime":5.2},{"text":"the","startTime":5.2,"endTime":5.28},{"text":"dark","startTime":5.28,"endTime":5.5200000000000005},{"text":"blue","startTime":5.5200000000000005,"endTime":6},{"text":"background.","startTime":6,"endTime":7.12}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 823bf6e7-08af-bac7-16a0-7134ee934df8
 00:00:04.000 --> 00:00:07.120
 Glue the sheet to the dark blue background.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "9eaaf6ea-b3ca-8f2e-8d82-0e599600bd23", "startTime": 7.44, "endTime": 9.92, "text": "It is easy to tell the depth of a well.", "words": [{"text": "It", "startTime": 7.44, "endTime": 7.76}, {"text": "is", "startTime": 7.76, "endTime": 7.92}, {"text": "easy", "startTime": 7.92, "endTime": 8.24}, {"text": "to", "startTime": 8.24, "endTime": 8.4}, {"text": "tell", "startTime": 8.4, "endTime": 8.64}, {"text": "the", "startTime": 8.64, "endTime": 8.8}, {"text": "depth", "startTime": 8.8, "endTime": 9.200000000000001}, {"text": "of", "startTime": 9.200000000000001, "endTime": 9.36}, {"text": "a", "startTime": 9.36, "endTime": 9.6}, {"text": "well.", "startTime": 9.6, "endTime": 9.92}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"9eaaf6ea-b3ca-8f2e-8d82-0e599600bd23","startTime":7.44,"endTime":9.92,"text":"It is easy to tell the depth of a well.","words":[{"text":"It","startTime":7.44,"endTime":7.76},{"text":"is","startTime":7.76,"endTime":7.92},{"text":"easy","startTime":7.92,"endTime":8.24},{"text":"to","startTime":8.24,"endTime":8.4},{"text":"tell","startTime":8.4,"endTime":8.64},{"text":"the","startTime":8.64,"endTime":8.8},{"text":"depth","startTime":8.8,"endTime":9.200000000000001},{"text":"of","startTime":9.200000000000001,"endTime":9.36},{"text":"a","startTime":9.36,"endTime":9.6},{"text":"well.","startTime":9.6,"endTime":9.92}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 9eaaf6ea-b3ca-8f2e-8d82-0e599600bd23
 00:00:07.440 --> 00:00:09.920
 It is easy to tell the depth of a well.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "fd575b6e-3f4f-6a33-ed01-5df0acd73c24", "startTime": 10.56, "endTime": 13.44, "text": "These days a chicken leg is a rare dish.", "words": [{"text": "These", "startTime": 10.56, "endTime": 10.88}, {"text": "days", "startTime": 10.88, "endTime": 11.200000000000001}, {"text": "a", "startTime": 11.28, "endTime": 11.36}, {"text": "chicken", "startTime": 11.36, "endTime": 11.84}, {"text": "leg", "startTime": 11.84, "endTime": 12.08}, {"text": "is", "startTime": 12.08, "endTime": 12.24}, {"text": "a", "startTime": 12.24, "endTime": 12.32}, {"text": "rare", "startTime": 12.32, "endTime": 12.8}, {"text": "dish.", "startTime": 12.8, "endTime": 13.44}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"fd575b6e-3f4f-6a33-ed01-5df0acd73c24","startTime":10.56,"endTime":13.44,"text":"These days a chicken leg is a rare dish.","words":[{"text":"These","startTime":10.56,"endTime":10.88},{"text":"days","startTime":10.88,"endTime":11.200000000000001},{"text":"a","startTime":11.28,"endTime":11.36},{"text":"chicken","startTime":11.36,"endTime":11.84},{"text":"leg","startTime":11.84,"endTime":12.08},{"text":"is","startTime":12.08,"endTime":12.24},{"text":"a","startTime":12.24,"endTime":12.32},{"text":"rare","startTime":12.32,"endTime":12.8},{"text":"dish.","startTime":12.8,"endTime":13.44}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 fd575b6e-3f4f-6a33-ed01-5df0acd73c24
 00:00:10.560 --> 00:00:13.440
 These days a chicken leg is a rare dish.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "8aa099d3-bace-869f-f1a1-8c269b7a7051", "startTime": 14.0, "endTime": 16.72, "text": "Rice is often served in round bowls.", "words": [{"text": "Rice", "startTime": 14.0, "endTime": 14.48}, {"text": "is", "startTime": 14.48, "endTime": 14.64}, {"text": "often", "startTime": 14.64, "endTime": 14.96}, {"text": "served", "startTime": 14.96, "endTime": 15.280000000000001}, {"text": "in", "startTime": 15.280000000000001, "endTime": 15.52}, {"text": "round", "startTime": 15.52, "endTime": 15.92}, {"text": "bowls.", "startTime": 15.92, "endTime": 16.72}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"8aa099d3-bace-869f-f1a1-8c269b7a7051","startTime":14,"endTime":16.72,"text":"Rice is often served in round bowls.","words":[{"text":"Rice","startTime":14,"endTime":14.48},{"text":"is","startTime":14.48,"endTime":14.64},{"text":"often","startTime":14.64,"endTime":14.96},{"text":"served","startTime":14.96,"endTime":15.280000000000001},{"text":"in","startTime":15.280000000000001,"endTime":15.52},{"text":"round","startTime":15.52,"endTime":15.92},{"text":"bowls.","startTime":15.92,"endTime":16.72}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 8aa099d3-bace-869f-f1a1-8c269b7a7051
 00:00:14.000 --> 00:00:16.720
 Rice is often served in round bowls.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "517abf9f-7565-f0ca-00ab-a69476ae4829", "startTime": 17.04, "endTime": 19.76, "text": "The juice of lemons makes fine punch.", "words": [{"text": "The", "startTime": 17.04, "endTime": 17.28}, {"text": "juice", "startTime": 17.28, "endTime": 17.6}, {"text": "of", "startTime": 17.6, "endTime": 17.76}, {"text": "lemons", "startTime": 17.76, "endTime": 18.32}, {"text": "makes", "startTime": 18.32, "endTime": 18.72}, {"text": "fine", "startTime": 18.72, "endTime": 19.12}, {"text": "punch.", "startTime": 19.12, "endTime": 19.76}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"517abf9f-7565-f0ca-00ab-a69476ae4829","startTime":17.04,"endTime":19.76,"text":"The juice of lemons makes fine punch.","words":[{"text":"The","startTime":17.04,"endTime":17.28},{"text":"juice","startTime":17.28,"endTime":17.6},{"text":"of","startTime":17.6,"endTime":17.76},{"text":"lemons","startTime":17.76,"endTime":18.32},{"text":"makes","startTime":18.32,"endTime":18.72},{"text":"fine","startTime":18.72,"endTime":19.12},{"text":"punch.","startTime":19.12,"endTime":19.76}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 517abf9f-7565-f0ca-00ab-a69476ae4829
 00:00:17.040 --> 00:00:19.760
 The juice of lemons makes fine punch.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "22022354-69a1-7f66-f21a-07779f4bf4c0", "startTime": 20.16, "endTime": 22.88, "text": "The box was thrown beside the park truck.", "words": [{"text": "The", "startTime": 20.16, "endTime": 20.400000000000002}, {"text": "box", "startTime": 20.400000000000002, "endTime": 20.8}, {"text": "was", "startTime": 20.8, "endTime": 20.96}, {"text": "thrown", "startTime": 20.96, "endTime": 21.36}, {"text": "beside", "startTime": 21.36, "endTime": 21.6}, {"text": "the", "startTime": 21.6, "endTime": 21.76}, {"text": "park", "startTime": 21.76, "endTime": 22.16}, {"text": "truck.", "startTime": 22.32, "endTime": 22.88}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"22022354-69a1-7f66-f21a-07779f4bf4c0","startTime":20.16,"endTime":22.88,"text":"The box was thrown beside the park truck.","words":[{"text":"The","startTime":20.16,"endTime":20.400000000000002},{"text":"box","startTime":20.400000000000002,"endTime":20.8},{"text":"was","startTime":20.8,"endTime":20.96},{"text":"thrown","startTime":20.96,"endTime":21.36},{"text":"beside","startTime":21.36,"endTime":21.6},{"text":"the","startTime":21.6,"endTime":21.76},{"text":"park","startTime":21.76,"endTime":22.16},{"text":"truck.","startTime":22.32,"endTime":22.88}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 22022354-69a1-7f66-f21a-07779f4bf4c0
 00:00:20.160 --> 00:00:22.880
 The box was thrown beside the park truck.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "878f7924-2fec-7eb3-5497-0d0a2cbf86d5", "startTime": 23.44, "endTime": 26.240000000000002, "text": "The hogs were fed chopped corn and garbage.", "words": [{"text": "The", "startTime": 23.44, "endTime": 23.68}, {"text": "hogs", "startTime": 23.68, "endTime": 24.080000000000002}, {"text": "were", "startTime": 24.080000000000002, "endTime": 24.240000000000002}, {"text": "fed", "startTime": 24.240000000000002, "endTime": 24.560000000000002}, {"text": "chopped", "startTime": 24.560000000000002, "endTime": 24.96}, {"text": "corn", "startTime": 24.96, "endTime": 25.28}, {"text": "and", "startTime": 25.28, "endTime": 25.44}, {"text": "garbage.", "startTime": 25.44, "endTime": 26.240000000000002}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"878f7924-2fec-7eb3-5497-0d0a2cbf86d5","startTime":23.44,"endTime":26.24,"text":"The hogs were fed chopped corn and garbage.","words":[{"text":"The","startTime":23.44,"endTime":23.68},{"text":"hogs","startTime":23.68,"endTime":24.080000000000002},{"text":"were","startTime":24.080000000000002,"endTime":24.240000000000002},{"text":"fed","startTime":24.240000000000002,"endTime":24.560000000000002},{"text":"chopped","startTime":24.560000000000002,"endTime":24.96},{"text":"corn","startTime":24.96,"endTime":25.28},{"text":"and","startTime":25.28,"endTime":25.44},{"text":"garbage.","startTime":25.44,"endTime":26.240000000000002}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 878f7924-2fec-7eb3-5497-0d0a2cbf86d5
 00:00:23.440 --> 00:00:26.240
 The hogs were fed chopped corn and garbage.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "018bda2a-2f51-519d-8e98-e97c191cda59", "startTime": 26.8, "endTime": 29.28, "text": "Four hours of steady work faced us.", "words": [{"text": "Four", "startTime": 26.8, "endTime": 27.2}, {"text": "hours", "startTime": 27.2, "endTime": 27.52}, {"text": "of", "startTime": 27.52, "endTime": 27.68}, {"text": "steady", "startTime": 27.68, "endTime": 28.080000000000002}, {"text": "work", "startTime": 28.080000000000002, "endTime": 28.400000000000002}, {"text": "faced", "startTime": 28.400000000000002, "endTime": 28.96}, {"text": "us.", "startTime": 28.96, "endTime": 29.28}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"018bda2a-2f51-519d-8e98-e97c191cda59","startTime":26.8,"endTime":29.28,"text":"Four hours of steady work faced us.","words":[{"text":"Four","startTime":26.8,"endTime":27.2},{"text":"hours","startTime":27.2,"endTime":27.52},{"text":"of","startTime":27.52,"endTime":27.68},{"text":"steady","startTime":27.68,"endTime":28.080000000000002},{"text":"work","startTime":28.080000000000002,"endTime":28.400000000000002},{"text":"faced","startTime":28.400000000000002,"endTime":28.96},{"text":"us.","startTime":28.96,"endTime":29.28}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 018bda2a-2f51-519d-8e98-e97c191cda59
 00:00:26.800 --> 00:00:29.280
 Four hours of steady work faced us.
 
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id": "e1f9076e-9573-4e3b-db50-94bbf0363b3f", "startTime": 29.84, "endTime": 32.480000000000004, "text": "A large size in stockings is hard to sell.", "words": [{"text": "A", "startTime": 29.84, "endTime": 30.080000000000002}, {"text": "large", "startTime": 30.080000000000002, "endTime": 30.48}, {"text": "size", "startTime": 30.48, "endTime": 30.72}, {"text": "in", "startTime": 30.72, "endTime": 30.88}, {"text": "stockings", "startTime": 30.88, "endTime": 31.44}, {"text": "is", "startTime": 31.44, "endTime": 31.6}, {"text": "hard", "startTime": 31.6, "endTime": 31.84}, {"text": "to", "startTime": 31.84, "endTime": 32.160000000000004}, {"text": "sell.", "startTime": 32.160000000000004, "endTime": 32.480000000000004}], "timestamp": "2025-11-14T02:04:29.340517+00:00"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"e1f9076e-9573-4e3b-db50-94bbf0363b3f","startTime":29.84,"endTime":32.48,"text":"A large size in stockings is hard to sell.","words":[{"text":"A","startTime":29.84,"endTime":30.080000000000002},{"text":"large","startTime":30.080000000000002,"endTime":30.48},{"text":"size","startTime":30.48,"endTime":30.72},{"text":"in","startTime":30.72,"endTime":30.88},{"text":"stockings","startTime":30.88,"endTime":31.44},{"text":"is","startTime":31.44,"endTime":31.6},{"text":"hard","startTime":31.6,"endTime":31.84},{"text":"to","startTime":31.84,"endTime":32.160000000000004},{"text":"sell.","startTime":32.160000000000004,"endTime":32.480000000000004}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}
 
 e1f9076e-9573-4e3b-db50-94bbf0363b3f
 00:00:29.840 --> 00:00:32.480
 A large size in stockings is hard to sell.
+
+NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"36d88c81-ae7d-44ec-901d-4f5a3b3e21ba","action":"modified","actionTimestamp":"2025-11-14T02:40:08.270+00:00","segment":{"id":"3a0b3ac1-3807-a861-ec83-6a8b639b2c9e","startTime":0.24,"endTime":3.44,"text":"The birch canoe slid on the smooth planks.","words":[{"text":"The","startTime":0.24,"endTime":0.56},{"text":"birch","startTime":0.56,"endTime":1.12},{"text":"canoe","startTime":1.12,"endTime":1.6},{"text":"slid","startTime":1.6,"endTime":2},{"text":"on","startTime":2,"endTime":2.16},{"text":"the","startTime":2.16,"endTime":2.24},{"text":"smooth","startTime":2.24,"endTime":2.8000000000000003},{"text":"planks.","startTime":2.8000000000000003,"endTime":3.44}],"timestamp":"2025-11-14T02:04:29.340517+00:00"}}
