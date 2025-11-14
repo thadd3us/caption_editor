@@ -104,9 +104,49 @@ Second caption
     await fs.unlink(testVTTPath).catch(() => {})
   })
 
-  test.skip('should be able to export VTT', async () => {
-    // Skipped: This test tries to click HTML menu buttons, but Electron uses native menus
-    // Export functionality is tested in file-save-workflow.electron.spec.ts instead
+  test('should be able to export VTT', async () => {
+    // First load some content
+    const vttContent = `WEBVTT
+
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-123"}
+
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg-1","startTime":0.0,"endTime":5.0,"text":"Test caption"}
+
+seg-1
+00:00:00.000 --> 00:00:05.000
+Test caption
+`
+
+    await window.evaluate(async (content) => {
+      const store = (window as any).$store
+      if (store && store.loadFromFile) {
+        store.loadFromFile(content, 'test-export.vtt')
+      }
+    }, vttContent)
+
+    await window.waitForTimeout(500)
+
+    // Verify content loaded
+    const segmentCount = await window.evaluate(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length || 0
+    })
+    expect(segmentCount).toBe(1)
+
+    // Test that exportToString() works correctly (this is what Save As uses)
+    const exportedContent = await window.evaluate(() => {
+      const store = (window as any).$store
+      return store.exportToString()
+    })
+
+    // Verify the exported content is valid VTT with correct format
+    expect(exportedContent).toContain('WEBVTT')
+    expect(exportedContent).toContain('Test caption')
+    expect(exportedContent).toContain('TranscriptSegment')
+    expect(exportedContent).toContain('"id":"seg-1"')
+    expect(exportedContent).toContain('00:00:00.000 --> 00:00:05.000')
+
+    console.log('✓ Export functionality verified')
   })
 
   test('should handle file drops', async () => {
