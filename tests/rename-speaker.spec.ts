@@ -35,7 +35,7 @@ Another message from Alice`
 
       try {
         vttStore.loadFromFile(vttContent, '/test/file.vtt')
-        return { success: true, cueCount: vttStore.document.segments.length }
+        return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
       }
