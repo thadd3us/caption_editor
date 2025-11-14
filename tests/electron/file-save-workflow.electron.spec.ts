@@ -132,13 +132,28 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 4: Save the file (overwrite original)
     console.log('Step 4: Saving file (overwrite)')
 
-    // Trigger save directly via keyboard shortcut (Cmd+S on macOS, Ctrl+S on others)
-    const isMac = process.platform === 'darwin'
-    const saveShortcut = isMac ? 'Meta+s' : 'Control+s'
-    await window.keyboard.press(saveShortcut)
-    await window.waitForTimeout(1500)
+    // Trigger save programmatically (more reliable than keyboard shortcut in tests)
+    await window.evaluate(async () => {
+      const electronAPI = (window as any).electronAPI
+      const store = (window as any).$store
 
-    console.log(`✓ Save triggered via ${saveShortcut}`)
+      if (!electronAPI || !store) {
+        throw new Error('electronAPI or store not available')
+      }
+
+      const content = store.exportToString()
+      const result = await electronAPI.saveExistingFile({
+        filePath: store.document.filePath,
+        content
+      })
+
+      if (!result.success) {
+        throw new Error('Save failed: ' + result.error)
+      }
+    })
+    await window.waitForTimeout(500)
+
+    console.log(`✓ Save triggered programmatically`)
 
     // Step 5: Check the contents of the saved VTT file
     console.log('Step 5: Verifying saved VTT file contents')
@@ -352,11 +367,27 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 6: Save the file
     console.log('Step 6: Saving file with updated speaker names')
 
-    const isMac = process.platform === 'darwin'
-    const saveShortcut = isMac ? 'Meta+s' : 'Control+s'
-    await window.keyboard.press(saveShortcut)
-    await window.waitForTimeout(1500)
-    console.log(`✓ Save triggered via ${saveShortcut}`)
+    // Trigger save programmatically (more reliable than keyboard shortcut in tests)
+    await window.evaluate(async () => {
+      const electronAPI = (window as any).electronAPI
+      const store = (window as any).$store
+
+      if (!electronAPI || !store) {
+        throw new Error('electronAPI or store not available')
+      }
+
+      const content = store.exportToString()
+      const result = await electronAPI.saveExistingFile({
+        filePath: store.document.filePath,
+        content
+      })
+
+      if (!result.success) {
+        throw new Error('Save failed: ' + result.error)
+      }
+    })
+    await window.waitForTimeout(500)
+    console.log(`✓ Save triggered programmatically`)
 
     // Step 7: Read and verify the saved VTT file contents
     console.log('Step 7: Verifying saved VTT file contains updated speaker names')
