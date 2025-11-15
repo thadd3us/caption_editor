@@ -22,7 +22,6 @@
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
-      :key="gridKey"
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
@@ -54,9 +53,6 @@ const gridApi = ref<GridApi | null>(null)
 const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(false)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
-
-// Force grid re-render when cues array changes
-const gridKey = computed(() => store.document.segments.map(c => c.id).join(','))
 
 // Speaker similarity scores (not persisted, UI-only)
 const speakerSimilarityScores = ref<Map<string, number>>(new Map())
@@ -387,10 +383,8 @@ function computeSpeakerSimilarity() {
   }
 }
 
-// Update grid when cues change
-watch(() => store.document.segments, () => {
-  gridApi.value?.refreshCells()
-}, { deep: true })
+// Note: With immutableData: true and getRowId, AG Grid handles updates automatically
+// No need to manually refresh cells when segments change
 
 // Auto-scroll: watch currentTime and scroll to the intersecting row
 watch(() => store.currentTime, (currentTime) => {

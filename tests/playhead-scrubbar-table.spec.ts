@@ -54,8 +54,14 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
       store.setCurrentTime(0)
       store.loadMediaFile(null)
     })
-    // Longer wait to ensure AG Grid has time to process the change
-    await window.waitForTimeout(1000)
+
+    // Wait for AG Grid to reflect the empty state - check that rows disappear
+    console.log('Waiting for AG Grid to clear...')
+    await window.waitForFunction(() => {
+      const rows = document.querySelectorAll('.ag-row')
+      return rows.length === 0
+    }, { timeout: 5000 })
+    console.log('AG Grid cleared successfully')
 
     // Check initial state
     const initialState = await window.evaluate(() => {
@@ -146,17 +152,19 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     })
     console.log('Click result:', clickResult)
 
-    // Wait for AG Grid to update (grid updates are async)
+    // Wait for AG Grid to update (no longer recreated since we removed :key)
     await window.waitForTimeout(500)
+    console.log('Waited for AG Grid to update')
 
     // Verify first row was added
     rowCount = await window.locator('.ag-row').count()
     console.log(`Row count after adding caption: ${rowCount} (expected: 1)`)
 
-    // If unexpected, check store state
+    // If unexpected, check store state AND DOM details
     if (rowCount !== 1) {
-      const storeState = await window.evaluate(() => {
+      const debugInfo = await window.evaluate(() => {
         const store = (window as any).$store
+        const rows = Array.from(document.querySelectorAll('.ag-row'))
         return {
           segmentCount: store.document.segments.length,
           segments: store.document.segments.map((s: any) => ({
@@ -164,10 +172,18 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
             startTime: s.startTime,
             endTime: s.endTime,
             text: s.text
+          })),
+          domRowCount: rows.length,
+          rowDetails: rows.map((row: any, i: number) => ({
+            index: i,
+            visible: row.offsetParent !== null,
+            display: window.getComputedStyle(row).display,
+            rowId: row.getAttribute('row-id'),
+            textContent: row.textContent?.substring(0, 100)
           }))
         }
       })
-      console.log('UNEXPECTED ROW COUNT! Store state:', JSON.stringify(storeState, null, 2))
+      console.log('UNEXPECTED ROW COUNT! Debug info:', JSON.stringify(debugInfo, null, 2))
     }
 
     expect(rowCount).toBe(1)
@@ -189,7 +205,9 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Add caption at 0.5s
     await addCaptionBtn.click()
-    await window.waitForTimeout(500)
+
+    // Wait for AG Grid to recreate itself (gridKey changed)
+    await window.waitForTimeout(1000)
 
     // Verify we now have 2 rows
     rowCount = await window.locator('.ag-row').count()
@@ -216,7 +234,9 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Add caption at 8s
     await addCaptionBtn.click()
-    await window.waitForTimeout(500)
+
+    // Wait for AG Grid to recreate itself (gridKey changed)
+    await window.waitForTimeout(1000)
 
     // Verify we now have 3 rows
     rowCount = await window.locator('.ag-row').count()
