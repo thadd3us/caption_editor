@@ -8,7 +8,7 @@ into VTTCue objects, including segment splitting logic based on gaps and duratio
 from dataclasses import dataclass
 from typing import List, Optional
 
-from schema import VTTCue
+from schema import TranscriptSegment, TranscriptWord
 
 
 @dataclass
@@ -432,8 +432,8 @@ def resolve_overlap_conflicts(
     return result
 
 
-def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[VTTCue]:
-    """Convert ASRSegment list to VTTCue list.
+def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[TranscriptSegment]:
+    """Convert ASRSegment list to TranscriptSegment list.
 
     IDs and timestamps will be set later by the calling code.
 
@@ -441,22 +441,33 @@ def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[VTTCue]:
         segments: List of ASR segments with word-level timestamps
 
     Returns:
-        List of VTTCue objects (without IDs or timestamps set)
+        List of TranscriptSegment objects (without IDs or timestamps set)
     """
-    cues = []
+    segments_result = []
 
     for segment in segments:
         if not segment.text.strip():
             continue
 
-        cues.append(VTTCue(
+        # Convert WordTimestamp to TranscriptWord
+        words = [
+            TranscriptWord(
+                text=w.word,
+                start_time=w.start,
+                end_time=w.end,
+            )
+            for w in segment.words
+        ] if segment.words else None
+
+        segments_result.append(TranscriptSegment(
             id="",  # Will be set later with hash
             start_time=segment.start,
             end_time=segment.end,
             text=segment.text.strip(),
+            words=words,
         ))
 
-    return cues
+    return segments_result
 
 
 def parse_nemo_result_with_words(
@@ -673,14 +684,14 @@ def post_process_asr_segments(
     gap_threshold: float,
     max_duration: float,
     is_whisper: bool,
-) -> List[VTTCue]:
+) -> List[TranscriptSegment]:
     """Apply the complete post-processing pipeline to ASR segments.
 
     This is the production pipeline used by transcribe.py. It performs:
     1. Resolve overlaps from chunked processing
     2. Group/split by gap (model-specific: Whisper groups, Parakeet splits)
     3. Split long segments
-    4. Convert to VTTCues
+    4. Convert to TranscriptSegments
 
     Args:
         segments: Raw ASR segments with word timestamps
@@ -691,7 +702,7 @@ def post_process_asr_segments(
         is_whisper: True for Whisper (groups word segments), False for Parakeet (splits sentence segments)
 
     Returns:
-        List of VTTCue objects
+        List of TranscriptSegment objects
     """
     # Step 1: Resolve overlaps from chunked processing
     segments = resolve_overlap_conflicts(segments, chunk_size, overlap)
@@ -707,5 +718,5 @@ def post_process_asr_segments(
     # Step 3: Split long segments
     segments = split_long_segments(segments, max_duration_seconds=max_duration)
 
-    # Step 4: Convert to VTT cues
+    # Step 4: Convert to TranscriptSegments
     return asr_segments_to_vtt_cues(segments)

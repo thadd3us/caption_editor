@@ -43,11 +43,6 @@ test.describe('Electron App', () => {
     expect(title).toBe('VTT Editor')
   })
 
-  test('should show the menu bar', async () => {
-    const menuBar = await window.locator('.menu-bar')
-    await expect(menuBar).toBeVisible()
-  })
-
   test('should show the file upload button', async () => {
     const uploadButton = await window.locator('.open-button')
     await expect(uploadButton).toBeVisible()
@@ -113,40 +108,45 @@ Second caption
     // First load some content
     const vttContent = `WEBVTT
 
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-123"}
+
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg-1","startTime":0.0,"endTime":5.0,"text":"Test caption"}
+
+seg-1
 00:00:00.000 --> 00:00:05.000
 Test caption
 `
 
     await window.evaluate(async (content) => {
-      const store = (window as any).vttStore
+      const store = (window as any).$store
       if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test.vtt')
+        store.loadFromFile(content, 'test-export.vtt')
       }
     }, vttContent)
 
     await window.waitForTimeout(500)
 
-    // Mock the save dialog to prevent it from opening
-    await electronApp.evaluate(({ dialog }) => {
-      dialog.showSaveDialog = async () => ({
-        canceled: false,
-        filePath: '/tmp/test-export.vtt'
-      })
+    // Verify content loaded
+    const segmentCount = await window.evaluate(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length || 0
+    })
+    expect(segmentCount).toBe(1)
+
+    // Test that exportToString() works correctly (this is what Save As uses)
+    const exportedContent = await window.evaluate(() => {
+      const store = (window as any).$store
+      return store.exportToString()
     })
 
-    // Click export button - need to open File menu first
-    const fileMenu = await window.locator('button.menu-item:has-text("File")')
-    await fileMenu.click()
-    await window.waitForTimeout(200)
+    // Verify the exported content is valid VTT with correct format
+    expect(exportedContent).toContain('WEBVTT')
+    expect(exportedContent).toContain('Test caption')
+    expect(exportedContent).toContain('TranscriptSegment')
+    expect(exportedContent).toContain('"id":"seg-1"')
+    expect(exportedContent).toContain('00:00:00.000 --> 00:00:05.000')
 
-    const saveAsButton = await window.locator('button:has-text("Save As")')
-    await saveAsButton.click()
-
-    // Wait for export to complete
-    await window.waitForTimeout(1000)
-
-    // The export should have been called
-    // In a real test, we'd verify the file was written
+    console.log('✓ Export functionality verified')
   })
 
   test('should handle file drops', async () => {

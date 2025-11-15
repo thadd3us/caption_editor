@@ -33,10 +33,16 @@ if (window.electronAPI?.onFileOpen) {
 
     if (result.success && result.content) {
       // Load the VTT content into the store
-      store.loadFromFile(result.content, result.filePath)
-      console.log('File loaded successfully:', filePath)
+      try {
+        store.loadFromFile(result.content, result.filePath)
+        console.log('File loaded successfully:', filePath)
+      } catch (err) {
+        console.error('Failed to parse VTT file:', err)
+        alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      }
     } else {
-      console.error('Failed to load file:', result.error)
+      console.error('Failed to read file:', result.error)
+      alert('Failed to read file: ' + (result.error || 'Unknown error'))
     }
   })
 }

@@ -70,7 +70,7 @@ const newName = ref('')
 // Compute unique non-empty speaker names from all cues
 const uniqueSpeakers = computed(() => {
   const speakers = new Set<string>()
-  for (const cue of store.document.cues) {
+  for (const cue of store.document.segments) {
     if (cue.speakerName && cue.speakerName.trim() !== '') {
       speakers.add(cue.speakerName)
     }

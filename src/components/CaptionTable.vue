@@ -5,8 +5,11 @@
       <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
     <div class="table-header">
-      <h2>Captions ({{ store.document.cues.length }})</h2>
+      <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
+        <button class="open-button" @click="handleOpenFiles" title="Open VTT or media files (Ctrl/Cmd+O)">
+          📁 Open Files
+        </button>
         <label class="checkbox-label">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay (selected row)
@@ -19,13 +22,11 @@
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
-      :key="gridKey"
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
-      :rowSelection="'single'"
+      :rowSelection="'multiple'"
       :getRowId="getRowId"
-      :immutableData="true"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
@@ -52,12 +53,12 @@ const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(false)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
 
-// Force grid re-render when cues array changes
-const gridKey = computed(() => store.document.cues.map(c => c.id).join(','))
+// Speaker similarity scores (not persisted, UI-only)
+const speakerSimilarityScores = ref<Map<string, number>>(new Map())
 
 const rowData = computed(() => {
   // Cues are always kept sorted in the document model
-  return store.document.cues.map(cue => ({
+  return store.document.segments.map(cue => ({
     id: cue.id,
     startTime: cue.startTime,
     endTime: cue.endTime,
@@ -65,11 +66,21 @@ const rowData = computed(() => {
     endTimeFormatted: formatTimestamp(cue.endTime),
     text: cue.text,
     speakerName: cue.speakerName,
-    rating: cue.rating
+    rating: cue.rating,
+    speakerSimilarity: speakerSimilarityScores.value.get(cue.id)
   }))
 })
 
 const columnDefs = ref<ColDef[]>([
+  {
+    headerCheckboxSelection: true,
+    checkboxSelection: true,
+    width: 50,
+    pinned: 'left',
+    sortable: false,
+    filter: false,
+    resizable: false
+  },
   {
     field: 'text',
     headerName: 'Caption',
@@ -84,6 +95,7 @@ const columnDefs = ref<ColDef[]>([
     },
     wrapText: true,
     autoHeight: true,
+    sortable: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateCue(params.data.id, { text: params.newValue })
@@ -94,9 +106,20 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Speaker',
     width: 150,
     editable: true,
+    sortable: true,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       store.updateCue(params.data.id, { speakerName: params.newValue })
+    }
+  },
+  {
+    field: 'speakerSimilarity',
+    headerName: 'Speaker Similarity',
+    width: 150,
+    sortable: true,
+    sort: 'desc',
+    valueFormatter: (params) => {
+      return params.value != null ? params.value.toFixed(3) : ''
     }
   },
   {
@@ -104,13 +127,13 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Rating',
     width: 120,
     cellRenderer: StarRatingCell,
+    sortable: true,
   },
   {
     field: 'actions',
     headerName: 'Actions',
     width: 120,
     cellRenderer: ActionButtonsCell,
-    sortable: false,
     filter: false
   },
   {
@@ -119,6 +142,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Start',
     width: 120,
     editable: true,
+    sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
@@ -162,6 +186,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'End',
     width: 120,
     editable: true,
+    sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
@@ -199,10 +224,15 @@ const columnDefs = ref<ColDef[]>([
 ])
 
 const defaultColDef = ref<ColDef>({
-  sortable: false,  // Disable sorting by default; only time columns are sortable
+  sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
   resizable: true
 })
+
+function handleOpenFiles() {
+  // Dispatch event that App.vue will handle by triggering FileDropZone
+  window.dispatchEvent(new CustomEvent('openFiles'))
+}
 
 function getRowId(params: { data: { id: string } }) {
   return params.data.id
@@ -250,17 +280,117 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   }
 }
 
-// Update grid when cues change
-watch(() => store.document.cues, () => {
-  gridApi.value?.refreshCells()
-}, { deep: true })
+// Calculate cosine similarity between two vectors
+function cosineSimilarity(vecA: readonly number[], vecB: readonly number[]): number {
+  if (vecA.length !== vecB.length) {
+    throw new Error('Vectors must have the same length')
+  }
+
+  let dotProduct = 0
+  let normA = 0
+  let normB = 0
+
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i]
+    normA += vecA[i] * vecA[i]
+    normB += vecB[i] * vecB[i]
+  }
+
+  normA = Math.sqrt(normA)
+  normB = Math.sqrt(normB)
+
+  if (normA === 0 || normB === 0) {
+    return 0
+  }
+
+  return dotProduct / (normA * normB)
+}
+
+// Compute speaker similarity scores for all rows based on selected rows
+function computeSpeakerSimilarity() {
+  if (!gridApi.value) return
+
+  const selectedRows = gridApi.value.getSelectedRows()
+  if (selectedRows.length === 0) {
+    console.warn('No rows selected for speaker similarity computation')
+    return
+  }
+
+  console.log('Computing speaker similarity for', selectedRows.length, 'selected rows')
+
+  // Check if any selected rows are missing embeddings
+  const rowsWithoutEmbeddings: string[] = []
+  for (const row of selectedRows) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
+    if (!embedding || embedding.speakerEmbedding.length === 0) {
+      rowsWithoutEmbeddings.push(row.id)
+    }
+  }
+
+  if (rowsWithoutEmbeddings.length > 0) {
+    console.warn('Selected rows missing embeddings:', rowsWithoutEmbeddings)
+    alert(`Error: ${rowsWithoutEmbeddings.length} selected row(s) are missing speaker embeddings. Please select only rows with embeddings.`)
+    return
+  }
+
+  // Get embeddings for selected rows (all should have embeddings at this point)
+  const selectedEmbeddings: Array<{ id: string, embedding: readonly number[] }> = []
+  for (const row of selectedRows) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
+    if (embedding && embedding.speakerEmbedding.length > 0) {
+      selectedEmbeddings.push({ id: row.id, embedding: embedding.speakerEmbedding })
+    }
+  }
+
+  console.log('Found embeddings for', selectedEmbeddings.length, 'selected rows')
+
+  // Compute similarity scores for all rows
+  const newScores = new Map<string, number>()
+
+  for (const cue of store.document.segments) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === cue.id)
+    if (!embedding || embedding.speakerEmbedding.length === 0) {
+      // No embedding for this row - assign 0 similarity
+      newScores.set(cue.id, 0)
+      continue
+    }
+
+    // Compute maximum cosine similarity to any selected row
+    let maxSimilarity = -1
+    for (const selected of selectedEmbeddings) {
+      const similarity = cosineSimilarity(embedding.speakerEmbedding, selected.embedding)
+      maxSimilarity = Math.max(maxSimilarity, similarity)
+    }
+
+    newScores.set(cue.id, maxSimilarity)
+  }
+
+  console.log('Computed similarity scores for', newScores.size, 'rows')
+  speakerSimilarityScores.value = newScores
+
+  // Refresh the grid to show new values
+  gridApi.value.refreshCells()
+
+  // Auto-sort by speaker similarity in descending order
+  const speakerSimilarityCol = gridApi.value.getColumn('speakerSimilarity')
+  if (speakerSimilarityCol) {
+    gridApi.value.applyColumnState({
+      state: [{ colId: 'speakerSimilarity', sort: 'desc' }],
+      defaultState: { sort: null }
+    })
+    console.log('Auto-sorted by speaker similarity (descending)')
+  }
+}
+
+// Note: With immutableData: true and getRowId, AG Grid handles updates automatically
+// No need to manually refresh cells when segments change
 
 // Auto-scroll: watch currentTime and scroll to the intersecting row
 watch(() => store.currentTime, (currentTime) => {
   if (!autoScrollEnabled.value || !gridApi.value) return
 
   // Find the first cue that the playhead intersects
-  const cue = store.document.cues.find(c =>
+  const cue = store.document.segments.find(c =>
     c.startTime <= currentTime && currentTime < c.endTime
   )
 
@@ -305,12 +435,20 @@ function handleJumpToRow(event: Event) {
   }
 }
 
+// Handle computeSpeakerSimilarity event from menu
+function handleComputeSpeakerSimilarity() {
+  console.log('Compute speaker similarity event received')
+  computeSpeakerSimilarity()
+}
+
 onMounted(() => {
   window.addEventListener('jumpToRow', handleJumpToRow)
+  window.addEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 
 onUnmounted(() => {
   window.removeEventListener('jumpToRow', handleJumpToRow)
+  window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 </script>
 
@@ -381,6 +519,25 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+.open-button {
+  padding: 6px 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.open-button:hover {
+  background: #0056b3;
+}
+
+.open-button:active {
+  background: #004494;
 }
 
 .ag-theme-alpine {

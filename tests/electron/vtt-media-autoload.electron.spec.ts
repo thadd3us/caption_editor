@@ -61,7 +61,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
 
       // Return the store state after loading
       return {
-        cueCount: store.document.cues.length,
+        segmentCount: store.document.segments.length,
         metadata: store.document.metadata,
         mediaPath: store.mediaPath,
         mediaFilePath: store.mediaFilePath
@@ -72,7 +72,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
 
     // Verify VTT was loaded
     expect(result).toBeTruthy()
-    expect(result!.cueCount).toBe(3)
+    expect(result!.segmentCount).toBe(3)
     // Media path should be converted to absolute path internally
     expect(result!.metadata.mediaFilePath).toBe(mediaPath)
 
@@ -117,7 +117,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
 
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"550e8400-e29b-41d4-a716-446655440000","mediaFilePath":"nonexistent-file.wav"}
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","timestamp":"2025-10-31T00:00:00.000Z"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"84ec6681-574b-4570-aecb-5bcaea9415a9","startTime":0.0,"endTime":3.0,"text":"Test caption","timestamp":"2025-10-31T00:00:00.000Z"}
 
 84ec6681-574b-4570-aecb-5bcaea9415a9
 00:00:00.000 --> 00:00:03.000
@@ -148,12 +148,12 @@ Test caption
       const store = (window as any).$store
       return {
         mediaPath: store.mediaPath,
-        cueCount: store.document.cues.length,
+        segmentCount: store.document.segments.length,
         hasMetadata: !!store.document.metadata.mediaFilePath
       }
     })
 
-    expect(state.cueCount).toBe(1)
+    expect(state.segmentCount).toBe(1)
     expect(state.hasMetadata).toBe(true)
     expect(state.mediaPath).toBeFalsy() // Should not have loaded any media
 

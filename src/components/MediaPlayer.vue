@@ -50,15 +50,9 @@
         <span class="time-display">{{ formatTime(duration) }}</span>
       </div>
 
-      <div class="jump-controls">
-        <button @click="jump(-60)" class="jump-btn" :disabled="!hasMedia">-60s</button>
-        <button @click="jump(-30)" class="jump-btn" :disabled="!hasMedia">-30s</button>
-        <button @click="jump(-5)" class="jump-btn" :disabled="!hasMedia">-5s</button>
-        <button @click="jump(-1)" class="jump-btn" :disabled="!hasMedia">-1s</button>
-        <button @click="jump(1)" class="jump-btn" :disabled="!hasMedia">+1s</button>
-        <button @click="jump(5)" class="jump-btn" :disabled="!hasMedia">+5s</button>
-        <button @click="jump(30)" class="jump-btn" :disabled="!hasMedia">+30s</button>
-        <button @click="jump(60)" class="jump-btn" :disabled="!hasMedia">+60s</button>
+      <div class="current-caption-display">
+        <div class="caption-label">Current Caption:</div>
+        <div class="caption-text">{{ currentCaptionText }}</div>
       </div>
 
       <div class="caption-controls">
@@ -105,6 +99,18 @@ const mediaFileName = computed(() => {
   return parts[parts.length - 1]
 })
 
+const currentCaptionText = computed(() => {
+  const cues = store.document.segments
+  const time = store.currentTime
+
+  // Find the cue that contains the current time (startTime <= time < endTime)
+  const currentCue = cues.find(cue =>
+    cue.startTime <= time && time < cue.endTime
+  )
+
+  return currentCue ? currentCue.text : 'No caption at current time'
+})
+
 function onMediaLoaded() {
   if (mediaElement.value) {
     duration.value = mediaElement.value.duration
@@ -122,7 +128,7 @@ function onTimeUpdate() {
       mediaElement.value.pause()
 
       // Seek back to start of snippet
-      const cue = store.document.cues.find(c => c.endTime === snippetEndTime.value)
+      const cue = store.document.segments.find(c => c.endTime === snippetEndTime.value)
       if (cue) {
         mediaElement.value.currentTime = cue.startTime
         store.setCurrentTime(cue.startTime)
@@ -165,16 +171,6 @@ function onScrub(event: Event) {
   }
 }
 
-function jump(seconds: number) {
-  if (!mediaElement.value) return
-
-  const newTime = Math.max(0, Math.min(duration.value, store.currentTime + seconds))
-  console.log('Jumping', seconds, 'seconds to:', newTime)
-
-  mediaElement.value.currentTime = newTime
-  store.setCurrentTime(newTime)
-}
-
 function addCaptionAtCurrentTime() {
   console.log('Adding caption at current time:', store.currentTime)
   const cueId = store.addCue(store.currentTime, 5)
@@ -183,7 +179,7 @@ function addCaptionAtCurrentTime() {
 
 function jumpToCurrentRow() {
   const currentTime = store.currentTime
-  const cues = store.document.cues
+  const cues = store.document.segments
 
   const index = findIndexOfRowForTime(cues, currentTime)
   if (index !== -1) {
@@ -214,7 +210,7 @@ watch(() => store.isPlaying, (playing) => {
   if (playing) {
     // Only set up snippet playback if snippetMode is enabled
     if (store.snippetMode && store.selectedCueId) {
-      const selectedCue = store.document.cues.find(c => c.id === store.selectedCueId)
+      const selectedCue = store.document.segments.find(c => c.id === store.selectedCueId)
 
       if (selectedCue) {
         const timeDiff = Math.abs(store.currentTime - selectedCue.startTime)
@@ -369,30 +365,29 @@ video, audio {
   cursor: pointer;
 }
 
-.jump-controls {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.current-caption-display {
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  min-height: 80px;
 }
 
-.jump-btn {
-  padding: 8px 12px;
-  background: #ecf0f1;
-  border: 1px solid #bdc3c7;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+.caption-label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #6c757d;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
 }
 
-.jump-btn:hover:not(:disabled) {
-  background: #d5dbdb;
-  border-color: #95a5a6;
-}
-
-.jump-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.caption-text {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #212529;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .caption-controls {

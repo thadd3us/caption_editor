@@ -76,8 +76,8 @@ describe('FileDropZone', () => {
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
 
       // Verify VTT content was loaded into store
-      expect(store.document.cues.length).toBe(1)
-      expect(store.document.cues[0].text).toBe('Test caption')
+      expect(store.document.segments.length).toBe(1)
+      expect(store.document.segments[0].text).toBe('Test caption')
       expect(store.document.filePath).toBe('/path/to/test.vtt')
 
       // Cleanup
@@ -185,7 +185,7 @@ describe('FileDropZone', () => {
 
       // Verify both files were processed
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
-      expect(store.document.cues.length).toBe(1)
+      expect(store.document.segments.length).toBe(1)
       expect(store.mediaPath).toBe('file:///path/to/video.mp4')
 
       // Cleanup
@@ -240,7 +240,77 @@ describe('FileDropZone', () => {
       // Verify error was logged and alert shown
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(alertSpy).toHaveBeenCalled()
-      expect(store.document.cues.length).toBe(0)
+      expect(store.document.segments.length).toBe(0)
+
+      // Cleanup
+      consoleErrorSpy.mockRestore()
+      alertSpy.mockRestore()
+      delete global.window.electronAPI
+    })
+
+    it('should show alert for VTT files with duplicate UUIDs', async () => {
+      // Mock console.error to avoid noise in test output
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+      // Mock Electron API to return VTT with duplicate IDs
+      const vttWithDuplicates = `WEBVTT
+
+duplicate-id
+00:00:00.000 --> 00:00:02.000
+First cue
+
+duplicate-id
+00:00:02.000 --> 00:00:04.000
+Second cue with same ID`
+
+      const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
+        {
+          type: 'vtt',
+          filePath: '/path/to/duplicates.vtt',
+          fileName: 'duplicates.vtt',
+          content: vttWithDuplicates
+        }
+      ])
+
+      global.window.electronAPI = {
+        isElectron: true,
+        openFile: vi.fn(),
+        readFile: vi.fn(),
+        saveFile: vi.fn(),
+        saveExistingFile: vi.fn(),
+        statFile: vi.fn(),
+        fileToURL: vi.fn(),
+        processDroppedFiles: mockProcessDroppedFiles,
+        onFileOpen: vi.fn(),
+        onFileDropped: vi.fn(),
+        path: {
+          dirname: vi.fn(),
+          basename: vi.fn(),
+          relative: vi.fn(),
+          resolve: vi.fn(),
+          isAbsolute: vi.fn(),
+          normalize: vi.fn(),
+          join: vi.fn()
+        }
+      }
+
+      const wrapper = mount(FileDropZone)
+      const store = useVTTStore()
+
+      // Simulate Electron drop with duplicate UUID VTT
+      const mockFilePaths = ['/path/to/duplicates.vtt']
+      const component = wrapper.vm as any
+      await component.processElectronFiles(mockFilePaths)
+
+      // Verify error was shown with specific message about duplicates
+      expect(alertSpy).toHaveBeenCalled()
+      const alertMessage = alertSpy.mock.calls[0][0]
+      expect(alertMessage).toContain('duplicate cue ID')
+      expect(alertMessage).toContain('duplicate-id')
+
+      // Verify file was not loaded
+      expect(store.document.segments.length).toBe(0)
 
       // Cleanup
       consoleErrorSpy.mockRestore()

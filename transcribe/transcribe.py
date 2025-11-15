@@ -28,7 +28,7 @@ from asr_results_to_vtt import (
     split_long_segments,
     split_segments_by_word_gap,
 )
-from schema import CAPTION_EDITOR_SENTINEL, SegmentHistoryEntry, TranscriptMetadata, VTTCue
+from schema import CAPTION_EDITOR_SENTINEL, SegmentHistoryEntry, TranscriptMetadata, TranscriptSegment
 from vtt_lib import serialize_vtt
 
 try:
@@ -159,40 +159,40 @@ def generate_document_id(audio_hash: str, deterministic: bool = False) -> str:
 
 
 def assign_cue_ids_and_timestamps(
-    cues: List[VTTCue],
+    segments: List[TranscriptSegment],
     audio_hash: str,
     deterministic_ids: bool = False
-) -> List[VTTCue]:
-    """Assign IDs and timestamps to cues in-place.
+) -> List[TranscriptSegment]:
+    """Assign IDs and timestamps to segments in-place.
 
     Args:
-        cues: List of VTT cues to modify
+        segments: List of transcript segments to modify
         audio_hash: Hash of the audio file
         deterministic_ids: If True, use simple incremental IDs for testing
 
     Returns:
-        The same cues list (modified in-place)
+        The same segments list (modified in-place)
     """
-    # Get current timestamp for all cues (local timezone)
+    # Get current timestamp for all segments (local timezone)
     if deterministic_ids:
         current_timestamp = "2025-01-01T00:00:00.000000+00:00"
     else:
         current_timestamp = datetime.now().astimezone().isoformat()
 
-    for idx, cue in enumerate(cues):
+    for idx, segment in enumerate(segments):
         # Generate ID and set timestamp if not already set
         if deterministic_ids:
-            cue_id = generate_cue_id(audio_hash, cue.start_time, deterministic_index=idx)
+            segment_id = generate_cue_id(audio_hash, segment.start_time, deterministic_index=idx)
         else:
-            cue_id = generate_cue_id(audio_hash, cue.start_time)
+            segment_id = generate_cue_id(audio_hash, segment.start_time)
 
-        cue_timestamp = cue.timestamp if cue.timestamp else current_timestamp
+        segment_timestamp = segment.timestamp if segment.timestamp else current_timestamp
 
-        # Update the cue with id and timestamp
-        cue.id = cue_id
-        cue.timestamp = cue_timestamp
+        # Update the segment with id and timestamp
+        segment.id = segment_id
+        segment.timestamp = segment_timestamp
 
-    return cues
+    return segments
 
 
 def compute_audio_hash(audio_path: Path) -> str:
@@ -352,13 +352,13 @@ def main(
         typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
         final_segments = split_long_segments(after_grouping, max_segment_duration_seconds)
 
-        # Convert ASRSegments to VTTCues
-        typer.echo("Converting segments to VTT cues...")
-        final_cues = asr_segments_to_vtt_cues(final_segments)
+        # Convert ASRSegments to TranscriptSegments
+        typer.echo("Converting segments to transcript segments...")
+        final_segments_list = asr_segments_to_vtt_cues(final_segments)
 
-        # Assign IDs and timestamps to cues
+        # Assign IDs and timestamps to segments
         typer.echo("Assigning IDs and timestamps...")
-        assign_cue_ids_and_timestamps(final_cues, audio_hash, deterministic_ids=deterministic_ids)
+        assign_cue_ids_and_timestamps(final_segments_list, audio_hash, deterministic_ids=deterministic_ids)
 
         # Generate document metadata
         doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
@@ -371,12 +371,12 @@ def main(
 
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = serialize_vtt(metadata, final_cues)
+        vtt_content = serialize_vtt(metadata, final_segments_list, vtt_path=output)
 
         # Write output
         output.write_text(vtt_content)
         typer.echo(f"Transcription complete: {output}")
-        typer.echo(f"Generated {len(final_cues)} cues")
+        typer.echo(f"Generated {len(final_segments_list)} segments")
 
 
 if __name__ == "__main__":

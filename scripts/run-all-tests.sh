@@ -53,23 +53,20 @@ else
 fi
 echo ""
 
-# 3. Browser E2E tests
-echo "🌐 Running browser E2E tests..."
-npx playwright test --grep-invert "electron"
-echo ""
-
-# 4. Electron E2E tests
+# 3. E2E tests (all run in Electron)
 if [ "$SKIP_ELECTRON" = false ]; then
-  echo "⚡ Building and running Electron tests..."
+  echo "⚡ Building app for Electron E2E tests..."
 
   # Build both apps
   npm run build
   npm run build:electron
 
+  echo "🧪 Running E2E tests in Electron..."
+
   # Platform-specific Electron test execution
   if [ "$PLATFORM" = "Darwin" ]; then
     # macOS - no Xvfb needed
-    npx playwright test tests/electron/
+    npx playwright test
   else
     # Linux - need Xvfb
     echo "🖥️  Starting Xvfb for headless Electron testing..."
@@ -86,11 +83,11 @@ if [ "$SKIP_ELECTRON" = false ]; then
       echo "✓ Xvfb already running"
     fi
 
-    DISPLAY=:99 npx playwright test tests/electron/
+    DISPLAY=:99 npx playwright test
   fi
   echo ""
 else
-  echo "⏭️  Skipping Electron tests (--skip-electron flag set)"
+  echo "⏭️  Skipping E2E tests (--skip-electron flag set)"
   echo ""
 fi
 
@@ -106,8 +103,7 @@ echo ""
 echo "📊 Summary:"
 echo "  - TypeScript type checking: Check output above"
 echo "  - TypeScript unit tests: Check output above"
-echo "  - Browser E2E tests: Check output above"
 if [ "$SKIP_ELECTRON" = false ]; then
-  echo "  - Electron E2E tests: Check output above"
+  echo "  - E2E tests (Electron): Check output above"
 fi
 echo "  - Python tests: Check output above"

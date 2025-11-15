@@ -30,7 +30,7 @@ test.describe('File Save - Save VTT files correctly', () => {
 
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-id-123"}
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"test-cue-id"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"test-cue-id","startTime":0.0,"endTime":3.0,"text":"Test caption"}
 
 test-cue-id
 00:00:00.000 --> 00:00:03.000

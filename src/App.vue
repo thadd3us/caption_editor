@@ -45,7 +45,15 @@ let isResizing = false
 const attemptedAutoLoad = ref<string | null>(null)
 
 function openRenameSpeakerDialog() {
-  isRenameSpeakerDialogOpen.value = true
+  // Check if there are any speakers in the document
+  const hasSpeakers = store.document.segments.some(
+    segment => segment.speakerName && segment.speakerName.trim() !== ''
+  )
+
+  // Only open the dialog if there are speakers to rename
+  if (hasSpeakers) {
+    isRenameSpeakerDialogOpen.value = true
+  }
 }
 
 function closeRenameSpeakerDialog() {
@@ -268,6 +276,12 @@ onMounted(() => {
     attemptMediaAutoLoad()
   }, 200)
 
+  // Listen for openFiles event from CaptionTable's Open Files button
+  window.addEventListener('openFiles', handleMenuOpenFile as EventListener)
+
+  // Expose dialog functions for testing
+  ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
+
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
     const { ipcRenderer } = (window as any).electronAPI
@@ -277,6 +291,10 @@ onMounted(() => {
       ipcRenderer.on('menu-save-file', handleMenuSaveFile)
       ipcRenderer.on('menu-save-as', handleMenuSaveAs)
       ipcRenderer.on('menu-rename-speaker', openRenameSpeakerDialog)
+      ipcRenderer.on('menu-compute-speaker-similarity', () => {
+        // Dispatch custom event that CaptionTable will listen for
+        window.dispatchEvent(new CustomEvent('computeSpeakerSimilarity'))
+      })
       console.log('[App] ✓ Native menu IPC listeners registered')
     }
   }
@@ -301,12 +319,22 @@ onMounted(() => {
           console.log('[App] ✓ Processing result:', result)
           if (result.type === 'vtt') {
             console.log('[App] ✓ Loading VTT file:', result.filePath)
-            store.loadFromFile(result.content, result.filePath)
-            console.log('[App] ✓ VTT file loaded successfully')
+            try {
+              store.loadFromFile(result.content, result.filePath)
+              console.log('[App] ✓ VTT file loaded successfully')
+            } catch (err) {
+              console.error('[App] ✗ Failed to load VTT file:', err)
+              alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+            }
           } else if (result.type === 'media') {
             console.log('[App] ✓ Loading media file:', result.filePath)
-            store.loadMediaFile(result.url, result.filePath)
-            console.log('[App] ✓ Media file loaded successfully')
+            try {
+              store.loadMediaFile(result.url, result.filePath)
+              console.log('[App] ✓ Media file loaded successfully')
+            } catch (err) {
+              console.error('[App] ✗ Failed to load media file:', err)
+              alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+            }
           }
         }
         console.log('[App] ✓ All files processed successfully')

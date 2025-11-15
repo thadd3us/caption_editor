@@ -38,18 +38,33 @@ class HistoryAction(str, Enum):
     SPEAKER_RENAMED = "speakerRenamed"
 
 
-class VTTCue(BaseModel):
-    """VTT cue matching the frontend data model."""
+class TranscriptWord(BaseModel):
+    """Word-level timestamp from ASR output."""
 
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str = Field(description="UUID - cue identifier")
+    text: str = Field(description="Word text")
+    start_time: Optional[float] = Field(None, description="Start time in seconds", alias="startTime")
+    end_time: Optional[float] = Field(None, description="End time in seconds", alias="endTime")
+
+
+class TranscriptSegment(BaseModel):
+    """Transcript segment (formerly VTTCue) matching the frontend data model."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(description="UUID - segment identifier")
     start_time: float = Field(description="Start time in seconds", alias="startTime")
     end_time: float = Field(description="End time in seconds", alias="endTime")
-    text: str = Field(description="Caption text")
+    text: str = Field(description="Segment text")
+    words: Optional[list[TranscriptWord]] = Field(None, description="Optional word-level timestamps from ASR")
     speaker_name: Optional[str] = Field(None, description="Optional speaker name", alias="speakerName")
     rating: Optional[int] = Field(None, description="Optional rating 1-5")
-    timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of when the cue was created/last modified")
+    timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of when the segment was created/last modified")
+
+
+# Legacy alias for backwards compatibility during migration
+VTTCue = TranscriptSegment
 
 
 class TranscriptMetadata(BaseModel):
@@ -69,4 +84,13 @@ class SegmentHistoryEntry(BaseModel):
     id: str = Field(description="UUID for this history entry")
     action: HistoryAction = Field(description="Type of action performed")
     action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
-    cue: VTTCue = Field(description="The segment's state before the change (preserves the original timestamp)")
+    segment: TranscriptSegment = Field(description="The segment's state before the change (preserves the original timestamp)", alias="cue")  # alias "cue" for backwards compatibility
+
+
+class SegmentSpeakerEmbedding(BaseModel):
+    """Speaker embedding vector for a segment."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    segment_id: str = Field(description="UUID of the segment this embedding belongs to", alias="segmentId")
+    speaker_embedding: list[float] = Field(description="Speaker embedding vector", alias="speakerEmbedding")

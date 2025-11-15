@@ -1,0 +1,21 @@
+WEBVTT
+
+NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-duplicate-uuids","mediaFilePath":"test.wav"}
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"duplicate-id","startTime":0,"endTime":2,"text":"First cue with duplicate ID","timestamp":"2025-01-01T00:00:00.000Z"}
+
+duplicate-id
+00:00:00.000 --> 00:00:02.000
+First cue with duplicate ID
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"unique-id","startTime":2,"endTime":4,"text":"Cue with unique ID","timestamp":"2025-01-01T00:00:00.000Z"}
+
+unique-id
+00:00:02.000 --> 00:00:04.000
+Cue with unique ID
+
+NOTE CAPTION_EDITOR:VTTCue {"id":"duplicate-id","startTime":4,"endTime":6,"text":"Second cue with duplicate ID (DUPLICATE!)","timestamp":"2025-01-01T00:00:00.000Z"}
+
+duplicate-id
+00:00:04.000 --> 00:00:06.000
+Second cue with duplicate ID (DUPLICATE!)

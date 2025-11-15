@@ -1,44 +1,67 @@
-import { test, expect } from './helpers/coverage'
+import { test, expect, _electron as electron } from '@playwright/test'
+import { ElectronApplication, Page } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+import { enableConsoleCapture } from './helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 test.describe('Media Element Seek Test', () => {
-  test('should set audio currentTime and update store via timeupdate event', async ({ page }) => {
-    await page.goto('/')
-    await page.reload()
+  let electronApp: ElectronApplication
+  let window: Page
 
+  test.beforeAll(async () => {
+    // Launch Electron app
+    electronApp = await electron.launch({
+      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
+      }
+    })
+
+    // Wait for the first window
+    window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
+  })
+
+  test.afterAll(async () => {
+    await electronApp.close()
+  })
+
+  test('should set audio currentTime and update store via timeupdate event', async () => {
     // Load audio file
     const audioPath = path.join(__dirname, 'fixtures', 'test-audio-10s.wav')
-    await page.evaluate((filePath) => {
+    await window.evaluate((filePath) => {
       const audioUrl = `file://${filePath}`
       ;(window as any).$store.loadMediaFile(audioUrl)
     }, audioPath)
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Verify audio element exists
-    const hasAudio = await page.evaluate(() => {
+    const hasAudio = await window.evaluate(() => {
       const audio = document.querySelector('audio')
       return !!audio
     })
     expect(hasAudio).toBe(true)
 
     // Set audio currentTime directly
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       const audio = document.querySelector('audio') as HTMLAudioElement
       if (audio) {
         audio.currentTime = 3
       }
     })
 
-    await page.waitForTimeout(100)
+    await window.waitForTimeout(100)
 
     // Verify audio currentTime was set
-    const audioTime = await page.evaluate(() => {
+    const audioTime = await window.evaluate(() => {
       const audio = document.querySelector('audio') as HTMLAudioElement
       return audio ? audio.currentTime : null
     })
@@ -46,11 +69,11 @@ test.describe('Media Element Seek Test', () => {
 
     // Check if store was updated (via onTimeUpdate event)
     // Note: timeupdate event may not fire if media isn't playing
-    const storeTime = await page.evaluate(() => (window as any).$store.currentTime)
+    const storeTime = await window.evaluate(() => (window as any).$store.currentTime)
     console.log('Store currentTime:', storeTime)
 
     // Check scrubber value
-    const scrubberValue = await page.evaluate(() => {
+    const scrubberValue = await window.evaluate(() => {
       const scrubber = document.querySelector('.scrubber') as HTMLInputElement
       return scrubber ? parseFloat(scrubber.value) : null
     })

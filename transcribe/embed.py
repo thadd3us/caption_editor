@@ -7,18 +7,14 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-import libsql_client as libsql
 import numpy as np
-import pandas as pd
 import soundfile as sf
 import torch
 import typer
 from pyannote.audio import Inference, Model
-from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import cosine_distances
 from tqdm import tqdm
 
-from schema import CAPTION_EDITOR_SENTINEL, TranscriptMetadata, VTTCue
+from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, TranscriptSegment
 from vtt_lib import parse_vtt_file, serialize_vtt
 
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
@@ -146,34 +142,18 @@ def main(
         readable=True,
         help="Path to the VTT file",
     ),
-    output: Optional[Path] = typer.Option(
-        None,
-        "--output",
-        "-o",
-        help="Output libsql database path (default: <vtt_file>.embeddings.db)",
-    ),
     model: str = typer.Option(
         "pyannote/embedding",
         "--model",
         "-m",
         help="Pyannote embedding model to use",
     ),
-    auto_assign_speaker_clusters_to_unknown_names: bool = typer.Option(
-        False,
-        "--auto_assign_speaker_clusters_to_unknown_names",
-        help="Automatically cluster speakers and assign names like 'Unknown 00?'",
-    ),
-    num_speaker_clusters: int = typer.Option(
-        2,
-        "--num_speaker_clusters",
-        help="Number of speaker clusters to create (only used with --auto_assign_speaker_clusters_to_unknown_names)",
-    ),
 ) -> None:
     """
     Compute speaker embeddings for each segment in a VTT file.
 
     Requires HF_TOKEN environment variable to be set.
-    Outputs to libsql database with speaker_embedding table.
+    Writes embeddings as NOTE comments in the VTT file.
     """
     # Use a temporary directory that persists through the whole function
     temp_dir_obj = tempfile.TemporaryDirectory()
@@ -185,7 +165,7 @@ def main(
 
         # Parse VTT file
         typer.echo(f"Parsing VTT file: {vtt_path}")
-        metadata, cues = parse_vtt_file(vtt_path)
+        metadata, segments = parse_vtt_file(vtt_path)
 
         # Get media file path (relative to VTT directory)
         if not metadata.media_file_path:
@@ -198,7 +178,7 @@ def main(
             raise ValueError(f"Media file not found: {media_path}")
 
         typer.echo(f"Media file: {media_path}")
-        typer.echo(f"Found {len(cues)} segments")
+        typer.echo(f"Found {len(segments)} segments")
 
         # Check if media file needs conversion
         audio_path = media_path
@@ -215,112 +195,55 @@ def main(
         embedding_model = Model.from_pretrained(model, use_auth_token=token)
         inference = Inference(embedding_model, window="whole")
 
-        # Determine output path
-        if output is None:
-            output = vtt_path.with_suffix(".embeddings.db")
-
         # Process each segment
         typer.echo(f"Computing embeddings...")
         # Map from segment ID to embedding
         segment_id_to_embedding = {}
         skipped_count = 0
 
-        for cue in tqdm(cues, desc="Processing segments", unit="segment"):
+        for segment in tqdm(segments, desc="Processing segments", unit="segment"):
             # Skip segments shorter than 0.5 seconds
-            duration = cue.end_time - cue.start_time
+            duration = segment.end_time - segment.start_time
             if duration < 0.5:
-                tqdm.write(f"Skipping short segment {cue.id} (duration: {duration:.3f}s)")
+                tqdm.write(f"Skipping short segment {segment.id} (duration: {duration:.3f}s)")
                 skipped_count += 1
                 continue
 
             # Extract audio segment
             audio, sample_rate = extract_audio_segment(
-                audio_path, cue.start_time, cue.end_time
+                audio_path, segment.start_time, segment.end_time
             )
 
             if len(audio) == 0:
-                tqdm.write(f"Warning: Empty audio for segment {cue.id}")
+                tqdm.write(f"Warning: Empty audio for segment {segment.id}")
                 continue
 
             # Compute embedding
             embedding = compute_embedding(inference, audio, sample_rate)
 
             # Store in map
-            segment_id_to_embedding[cue.id] = embedding
+            segment_id_to_embedding[segment.id] = embedding
 
         typer.echo(f"Skipped {skipped_count} segments shorter than 0.5s")
         typer.echo(f"Computed {len(segment_id_to_embedding)} embeddings")
 
-        # Perform speaker clustering if requested
-        if auto_assign_speaker_clusters_to_unknown_names:
-            typer.echo(f"Clustering speakers into {num_speaker_clusters} groups...")
-
-            # Build a list of (segment_id, embedding) for segments with embeddings
-            segments_with_embeddings = list(segment_id_to_embedding.items())
-
-            # Extract embeddings as matrix
-            embeddings_matrix = np.array([emb for _, emb in segments_with_embeddings])
-
-            # Normalize embeddings for cosine similarity
-            # After normalization, Euclidean distance equals cosine distance
-            norms = np.linalg.norm(embeddings_matrix, axis=1, keepdims=True)
-            embeddings_normalized = embeddings_matrix / norms
-
-            # Perform k-means clustering on normalized embeddings
-            # With normalized vectors, Euclidean distance = cosine distance
-            kmeans = KMeans(
-                n_clusters=num_speaker_clusters,
-                random_state=42,
-                n_init=10
-            )
-            cluster_labels = kmeans.fit_predict(embeddings_normalized)
-
-            # Map from segment ID to cluster label
-            segment_id_to_cluster = {
-                seg_id: cluster_labels[i]
-                for i, (seg_id, _) in enumerate(segments_with_embeddings)
-            }
-
-            # Assign speaker names based on clusters
-            assigned_count = 0
-            for cue in cues:
-                # Check if this segment has a cluster assignment
-                if cue.id not in segment_id_to_cluster:
-                    continue
-
-                # Only assign speaker name if it's currently empty
-                if not cue.speaker_name:
-                    cluster_id = segment_id_to_cluster[cue.id]
-                    cue.speaker_name = f"Unknown {cluster_id:02d}?"
-                    assigned_count += 1
-
-            # Write updated VTT file back
-            typer.echo(f"Updating VTT file with speaker assignments: {vtt_path}")
-            vtt_content = serialize_vtt(metadata, cues)
-            vtt_path.write_text(vtt_content)
-            typer.echo(f"Updated {assigned_count} segments with speaker names")
-
-        # Write to libsql database
-        typer.echo(f"Writing embeddings to database: {output}")
-        client = libsql.create_client_sync(f"file:{output}")
-
-        # Create table
-        client.execute("""
-            CREATE TABLE IF NOT EXISTS speaker_embedding (
-                segment_id TEXT PRIMARY KEY,
-                embedding BLOB
-            )
-        """)
-
-        # Insert embeddings
+        # Create SegmentSpeakerEmbedding objects
+        embeddings = []
         for segment_id, embedding in segment_id_to_embedding.items():
-            client.execute(
-                "INSERT OR REPLACE INTO speaker_embedding (segment_id, embedding) VALUES (?, ?)",
-                [segment_id, embedding.tobytes()]
+            # Convert numpy array to list of floats
+            embedding_list = embedding.tolist()
+            embeddings.append(
+                SegmentSpeakerEmbedding(
+                    segment_id=segment_id,
+                    speaker_embedding=embedding_list
+                )
             )
 
-        client.close()
-        typer.echo(f"Done! Computed {len(segment_id_to_embedding)} embeddings")
+        # Write updated VTT file with embeddings
+        typer.echo(f"Writing embeddings to VTT file: {vtt_path}")
+        vtt_content = serialize_vtt(metadata, segments, embeddings=embeddings, vtt_path=vtt_path)
+        vtt_path.write_text(vtt_content)
+        typer.echo(f"Done! Wrote {len(embeddings)} embeddings to VTT file")
 
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)

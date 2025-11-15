@@ -1,14 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { findIndexOfRowForTime } from './vttParser'
-import type { VTTCue } from '../types/schema'
+import type { TranscriptSegment } from '../types/schema'
 
 describe('findIndexOfRowForTime', () => {
-  const createCue = (id: string, startTime: number, endTime: number): VTTCue => ({
+  const createCue = (id: string, startTime: number, endTime: number): TranscriptSegment => ({
     id,
     startTime,
     endTime,
-    text: `Cue ${id}`,
-    rating: undefined
+    text: `Cue ${id}`
   })
 
   it('should return -1 for empty cues array', () => {

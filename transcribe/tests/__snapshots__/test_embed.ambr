@@ -1,0 +1,69 @@
+# serializer version: 1
+# name: test_embed_osr_audio
+  list([
+    dict({
+      'embedding': list([
+        127,
+        -74,
+        -51,
+        -50,
+        32,
+        17,
+        -47,
+        65,
+        -79,
+        62,
+      ]),
+      'segment_id': '18a4869f-8cab-4bb5-ba5b-f55900d26076',
+      'shape': 512,
+    }),
+    dict({
+      'embedding': list([
+        58,
+        -12,
+        -32,
+        -39,
+        119,
+        12,
+        -23,
+        14,
+        -26,
+        31,
+      ]),
+      'segment_id': '84ec6681-574b-4570-aecb-5bcaea9415a9',
+      'shape': 512,
+    }),
+    dict({
+      'embedding': list([
+        60,
+        -36,
+        -19,
+        -53,
+        15,
+        -13,
+        17,
+        22,
+        -83,
+        41,
+      ]),
+      'segment_id': 'db8f6b03-f1a0-426b-80bd-6d39382e8417',
+      'shape': 512,
+    }),
+    dict({
+      'embedding': list([
+        72,
+        49,
+        -48,
+        -36,
+        37,
+        -12,
+        -35,
+        19,
+        -91,
+        41,
+      ]),
+      'segment_id': 'ead5dd22-5dd3-4d27-8cc8-c09df813a71c',
+      'shape': 512,
+    }),
+  ])
+# ---

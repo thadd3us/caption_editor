@@ -44,13 +44,13 @@ test.describe('File Save with Media Path - Relative path updates', () => {
 
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-doc-123","mediaFilePath":"audio.wav"}
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"cue-1"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"cue-1","startTime":1.0,"endTime":4.0,"text":"First caption"}
 
 cue-1
 00:00:01.000 --> 00:00:04.000
 First caption
 
-NOTE CAPTION_EDITOR:VTTCueMetadata {"id":"cue-2"}
+NOTE CAPTION_EDITOR:TranscriptSegment {"id":"cue-2","startTime":5.0,"endTime":8.0,"text":"Second caption"}
 
 cue-2
 00:00:05.000 --> 00:00:08.000

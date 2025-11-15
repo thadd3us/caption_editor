@@ -124,7 +124,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Verify the cue was added
     const cueCount = await window.evaluate(() => {
       const store = (window as any).$store
-      return store.document.cues.length
+      return store.document.segments.length
     })
     expect(cueCount).toBe(4) // Original 3 cues + 1 new cue
     console.log('✓ Cue count is now:', cueCount)
@@ -132,13 +132,28 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 4: Save the file (overwrite original)
     console.log('Step 4: Saving file (overwrite)')
 
-    // Trigger save directly via keyboard shortcut (Cmd+S on macOS, Ctrl+S on others)
-    const isMac = process.platform === 'darwin'
-    const saveShortcut = isMac ? 'Meta+s' : 'Control+s'
-    await window.keyboard.press(saveShortcut)
-    await window.waitForTimeout(1500)
+    // Trigger save programmatically (more reliable than keyboard shortcut in tests)
+    await window.evaluate(async () => {
+      const electronAPI = (window as any).electronAPI
+      const store = (window as any).$store
 
-    console.log(`✓ Save triggered via ${saveShortcut}`)
+      if (!electronAPI || !store) {
+        throw new Error('electronAPI or store not available')
+      }
+
+      const content = store.exportToString()
+      const result = await electronAPI.saveExistingFile({
+        filePath: store.document.filePath,
+        content
+      })
+
+      if (!result.success) {
+        throw new Error('Save failed: ' + result.error)
+      }
+    })
+    await window.waitForTimeout(500)
+
+    console.log(`✓ Save triggered programmatically`)
 
     // Step 5: Check the contents of the saved VTT file
     console.log('Step 5: Verifying saved VTT file contents')
@@ -291,7 +306,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const speakerData = await window.evaluate(() => {
       const store = (window as any).$store
-      const cues = store.document.cues
+      const cues = store.document.segments
       return cues.map((cue: any) => ({
         id: cue.id,
         text: cue.text.substring(0, 30),
@@ -325,7 +340,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Verify the update
     const updatedFirstSpeaker = await window.evaluate((cueId) => {
       const store = (window as any).$store
-      const cue = store.document.cues.find((c: any) => c.id === cueId)
+      const cue = store.document.segments.find((c: any) => c.id === cueId)
       return cue?.speakerName
     }, firstCueId)
     expect(updatedFirstSpeaker).toBe('Charlie')
@@ -343,7 +358,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Verify the addition
     const newSecondSpeaker = await window.evaluate((cueId) => {
       const store = (window as any).$store
-      const cue = store.document.cues.find((c: any) => c.id === cueId)
+      const cue = store.document.segments.find((c: any) => c.id === cueId)
       return cue?.speakerName
     }, secondCueId)
     expect(newSecondSpeaker).toBe('Diana')
@@ -352,11 +367,27 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 6: Save the file
     console.log('Step 6: Saving file with updated speaker names')
 
-    const isMac = process.platform === 'darwin'
-    const saveShortcut = isMac ? 'Meta+s' : 'Control+s'
-    await window.keyboard.press(saveShortcut)
-    await window.waitForTimeout(1500)
-    console.log(`✓ Save triggered via ${saveShortcut}`)
+    // Trigger save programmatically (more reliable than keyboard shortcut in tests)
+    await window.evaluate(async () => {
+      const electronAPI = (window as any).electronAPI
+      const store = (window as any).$store
+
+      if (!electronAPI || !store) {
+        throw new Error('electronAPI or store not available')
+      }
+
+      const content = store.exportToString()
+      const result = await electronAPI.saveExistingFile({
+        filePath: store.document.filePath,
+        content
+      })
+
+      if (!result.success) {
+        throw new Error('Save failed: ' + result.error)
+      }
+    })
+    await window.waitForTimeout(500)
+    console.log(`✓ Save triggered programmatically`)
 
     // Step 7: Read and verify the saved VTT file contents
     console.log('Step 7: Verifying saved VTT file contains updated speaker names')

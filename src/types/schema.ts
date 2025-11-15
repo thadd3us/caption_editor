@@ -22,17 +22,32 @@ export enum HistoryAction {
 }
 
 /**
- * Immutable VTT caption entry with UUID, timestamps, rating, and text
+ * Word-level timestamp from ASR output
  */
-export interface VTTCue {
-  readonly id: string // UUID - cue identifier
+export interface TranscriptWord {
+  readonly text: string // Word text
+  readonly startTime?: number // Start time in seconds
+  readonly endTime?: number // End time in seconds
+}
+
+/**
+ * Transcript segment (formerly VTTCue) with UUID, timestamps, rating, and text
+ */
+export interface TranscriptSegment {
+  readonly id: string // UUID - segment identifier
   readonly startTime: number // Start time in seconds
   readonly endTime: number // End time in seconds
-  readonly text: string // Caption text
+  readonly text: string // Segment text
+  readonly words?: readonly TranscriptWord[] // Optional word-level timestamps from ASR
   readonly speakerName?: string // Optional speaker name
   readonly rating?: number // Optional rating 1-5
-  readonly timestamp?: string // ISO 8601 timestamp of when the cue was created/last modified
+  readonly timestamp?: string // ISO 8601 timestamp of when the segment was created/last modified
 }
+
+/**
+ * @deprecated Use TranscriptSegment instead. Legacy alias for backwards compatibility.
+ */
+export type VTTCue = TranscriptSegment
 
 /**
  * Metadata for the transcript document
@@ -47,9 +62,10 @@ export interface TranscriptMetadata {
  */
 export interface VTTDocument {
   readonly metadata: TranscriptMetadata // Document metadata (id, media file path)
-  readonly cues: readonly VTTCue[]
+  readonly segments: readonly TranscriptSegment[]
   readonly filePath?: string // Original file path if loaded from file
   readonly history?: readonly SegmentHistoryEntry[] // Historical record of segment changes
+  readonly embeddings?: readonly SegmentSpeakerEmbedding[] // Speaker embeddings for segments
 }
 
 /**
@@ -76,5 +92,13 @@ export interface SegmentHistoryEntry {
   readonly id: string // UUID for this history entry
   readonly action: HistoryAction // Type of action performed
   readonly actionTimestamp: string // ISO 8601 timestamp of when this action occurred
-  readonly cue: VTTCue // The segment's state before the change (preserves the original timestamp)
+  readonly segment: TranscriptSegment // The segment's state before the change (preserves the original timestamp)
+}
+
+/**
+ * Speaker embedding vector for a segment
+ */
+export interface SegmentSpeakerEmbedding {
+  readonly segmentId: string // UUID of the segment this embedding belongs to
+  readonly speakerEmbedding: readonly number[] // Speaker embedding vector
 }

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTCue, VTTDocument, ParseResult, SegmentHistoryEntry, TranscriptMetadata } from '../types/schema'
+import type { TranscriptSegment, VTTDocument, ParseResult, SegmentHistoryEntry, SegmentSpeakerEmbedding, TranscriptMetadata } from '../types/schema'
 import { HistoryAction } from '../types/schema'
 
 /**
@@ -48,24 +48,25 @@ function parseTimestamp(timestamp: string): number {
  * If no pending cue exists, creates a new one with generated ID.
  */
 function completeCue(
-  pendingCue: Partial<VTTCue> | null,
+  pendingCue: Partial<TranscriptSegment> | null,
   id: string,
   startTime: number,
   endTime: number,
   text: string
-): VTTCue {
+): TranscriptSegment {
   // Start with pending metadata or empty object
-  const cue = pendingCue || {}
+  const segment = pendingCue || {}
 
   // Fill in the parsed fields
   return {
-    id: cue.id || id,
+    id: segment.id || id,
     startTime,
     endTime,
     text: text.trim(),
-    speakerName: cue.speakerName,
-    rating: cue.rating,
-    timestamp: cue.timestamp
+    words: segment.words,
+    speakerName: segment.speakerName,
+    rating: segment.rating,
+    timestamp: segment.timestamp
   }
 }
 
@@ -114,10 +115,11 @@ export function parseVTT(content: string): ParseResult {
       }
     }
 
-    const cues: VTTCue[] = []
+    const cues: TranscriptSegment[] = []
     let i = 1
-    let pendingCue: VTTCue | null = null
+    let pendingCue: TranscriptSegment | null = null
     const historyEntries: SegmentHistoryEntry[] = []
+    const embeddings: SegmentSpeakerEmbedding[] = []
     let transcriptMetadata: TranscriptMetadata | undefined = undefined
 
     while (i < lines.length) {
@@ -158,13 +160,21 @@ export function parseVTT(content: string): ParseResult {
               if (typeName === 'TranscriptMetadata' && !transcriptMetadata) {
                 transcriptMetadata = parsed as TranscriptMetadata
                 console.log('Found transcript metadata:', transcriptMetadata.id)
+              } else if (typeName === 'TranscriptSegment') {
+                pendingCue = parsed as TranscriptSegment
+                console.log('Found segment:', pendingCue.id)
               } else if (typeName === 'VTTCue') {
-                pendingCue = parsed as VTTCue
-                console.log('Found cue:', pendingCue.id)
+                // Backwards compatibility: parse old VTTCue format
+                pendingCue = parsed as TranscriptSegment
+                console.log('Found segment (legacy VTTCue format):', pendingCue.id)
               } else if (typeName === 'SegmentHistoryEntry') {
                 const entry = parsed as SegmentHistoryEntry
                 historyEntries.push(entry)
                 console.log('Found history entry:', entry.id, entry.action)
+              } else if (typeName === 'SegmentSpeakerEmbedding') {
+                const embedding = parsed as SegmentSpeakerEmbedding
+                embeddings.push(embedding)
+                console.log('Found speaker embedding for segment:', embedding.segmentId)
               } else {
                 console.log(`Unknown ${CAPTION_EDITOR_SENTINEL} type:`, typeName)
               }
@@ -192,7 +202,7 @@ export function parseVTT(content: string): ParseResult {
           const endTime = parseTimestamp(endStr)
 
           if (endTime <= startTime) {
-            console.warn(`Invalid cue: end time <= start time (${startStr} --> ${endStr})`)
+            console.warn(`Invalid segment: end time <= start time (${startStr} --> ${endStr})`)
             i++
             continue
           }
@@ -210,7 +220,7 @@ export function parseVTT(content: string): ParseResult {
           const cue = completeCue(pendingCue, uuidv4(), startTime, endTime, text)
           cues.push(cue)
 
-          console.log(`Parsed cue: ${cue.id}, ${startStr} --> ${endStr}`)
+          console.log(`Parsed segment: ${cue.id}, ${startStr} --> ${endStr}`)
           pendingCue = null
 
         } catch (err) {
@@ -236,7 +246,7 @@ export function parseVTT(content: string): ParseResult {
               const endTime = parseTimestamp(endStr)
 
               if (endTime <= startTime) {
-                console.warn(`Invalid cue: end time <= start time (${startStr} --> ${endStr})`)
+                console.warn(`Invalid segment: end time <= start time (${startStr} --> ${endStr})`)
                 i++
                 continue
               }
@@ -250,10 +260,9 @@ export function parseVTT(content: string): ParseResult {
                 i++
               }
 
-              // Use identifier as ID if it looks like a UUID, otherwise generate
-              const id = identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
-                ? identifier
-                : uuidv4()
+              // Use identifier as ID (any non-empty string is valid)
+              // Only generate UUID if identifier is empty or whitespace
+              const id = identifier.trim() ? identifier.trim() : uuidv4()
               const cue = completeCue(pendingCue, id, startTime, endTime, text)
               cues.push(cue)
 
@@ -274,12 +283,33 @@ export function parseVTT(content: string): ParseResult {
 
     console.log(`Parsed ${cues.length} cues`)
 
+    // Validate UUID uniqueness
+    const cueIds = new Set<string>()
+    const duplicateIds: string[] = []
+    for (const cue of cues) {
+      if (cueIds.has(cue.id)) {
+        duplicateIds.push(cue.id)
+      } else {
+        cueIds.add(cue.id)
+      }
+    }
+
+    if (duplicateIds.length > 0) {
+      const error = `Invalid VTT file: ${duplicateIds.length} duplicate cue ID(s) found. Cue IDs must be unique. Duplicates: ${duplicateIds.slice(0, 5).join(', ')}${duplicateIds.length > 5 ? '...' : ''}`
+      console.error(error)
+      return {
+        success: false,
+        error
+      }
+    }
+
     return {
       success: true,
       document: {
         metadata: transcriptMetadata || { id: uuidv4() },
-        cues: Object.freeze(cues),
-        history: historyEntries.length > 0 ? Object.freeze(historyEntries) : undefined
+        segments: Object.freeze(cues),
+        history: historyEntries.length > 0 ? Object.freeze(historyEntries) : undefined,
+        embeddings: embeddings.length > 0 ? Object.freeze(embeddings) : undefined
       }
     }
 
@@ -297,7 +327,7 @@ export function parseVTT(content: string): ParseResult {
  * Uses CAPTION_EDITOR sentinel format for metadata
  */
 export function serializeVTT(document: VTTDocument): string {
-  console.log('Serializing VTT document with', document.cues.length, 'cues')
+  console.log('Serializing VTT document with', document.segments.length, 'segments')
 
   let output = 'WEBVTT\n\n'
 
@@ -305,31 +335,38 @@ export function serializeVTT(document: VTTDocument): string {
   output += `NOTE ${CAPTION_EDITOR_SENTINEL}:TranscriptMetadata ${JSON.stringify(document.metadata)}\n\n`
 
   // Sort cues by start time, then by end time
-  const sortedCues = [...document.cues].sort((a, b) => {
+  const sortedCues = [...document.segments].sort((a, b) => {
     if (a.startTime !== b.startTime) {
       return a.startTime - b.startTime
     }
     return a.endTime - b.endTime
   })
 
-  for (const cue of sortedCues) {
-    // Always add NOTE with entire cue using sentinel format
-    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:VTTCue ${JSON.stringify(cue)}\n\n`
+  for (const segment of sortedCues) {
+    // Always add NOTE with entire segment using sentinel format
+    output += `NOTE ${CAPTION_EDITOR_SENTINEL}:TranscriptSegment ${JSON.stringify(segment)}\n\n`
 
-    // Add cue identifier (UUID)
-    output += `${cue.id}\n`
+    // Add segment identifier (UUID)
+    output += `${segment.id}\n`
 
     // Add timing
-    output += `${formatTimestamp(cue.startTime)} --> ${formatTimestamp(cue.endTime)}\n`
+    output += `${formatTimestamp(segment.startTime)} --> ${formatTimestamp(segment.endTime)}\n`
 
     // Add text
-    output += `${cue.text}\n\n`
+    output += `${segment.text}\n\n`
   }
 
   // Add history entries at the end if they exist (one NOTE per entry)
   if (document.history && document.history.length > 0) {
     for (const entry of document.history) {
       output += `NOTE ${CAPTION_EDITOR_SENTINEL}:SegmentHistoryEntry ${JSON.stringify(entry)}\n`
+    }
+  }
+
+  // Add speaker embeddings at the end if they exist (one NOTE per embedding)
+  if (document.embeddings && document.embeddings.length > 0) {
+    for (const embedding of document.embeddings) {
+      output += `\nNOTE ${CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding ${JSON.stringify(embedding)}\n`
     }
   }
 
@@ -342,15 +379,15 @@ export function serializeVTT(document: VTTDocument): string {
 export function createEmptyDocument(): VTTDocument {
   return {
     metadata: { id: uuidv4() },
-    cues: Object.freeze([])
+    segments: Object.freeze([])
   }
 }
 
 /**
- * Sort cues by start time, then end time
+ * Sort segments by start time, then end time
  */
-function sortCues(cues: readonly VTTCue[]): readonly VTTCue[] {
-  const sorted = [...cues].sort((a, b) => {
+function sortCues(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
+  const sorted = [...segments].sort((a, b) => {
     if (a.startTime !== b.startTime) {
       return a.startTime - b.startTime
     }
@@ -360,32 +397,32 @@ function sortCues(cues: readonly VTTCue[]): readonly VTTCue[] {
 }
 
 /**
- * Find the index of the cue that should be selected for a given time.
- * Returns the index of the cue that contains the time, or the last cue before it.
- * Returns -1 if there are no cues or if time is before all cues.
+ * Find the index of the segment that should be selected for a given time.
+ * Returns the index of the segment that contains the time, or the last segment before it.
+ * Returns -1 if there are no segments or if time is before all segments.
  *
- * @param cues - Array of cues (must be sorted by start time)
+ * @param segments - Array of segments (must be sorted by start time)
  * @param time - The time to search for
- * @returns The index of the matching cue, or -1 if no match
+ * @returns The index of the matching segment, or -1 if no match
  */
-export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): number {
-  if (cues.length === 0) {
+export function findIndexOfRowForTime(segments: readonly TranscriptSegment[], time: number): number {
+  if (segments.length === 0) {
     return -1
   }
 
-  // Find the cue that contains the current time
-  const indexAtTime = cues.findIndex(cue =>
-    cue.startTime <= time && time < cue.endTime
+  // Find the segment that contains the current time
+  const indexAtTime = segments.findIndex(segment =>
+    segment.startTime <= time && time < segment.endTime
   )
 
   if (indexAtTime !== -1) {
     return indexAtTime
   }
 
-  // If no cue contains the time, find the last cue before it
+  // If no segment contains the time, find the last segment before it
   let lastIndexBefore = -1
-  for (let i = cues.length - 1; i >= 0; i--) {
-    if (cues[i].startTime <= time) {
+  for (let i = segments.length - 1; i >= 0; i--) {
+    if (segments[i].startTime <= time) {
       lastIndexBefore = i
       break
     }
@@ -397,12 +434,12 @@ export function findIndexOfRowForTime(cues: readonly VTTCue[], time: number): nu
 /**
  * Add a history entry to the document
  */
-function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: HistoryAction): VTTDocument {
+function addHistoryEntry(document: VTTDocument, segment: TranscriptSegment, action: HistoryAction): VTTDocument {
   const newEntry: SegmentHistoryEntry = {
     id: uuidv4(),
     action,
     actionTimestamp: getCurrentTimestamp(),
-    cue // Preserve the original cue state including its original timestamp
+    segment // Preserve the original segment state including its original timestamp
   }
 
   const existingEntries = document.history || []
@@ -415,13 +452,13 @@ function addHistoryEntry(document: VTTDocument, cue: VTTCue, action: HistoryActi
 }
 
 /**
- * Add a new cue to the document (returns new document with sorted cues)
+ * Add a new segment to the document (returns new document with sorted segments)
  */
-export function addCue(document: VTTDocument, cue: VTTCue): VTTDocument {
-  console.log('Adding cue:', cue.id)
+export function addCue(document: VTTDocument, segment: TranscriptSegment): VTTDocument {
+  console.log('Adding segment:', segment.id)
   return {
     ...document,
-    cues: sortCues([...document.cues, cue])
+    segments: sortCues([...document.segments, segment])
   }
 }
 
@@ -429,11 +466,11 @@ export function addCue(document: VTTDocument, cue: VTTCue): VTTDocument {
  * Update an existing cue (returns new document with sorted cues)
  * Records the previous state in history and sets timestamp on updated cue
  */
-export function updateCue(document: VTTDocument, cueId: string, updates: Partial<Omit<VTTCue, 'id'>>): VTTDocument {
-  console.log('Updating cue:', cueId, updates)
+export function updateCue(document: VTTDocument, cueId: string, updates: Partial<Omit<TranscriptSegment, 'id'>>): VTTDocument {
+  console.log('Updating segment:', cueId, updates)
 
   // Find the original cue to save to history
-  const originalCue = document.cues.find(cue => cue.id === cueId)
+  const originalCue = document.segments.find(cue => cue.id === cueId)
   if (!originalCue) {
     console.warn('Cue not found:', cueId)
     return document
@@ -441,7 +478,7 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
 
   // Update the cues with new timestamp
   const currentTimestamp = getCurrentTimestamp()
-  const updatedCues = document.cues.map(cue =>
+  const updatedCues = document.segments.map(cue =>
     cue.id === cueId
       ? { ...cue, ...updates, timestamp: currentTimestamp }
       : cue
@@ -450,7 +487,7 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
   // Create document with updated cues
   let newDocument: VTTDocument = {
     ...document,
-    cues: sortCues(updatedCues)
+    segments: sortCues(updatedCues)
   }
 
   // Add history entry (with the original cue before modification)
@@ -464,10 +501,10 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
  * Records the deleted cue in history
  */
 export function deleteCue(document: VTTDocument, cueId: string): VTTDocument {
-  console.log('Deleting cue:', cueId)
+  console.log('Deleting segment:', cueId)
 
   // Find the cue to save to history before deleting
-  const deletedCue = document.cues.find(cue => cue.id === cueId)
+  const deletedCue = document.segments.find(cue => cue.id === cueId)
   if (!deletedCue) {
     console.warn('Cue not found:', cueId)
     return document
@@ -476,7 +513,7 @@ export function deleteCue(document: VTTDocument, cueId: string): VTTDocument {
   // Create document with cue removed
   let newDocument: VTTDocument = {
     ...document,
-    cues: Object.freeze(document.cues.filter(cue => cue.id !== cueId))
+    segments: Object.freeze(document.segments.filter(cue => cue.id !== cueId))
   }
 
   // Add history entry
@@ -496,7 +533,7 @@ export function renameSpeaker(document: VTTDocument, oldName: string, newName: s
   let newDocument = document
 
   // Find all cues with the old speaker name and update them
-  for (const cue of document.cues) {
+  for (const cue of document.segments) {
     if (cue.speakerName === oldName) {
       // Add history entry for this cue before modification
       newDocument = addHistoryEntry(newDocument, cue, HistoryAction.SpeakerRenamed)
@@ -504,7 +541,7 @@ export function renameSpeaker(document: VTTDocument, oldName: string, newName: s
   }
 
   // Update all cues with the new speaker name
-  const updatedCues = newDocument.cues.map(cue =>
+  const updatedCues = newDocument.segments.map(cue =>
     cue.speakerName === oldName
       ? { ...cue, speakerName: newName, timestamp: currentTimestamp }
       : cue
@@ -512,6 +549,6 @@ export function renameSpeaker(document: VTTDocument, oldName: string, newName: s
 
   return {
     ...newDocument,
-    cues: Object.freeze(updatedCues)
+    segments: Object.freeze(updatedCues)
   }
 }
