@@ -27,7 +27,6 @@
       :defaultColDef="defaultColDef"
       :rowSelection="'multiple'"
       :getRowId="getRowId"
-      :immutableData="true"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
