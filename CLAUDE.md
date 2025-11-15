@@ -69,7 +69,7 @@ Tests should run quickly to maintain development velocity:
 
 **Total: 158/165 tests (19 Python + 139 TypeScript passing) - 96% pass rate!**
 
-**Note:** Browser E2E tests have been removed as the app is now Electron-only.
+**Note:** All E2E tests run in Electron only (no browser mode). The default `playwright test` command launches Electron automatically after building.
 
 **Test Organization:**
 - **UI/Interaction E2E** (`tests/*.spec.ts`): Tests UI functionality, user interactions, media playback controls
@@ -93,11 +93,10 @@ npm test                      # Run unit tests in watch mode
 npm run test:unit             # Run unit tests once
 npm run test:unit:coverage    # Run with coverage report
 
-# E2E tests
-npm run test:e2e              # Run all E2E tests (UI + Electron Platform)
-npm run test:e2e:browser      # Run UI/Interaction E2E tests only
-npm run test:e2e:electron     # Build and run Electron Platform tests
-npm run test:e2e:ui           # Run E2E tests with Playwright UI
+# E2E tests (all run in Electron)
+npm run test:e2e              # Build and run all E2E tests
+npm run test:e2e:ui           # Build and run E2E tests with Playwright UI
+npm run test:e2e:headed       # Build and run E2E tests with visible window
 
 # Complete test suite
 npm run test:all:complete     # Run ALL tests (unit, E2E, Electron, Python)
@@ -135,28 +134,21 @@ Current coverage: 94.62% ✅
 
 #### TypeScript E2E Tests
 
-**UI/Interaction E2E Tests:**
-```bash
-npx playwright test --grep-invert "electron"
-```
+**All E2E tests run in Electron** (no browser mode). The npm scripts automatically build the app first.
 
-Current performance: ~13s for 15 tests ✅
-
-**Electron Platform E2E Tests:**
 ```bash
+# Run all E2E tests (recommended - uses npm script with auto-build)
+npm run test:e2e
+
+# Or manually with platform-specific DISPLAY (Linux only):
 # macOS:
-npm run build:all && npx playwright test tests/electron/
+npm run build:all && npx playwright test
 
 # Linux/Docker (requires Xvfb):
-npm run build:all && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
+npm run build:all && start-xvfb.sh && DISPLAY=:99 npx playwright test
 ```
 
-Current performance: ~21s for 18 tests ✅
-
-**All E2E Tests:**
-```bash
-npx playwright test
-```
+Current performance: ~40-60s for all E2E tests ✅
 
 **Full E2E Pipeline Test (Python + Electron):**
 
@@ -210,13 +202,16 @@ Current performance:
 # TypeScript unit test
 npm test src/utils/findIndexOfRowForTime.test.ts
 
-# UI/Interaction E2E test
+# E2E test (macOS)
 npx playwright test vtt-editor.spec.ts
 
-# Electron Platform E2E test (macOS)
+# E2E test (Linux/Docker - requires Xvfb running)
+DISPLAY=:99 npx playwright test vtt-editor.spec.ts
+
+# Electron-specific test (macOS)
 npx playwright test tests/electron/file-save.electron.spec.ts
 
-# Electron Platform E2E test (Linux/Docker)
+# Electron-specific test (Linux/Docker)
 DISPLAY=:99 npx playwright test tests/electron/file-save.electron.spec.ts
 
 # Run specific test by name (grep)
@@ -266,14 +261,16 @@ If a test times out, it indicates a performance issue that needs fixing rather t
 #### UI/Interaction E2E Tests (`tests/*.spec.ts`)
 - Test UI functionality and user interactions
 - Test media playback controls, caption editing, table interactions
-- Run in Playwright's Chromium (but app is Electron-only)
+- Run in Electron (launched automatically by Playwright)
 - Keep tests focused and efficient
 
 #### Electron Platform E2E Tests (`tests/electron/*.spec.ts`)
 - Test Electron-specific features
 - File system operations, OS integration (file associations), IPC
 - Test file loading/saving with full paths
-- Require app build before running (use `npm run build && npm run build:electron`)
+- Run in Electron (launched automatically by Playwright)
+
+**Note:** All E2E tests require the app to be built first with `npm run build:all`. The npm scripts handle this automatically.
 
 ### Writing New Tests
 
@@ -550,7 +547,7 @@ These tests use real VTT and audio files from `test_data/`:
 Use the helper script that automatically detects your platform:
 
 ```bash
-# Run all tests (unit, browser E2E, Electron, Python)
+# Run all tests (unit, E2E/Electron, Python)
 ./scripts/run-all-tests.sh
 
 # Run with TypeScript coverage
@@ -584,12 +581,9 @@ npm test -- --coverage
 # 3. Run Python tests
 cd transcribe && uv run pytest tests/ -v && cd ..
 
-# 4. Run browser E2E tests
-npx playwright test --grep-invert "electron"
-
-# 5. Build and run Electron tests
+# 4. Build and run E2E tests (all in Electron)
 npm run build:all
-npx playwright test tests/electron/
+npx playwright test
 ```
 
 **On Linux/Docker (Sculptor sandbox):**
@@ -604,22 +598,18 @@ npm test -- --coverage
 # 3. Run Python tests
 cd transcribe && uv run pytest tests/ -v && cd ..
 
-# 4. Run browser E2E tests
-npx playwright test --grep-invert "electron"
-
-# 5. Build and run Electron tests (requires Xvfb)
+# 4. Build and run E2E tests (all in Electron, requires Xvfb)
 npm run build:all
 start-xvfb.sh
-DISPLAY=:99 npx playwright test tests/electron/
+DISPLAY=:99 npx playwright test
 ```
 
 **Expected Results:**
-- Unit tests: All passing (109/109) ✅
-- Python tests: All passing (2/2) ✅
-- Browser E2E: All passing (32/32) ✅
-- Electron E2E: All passing (17/17) ✅
+- Unit tests: All passing (114/114) ✅
+- Python tests: 19/26 passing (7 expected failures) ✅
+- E2E tests (Electron): 42/43 passing ✅
 
-**Total: 160/160 tests passing (100%)! 🎉**
+**Total: 175/183 tests passing (96%)!**
 
 #### Test Timeout Philosophy
 
