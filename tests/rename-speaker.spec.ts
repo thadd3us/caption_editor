@@ -1,14 +1,36 @@
-import { test, expect } from './helpers/coverage'
+import { test, expect, _electron as electron } from '@playwright/test'
+import { ElectronApplication, Page } from '@playwright/test'
+import * as path from 'path'
+import { enableConsoleCapture } from './helpers/console'
 
 test.describe('VTT Editor - Rename Speaker', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.reload()
+  let electronApp: ElectronApplication
+  let window: Page
+
+  test.beforeAll(async () => {
+    // Launch Electron app
+    electronApp = await electron.launch({
+      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
+      }
+    })
+
+    // Wait for the first window
+    window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(window)
   })
 
-  test('should rename speaker across multiple cues', async ({ page }) => {
+  test.afterAll(async () => {
+    await electronApp.close()
+  })
+
+  test('should rename speaker across multiple cues', async () => {
     // Load VTT with multiple speakers using direct store manipulation
-    const loadResult = await page.evaluate(() => {
+    const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
@@ -44,45 +66,45 @@ Another message from Alice`
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(3)
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Wait for caption count to update
-    const captionCount = page.locator('h2', { hasText: 'Captions' })
+    const captionCount = window.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('3', { timeout: 2000 })
 
     // Open rename dialog (simulating Edit menu -> Rename Speaker)
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
-    await page.waitForTimeout(100)
+    await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = page.locator('.dialog-overlay')
+    const dialog = window.locator('.dialog-overlay')
     await expect(dialog).toBeVisible()
 
     // Select "Alice" from dropdown
-    const dropdown = page.locator('#speaker-select')
+    const dropdown = window.locator('#speaker-select')
     await dropdown.selectOption('Alice')
 
     // Enter new name "Alice Smith"
-    const input = page.locator('#new-name-input')
+    const input = window.locator('#new-name-input')
     await input.fill('Alice Smith')
 
     // Click Rename button
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const renameBtn = buttons.find(b => b.textContent?.includes('Rename') && !b.textContent?.includes('Speaker'))
       if (renameBtn) renameBtn.click()
     })
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Verify dialog closed
     await expect(dialog).not.toBeVisible()
 
     // Verify speaker was renamed in the store
-    const speakerNames = await page.evaluate(() => {
+    const speakerNames = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return null
       return vttStore.document.segments.map((cue: any) => cue.speakerName)
@@ -94,7 +116,7 @@ Another message from Alice`
     expect(speakerNames).toContain('Bob') // Bob should remain unchanged
   })
 
-  test('should not show rename dialog when no speakers exist', async ({ page }) => {
+  test('should not show rename dialog when no speakers exist', async () => {
     // Load VTT without speakers
     const vttContent = `WEBVTT
 
@@ -104,7 +126,7 @@ Caption without speaker
 00:00:05.000 --> 00:00:08.000
 Another caption without speaker`
 
-    await page.evaluate((content) => {
+    await window.evaluate((content) => {
       const file = new File([content], 'test.vtt', { type: 'text/vtt' })
       const dt = new DataTransfer()
       dt.items.add(file)
@@ -117,23 +139,23 @@ Another caption without speaker`
       }
     }, vttContent)
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Try to open rename dialog
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
-    await page.waitForTimeout(100)
+    await window.waitForTimeout(100)
 
     // Dialog should not appear when there are no speakers
-    const dialog = page.locator('.dialog-overlay')
+    const dialog = window.locator('.dialog-overlay')
     await expect(dialog).not.toBeVisible()
   })
 
-  test('should close dialog when clicking Cancel', async ({ page }) => {
+  test('should close dialog when clicking Cancel', async () => {
     // Load VTT with speaker
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -148,32 +170,32 @@ Hello`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Open rename dialog
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
-    await page.waitForTimeout(100)
+    await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = page.locator('.dialog-overlay')
+    const dialog = window.locator('.dialog-overlay')
     await expect(dialog).toBeVisible()
 
     // Click Cancel button
-    const cancelButton = page.locator('button.btn-cancel')
+    const cancelButton = window.locator('button.btn-cancel')
     await cancelButton.click()
 
-    await page.waitForTimeout(100)
+    await window.waitForTimeout(100)
 
     // Dialog should be closed
     await expect(dialog).not.toBeVisible()
   })
 
-  test('should record history entries for renamed cues', async ({ page }) => {
+  test('should record history entries for renamed cues', async () => {
     // Load VTT with speakers
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -194,32 +216,32 @@ Message 2`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Open rename dialog
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
-    await page.waitForTimeout(100)
+    await window.waitForTimeout(100)
 
     // Select John and rename to Jonathan
-    const dropdown = page.locator('#speaker-select')
+    const dropdown = window.locator('#speaker-select')
     await dropdown.selectOption('John')
 
-    const input = page.locator('#new-name-input')
+    const input = window.locator('#new-name-input')
     await input.fill('Jonathan')
 
-    await page.evaluate(() => {
+    await window.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const renameBtn = buttons.find(b => b.textContent?.trim() === 'Rename')
       if (renameBtn) renameBtn.click()
     })
 
-    await page.waitForTimeout(200)
+    await window.waitForTimeout(200)
 
     // Check that history entries were created
-    const historyCount = await page.evaluate(() => {
+    const historyCount = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return 0
 
