@@ -1,0 +1,55 @@
+# serializer version: 1
+# name: test_diarize_osr_audio
+  list([
+    dict({
+      'end': 3.001,
+      'speaker': 'SPEAKER_00',
+      'start': 0.487,
+    }),
+    dict({
+      'end': 6.393,
+      'speaker': 'SPEAKER_00',
+      'start': 4.283,
+    }),
+    dict({
+      'end': 9.683,
+      'speaker': 'SPEAKER_00',
+      'start': 7.793,
+    }),
+    dict({
+      'end': 12.94,
+      'speaker': 'SPEAKER_00',
+      'start': 10.848,
+    }),
+    dict({
+      'end': 16.163,
+      'speaker': 'SPEAKER_00',
+      'start': 14.206,
+    }),
+    dict({
+      'end': 19.336,
+      'speaker': 'SPEAKER_00',
+      'start': 17.294,
+    }),
+    dict({
+      'end': 22.39,
+      'speaker': 'SPEAKER_00',
+      'start': 20.399,
+    }),
+    dict({
+      'end': 25.85,
+      'speaker': 'SPEAKER_00',
+      'start': 23.723,
+    }),
+    dict({
+      'end': 28.769,
+      'speaker': 'SPEAKER_00',
+      'start': 27.065,
+    }),
+    dict({
+      'end': 32.195,
+      'speaker': 'SPEAKER_00',
+      'start': 30.018,
+    }),
+  ])
+# ---
