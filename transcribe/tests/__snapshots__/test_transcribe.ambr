@@ -3,7 +3,7 @@
   '''
   WEBVTT
   
-  NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "/code/test_data/OSR_us_000_0010_8k.wav"}
+  NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
   
   
   NOTE CAPTION_EDITOR:TranscriptSegment {"id": "id_00000", "startTime": 0.24, "endTime": 3.44, "text": "The birch canoe slid on the smooth planks.", "words": [{"text": "The", "startTime": 0.24, "endTime": 0.56}, {"text": "birch", "startTime": 0.56, "endTime": 1.12}, {"text": "canoe", "startTime": 1.12, "endTime": 1.6}, {"text": "slid", "startTime": 1.6, "endTime": 2.0}, {"text": "on", "startTime": 2.0, "endTime": 2.16}, {"text": "the", "startTime": 2.16, "endTime": 2.24}, {"text": "smooth", "startTime": 2.24, "endTime": 2.8000000000000003}, {"text": "planks.", "startTime": 2.8000000000000003, "endTime": 3.44}], "timestamp": "2025-01-01T00:00:00.000000+00:00"}
@@ -81,7 +81,7 @@
   '''
   WEBVTT
   
-  NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "/code/test_data/OSR_us_000_0010_8k.wav"}
+  NOTE CAPTION_EDITOR:TranscriptMetadata {"id": "doc_id", "mediaFilePath": "OSR_us_000_0010_8k.wav"}
   
   
   NOTE CAPTION_EDITOR:TranscriptSegment {"id": "id_00000", "startTime": 0.0, "endTime": 5.06, "text": "The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet", "words": [{"text": " The", "startTime": 0.0, "endTime": 0.68}, {"text": " birch", "startTime": 0.68, "endTime": 1.12}, {"text": " can", "startTime": 1.12, "endTime": 1.38}, {"text": " use", "startTime": 1.38, "endTime": 1.68}, {"text": " lid", "startTime": 1.68, "endTime": 1.96}, {"text": " on", "startTime": 1.96, "endTime": 2.24}, {"text": " the", "startTime": 2.24, "endTime": 2.38}, {"text": " smooth", "startTime": 2.38, "endTime": 2.7}, {"text": " planks.", "startTime": 2.7, "endTime": 4.62}, {"text": " Glue", "startTime": 4.62, "endTime": 4.62}, {"text": " the", "startTime": 4.62, "endTime": 4.9}, {"text": " sheet", "startTime": 4.9, "endTime": 5.06}], "timestamp": "2025-01-01T00:00:00.000000+00:00"}

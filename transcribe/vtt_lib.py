@@ -72,7 +72,8 @@ def serialize_vtt(
     metadata: TranscriptMetadata,
     segments: list[TranscriptSegment],
     embeddings: Optional[list[SegmentSpeakerEmbedding]] = None,
-    include_history: bool = False
+    include_history: bool = False,
+    vtt_path: Optional[Path] = None
 ) -> str:
     """Serialize metadata and segments to VTT format string.
 
@@ -81,14 +82,29 @@ def serialize_vtt(
         segments: List of transcript segments
         embeddings: Optional list of speaker embeddings
         include_history: Whether to include history entries (not implemented yet)
+        vtt_path: Optional path to the VTT file (used to compute relative media path)
 
     Returns:
         VTT format string with NOTE comments
     """
     lines = ["WEBVTT\n"]
 
+    # Convert media file path to relative if possible
+    metadata_copy = metadata.model_copy()
+    if metadata_copy.media_file_path and vtt_path:
+        media_path = Path(metadata_copy.media_file_path)
+        if media_path.is_absolute() and vtt_path.is_absolute():
+            try:
+                # Try to compute relative path from VTT directory to media file
+                vtt_dir = vtt_path.parent
+                relative_path = media_path.relative_to(vtt_dir)
+                metadata_copy.media_file_path = str(relative_path)
+            except ValueError:
+                # If files are on different drives or can't be made relative, keep absolute
+                pass
+
     # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
-    metadata_json = metadata.model_dump(by_alias=True, exclude_none=True)
+    metadata_json = metadata_copy.model_dump(by_alias=True, exclude_none=True)
     lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
 
     for segment in segments:

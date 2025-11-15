@@ -16,7 +16,11 @@ import pytest
 )
 def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_name: str):
     """Test transcribing the OSR audio file with 10s chunks and 5s overlap."""
-    test_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
+    # Copy audio file to tmp_path to avoid absolute path in snapshots
+    source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
+    test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
+    test_audio.write_bytes(source_audio.read_bytes())
+
     output_path = tmp_path / "output.vtt"
 
     # Path to transcribe script

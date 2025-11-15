@@ -371,7 +371,7 @@ def main(
 
         # Generate VTT
         typer.echo("Generating VTT...")
-        vtt_content = serialize_vtt(metadata, final_segments_list)
+        vtt_content = serialize_vtt(metadata, final_segments_list, vtt_path=output)
 
         # Write output
         output.write_text(vtt_content)

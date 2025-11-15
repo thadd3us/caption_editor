@@ -241,7 +241,7 @@ def main(
 
         # Write updated VTT file with embeddings
         typer.echo(f"Writing embeddings to VTT file: {vtt_path}")
-        vtt_content = serialize_vtt(metadata, segments, embeddings=embeddings)
+        vtt_content = serialize_vtt(metadata, segments, embeddings=embeddings, vtt_path=vtt_path)
         vtt_path.write_text(vtt_content)
         typer.echo(f"Done! Wrote {len(embeddings)} embeddings to VTT file")
 
