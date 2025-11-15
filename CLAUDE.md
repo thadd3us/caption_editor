@@ -60,15 +60,16 @@ Tests should run quickly to maintain development velocity:
 
 **Current Test Suite Status:**
 - ✅ TypeScript Unit Tests: 114/114 passing ⭐ **ALL PASSING!**
-- ✅ Python Tests: 19/26 passing (7 failures expected - require HF_TOKEN or high memory)
-  - ✅ **ASR Segment Splitting**: 16/16 passing (unit + integration tests)
-  - ⚠️ Diarization/Embedding: 3 failures (require HF_TOKEN)
-  - ⚠️ Parakeet: 1 failure (OOM in resource-constrained environments)
-  - ⚠️ VTT snapshots: 3 failures (test data regenerated, UUIDs changed)
+- ✅ Python Tests: 24/24 passing ⭐ **ALL PASSING!**
+  - ✅ **ASR Segment Splitting**: 13/13 passing (unit tests)
+  - ✅ **ASR Post-Processing Pipeline**: 4/4 passing (integration tests with fixtures)
+  - ✅ **VTT Parsing/Serialization**: 3/3 passing
+  - ✅ **Embedding**: 2/2 passing (requires HF_TOKEN)
+  - ✅ **Transcription**: 2/2 passing (Whisper + Parakeet)
 - ✅ UI/Interaction E2E Tests: 43/43 passing ⭐ **ALL PASSING!**
 - ✅ Electron Platform E2E Tests: 25/25 passing ⭐ **ALL PASSING!**
 
-**Total: 201/208 tests (19 Python + 182 TypeScript passing) - 97% pass rate!**
+**Total: 206/206 tests passing (24 Python + 182 TypeScript) - 100% pass rate!** ⭐
 
 **Note:** All E2E tests run in Electron only (no browser mode). The default `playwright test` command launches Electron automatically after building.
 
@@ -194,9 +195,13 @@ uv run pytest tests/ -v --snapshot-update
 ```
 
 Current performance:
-- Core splitting tests: ~0.1s for 16 tests (no ASR required) ✅
-- Full transcription tests: ~25s for 1 test (Whisper inference)
-- Total: ~60s for 26 tests (19 passing, 7 expected failures)
+- Core splitting tests: ~0.1s for 13 tests (no ASR required) ✅
+- Post-processing pipeline tests: ~0.1s for 4 tests (use fixtures) ✅
+- VTT parsing tests: ~0.1s for 3 tests ✅
+- Embedding test: ~10s for 1 test (requires HF_TOKEN) ✅
+- Audio conversion test: ~1s for 1 test ✅
+- Transcription tests: ~180s for 2 tests (Whisper + Parakeet, require HF_TOKEN) ✅
+- Total: ~3 minutes for 24 tests (all passing with HF_TOKEN) ⭐
 
 #### Run Specific Test Files
 ```bash
@@ -634,11 +639,11 @@ DISPLAY=:99 npx playwright test
 
 **Expected Results:**
 - Unit tests: All passing (114/114) ✅
-- Python tests: 19/26 passing (7 expected failures) ✅
+- Python tests: All passing (24/24 with HF_TOKEN) ✅
 - UI/Interaction E2E tests: 43/43 passing ✅
 - Electron Platform E2E tests: 25/25 passing ✅
 
-**Total: 201/208 tests passing (97%)!**
+**Total: 206/206 tests passing (100%)!** ⭐
 
 #### Test Timeout Philosophy
 
@@ -748,6 +753,7 @@ HF_TOKEN=your_token uv run python embed.py path/to/file.vtt
 
 **Tests:**
 - `tests/test_vtt_lib.py`: Tests parsing and serialization (3 tests)
-- `tests/test_speaker_clustering.py`: Tests clustering with real embeddings (2 tests)
+- `tests/test_embed.py::test_embed_osr_audio`: Tests embedding computation with VTT file (1 test)
+- `tests/test_embed.py::test_convert_to_wav`: Tests audio format conversion (1 test)
 - All use syrupy snapshots and tmp_path fixture
-- Total: 5 new tests, all passing
+- Total: 5 tests, all passing

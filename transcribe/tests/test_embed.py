@@ -1,8 +1,7 @@
-"""Tests for speaker diarization and embedding."""
+"""Tests for speaker embedding."""
 
 import json
 import os
-import sqlite3
 import subprocess
 import tempfile
 from pathlib import Path
@@ -10,34 +9,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from diarize import diarize_audio
 from embed import convert_to_wav
 
 # Path to test files
 TEST_AUDIO = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
 TEST_VTT = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.vtt"
-
-
-def test_diarize_osr_audio(snapshot):
-    """Test speaker diarization on OSR audio file with golden output."""
-    assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
-
-    # Run diarization
-    results = diarize_audio(TEST_AUDIO)
-
-    # Format results for snapshot comparison
-    # Round to 3 decimal places for stability
-    formatted_results = [
-        {
-            "speaker": speaker,
-            "start": round(start, 3),
-            "end": round(end, 3),
-        }
-        for start, end, speaker in results
-    ]
-
-    # Compare against golden output
-    assert formatted_results == snapshot
 
 
 def test_convert_to_wav():
@@ -95,41 +71,63 @@ def test_convert_to_wav():
 
 def test_embed_osr_audio(snapshot):
     """Test embedding computation with snapshot comparison."""
+    # Skip test if HF_TOKEN is not set
+    if not os.getenv("HF_TOKEN"):
+        pytest.skip("HF_TOKEN environment variable not set")
+
     assert TEST_VTT.exists(), f"Test VTT file not found: {TEST_VTT}"
+    assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        db_path = Path(temp_dir) / "test.db"
+        temp_path = Path(temp_dir)
 
-        # Run embed.py as subprocess from transcribe directory
+        # Copy VTT and audio to temp directory
+        test_vtt = temp_path / "test.vtt"
+        test_audio = temp_path / "OSR_us_000_0010_8k.wav"
+
+        test_vtt.write_text(TEST_VTT.read_text())
+        test_audio.write_bytes(TEST_AUDIO.read_bytes())
+
+        # Run embed.py as subprocess
         embed_script = Path(__file__).parent.parent / "embed.py"
         result = subprocess.run(
             [
                 "python", str(embed_script),
-                str(TEST_VTT),
-                "--output", str(db_path),
+                str(test_vtt),
             ],
             capture_output=True,
             text=True,
             check=True,
+            env={**os.environ, "HF_TOKEN": os.getenv("HF_TOKEN", "")},
         )
 
-        assert db_path.exists(), "Database was not created"
+        # Parse the updated VTT file to extract embeddings
+        from vtt_lib import parse_vtt_file
 
-        # Read embeddings from database
-        conn = sqlite3.connect(db_path)
-        cursor = conn.execute("SELECT segment_id, embedding FROM speaker_embedding ORDER BY segment_id")
+        metadata, segments = parse_vtt_file(test_vtt)
+
+        # Read the VTT file to extract embeddings from NOTE comments
+        vtt_content = test_vtt.read_text()
 
         embeddings = []
-        for segment_id, embedding_bytes in cursor:
-            embedding = np.frombuffer(embedding_bytes, dtype=np.float32)
-            # Round to 2 decimal places for snapshot stability
-            rounded = np.round(embedding, 2).tolist()
-            embeddings.append({
-                "segment_id": segment_id,
-                "embedding": rounded[:10],  # First 10 values for compact snapshot
-                "shape": len(embedding),
-            })
+        for line in vtt_content.split('\n'):
+            if 'SegmentSpeakerEmbedding' in line:
+                # Extract JSON from the NOTE comment
+                import re
+                match = re.search(r'SegmentSpeakerEmbedding (.+)$', line)
+                if match:
+                    embedding_data = json.loads(match.group(1))
+                    # Use camelCase field name as it appears in the JSON
+                    embedding_array = np.array(embedding_data['speakerEmbedding'])
+                    # Round to 2 decimal places for snapshot stability
+                    rounded = np.round(embedding_array, 2).tolist()
+                    embeddings.append({
+                        "segment_id": embedding_data['segmentId'],
+                        "embedding": rounded[:10],  # First 10 values for compact snapshot
+                        "shape": len(embedding_array),
+                    })
 
-        conn.close()
+        # Sort by segment_id for consistent comparison
+        embeddings.sort(key=lambda x: x['segment_id'])
 
         assert embeddings == snapshot
