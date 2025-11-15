@@ -117,6 +117,30 @@ Another message from Alice`
   })
 
   test('should not show rename dialog when no speakers exist', async () => {
+    console.log('=== TEST START: No speakers dialog test ===')
+
+    // Reset store to clean state before test
+    console.log('Resetting store to clean state...')
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      // Reset to empty document
+      store.loadFromFile('WEBVTT\n', '/test/empty.vtt')
+    })
+    await window.waitForTimeout(200)
+
+    // Check initial state before loading
+    const beforeState = await window.evaluate(() => {
+      const store = (window as any).$store
+      return {
+        segmentCount: store.document.segments.length,
+        segments: store.document.segments.map((s: any) => ({
+          speakerName: s.speakerName,
+          text: s.text
+        }))
+      }
+    })
+    console.log('State after reset (should be empty):', JSON.stringify(beforeState, null, 2))
+
     // Load VTT without speakers
     const vttContent = `WEBVTT
 
@@ -126,6 +150,7 @@ Caption without speaker
 00:00:05.000 --> 00:00:08.000
 Another caption without speaker`
 
+    console.log('Loading VTT without speakers')
     await window.evaluate((content) => {
       const file = new File([content], 'test.vtt', { type: 'text/vtt' })
       const dt = new DataTransfer()
@@ -141,15 +166,42 @@ Another caption without speaker`
 
     await window.waitForTimeout(200)
 
-    // Try to open rename dialog
-    await window.evaluate(() => {
-      ;(window as any).openRenameSpeakerDialog()
+    // Check state after loading
+    const afterState = await window.evaluate(() => {
+      const store = (window as any).$store
+      const segments = store.document.segments
+      return {
+        segmentCount: segments.length,
+        segments: segments.map((s: any) => ({
+          speakerName: s.speakerName,
+          text: s.text
+        })),
+        hasSpeakers: segments.some((s: any) => s.speakerName && s.speakerName.trim() !== '')
+      }
     })
+    console.log('State AFTER loading VTT:', JSON.stringify(afterState, null, 2))
+
+    // Try to open rename dialog
+    console.log('Attempting to open rename speaker dialog...')
+    const dialogOpenResult = await window.evaluate(() => {
+      const store = (window as any).$store
+      const hasSpeakers = store.document.segments.some(
+        (segment: any) => segment.speakerName && segment.speakerName.trim() !== ''
+      )
+      console.log('[APP] hasSpeakers check:', hasSpeakers)
+      ;(window as any).openRenameSpeakerDialog()
+      return { hasSpeakers }
+    })
+    console.log('Dialog open result:', dialogOpenResult)
 
     await window.waitForTimeout(100)
 
-    // Dialog should not appear when there are no speakers
+    // Check dialog visibility
     const dialog = window.locator('.dialog-overlay')
+    const isVisible = await dialog.isVisible()
+    console.log(`Dialog visibility: ${isVisible} (expected: false)`)
+
+    // Dialog should not appear when there are no speakers
     await expect(dialog).not.toBeVisible()
   })
 

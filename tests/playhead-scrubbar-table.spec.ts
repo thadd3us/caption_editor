@@ -43,12 +43,45 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
 
   test('should integrate playhead, scrub bar, and table with complete workflow', async () => {
+    console.log('=== TEST START: Playhead/Scrubbar/Table Integration ===')
+
+    // Reset store to clean state before test
+    console.log('Resetting store to clean state...')
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      // Reset to empty document
+      store.loadFromFile('WEBVTT\n', '/test/empty.vtt')
+      store.setCurrentTime(0)
+      store.loadMediaFile(null)
+    })
+    // Longer wait to ensure AG Grid has time to process the change
+    await window.waitForTimeout(1000)
+
+    // Check initial state
+    const initialState = await window.evaluate(() => {
+      const store = (window as any).$store
+      return {
+        segmentCount: store.document.segments.length,
+        segments: store.document.segments.map((s: any) => ({
+          id: s.id,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          text: s.text
+        })),
+        currentTime: store.currentTime,
+        mediaUrl: store.mediaUrl
+      }
+    })
+    console.log('Initial state after reset:', JSON.stringify(initialState, null, 2))
+
     // Load the 10-second audio file
     const audioPath = path.join(__dirname, 'fixtures', 'test-audio-10s.wav')
+    console.log('Loading audio from:', audioPath)
 
     await window.evaluate((filePath) => {
       // Simulate loading an audio file
       const audioUrl = `file://${filePath}`
+      console.log('[TEST] Loading media file:', audioUrl)
       // Use window.$store exposed by the app
       ;(window as any).$store.loadMediaFile(audioUrl)
     }, audioPath)
@@ -75,21 +108,68 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     await expect(grid).toBeVisible()
 
     let rowCount = await window.locator('.ag-row').count()
+    console.log(`Initial row count: ${rowCount} (expected: 0)`)
+
+    // If not empty, log what's in the store AND what's in the DOM
+    if (rowCount !== 0) {
+      const debugInfo = await window.evaluate(() => {
+        const store = (window as any).$store
+        const rows = Array.from(document.querySelectorAll('.ag-row'))
+        return {
+          storeSegments: store.document.segments,
+          domRowCount: rows.length,
+          domRowTexts: rows.map((r: any) => r.textContent)
+        }
+      })
+      console.log('ERROR: Table not empty!', JSON.stringify(debugInfo, null, 2))
+    }
+
     expect(rowCount).toBe(0)
 
     // Set playhead to 2 seconds using scrubber
+    console.log('Seeking to 2 seconds...')
     await seekToTime(2)
 
     // Verify current time in store
     let currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    console.log(`Current time after seek: ${currentTime}`)
     expect(currentTime).toBeCloseTo(2, 1)
 
     // Click "Add Caption" button
-    await addCaptionBtn.click()
-    await window.waitForTimeout(100)
+    console.log('Clicking Add Caption button...')
+    const clickResult = await window.evaluate(() => {
+      const btn = document.querySelector('.add-caption-btn') as HTMLButtonElement
+      const beforeCount = (window as any).$store.document.segments.length
+      btn.click()
+      const afterCount = (window as any).$store.document.segments.length
+      return { beforeCount, afterCount }
+    })
+    console.log('Click result:', clickResult)
+
+    // Wait for AG Grid to update (grid updates are async)
+    await window.waitForTimeout(500)
 
     // Verify first row was added
     rowCount = await window.locator('.ag-row').count()
+    console.log(`Row count after adding caption: ${rowCount} (expected: 1)`)
+
+    // If unexpected, check store state
+    if (rowCount !== 1) {
+      const storeState = await window.evaluate(() => {
+        const store = (window as any).$store
+        return {
+          segmentCount: store.document.segments.length,
+          segments: store.document.segments.map((s: any) => ({
+            id: s.id,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            text: s.text
+          }))
+        }
+      })
+      console.log('UNEXPECTED ROW COUNT! Store state:', JSON.stringify(storeState, null, 2))
+    }
+
     expect(rowCount).toBe(1)
 
     // Verify the cue in store spans 2-7 seconds (default 5s duration)
@@ -109,7 +189,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Add caption at 0.5s
     await addCaptionBtn.click()
-    await window.waitForTimeout(100)
+    await window.waitForTimeout(500)
 
     // Verify we now have 2 rows
     rowCount = await window.locator('.ag-row').count()
@@ -136,7 +216,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     // Add caption at 8s
     await addCaptionBtn.click()
-    await window.waitForTimeout(100)
+    await window.waitForTimeout(500)
 
     // Verify we now have 3 rows
     rowCount = await window.locator('.ag-row').count()
