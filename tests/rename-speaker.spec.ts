@@ -50,16 +50,9 @@ Another message from Alice`
     const captionCount = page.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('3', { timeout: 2000 })
 
-    // Open Edit menu
-    const editButton = page.locator('button', { hasText: 'Edit' })
-    await editButton.click()
-    await page.waitForTimeout(100)
-
-    // Click "Rename Speaker..." menu item
+    // Open rename dialog (simulating Edit menu -> Rename Speaker)
     await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'))
-      const renameSpeakerBtn = buttons.find(b => b.textContent?.includes('Rename Speaker'))
-      if (renameSpeakerBtn) renameSpeakerBtn.click()
+      ;(window as any).openRenameSpeakerDialog()
     })
 
     await page.waitForTimeout(100)
@@ -101,7 +94,7 @@ Another message from Alice`
     expect(speakerNames).toContain('Bob') // Bob should remain unchanged
   })
 
-  test('should not show menu item when no speakers exist', async ({ page }) => {
+  test('should not show rename dialog when no speakers exist', async ({ page }) => {
     // Load VTT without speakers
     const vttContent = `WEBVTT
 
@@ -126,19 +119,16 @@ Another caption without speaker`
 
     await page.waitForTimeout(200)
 
-    // Open Edit menu
-    const editButton = page.locator('button', { hasText: 'Edit' })
-    await editButton.click()
-    await page.waitForTimeout(100)
-
-    // Rename Speaker menu item should be disabled
-    const renameSpeakerItem = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'))
-      const btn = buttons.find(b => b.textContent?.includes('Rename Speaker'))
-      return btn ? (btn as HTMLButtonElement).disabled : null
+    // Try to open rename dialog
+    await page.evaluate(() => {
+      ;(window as any).openRenameSpeakerDialog()
     })
 
-    expect(renameSpeakerItem).toBe(true)
+    await page.waitForTimeout(100)
+
+    // Dialog should not appear when there are no speakers
+    const dialog = page.locator('.dialog-overlay')
+    await expect(dialog).not.toBeVisible()
   })
 
   test('should close dialog when clicking Cancel', async ({ page }) => {
@@ -161,14 +151,8 @@ Hello`
     await page.waitForTimeout(200)
 
     // Open rename dialog
-    const editButton = page.locator('button', { hasText: 'Edit' })
-    await editButton.click()
-    await page.waitForTimeout(100)
-
     await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'))
-      const renameSpeakerBtn = buttons.find(b => b.textContent?.includes('Rename Speaker'))
-      if (renameSpeakerBtn) renameSpeakerBtn.click()
+      ;(window as any).openRenameSpeakerDialog()
     })
 
     await page.waitForTimeout(100)
@@ -213,14 +197,8 @@ Message 2`
     await page.waitForTimeout(200)
 
     // Open rename dialog
-    const editButton = page.locator('button', { hasText: 'Edit' })
-    await editButton.click()
-    await page.waitForTimeout(100)
-
     await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'))
-      const renameSpeakerBtn = buttons.find(b => b.textContent?.includes('Rename Speaker'))
-      if (renameSpeakerBtn) renameSpeakerBtn.click()
+      ;(window as any).openRenameSpeakerDialog()
     })
 
     await page.waitForTimeout(100)

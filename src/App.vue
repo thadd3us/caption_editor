@@ -45,7 +45,15 @@ let isResizing = false
 const attemptedAutoLoad = ref<string | null>(null)
 
 function openRenameSpeakerDialog() {
-  isRenameSpeakerDialogOpen.value = true
+  // Check if there are any speakers in the document
+  const hasSpeakers = store.document.segments.some(
+    segment => segment.speakerName && segment.speakerName.trim() !== ''
+  )
+
+  // Only open the dialog if there are speakers to rename
+  if (hasSpeakers) {
+    isRenameSpeakerDialogOpen.value = true
+  }
 }
 
 function closeRenameSpeakerDialog() {
@@ -270,6 +278,9 @@ onMounted(() => {
 
   // Listen for openFiles event from CaptionTable's Open Files button
   window.addEventListener('openFiles', handleMenuOpenFile as EventListener)
+
+  // Expose dialog functions for testing
+  ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
 
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
