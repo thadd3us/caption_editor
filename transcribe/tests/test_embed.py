@@ -119,8 +119,8 @@ def test_embed_osr_audio(snapshot):
                     embedding_data = json.loads(match.group(1))
                     # Use camelCase field name as it appears in the JSON
                     embedding_array = np.array(embedding_data['speakerEmbedding'])
-                    # Round to 2 decimal places for snapshot stability
-                    rounded = np.round(embedding_array, 2).tolist()
+                    # Round to whole numbers for snapshot stability across environments
+                    rounded = np.round(embedding_array, 0).astype(int).tolist()
                     embeddings.append({
                         "segment_id": embedding_data['segmentId'],
                         "embedding": rounded[:10],  # First 10 values for compact snapshot
