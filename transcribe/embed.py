@@ -5,7 +5,7 @@ import re
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import soundfile as sf
@@ -14,7 +14,12 @@ import typer
 from pyannote.audio import Inference, Model
 from tqdm import tqdm
 
-from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, TranscriptSegment
+from schema import (
+    CAPTION_EDITOR_SENTINEL,
+    SegmentSpeakerEmbedding,
+    TranscriptMetadata,
+    TranscriptSegment,
+)
 from vtt_lib import parse_vtt_file, serialize_vtt
 
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
@@ -45,11 +50,15 @@ def convert_to_wav(media_file: Path, temp_dir: Path) -> Path:
 
     cmd = [
         "ffmpeg",
-        "-i", str(media_file),
-        "-ar", "16000",  # 16kHz sample rate
-        "-ac", "1",      # Mono
-        "-f", "wav",
-        "-y",            # Overwrite
+        "-i",
+        str(media_file),
+        "-ar",
+        "16000",  # 16kHz sample rate
+        "-ac",
+        "1",  # Mono
+        "-f",
+        "wav",
+        "-y",  # Overwrite
         str(output_path),
     ]
 
@@ -148,6 +157,10 @@ def main(
         "-m",
         help="Pyannote embedding model to use",
     ),
+    min_segment_duration: float = typer.Option(
+        0.3,
+        help="Shortest segment to embed",
+    ),
 ) -> None:
     """
     Compute speaker embeddings for each segment in a VTT file.
@@ -182,7 +195,7 @@ def main(
 
         # Check if media file needs conversion
         audio_path = media_path
-        if media_path.suffix.lower() not in ['.wav', '.wave']:
+        if media_path.suffix.lower() not in [".wav", ".wave"]:
             typer.echo(f"Converting {media_path.suffix} to WAV format...")
             try:
                 audio_path = convert_to_wav(media_path, temp_dir)
@@ -192,7 +205,17 @@ def main(
 
         # Load embedding model
         typer.echo(f"Loading embedding model: {model}")
-        embedding_model = Model.from_pretrained(model, use_auth_token=token)
+        model_path = (
+            Path.home() / f".cache/huggingface/hub/models--{model.replace('/', '--')}"
+        )
+        snapshots = list[Path]((model_path / "snapshots").rglob("pytorch_model.bin"))
+        if len(snapshots) == 1:
+            typer.echo(f"Loading model from {snapshots[0]=}")
+            embedding_model = Model.from_pretrained(snapshots[0].parent)
+        else:
+            typer.echo(f"Downloading {model=}")
+            embedding_model = Model.from_pretrained(model, use_auth_token=token)
+        assert embedding_model, f"Failed to load."
         inference = Inference(embedding_model, window="whole")
 
         # Process each segment
@@ -204,8 +227,10 @@ def main(
         for segment in tqdm(segments, desc="Processing segments", unit="segment"):
             # Skip segments shorter than 0.5 seconds
             duration = segment.end_time - segment.start_time
-            if duration < 0.5:
-                tqdm.write(f"Skipping short segment {segment.id} (duration: {duration:.3f}s)")
+            if duration < min_segment_duration:
+                tqdm.write(
+                    f"Skipping short segment {segment.id} (duration: {duration:.3f}s)"
+                )
                 skipped_count += 1
                 continue
 
@@ -224,7 +249,9 @@ def main(
             # Store in map
             segment_id_to_embedding[segment.id] = embedding
 
-        typer.echo(f"Skipped {skipped_count} segments shorter than 0.5s")
+        typer.echo(
+            f"Skipped {skipped_count} segments shorter than {min_segment_duration}s"
+        )
         typer.echo(f"Computed {len(segment_id_to_embedding)} embeddings")
 
         # Create SegmentSpeakerEmbedding objects
@@ -234,14 +261,15 @@ def main(
             embedding_list = embedding.tolist()
             embeddings.append(
                 SegmentSpeakerEmbedding(
-                    segment_id=segment_id,
-                    speaker_embedding=embedding_list
+                    segment_id=segment_id, speaker_embedding=embedding_list
                 )
             )
 
         # Write updated VTT file with embeddings
         typer.echo(f"Writing embeddings to VTT file: {vtt_path}")
-        vtt_content = serialize_vtt(metadata, segments, embeddings=embeddings, vtt_path=vtt_path)
+        vtt_content = serialize_vtt(
+            metadata, segments, embeddings=embeddings, vtt_path=vtt_path
+        )
         vtt_path.write_text(vtt_content)
         typer.echo(f"Done! Wrote {len(embeddings)} embeddings to VTT file")
 

@@ -28,17 +28,24 @@ from asr_results_to_vtt import (
     split_long_segments,
     split_segments_by_word_gap,
 )
-from schema import CAPTION_EDITOR_SENTINEL, SegmentHistoryEntry, TranscriptMetadata, TranscriptSegment
+from schema import (
+    CAPTION_EDITOR_SENTINEL,
+    SegmentHistoryEntry,
+    TranscriptMetadata,
+    TranscriptSegment,
+)
 from vtt_lib import serialize_vtt
 
 try:
     import nemo.collections.asr as nemo_asr
+
     NEMO_AVAILABLE = True
 except ImportError:
     NEMO_AVAILABLE = False
 
 try:
     from transformers import pipeline
+
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
@@ -52,14 +59,10 @@ def extract_audio(media_file: Path, temp_dir: Path) -> Path:
 
     cmd = [
         "ffmpeg",
-        *("-i",
-        str(media_file)),
-        *("-ar",
-        "16000"),  # 16kHz sample rate
-        *("-ac",
-        "1"),  # Mono
-        *("-f",
-        "wav"),
+        *("-i", str(media_file)),
+        *("-ar", "16000"),  # 16kHz sample rate
+        *("-ac", "1"),  # Mono
+        *("-f", "wav"),
         "-y",  # Overwrite
         str(output_path),
     ]
@@ -87,11 +90,19 @@ def load_audio_chunk(
         return np.array([]), sample_rate
 
     num_frames = min(num_frames, info.frames - start_frame)
-    audio, sr = sf.read(audio_path, start=start_frame, frames=num_frames, dtype="float32")
+    audio, sr = sf.read(
+        audio_path, start=start_frame, frames=num_frames, dtype="float32"
+    )
     return audio, sr
 
 
-def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, sample_rate: int, is_nemo: bool = False):
+def transcribe_chunk(
+    audio: np.ndarray,
+    asr_pipeline,
+    chunk_start: float,
+    sample_rate: int,
+    is_nemo: bool = False,
+):
     """Transcribe a single audio chunk and return ASR segments with word-level timestamps.
 
     Both NEMO and HuggingFace models now use a unified file-based input approach.
@@ -126,7 +137,9 @@ def transcribe_chunk(audio: np.ndarray, asr_pipeline, chunk_start: float, sample
         return segments
 
 
-def generate_cue_id(audio_hash: str, start_time: float, deterministic_index: Optional[int] = None) -> str:
+def generate_cue_id(
+    audio_hash: str, start_time: float, deterministic_index: Optional[int] = None
+) -> str:
     """Generate deterministic UUID based on audio hash and timestamp.
 
     Args:
@@ -159,9 +172,7 @@ def generate_document_id(audio_hash: str, deterministic: bool = False) -> str:
 
 
 def assign_cue_ids_and_timestamps(
-    segments: List[TranscriptSegment],
-    audio_hash: str,
-    deterministic_ids: bool = False
+    segments: List[TranscriptSegment], audio_hash: str, deterministic_ids: bool = False
 ) -> List[TranscriptSegment]:
     """Assign IDs and timestamps to segments in-place.
 
@@ -182,11 +193,15 @@ def assign_cue_ids_and_timestamps(
     for idx, segment in enumerate(segments):
         # Generate ID and set timestamp if not already set
         if deterministic_ids:
-            segment_id = generate_cue_id(audio_hash, segment.start_time, deterministic_index=idx)
+            segment_id = generate_cue_id(
+                audio_hash, segment.start_time, deterministic_index=idx
+            )
         else:
             segment_id = generate_cue_id(audio_hash, segment.start_time)
 
-        segment_timestamp = segment.timestamp if segment.timestamp else current_timestamp
+        segment_timestamp = (
+            segment.timestamp if segment.timestamp else current_timestamp
+        )
 
         # Update the segment with id and timestamp
         segment.id = segment_id
@@ -206,15 +221,26 @@ def compute_audio_hash(audio_path: Path) -> str:
 
 @app.command()
 def main(
-    media_file: Path = typer.Argument(..., help="Input media file to transcribe", 
-    exists=True, file_okay=True, dir_okay=False, readable=True,
+    media_file: Path = typer.Argument(
+        ...,
+        help="Input media file to transcribe",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
     ),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output VTT file path",
-        exists=False, file_okay=True, dir_okay=False, writable=True,
+        None,
+        "--output",
+        "-o",
+        help="Output VTT file path",
+        exists=False,
+        file_okay=True,
+        dir_okay=False,
+        writable=True,
     ),
     chunk_size: int = typer.Option(
-        60, "--chunk-size", "-c", help="Chunk size in seconds"
+        180, "--chunk-size", "-c", help="Chunk size in seconds"
     ),
     overlap: int = typer.Option(
         5, "--overlap", "-v", help="Overlap interval in seconds"
@@ -291,7 +317,9 @@ def main(
                 raise typer.Exit(1)
 
             typer.echo("Using NeMo ASR model...")
-            asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(model_name=model_name)
+            asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(
+                model_name=model_name
+            )
 
             # Move to appropriate device
             if device == "cuda":
@@ -309,7 +337,6 @@ def main(
                 "automatic-speech-recognition",
                 model=model_name,
                 device=0 if device == "cuda" else -1,
-
             )
 
         # Process chunks - get ASR segments with word-level timestamps
@@ -331,7 +358,9 @@ def main(
                 continue
 
             # Transcribe - returns ASRSegment objects with word-level timestamps
-            chunk_segments = transcribe_chunk(audio, asr_pipeline, chunk_start, sr, is_nemo=is_nemo)
+            chunk_segments = transcribe_chunk(
+                audio, asr_pipeline, chunk_start, sr, is_nemo=is_nemo
+            )
             all_segments.extend(chunk_segments)
 
         # Three-pass segment processing pipeline:
@@ -342,15 +371,25 @@ def main(
         # 2a. For Whisper (word-level segments), group by gaps to form sentences
         # 2b. For Parakeet (sentence-level segments), split by word gaps if needed
         if "whisper" in model_name.lower():
-            typer.echo(f"Grouping word segments with gaps < {max_intra_segment_gap_seconds}s...")
-            after_grouping = group_segments_by_gap(after_overlap, max_intra_segment_gap_seconds)
+            typer.echo(
+                f"Grouping word segments with gaps < {max_intra_segment_gap_seconds}s..."
+            )
+            after_grouping = group_segments_by_gap(
+                after_overlap, max_intra_segment_gap_seconds
+            )
         else:
-            typer.echo(f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s...")
-            after_grouping = split_segments_by_word_gap(after_overlap, max_intra_segment_gap_seconds)
+            typer.echo(
+                f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s..."
+            )
+            after_grouping = split_segments_by_word_gap(
+                after_overlap, max_intra_segment_gap_seconds
+            )
 
         # 3. Split long segments
         typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
-        final_segments = split_long_segments(after_grouping, max_segment_duration_seconds)
+        final_segments = split_long_segments(
+            after_grouping, max_segment_duration_seconds
+        )
 
         # Convert ASRSegments to TranscriptSegments
         typer.echo("Converting segments to transcript segments...")
@@ -358,7 +397,9 @@ def main(
 
         # Assign IDs and timestamps to segments
         typer.echo("Assigning IDs and timestamps...")
-        assign_cue_ids_and_timestamps(final_segments_list, audio_hash, deterministic_ids=deterministic_ids)
+        assign_cue_ids_and_timestamps(
+            final_segments_list, audio_hash, deterministic_ids=deterministic_ids
+        )
 
         # Generate document metadata
         doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
@@ -366,6 +407,7 @@ def main(
 
         # Copy media file to output directory to keep VTT and media together
         import shutil
+
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
 
