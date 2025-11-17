@@ -56,9 +56,6 @@ let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll sele
 // Speaker similarity scores (not persisted, UI-only)
 const speakerSimilarityScores = ref<Map<string, number>>(new Map())
 
-// Track if speaker similarity column should be visible
-const showSpeakerSimilarityColumn = ref(false)
-
 const rowData = computed(() => {
   // Cues are always kept sorted in the document model
   return store.document.segments.map(cue => ({
@@ -373,7 +370,6 @@ function computeSpeakerSimilarity() {
   speakerSimilarityScores.value = newScores
 
   // Show the speaker similarity column
-  showSpeakerSimilarityColumn.value = true
   gridApi.value.setColumnVisible('speakerSimilarity', true)
   console.log('Speaker similarity column is now visible')
 
