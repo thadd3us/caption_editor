@@ -28,7 +28,7 @@
           v-model="newName"
           type="text"
           class="name-input"
-          placeholder="Enter new speaker name..."
+          placeholder="Enter new speaker name (or leave empty to clear)..."
           @keydown.enter="handleRename"
         />
       </div>
@@ -78,10 +78,9 @@ const uniqueSpeakers = computed(() => {
   return Array.from(speakers).sort()
 })
 
-// Can only rename if both fields are filled and different
+// Can only rename if speaker is selected and new name is different
 const canRename = computed(() => {
   return selectedSpeaker.value !== '' &&
-         newName.value.trim() !== '' &&
          newName.value.trim() !== selectedSpeaker.value
 })
 
