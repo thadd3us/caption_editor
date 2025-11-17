@@ -146,9 +146,9 @@ Caption to keep`
 
     await window.waitForTimeout(100)
 
-    // Application should still be functional
-    const uploadButton = window.locator('button', { hasText: 'Open Files' })
-    await expect(uploadButton).toBeVisible()
+    // Application should still be functional - check that the table header is visible
+    const tableHeader = window.locator('.table-header h2')
+    await expect(tableHeader).toBeVisible()
   })
 
   test('should update caption timing', async () => {

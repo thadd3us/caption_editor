@@ -159,8 +159,6 @@ describe('ContextMenu', () => {
     })
 
     const contextMenuEvent = new Event('contextmenu')
-    const preventDefaultSpy = vi.spyOn(contextMenuEvent, 'preventDefault')
-
     await wrapper.find('.context-menu-overlay').element.dispatchEvent(contextMenuEvent)
 
     // The component should handle contextmenu.prevent

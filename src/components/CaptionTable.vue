@@ -7,9 +7,6 @@
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
-        <button class="open-button" @click="handleOpenFiles" title="Open VTT or media files (Ctrl/Cmd+O)">
-          📁 Open Files
-        </button>
         <label class="checkbox-label">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay (selected row)
@@ -58,7 +55,7 @@ import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 const store = useVTTStore()
 const gridApi = ref<GridApi | null>(null)
 const autoplayEnabled = ref(false)
-const autoScrollEnabled = ref(false)
+const autoScrollEnabled = ref(true)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
 
 // Speaker similarity scores (not persisted, UI-only)
@@ -243,11 +240,6 @@ const defaultColDef = ref<ColDef>({
   filter: true,
   resizable: true
 })
-
-function handleOpenFiles() {
-  // Dispatch event that App.vue will handle by triggering FileDropZone
-  window.dispatchEvent(new CustomEvent('openFiles'))
-}
 
 function getRowId(params: { data: { id: string } }) {
   return params.data.id
@@ -438,25 +430,6 @@ watch(() => store.currentTime, (currentTime) => {
   }
 })
 
-// Handle jumpToRow event from MediaPlayer
-function handleJumpToRow(event: Event) {
-  const customEvent = event as CustomEvent
-  const { cueId } = customEvent.detail
-  console.log('Jump to row event received:', cueId)
-
-  if (cueId && gridApi.value) {
-    const rowNode = gridApi.value.getRowNode(cueId)
-    if (rowNode) {
-      gridApi.value.deselectAll()  // Clear any previous selection first
-      gridApi.value.ensureNodeVisible(rowNode, 'middle')
-      rowNode.setSelected(true)
-      console.log('Row selected and scrolled:', cueId)
-    } else {
-      console.warn('Could not find row node for cue ID:', cueId)
-    }
-  }
-}
-
 // Handle computeSpeakerSimilarity event from menu
 function handleComputeSpeakerSimilarity() {
   console.log('Compute speaker similarity event received')
@@ -532,12 +505,10 @@ function closeContextMenu() {
 }
 
 onMounted(() => {
-  window.addEventListener('jumpToRow', handleJumpToRow)
   window.addEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('jumpToRow', handleJumpToRow)
   window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 </script>
@@ -609,25 +580,6 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   cursor: pointer;
-}
-
-.open-button {
-  padding: 6px 12px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.open-button:hover {
-  background: #0056b3;
-}
-
-.open-button:active {
-  background: #004494;
 }
 
 .ag-theme-alpine {

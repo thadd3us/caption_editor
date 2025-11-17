@@ -343,9 +343,6 @@ onMounted(() => {
     attemptMediaAutoLoad()
   }, 200)
 
-  // Listen for openFiles event from CaptionTable's Open Files button
-  window.addEventListener('openFiles', handleMenuOpenFile as EventListener)
-
   // Listen for openBulkSetSpeakerDialog event from CaptionTable's context menu
   window.addEventListener('openBulkSetSpeakerDialog', openBulkSetSpeakerDialog as EventListener)
 
