@@ -30,6 +30,7 @@
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
+      @cell-context-menu="onCellContextMenu"
       :domLayout="'normal'"
       :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
     />
@@ -41,7 +42,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent } from 'ag-grid-community'
+import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
 import { useVTTStore } from '../stores/vttStore'
 import { formatTimestamp } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
@@ -241,6 +242,9 @@ function getRowId(params: { data: { id: string } }) {
 function onGridReady(params: GridReadyEvent) {
   console.log('AG Grid ready')
   gridApi.value = params.api
+
+  // Expose grid API to window for testing
+  ;(window as any).__agGridApi = params.api
 }
 
 function onRowClicked(event: RowClickedEvent) {
@@ -439,6 +443,37 @@ function handleJumpToRow(event: Event) {
 function handleComputeSpeakerSimilarity() {
   console.log('Compute speaker similarity event received')
   computeSpeakerSimilarity()
+}
+
+// Handle right-click context menu on cells
+function onCellContextMenu(event: CellContextMenuEvent) {
+  if (!gridApi.value) return
+
+  // Get selected rows by collecting selected nodes
+  const selectedRows: any[] = []
+  gridApi.value.forEachNode((node) => {
+    if (node.isSelected()) {
+      selectedRows.push(node.data)
+    }
+  })
+
+  // Only show context menu if rows are selected
+  if (selectedRows.length === 0) {
+    return
+  }
+
+  // Prevent default browser context menu
+  if (event.event) {
+    event.event.preventDefault()
+  }
+
+  // Store selected rows in window for App.vue to access
+  (window as any).__captionTableSelectedRows = selectedRows
+
+  // Dispatch event to open bulk set speaker dialog
+  window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
+    detail: { rowCount: selectedRows.length }
+  }))
 }
 
 onMounted(() => {

@@ -213,6 +213,18 @@ export const useVTTStore = defineStore('vtt', () => {
     document.value = renameSpeakerInDoc(document.value, oldName, newName)
   }
 
+  function bulkSetSpeaker(cueIds: string[], speakerName: string) {
+    console.log('Bulk setting speaker for', cueIds.length, 'cues to:', speakerName)
+
+    // Update each cue with the new speaker name
+    let updatedDoc = document.value
+    for (const cueId of cueIds) {
+      updatedDoc = updateCueInDoc(updatedDoc, cueId, { speakerName })
+    }
+
+    document.value = updatedDoc
+  }
+
   function setCurrentTime(time: number) {
     currentTime.value = time
 
@@ -257,6 +269,7 @@ export const useVTTStore = defineStore('vtt', () => {
     updateCue,
     deleteCue,
     renameSpeaker,
+    bulkSetSpeaker,
     setCurrentTime,
     setPlaying,
     selectCue,

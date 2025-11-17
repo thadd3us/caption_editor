@@ -17,6 +17,12 @@
       @close="closeRenameSpeakerDialog"
       @rename="handleRenameSpeaker"
     />
+    <BulkSetSpeakerDialog
+      :is-open="isBulkSetSpeakerDialogOpen"
+      :row-count="bulkSetRowCount"
+      @close="closeBulkSetSpeakerDialog"
+      @set-speaker="handleBulkSetSpeaker"
+    />
   </div>
 </template>
 
@@ -27,6 +33,7 @@ import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
+import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
 import packageJson from '../package.json'
 
 // Log version on startup
@@ -39,6 +46,9 @@ const store = useVTTStore()
 const leftPanelWidth = ref(60)
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
+const isBulkSetSpeakerDialogOpen = ref(false)
+const bulkSetRowCount = ref(0)
+const selectedCueIdsForBulkSet = ref<string[]>([])
 let isResizing = false
 
 // Track if we've already attempted auto-load for the current document
@@ -63,6 +73,30 @@ function closeRenameSpeakerDialog() {
 function handleRenameSpeaker({ oldName, newName }: { oldName: string; newName: string }) {
   console.log('Renaming speaker:', oldName, '->', newName)
   store.renameSpeaker(oldName, newName)
+}
+
+function openBulkSetSpeakerDialog(event: Event) {
+  const customEvent = event as CustomEvent
+  const { rowCount } = customEvent.detail
+
+  // Get the currently selected rows from CaptionTable
+  // We need to get the cue IDs from the grid
+  const selectedRows = (window as any).__captionTableSelectedRows || []
+
+  bulkSetRowCount.value = rowCount
+  selectedCueIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
+  isBulkSetSpeakerDialogOpen.value = true
+}
+
+function closeBulkSetSpeakerDialog() {
+  isBulkSetSpeakerDialogOpen.value = false
+  selectedCueIdsForBulkSet.value = []
+  bulkSetRowCount.value = 0
+}
+
+function handleBulkSetSpeaker({ speakerName }: { speakerName: string }) {
+  console.log('Bulk setting speaker to:', speakerName, 'for', selectedCueIdsForBulkSet.value.length, 'cues')
+  store.bulkSetSpeaker(selectedCueIdsForBulkSet.value, speakerName)
 }
 
 function startResize(e: MouseEvent) {
@@ -279,8 +313,12 @@ onMounted(() => {
   // Listen for openFiles event from CaptionTable's Open Files button
   window.addEventListener('openFiles', handleMenuOpenFile as EventListener)
 
+  // Listen for openBulkSetSpeakerDialog event from CaptionTable's context menu
+  window.addEventListener('openBulkSetSpeakerDialog', openBulkSetSpeakerDialog as EventListener)
+
   // Expose dialog functions for testing
   ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
+  ;(window as any).openBulkSetSpeakerDialog = openBulkSetSpeakerDialog
 
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
