@@ -100,8 +100,14 @@ function createMenu() {
           { role: 'delete' as const },
           { type: 'separator' as const },
           { role: 'selectAll' as const }
-        ]),
-        { type: 'separator' as const },
+        ])
+      ]
+    },
+
+    // Speaker menu
+    {
+      label: 'Speaker',
+      submenu: [
         {
           label: 'Rename Speaker...',
           click: () => {
