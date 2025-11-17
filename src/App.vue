@@ -23,6 +23,12 @@
       @close="closeBulkSetSpeakerDialog"
       @set-speaker="handleBulkSetSpeaker"
     />
+    <ConfirmDeleteDialog
+      :is-open="isDeleteConfirmDialogOpen"
+      :row-count="deleteRowCount"
+      @close="closeDeleteConfirmDialog"
+      @confirm="handleConfirmDelete"
+    />
   </div>
 </template>
 
@@ -34,6 +40,7 @@ import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
 import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
+import ConfirmDeleteDialog from './components/ConfirmDeleteDialog.vue'
 import packageJson from '../package.json'
 
 // Log version on startup
@@ -49,6 +56,9 @@ const isRenameSpeakerDialogOpen = ref(false)
 const isBulkSetSpeakerDialogOpen = ref(false)
 const bulkSetRowCount = ref(0)
 const selectedCueIdsForBulkSet = ref<string[]>([])
+const isDeleteConfirmDialogOpen = ref(false)
+const deleteRowCount = ref(0)
+const selectedCueIdsForDelete = ref<string[]>([])
 let isResizing = false
 
 // Track if we've already attempted auto-load for the current document
@@ -97,6 +107,29 @@ function closeBulkSetSpeakerDialog() {
 function handleBulkSetSpeaker({ speakerName }: { speakerName: string }) {
   console.log('Bulk setting speaker to:', speakerName, 'for', selectedCueIdsForBulkSet.value.length, 'cues')
   store.bulkSetSpeaker(selectedCueIdsForBulkSet.value, speakerName)
+}
+
+function openDeleteConfirmDialog(event: Event) {
+  const customEvent = event as CustomEvent
+  const { rowCount } = customEvent.detail
+
+  // Get the currently selected rows from CaptionTable
+  const selectedRows = (window as any).__captionTableSelectedRows || []
+
+  deleteRowCount.value = rowCount
+  selectedCueIdsForDelete.value = selectedRows.map((row: any) => row.id)
+  isDeleteConfirmDialogOpen.value = true
+}
+
+function closeDeleteConfirmDialog() {
+  isDeleteConfirmDialogOpen.value = false
+  selectedCueIdsForDelete.value = []
+  deleteRowCount.value = 0
+}
+
+function handleConfirmDelete() {
+  console.log('Deleting', selectedCueIdsForDelete.value.length, 'cues')
+  store.bulkDeleteCues(selectedCueIdsForDelete.value)
 }
 
 function startResize(e: MouseEvent) {
@@ -316,9 +349,13 @@ onMounted(() => {
   // Listen for openBulkSetSpeakerDialog event from CaptionTable's context menu
   window.addEventListener('openBulkSetSpeakerDialog', openBulkSetSpeakerDialog as EventListener)
 
+  // Listen for openDeleteConfirmDialog event from CaptionTable's context menu
+  window.addEventListener('openDeleteConfirmDialog', openDeleteConfirmDialog as EventListener)
+
   // Expose dialog functions for testing
   ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
   ;(window as any).openBulkSetSpeakerDialog = openBulkSetSpeakerDialog
+  ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
 
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {

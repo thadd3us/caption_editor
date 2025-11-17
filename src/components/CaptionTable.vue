@@ -34,6 +34,12 @@
       :domLayout="'normal'"
       :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
     />
+    <ContextMenu
+      :is-visible="isContextMenuVisible"
+      :position="contextMenuPosition"
+      :items="contextMenuItems"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 
@@ -47,6 +53,7 @@ import { useVTTStore } from '../stores/vttStore'
 import { formatTimestamp } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
+import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
 const gridApi = ref<GridApi | null>(null)
@@ -56,6 +63,12 @@ let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll sele
 
 // Speaker similarity scores (not persisted, UI-only)
 const speakerSimilarityScores = ref<Map<string, number>>(new Map())
+
+// Context menu state
+const isContextMenuVisible = ref(false)
+const contextMenuPosition = ref({ x: 0, y: 0 })
+const contextMenuItems = ref<ContextMenuItem[]>([])
+const selectedRowsForContextMenu = ref<any[]>([])
 
 const rowData = computed(() => {
   // Cues are always kept sorted in the document model
@@ -469,16 +482,53 @@ function onCellContextMenu(event: CellContextMenuEvent) {
 
   // Prevent default browser context menu
   if (event.event) {
-    event.event.preventDefault()
+    const mouseEvent = event.event as MouseEvent
+    mouseEvent.preventDefault()
+
+    // Store position for context menu
+    contextMenuPosition.value = {
+      x: mouseEvent.clientX,
+      y: mouseEvent.clientY
+    }
   }
 
-  // Store selected rows in window for App.vue to access
-  (window as any).__captionTableSelectedRows = selectedRows
+  // Store selected rows for context menu actions
+  selectedRowsForContextMenu.value = selectedRows
 
-  // Dispatch event to open bulk set speaker dialog
-  window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
-    detail: { rowCount: selectedRows.length }
-  }))
+  // Build context menu items
+  contextMenuItems.value = [
+    {
+      label: 'Bulk Set Speaker',
+      action: () => {
+        // Store selected rows in window for App.vue to access
+        (window as any).__captionTableSelectedRows = selectedRowsForContextMenu.value
+
+        // Dispatch event to open bulk set speaker dialog
+        window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
+          detail: { rowCount: selectedRowsForContextMenu.value.length }
+        }))
+      }
+    },
+    {
+      label: 'Delete Selected',
+      action: () => {
+        // Store selected rows in window for App.vue to access
+        (window as any).__captionTableSelectedRows = selectedRowsForContextMenu.value
+
+        // Dispatch event to open delete confirmation dialog
+        window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
+          detail: { rowCount: selectedRowsForContextMenu.value.length }
+        }))
+      }
+    }
+  ]
+
+  // Show context menu
+  isContextMenuVisible.value = true
+}
+
+function closeContextMenu() {
+  isContextMenuVisible.value = false
 }
 
 onMounted(() => {

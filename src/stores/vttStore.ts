@@ -225,6 +225,23 @@ export const useVTTStore = defineStore('vtt', () => {
     document.value = updatedDoc
   }
 
+  function bulkDeleteCues(cueIds: string[]) {
+    console.log('Bulk deleting', cueIds.length, 'cues')
+
+    // Delete each cue
+    let updatedDoc = document.value
+    for (const cueId of cueIds) {
+      updatedDoc = deleteCueFromDoc(updatedDoc, cueId)
+    }
+
+    document.value = updatedDoc
+
+    // Clear selectedCueId if it was deleted
+    if (selectedCueId.value && cueIds.includes(selectedCueId.value)) {
+      selectedCueId.value = null
+    }
+  }
+
   function setCurrentTime(time: number) {
     currentTime.value = time
 
@@ -270,6 +287,7 @@ export const useVTTStore = defineStore('vtt', () => {
     deleteCue,
     renameSpeaker,
     bulkSetSpeaker,
+    bulkDeleteCues,
     setCurrentTime,
     setPlaying,
     selectCue,

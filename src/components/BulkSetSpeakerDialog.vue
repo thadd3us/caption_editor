@@ -52,9 +52,9 @@ const emit = defineEmits<{
 const speakerName = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 
-// Can only set speaker if name is non-empty
+// Always allow setting speaker (even to empty string)
 const canSetSpeaker = computed(() => {
-  return speakerName.value.trim() !== ''
+  return true
 })
 
 // Reset form when dialog opens and focus input
@@ -76,8 +76,7 @@ function handleCancel() {
 }
 
 function handleSetSpeaker() {
-  if (!canSetSpeaker.value) return
-
+  // Allow empty string (trim only removes leading/trailing whitespace)
   emit('setSpeaker', {
     speakerName: speakerName.value.trim()
   })
