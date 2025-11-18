@@ -59,7 +59,8 @@ Tests should run quickly to maintain development velocity:
 ### Test Status Overview
 
 **Current Test Suite Status:**
-- ✅ TypeScript Unit Tests: 114/114 passing ⭐ **ALL PASSING!**
+- ✅ TypeScript Unit Tests: 164/164 passing ⭐ **ALL PASSING!**
+  - Includes 27 tests for word timestamp preservation (`realignWords`)
 - ✅ Python Tests: 24/24 passing ⭐ **ALL PASSING!**
   - ✅ **ASR Segment Splitting**: 13/13 passing (unit tests)
   - ✅ **ASR Post-Processing Pipeline**: 4/4 passing (integration tests with fixtures)
@@ -69,7 +70,7 @@ Tests should run quickly to maintain development velocity:
 - ✅ UI/Interaction E2E Tests: 43/43 passing ⭐ **ALL PASSING!**
 - ✅ Electron Platform E2E Tests: 25/25 passing ⭐ **ALL PASSING!**
 
-**Total: 206/206 tests passing (24 Python + 182 TypeScript) - 100% pass rate!** ⭐
+**Total: 256/256 tests passing (24 Python + 232 TypeScript) - 100% pass rate!** ⭐
 
 **Note:** All E2E tests run in Electron only (no browser mode). The default `playwright test` command launches Electron automatically after building.
 
@@ -388,6 +389,42 @@ npx playwright show-report
 - `sortCues(cues)`: Sort cues by start/end time (used internally)
 - `serializeVTT(document)`: Convert document to VTT string
 - `parseVTT(content)`: Parse VTT string to document
+- `realignWords(originalWords, editedText)`: Preserve word-level timestamps after user edits
+
+### Word Timestamp Preservation
+
+When users edit transcript text, we preserve word-level timestamps for unchanged words using the `realignWords()` utility (`src/utils/realignWords.ts`).
+
+**How it works:**
+- Uses LCS (Longest Common Subsequence) algorithm for optimal word-level alignment
+- Case-insensitive matching preserves timestamps even when capitalization changes
+- New/modified words get entries without timestamps (`startTime`/`endTime` undefined)
+- Unchanged words keep their original ASR timestamps
+
+**Usage example:**
+```typescript
+import { realignWords } from './utils/realignWords'
+
+const originalWords = [
+  { text: 'Hello', startTime: 1.0, endTime: 1.2 },
+  { text: 'world', startTime: 1.3, endTime: 1.5 }
+]
+
+// User edits: "Hello beautiful world"
+const result = realignWords(originalWords, 'Hello beautiful world')
+
+// Result:
+// [
+//   { text: 'Hello', startTime: 1.0, endTime: 1.2 },   // preserved
+//   { text: 'beautiful' },                              // new (no timestamp)
+//   { text: 'world', startTime: 1.3, endTime: 1.5 }    // preserved
+// ]
+```
+
+**Test coverage:**
+- 27 unit tests covering edge cases, insertions, deletions, replacements, capitalization
+- Performance test: handles 1000 words in <200ms
+- See `src/utils/realignWords.test.ts` for comprehensive examples
 
 ## Common Issues
 
@@ -638,12 +675,12 @@ DISPLAY=:99 npx playwright test
 ```
 
 **Expected Results:**
-- Unit tests: All passing (114/114) ✅
+- Unit tests: All passing (164/164) ✅
 - Python tests: All passing (24/24 with HF_TOKEN) ✅
 - UI/Interaction E2E tests: 43/43 passing ✅
 - Electron Platform E2E tests: 25/25 passing ✅
 
-**Total: 206/206 tests passing (100%)!** ⭐
+**Total: 256/256 tests passing (100%)!** ⭐
 
 #### Test Timeout Philosophy
 
