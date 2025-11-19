@@ -23,6 +23,31 @@ After making changes to Node.js/TypeScript code:
 - Changes to `package.json` trigger expensive Docker rebuilds
 - Keeping version tracking separate avoids unnecessary rebuild cycles
 
+### DevContainer Performance
+
+**The devcontainer uses npm cache pre-population for fast startup:**
+
+**How it works:**
+1. **Dockerfile** runs `npm ci` to populate npm's cache at `/home/dev/.npm` (happens during image build)
+2. **postCreateCommand** runs `npm ci` which is fast because it uses the pre-populated cache
+3. **Benefit**: Works even when `package.json`/`package-lock.json` change, because npm cache contains most packages
+
+**Why this approach:**
+- npm's cache is **content-addressable** (keyed by package name + version)
+- Even if dependencies change, most packages are already cached
+- No Docker layer invalidation issues
+- Fast installs even when package.json changes
+
+**DO NOT modify the caching strategy** unless you understand the performance implications. The current approach balances:
+- Fast container startup (cached packages)
+- Robustness to dependency changes (npm cache persists)
+- Simple maintenance (no complex layer caching logic)
+
+**Performance expectations:**
+- With warm npm cache: `npm ci` completes in ~10-20 seconds
+- With cold cache (first build): `npm ci` takes ~60-90 seconds
+- Python venv is also pre-created in Docker image for fast startup
+
 ### Committing Work
 
 **IMPORTANT: Always commit your work when you reach a good checkpoint!**

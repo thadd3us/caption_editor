@@ -6,7 +6,7 @@
   },
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
-  "postCreateCommand": "if [ -d /tmp/node_modules_cache ]; then cp -r /tmp/node_modules_cache node_modules; fi && npm install",
+  "postCreateCommand": "npm ci",
   "customizations": {
     "vscode": {
       "extensions": [

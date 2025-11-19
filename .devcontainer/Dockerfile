@@ -98,7 +98,7 @@ RUN mkdir -p /tmp/playwright-install && \
     rm -rf /tmp/playwright-install
 
 # Create directories for caching with proper ownership
-RUN mkdir -p /tmp/deps /tmp/node_modules_cache /tmp/python-deps /home/dev/models
+RUN mkdir -p /tmp/deps /tmp/python-deps /home/dev/models
 ENV HF_HOME=/home/dev/models
 ENV NEMO_MODEL_CACHE=/home/dev/models
 
@@ -138,8 +138,11 @@ RUN echo "Finalizing model downloads..." && sleep 30 && echo "Model downloads co
 # NODE.JS DEPENDENCIES - Do these LAST so changes only rebuild from here
 # ============================================================================
 
-# Pre-install common dependencies based on package.json structure
-# This creates a layer that can be cached when only package.json changes
+# Pre-populate npm cache by installing dependencies from package.json
+# This approach is robust to package.json changes:
+# - npm cache persists in /home/dev/.npm regardless of package.json changes
+# - postCreateCommand can do fast npm ci using the populated cache
+# - Even if dependencies change, most packages are already cached
 COPY --chown=dev:dev package.json package-lock.json* /tmp/deps/
 RUN cd /tmp/deps && \
     if [ -f package-lock.json ]; then \
@@ -147,8 +150,10 @@ RUN cd /tmp/deps && \
     else \
         npm install; \
     fi && \
-    # Move node_modules to a cache location
-    mv node_modules /tmp/node_modules_cache || true
+    # Clean up temporary node_modules (we only care about the npm cache)
+    rm -rf node_modules && \
+    echo "npm cache populated at /home/dev/.npm" && \
+    du -sh /home/dev/.npm
 
 # Switch back to root to install Xvfb script with SUID bit
 USER root
