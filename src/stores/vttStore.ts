@@ -10,6 +10,7 @@ import {
   updateCue as updateCueInDoc,
   deleteCue as deleteCueFromDoc,
   renameSpeaker as renameSpeakerInDoc,
+  splitSegment as splitSegmentInDoc,
   getCurrentTimestamp
 } from '../utils/vttParser'
 
@@ -242,6 +243,11 @@ export const useVTTStore = defineStore('vtt', () => {
     }
   }
 
+  function splitSegmentAtWordIndex(segmentId: string, wordIndex: number) {
+    console.log('Splitting segment in store:', segmentId, 'at word index:', wordIndex)
+    document.value = splitSegmentInDoc(document.value, segmentId, wordIndex)
+  }
+
   function setCurrentTime(time: number) {
     currentTime.value = time
 
@@ -288,6 +294,7 @@ export const useVTTStore = defineStore('vtt', () => {
     renameSpeaker,
     bulkSetSpeaker,
     bulkDeleteCues,
+    splitSegmentAtWordIndex,
     setCurrentTime,
     setPlaying,
     selectCue,

@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { TranscriptSegment, VTTDocument, ParseResult, SegmentHistoryEntry, SegmentSpeakerEmbedding, TranscriptMetadata } from '../types/schema'
 import { HistoryAction } from '../types/schema'
+import { splitSegmentAtWord } from './splitSegmentAtWord'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files
@@ -551,4 +552,47 @@ export function renameSpeaker(document: VTTDocument, oldName: string, newName: s
     ...newDocument,
     segments: Object.freeze(updatedCues)
   }
+}
+
+/**
+ * Split a segment at a word boundary (returns new document)
+ * Replaces the original segment with two new segments
+ * Records the original segment in history
+ *
+ * @param document - The document to modify
+ * @param segmentId - ID of the segment to split
+ * @param wordIndex - Index of the word where the second segment should start (0-based)
+ * @returns New document with split segments, or original document if split fails
+ */
+export function splitSegment(document: VTTDocument, segmentId: string, wordIndex: number): VTTDocument {
+  console.log('Splitting segment:', segmentId, 'at word index:', wordIndex)
+
+  // Find the segment to split
+  const segment = document.segments.find(s => s.id === segmentId)
+  if (!segment) {
+    console.warn('Segment not found:', segmentId)
+    return document
+  }
+
+  // Use the utility function to split the segment
+  const result = splitSegmentAtWord(segment, wordIndex)
+  if (!result) {
+    console.warn('Failed to split segment:', segmentId)
+    return document
+  }
+
+  // Remove the original segment and add the two new segments
+  const segmentsWithoutOriginal = document.segments.filter(s => s.id !== segmentId)
+  const newSegments = [...segmentsWithoutOriginal, result.firstSegment, result.secondSegment]
+
+  // Create new document with sorted segments
+  let newDocument: VTTDocument = {
+    ...document,
+    segments: sortCues(newSegments)
+  }
+
+  // Add history entry for the original segment (before split)
+  newDocument = addHistoryEntry(newDocument, segment, HistoryAction.Modified)
+
+  return newDocument
 }

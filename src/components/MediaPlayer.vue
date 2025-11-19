@@ -52,7 +52,23 @@
 
       <div class="current-caption-display">
         <div class="caption-label">Current Caption:</div>
-        <div class="caption-text">{{ currentCaptionText }}</div>
+        <div
+          class="caption-text"
+          @contextmenu="onCaptionContextMenu"
+        >
+          <template v-if="currentCue && currentCue.words && currentCue.words.length > 0">
+            <span
+              v-for="(word, index) in currentCue.words"
+              :key="index"
+              class="word-span"
+              :data-word-index="index"
+              :data-has-timestamp="word.startTime !== undefined"
+            >{{ word.text }}</span>{{ ' ' }}
+          </template>
+          <template v-else>
+            {{ currentCaptionText }}
+          </template>
+        </div>
       </div>
 
       <div class="caption-controls">
@@ -61,12 +77,21 @@
         </button>
       </div>
     </div>
+
+    <!-- Context Menu -->
+    <ContextMenu
+      :is-visible="isContextMenuVisible"
+      :position="contextMenuPosition"
+      :items="contextMenuItems"
+      @close="isContextMenuVisible = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
+import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
 const videoElement = ref<HTMLVideoElement | null>(null)
@@ -74,6 +99,12 @@ const audioElement = ref<HTMLAudioElement | null>(null)
 const duration = ref(0)
 const snippetEndTime = ref<number | null>(null)
 const scrubberElement = ref<HTMLInputElement | null>(null)
+
+// Context menu state
+const isContextMenuVisible = ref(false)
+const contextMenuPosition = ref({ x: 0, y: 0 })
+const contextMenuItems = ref<ContextMenuItem[]>([])
+const currentCue = computed(() => store.currentCue)
 
 const mediaElement = computed(() => videoElement.value || audioElement.value)
 const hasMedia = computed(() => !!store.mediaPath)
@@ -100,12 +131,63 @@ const currentCaptionText = computed(() => {
   const time = store.currentTime
 
   // Find the cue that contains the current time (startTime <= time < endTime)
-  const currentCue = cues.find(cue =>
+  const cue = cues.find(cue =>
     cue.startTime <= time && time < cue.endTime
   )
 
-  return currentCue ? currentCue.text : 'No caption at current time'
+  return cue ? cue.text : 'No caption at current time'
 })
+
+function onCaptionContextMenu(event: MouseEvent) {
+  event.preventDefault()
+
+  const target = event.target as HTMLElement
+
+  // Check if the clicked element is a word span
+  if (target.classList.contains('word-span')) {
+    const wordIndexStr = target.dataset.wordIndex
+    const hasTimestamp = target.dataset.hasTimestamp === 'true'
+
+    if (!wordIndexStr) return
+
+    const wordIndex = parseInt(wordIndexStr, 10)
+    const cue = currentCue.value
+
+    if (!cue) return
+
+    // Build context menu items
+    const items: ContextMenuItem[] = []
+
+    if (hasTimestamp && wordIndex > 0) {
+      // Can split at this word
+      items.push({
+        label: 'Split segment starting here',
+        action: () => {
+          console.log('Splitting segment', cue.id, 'at word index', wordIndex)
+          store.splitSegmentAtWordIndex(cue.id, wordIndex)
+        }
+      })
+    } else {
+      // Cannot split - show disabled item with reason
+      let reason = ''
+      if (wordIndex === 0) {
+        reason = '(cannot split before first word)'
+      } else if (!hasTimestamp) {
+        reason = '(word has no timestamp)'
+      }
+
+      items.push({
+        label: `Split segment starting here ${reason}`,
+        action: () => {},
+        disabled: true
+      })
+    }
+
+    contextMenuItems.value = items
+    contextMenuPosition.value = { x: event.clientX, y: event.clientY }
+    isContextMenuVisible.value = true
+  }
+}
 
 function onMediaLoaded() {
   if (mediaElement.value) {
@@ -370,6 +452,22 @@ video, audio {
   color: #212529;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.word-span {
+  cursor: context-menu;
+  padding: 1px 2px;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+
+.word-span:hover {
+  background: rgba(52, 152, 219, 0.15);
+}
+
+.word-span[data-has-timestamp="false"] {
+  color: #999;
+  font-style: italic;
 }
 
 .caption-controls {
