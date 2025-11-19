@@ -143,14 +143,9 @@ RUN echo "Finalizing model downloads..." && sleep 30 && echo "Model downloads co
 # - npm cache persists in /home/dev/.npm regardless of package.json changes
 # - postCreateCommand can do fast npm ci using the populated cache
 # - Even if dependencies change, most packages are already cached
-COPY --chown=dev:dev package.json package-lock.json* /tmp/deps/
+COPY --chown=dev:dev package.json package-lock.json /tmp/deps/
 RUN cd /tmp/deps && \
-    if [ -f package-lock.json ]; then \
-        npm ci; \
-    else \
-        npm install; \
-    fi && \
-    # Clean up temporary node_modules (we only care about the npm cache)
+    npm ci && \
     rm -rf node_modules && \
     echo "npm cache populated at /home/dev/.npm" && \
     du -sh /home/dev/.npm
