@@ -7,10 +7,9 @@ import { readFileSync } from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Read version from package.json (single source of truth)
-const packageJsonPath = path.join(__dirname, '../package.json')
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-const APP_VERSION = packageJson.version
+// Read version from VERSION file (single source of truth)
+const versionFilePath = path.join(__dirname, '../VERSION')
+const APP_VERSION = readFileSync(versionFilePath, 'utf-8').trim()
 
 // Log version on startup
 console.log(`[main] ========================================`)

@@ -14,9 +14,14 @@
 **IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version by 0.01!**
 
 After making changes to Node.js/TypeScript code:
-1. Open `package.json`
-2. Increment the `version` field by 0.01 (e.g., `1.0.8` → `1.0.9`)
+1. Open the `VERSION` file at the root of the project
+2. Increment the version by 0.01 (e.g., `1.2.1` → `1.2.2`)
 3. This ensures users can track which version they're running and helps with debugging
+
+**Why VERSION file instead of package.json?**
+- The `VERSION` file is not used by the Dockerfile (`.devcontainer/Dockerfile`)
+- Changes to `package.json` trigger expensive Docker rebuilds
+- Keeping version tracking separate avoids unnecessary rebuild cycles
 
 ### Committing Work
 
