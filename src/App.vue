@@ -50,6 +50,10 @@ console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' 
 console.log(`========================================`)
 
 const store = useVTTStore()
+
+// Expose store to window for testing
+;(window as any).__vttStore = store
+
 const leftPanelWidth = ref(60)
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)

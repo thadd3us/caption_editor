@@ -64,8 +64,9 @@ Tests should run quickly to maintain development velocity:
 ### Test Status Overview
 
 **Current Test Suite Status:**
-- ✅ TypeScript Unit Tests: 164/164 passing ⭐ **ALL PASSING!**
+- ✅ TypeScript Unit Tests: 187/187 passing ⭐ **ALL PASSING!**
   - Includes 27 tests for word timestamp preservation (`realignWords`)
+  - Includes 10 tests for sequential playback (`vttStore.sequential.test.ts`)
 - ✅ Python Tests: 24/24 passing ⭐ **ALL PASSING!**
   - ✅ **ASR Segment Splitting**: 13/13 passing (unit tests)
   - ✅ **ASR Post-Processing Pipeline**: 4/4 passing (integration tests with fixtures)
@@ -75,7 +76,7 @@ Tests should run quickly to maintain development velocity:
 - ✅ UI/Interaction E2E Tests: 43/43 passing ⭐ **ALL PASSING!**
 - ✅ Electron Platform E2E Tests: 25/25 passing ⭐ **ALL PASSING!**
 
-**Total: 256/256 tests passing (24 Python + 232 TypeScript) - 100% pass rate!** ⭐
+**Total: 279/279 tests passing (24 Python + 255 TypeScript) - 100% pass rate!** ⭐
 
 **Note:** All E2E tests run in Electron only (no browser mode). The default `playwright test` command launches Electron automatically after building.
 
@@ -430,6 +431,86 @@ const result = realignWords(originalWords, 'Hello beautiful world')
 - 27 unit tests covering edge cases, insertions, deletions, replacements, capitalization
 - Performance test: handles 1000 words in <200ms
 - See `src/utils/realignWords.test.ts` for comprehensive examples
+
+### Sequential Segment Playback
+
+The sequential playback feature allows playing segments in table order while skipping intervening silence. This is especially useful when playing segments sorted by speaker similarity, rating, or other criteria.
+
+**How it works:**
+- "Play Sequential" button in CaptionTable header starts playback
+- Plays segments in current table display order (respects sorting/filtering)
+- Starts from currently selected row, or top of table if none selected
+- Automatically advances to next segment when current segment ends
+- Skips gaps between segments by jumping directly to next start time
+- Button changes to "Pause Sequential" during playback
+- Auto-scroll feature updates row selection as segments play
+
+**Key features:**
+- **Respects table order**: Uses AG Grid's `forEachNodeAfterFilterAndSort()` to capture current display order
+- **Preserves playlist**: Playlist is captured once at start; resorting table during playback doesn't change the playlist
+- **Unified playback**: Sequential and single-segment playback share the same codepath via `MediaPlayer.onTimeUpdate()`
+- **State isolation**: Sequential mode (`sequentialMode`) and snippet mode (`snippetMode`) are mutually exclusive
+
+**Implementation:**
+
+**Store state** (`vttStore.ts`):
+- `sequentialMode`: Boolean flag indicating sequential playback is active
+- `sequentialPlaylist`: Array of segment IDs in playback order
+- `sequentialPlaylistIndex`: Current position in playlist
+- `currentSequentialSegment`: Computed property for current segment
+
+**Store actions** (`vttStore.ts`):
+- `startSequentialPlayback(segmentIds, startIndex)`: Begin sequential playback
+- `stopSequentialPlayback()`: Stop and clear playlist
+- `nextSequentialSegment()`: Advance to next segment (returns false at end)
+
+**Media player** (`MediaPlayer.vue`):
+- `onTimeUpdate()`: Detects segment end and advances to next segment
+- Watch `isPlaying`: Sets up sequential playback when it starts
+- Uses `snippetEndTime` to track when to advance
+
+**UI** (`CaptionTable.vue`):
+- `toggleSequentialPlayback()`: Button click handler
+- Collects segment IDs using `forEachNodeAfterFilterAndSort()`
+- Finds start index from selected row
+- Button label computed based on `sequentialMode`
+
+**Test coverage:**
+- 10 unit tests (`src/stores/vttStore.sequential.test.ts`):
+  - Start from index 0 and specific index
+  - Get current segment
+  - Advance to next segment
+  - Reach end of playlist
+  - Stop sequential playback
+  - Handle empty segment list
+  - Disable snippet mode when starting
+  - Preserve playlist order
+  - Handle advancing when not in sequential mode
+- 9 E2E tests (`tests/sequential-playback.spec.ts`):
+  - Show sequential play button
+  - Start from top when no row selected
+  - Start from selected row
+  - Stop when pause button clicked
+  - Play segments in table order
+  - Advance to next segment
+  - Preserve playlist order even if table resorted
+  - Disable button when no media loaded
+  - Work with single segment playback
+
+**Manual testing recommendations:**
+- Load a VTT file with multiple segments (5+)
+- Load the associated media file
+- Click "Play Sequential" and verify:
+  - Segments play in order without gaps
+  - Row selection updates as segments play
+  - Button changes to "Pause Sequential"
+- Click "Pause Sequential" and verify:
+  - Playback stops
+  - Button changes back to "Play Sequential"
+  - Can resume from current position
+- Sort the table by a different column and repeat
+- Select a row in the middle and start sequential playback
+  - Should start from selected row, not top
 
 ## Common Issues
 
