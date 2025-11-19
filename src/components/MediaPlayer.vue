@@ -202,18 +202,42 @@ function onTimeUpdate() {
 
     // Check if we should stop (snippet playback)
     if (snippetEndTime.value !== null && mediaElement.value.currentTime >= snippetEndTime.value) {
-      console.log('Snippet playback complete, pausing')
-      mediaElement.value.pause()
+      console.log('Snippet playback complete')
 
-      // Seek back to start of snippet
-      const cue = store.document.segments.find(c => c.endTime === snippetEndTime.value)
-      if (cue) {
-        mediaElement.value.currentTime = cue.startTime
-        store.setCurrentTime(cue.startTime)
+      // Check if we're in sequential mode
+      if (store.sequentialMode) {
+        // Move to next segment in the playlist
+        const hasNext = store.nextSequentialSegment()
+        if (hasNext) {
+          // Continue playing the next segment
+          const nextSegment = store.currentSequentialSegment
+          if (nextSegment) {
+            console.log('Sequential: moving to next segment:', nextSegment.id)
+            snippetEndTime.value = nextSegment.endTime
+            mediaElement.value.currentTime = nextSegment.startTime
+            // Keep playing (don't pause)
+          }
+        } else {
+          // Reached end of playlist
+          console.log('Sequential: reached end of playlist')
+          mediaElement.value.pause()
+          snippetEndTime.value = null
+        }
+      } else {
+        // Single snippet mode - pause and seek back
+        console.log('Single snippet playback complete, pausing')
+        mediaElement.value.pause()
+
+        // Seek back to start of snippet
+        const cue = store.document.segments.find(c => c.endTime === snippetEndTime.value)
+        if (cue) {
+          mediaElement.value.currentTime = cue.startTime
+          store.setCurrentTime(cue.startTime)
+        }
+
+        snippetEndTime.value = null
+        store.setSnippetMode(false)
       }
-
-      snippetEndTime.value = null
-      store.setSnippetMode(false)
     }
   }
 }
@@ -272,8 +296,16 @@ watch(() => store.isPlaying, (playing) => {
   if (!mediaElement.value) return
 
   if (playing) {
+    // Check for sequential playback mode
+    if (store.sequentialMode) {
+      const currentSegment = store.currentSequentialSegment
+      if (currentSegment) {
+        console.log('Starting sequential playback for segment:', currentSegment.id)
+        snippetEndTime.value = currentSegment.endTime
+      }
+    }
     // Only set up snippet playback if snippetMode is enabled
-    if (store.snippetMode && store.selectedCueId) {
+    else if (store.snippetMode && store.selectedCueId) {
       const selectedCue = store.document.segments.find(c => c.id === store.selectedCueId)
 
       if (selectedCue) {

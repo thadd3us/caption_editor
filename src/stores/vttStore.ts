@@ -27,6 +27,11 @@ export const useVTTStore = defineStore('vtt', () => {
   const selectedCueId = ref<string | null>(null)
   const snippetMode = ref(false)  // True when playing a single snippet, false for continuous playback
 
+  // Sequential playback state
+  const sequentialMode = ref(false)  // True when playing segments sequentially from the table
+  const sequentialPlaylist = ref<string[]>([])  // Ordered list of segment IDs to play
+  const sequentialPlaylistIndex = ref(0)  // Current position in the playlist
+
   // Computed
   const currentCue = computed(() => {
     const time = currentTime.value
@@ -38,6 +43,15 @@ export const useVTTStore = defineStore('vtt', () => {
 
   // Computed property for mediaFilePath - single source of truth from document.metadata
   const mediaFilePath = computed(() => document.value.metadata.mediaFilePath || null)
+
+  // Computed property for current sequential segment
+  const currentSequentialSegment = computed(() => {
+    if (!sequentialMode.value || sequentialPlaylistIndex.value >= sequentialPlaylist.value.length) {
+      return null
+    }
+    const segmentId = sequentialPlaylist.value[sequentialPlaylistIndex.value]
+    return document.value.segments.find(s => s.id === segmentId) || null
+  })
 
   // Actions
   function loadFromFile(content: string, filePath?: string) {
@@ -270,6 +284,68 @@ export const useVTTStore = defineStore('vtt', () => {
     snippetMode.value = enabled
   }
 
+  /**
+   * Start sequential playback of segments in the order they appear in the table
+   * @param segmentIds - Ordered array of segment IDs to play
+   * @param startIndex - Index to start playback from (default 0)
+   */
+  function startSequentialPlayback(segmentIds: string[], startIndex: number = 0) {
+    console.log('Starting sequential playback with', segmentIds.length, 'segments, starting at index', startIndex)
+    sequentialPlaylist.value = segmentIds
+    sequentialPlaylistIndex.value = startIndex
+    sequentialMode.value = true
+    snippetMode.value = false  // Disable snippet mode
+
+    // Start playing the first segment
+    const segment = currentSequentialSegment.value
+    if (segment) {
+      console.log('Playing first segment in sequence:', segment.id)
+      setCurrentTime(segment.startTime)
+      setPlaying(true)
+      selectCue(segment.id)
+    }
+  }
+
+  /**
+   * Stop sequential playback and clear the playlist
+   */
+  function stopSequentialPlayback() {
+    console.log('Stopping sequential playback')
+    sequentialMode.value = false
+    sequentialPlaylist.value = []
+    sequentialPlaylistIndex.value = 0
+    setPlaying(false)
+  }
+
+  /**
+   * Move to the next segment in the sequential playlist
+   * @returns true if there's a next segment, false if we've reached the end
+   */
+  function nextSequentialSegment(): boolean {
+    if (!sequentialMode.value) {
+      return false
+    }
+
+    const nextIndex = sequentialPlaylistIndex.value + 1
+    if (nextIndex >= sequentialPlaylist.value.length) {
+      console.log('Reached end of sequential playlist')
+      stopSequentialPlayback()
+      return false
+    }
+
+    console.log('Moving to next segment in sequence, index:', nextIndex)
+    sequentialPlaylistIndex.value = nextIndex
+    const segment = currentSequentialSegment.value
+    if (segment) {
+      console.log('Playing next segment:', segment.id)
+      setCurrentTime(segment.startTime)
+      selectCue(segment.id)
+      return true
+    }
+
+    return false
+  }
+
   return {
     // State
     document,
@@ -279,9 +355,13 @@ export const useVTTStore = defineStore('vtt', () => {
     isPlaying,
     selectedCueId,
     snippetMode,
+    sequentialMode,
+    sequentialPlaylist,
+    sequentialPlaylistIndex,
 
     // Computed
     currentCue,
+    currentSequentialSegment,
 
     // Actions
     loadFromFile,
@@ -298,6 +378,9 @@ export const useVTTStore = defineStore('vtt', () => {
     setCurrentTime,
     setPlaying,
     selectCue,
-    setSnippetMode
+    setSnippetMode,
+    startSequentialPlayback,
+    stopSequentialPlayback,
+    nextSequentialSegment
   }
 })

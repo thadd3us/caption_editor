@@ -7,6 +7,14 @@
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
+        <button
+          @click="toggleSequentialPlayback"
+          class="sequential-play-btn"
+          :disabled="!store.mediaPath || store.document.segments.length === 0"
+          :title="sequentialPlayButtonTooltip"
+        >
+          {{ sequentialPlayButtonLabel }}
+        </button>
         <label class="checkbox-label">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay (selected row)
@@ -290,6 +298,60 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   }
 }
 
+// Sequential playback button label and tooltip
+const sequentialPlayButtonLabel = computed(() => {
+  return store.sequentialMode ? '⏸ Pause Sequential' : '▶️ Play Sequential'
+})
+
+const sequentialPlayButtonTooltip = computed(() => {
+  if (store.sequentialMode) {
+    return 'Pause sequential playback'
+  }
+  return 'Play segments in table order, skipping silence'
+})
+
+/**
+ * Toggle sequential playback mode
+ * Starts playing from the currently selected row if any, otherwise from the top
+ */
+function toggleSequentialPlayback() {
+  if (!gridApi.value) return
+
+  if (store.sequentialMode) {
+    // Stop sequential playback
+    console.log('Stopping sequential playback')
+    store.stopSequentialPlayback()
+  } else {
+    // Start sequential playback
+    // Get all rows in their current display order
+    const allSegmentIds: string[] = []
+    gridApi.value.forEachNodeAfterFilterAndSort((node) => {
+      if (node.data) {
+        allSegmentIds.push(node.data.id)
+      }
+    })
+
+    if (allSegmentIds.length === 0) {
+      console.warn('No segments to play')
+      return
+    }
+
+    // Find the starting index - either the selected row or 0
+    let startIndex = 0
+    const selectedRows = gridApi.value.getSelectedRows()
+    if (selectedRows.length > 0) {
+      const selectedId = selectedRows[0].id
+      const foundIndex = allSegmentIds.indexOf(selectedId)
+      if (foundIndex >= 0) {
+        startIndex = foundIndex
+      }
+    }
+
+    console.log('Starting sequential playback with', allSegmentIds.length, 'segments from index', startIndex)
+    store.startSequentialPlayback(allSegmentIds, startIndex)
+  }
+}
+
 // Calculate cosine similarity between two vectors
 function cosineSimilarity(vecA: readonly number[], vecB: readonly number[]): number {
   if (vecA.length !== vecB.length) {
@@ -564,6 +626,29 @@ onUnmounted(() => {
 .header-controls {
   display: flex;
   gap: 16px;
+  align-items: center;
+}
+
+.sequential-play-btn {
+  padding: 8px 16px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.sequential-play-btn:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.sequential-play-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 .checkbox-label {
