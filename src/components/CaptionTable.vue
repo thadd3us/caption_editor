@@ -504,25 +504,28 @@ function handleComputeSpeakerSimilarity() {
 function areSegmentsAdjacent(segmentIds: string[]): boolean {
   if (segmentIds.length < 2) return false
 
-  // Find all segments with their ordinals
+  // Find all segments
   const segments = segmentIds
     .map(id => store.document.segments.find(s => s.id === id))
     .filter((s): s is typeof store.document.segments[0] => s !== undefined)
 
   if (segments.length !== segmentIds.length) return false
 
-  // Sort by ordinal
-  const sortedSegments = [...segments].sort((a, b) => {
-    const ordinalA = a.ordinal ?? 0
-    const ordinalB = b.ordinal ?? 0
-    return ordinalA - ordinalB
+  // Compute ordinal map
+  const ordinalMap = new Map<string, number>()
+  store.document.segments.forEach((segment, index) => {
+    ordinalMap.set(segment.id, index)
   })
 
+  // Get ordinals for selected segments
+  const ordinals = segments
+    .map(s => ordinalMap.get(s.id))
+    .filter((o): o is number => o !== undefined)
+    .sort((a, b) => a - b)
+
   // Check if ordinals are consecutive
-  for (let i = 0; i < sortedSegments.length - 1; i++) {
-    const currentOrdinal = sortedSegments[i].ordinal ?? 0
-    const nextOrdinal = sortedSegments[i + 1].ordinal ?? 0
-    if (nextOrdinal !== currentOrdinal + 1) {
+  for (let i = 0; i < ordinals.length - 1; i++) {
+    if (ordinals[i + 1] !== ordinals[i] + 1) {
       return false
     }
   }

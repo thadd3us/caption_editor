@@ -5,7 +5,7 @@ import type { VTTDocument, TranscriptSegment } from '../types/schema'
 describe('mergeAdjacentSegments', () => {
   // Helper function to create a test document with segments
   function createTestDocument(segments: TranscriptSegment[]): VTTDocument {
-    // Sort and assign ordinals
+    // Sort segments (ordinals are computed at runtime, not stored)
     const sortedSegments = [...segments].sort((a, b) => {
       if (a.startTime !== b.startTime) {
         return a.startTime - b.startTime
@@ -13,14 +13,9 @@ describe('mergeAdjacentSegments', () => {
       return a.endTime - b.endTime
     })
 
-    const segmentsWithOrdinals = sortedSegments.map((seg, idx) => ({
-      ...seg,
-      ordinal: idx
-    }))
-
     return {
       metadata: { id: 'test-doc' },
-      segments: segmentsWithOrdinals
+      segments: Object.freeze(sortedSegments)
     }
   }
 

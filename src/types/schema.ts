@@ -42,7 +42,6 @@ export interface TranscriptSegment {
   readonly speakerName?: string // Optional speaker name
   readonly rating?: number // Optional rating 1-5
   readonly timestamp?: string // ISO 8601 timestamp of when the segment was created/last modified
-  readonly ordinal?: number // Optional ordinal index for detecting adjacent segments
 }
 
 /**

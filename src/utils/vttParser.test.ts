@@ -398,12 +398,7 @@ Unique cue`
 
       const updatedDoc = addCue(doc, newCue)
       expect(updatedDoc.segments).toHaveLength(1)
-      // Check all fields except ordinal (which is assigned by sortCues)
-      expect(updatedDoc.segments[0].id).toEqual(newCue.id)
-      expect(updatedDoc.segments[0].startTime).toEqual(newCue.startTime)
-      expect(updatedDoc.segments[0].endTime).toEqual(newCue.endTime)
-      expect(updatedDoc.segments[0].text).toEqual(newCue.text)
-      expect(updatedDoc.segments[0].ordinal).toBe(0) // First segment should have ordinal 0
+      expect(updatedDoc.segments[0]).toEqual(newCue)
       expect(Object.isFrozen(updatedDoc.segments)).toBe(true)
     })
 

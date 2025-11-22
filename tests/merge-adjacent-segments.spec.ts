@@ -263,7 +263,7 @@ Three`
       const vttStore = (window as any).$store
       const segments = vttStore.document.segments
 
-      // Simulate the adjacency check function from CaptionTable
+      // Simulate the adjacency check function from CaptionTable (using ordinal map)
       function areSegmentsAdjacent(segmentIds: string[]): boolean {
         if (segmentIds.length < 2) return false
 
@@ -273,16 +273,21 @@ Three`
 
         if (segs.length !== segmentIds.length) return false
 
-        const sortedSegments = [...segs].sort((a: any, b: any) => {
-          const ordinalA = a.ordinal ?? 0
-          const ordinalB = b.ordinal ?? 0
-          return ordinalA - ordinalB
+        // Compute ordinal map
+        const ordinalMap = new Map<string, number>()
+        vttStore.document.segments.forEach((segment: any, index: number) => {
+          ordinalMap.set(segment.id, index)
         })
 
-        for (let i = 0; i < sortedSegments.length - 1; i++) {
-          const currentOrdinal = sortedSegments[i].ordinal ?? 0
-          const nextOrdinal = sortedSegments[i + 1].ordinal ?? 0
-          if (nextOrdinal !== currentOrdinal + 1) {
+        // Get ordinals for selected segments
+        const ordinals = segs
+          .map((s: any) => ordinalMap.get(s.id))
+          .filter((o: any): o is number => o !== undefined)
+          .sort((a: number, b: number) => a - b)
+
+        // Check if ordinals are consecutive
+        for (let i = 0; i < ordinals.length - 1; i++) {
+          if (ordinals[i + 1] !== ordinals[i] + 1) {
             return false
           }
         }
@@ -309,16 +314,21 @@ Three`
 
         if (segs.length !== segmentIds.length) return false
 
-        const sortedSegments = [...segs].sort((a: any, b: any) => {
-          const ordinalA = a.ordinal ?? 0
-          const ordinalB = b.ordinal ?? 0
-          return ordinalA - ordinalB
+        // Compute ordinal map
+        const ordinalMap = new Map<string, number>()
+        vttStore.document.segments.forEach((segment: any, index: number) => {
+          ordinalMap.set(segment.id, index)
         })
 
-        for (let i = 0; i < sortedSegments.length - 1; i++) {
-          const currentOrdinal = sortedSegments[i].ordinal ?? 0
-          const nextOrdinal = sortedSegments[i + 1].ordinal ?? 0
-          if (nextOrdinal !== currentOrdinal + 1) {
+        // Get ordinals for selected segments
+        const ordinals = segs
+          .map((s: any) => ordinalMap.get(s.id))
+          .filter((o: any): o is number => o !== undefined)
+          .sort((a: number, b: number) => a - b)
+
+        // Check if ordinals are consecutive
+        for (let i = 0; i < ordinals.length - 1; i++) {
+          if (ordinals[i + 1] !== ordinals[i] + 1) {
             return false
           }
         }

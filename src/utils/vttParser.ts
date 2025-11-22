@@ -385,7 +385,7 @@ export function createEmptyDocument(): VTTDocument {
 }
 
 /**
- * Sort segments by start time, then end time, and assign ordinal indices
+ * Sort segments by start time, then end time
  */
 function sortCues(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
   const sorted = [...segments].sort((a, b) => {
@@ -394,14 +394,19 @@ function sortCues(segments: readonly TranscriptSegment[]): readonly TranscriptSe
     }
     return a.endTime - b.endTime
   })
+  return Object.freeze(sorted)
+}
 
-  // Assign ordinal indices after sorting
-  const withOrdinals = sorted.map((segment, index) => ({
-    ...segment,
-    ordinal: index
-  }))
-
-  return Object.freeze(withOrdinals)
+/**
+ * Compute ordinal indices for segments based on their position in a sorted array
+ * Returns a map of segment ID to ordinal index
+ */
+export function computeSegmentOrdinals(segments: readonly TranscriptSegment[]): Map<string, number> {
+  const ordinalMap = new Map<string, number>()
+  segments.forEach((segment, index) => {
+    ordinalMap.set(segment.id, index)
+  })
+  return ordinalMap
 }
 
 /**
@@ -635,17 +640,20 @@ export function mergeAdjacentSegments(document: VTTDocument, segmentIds: string[
     return document
   }
 
-  // Sort by ordinal to ensure proper order
+  // Compute ordinal map for the document's segments
+  const ordinalMap = computeSegmentOrdinals(document.segments)
+
+  // Sort segments by their ordinal index
   const sortedSegments = [...segmentsToMerge].sort((a, b) => {
-    const ordinalA = a.ordinal ?? 0
-    const ordinalB = b.ordinal ?? 0
+    const ordinalA = ordinalMap.get(a.id) ?? 0
+    const ordinalB = ordinalMap.get(b.id) ?? 0
     return ordinalA - ordinalB
   })
 
   // Check if segments are adjacent based on ordinal indices
   for (let i = 0; i < sortedSegments.length - 1; i++) {
-    const currentOrdinal = sortedSegments[i].ordinal ?? 0
-    const nextOrdinal = sortedSegments[i + 1].ordinal ?? 0
+    const currentOrdinal = ordinalMap.get(sortedSegments[i].id) ?? 0
+    const nextOrdinal = ordinalMap.get(sortedSegments[i + 1].id) ?? 0
     if (nextOrdinal !== currentOrdinal + 1) {
       console.warn('Segments are not adjacent (ordinal gap detected)')
       return document
