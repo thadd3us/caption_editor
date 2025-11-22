@@ -1,11 +1,10 @@
 High:
-* Context menu: Merge adjacent selected rows.
-* Delete "Seek to start" and "Delete caption" action button.
-* When sorting by speaker similarity, scroll to top.
+
 * Try not to scroll table when possible: just make sure the active row is in view.
 * "Autoplay (selected row)" is also autoadvancing to the next row somehow (perhaps when autoscroll is on)
 * "Add caption at current position" moves above media playback widget.
 
+* When sorting by speaker similarity, scroll to top.
 * Delete duration from right of media filepath
 * Delete "VTT File: " to the left of VTT filepath
 * Rename "Play Sequential" to just a play button.
@@ -25,7 +24,8 @@ Low:
 * Export SRT files.
 
 # Done:
-
+* Delete "Seek to start" and "Delete caption" action button.
+* Context menu: Merge adjacent selected rows.
 * Play table segments in table order.
 * Add "Speaker" menu.
 * Bulk set speaker for selected rows.
