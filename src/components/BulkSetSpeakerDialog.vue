@@ -9,13 +9,12 @@
 
       <div class="form-group">
         <label for="speaker-name-input">Speaker Name:</label>
-        <input
-          id="speaker-name-input"
+        <SpeakerNameInput
           v-model="speakerName"
-          type="text"
-          class="name-input"
+          input-id="speaker-name-input"
+          input-class="name-input"
           placeholder="Enter speaker name..."
-          @keydown.enter="handleSetSpeaker"
+          @enter="handleSetSpeaker"
           ref="inputRef"
         />
       </div>
@@ -38,6 +37,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import SpeakerNameInput from './SpeakerNameInput.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -50,7 +50,7 @@ const emit = defineEmits<{
 }>()
 
 const speakerName = ref('')
-const inputRef = ref<HTMLInputElement | null>(null)
+const inputRef = ref<InstanceType<typeof SpeakerNameInput> | null>(null)
 
 // Always allow setting speaker (even to empty string)
 const canSetSpeaker = computed(() => {

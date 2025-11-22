@@ -58,6 +58,7 @@ import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import { formatTimestamp } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
+import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
@@ -126,6 +127,7 @@ const columnDefs = ref<ColDef[]>([
     width: 150,
     editable: true,
     sortable: true,
+    cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       store.updateCue(params.data.id, { speakerName: params.newValue })
