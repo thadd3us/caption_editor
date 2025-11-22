@@ -227,15 +227,22 @@ function onTimeUpdate() {
 }
 
 function onPlay() {
+  // If starting from STOPPED mode, enter MEDIA_PLAYING mode
+  if (store.playbackMode === PlaybackMode.STOPPED) {
+    store.playbackMode = PlaybackMode.MEDIA_PLAYING
+  }
   store.setPlaying(true)
 }
 
 function onPause() {
-  // Pausing stops any playlist playback (SEGMENTS_PLAYING mode)
+  // Pausing always returns to STOPPED mode
   if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
     console.log('Pause detected - stopping playlist playback')
     store.stopPlaylistPlayback(false)  // Don't return to start on manual pause
     segmentEndTime.value = null
+  } else {
+    // From MEDIA_PLAYING, go back to STOPPED
+    store.playbackMode = PlaybackMode.STOPPED
   }
   store.setPlaying(false)
 }

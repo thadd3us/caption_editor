@@ -70,33 +70,56 @@ test.describe('Sequential Playback', () => {
     await loadVTTFile(vttPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await expect(sequentialBtn).toBeVisible()
   })
 
   test('should start sequential playback from top when no row selected', async () => {
-    // Load a VTT file with multiple segments
+    console.log('[Test] Loading VTT file...')
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    // Load media file
+    console.log('[Test] Loading media file...')
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
-    // Click sequential play button
-    const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+    console.log('[Test] Clicking Play Segments button...')
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await sequentialBtn.click()
 
-    // Button should change to "Pause Sequential"
-    await expect(window.locator('button:has-text("Pause Sequential")')).toBeVisible()
+    console.log('[Test] Verifying button changed to Pause Segments...')
+    await expect(window.locator('button:has-text("Pause Segments")')).toBeVisible()
 
-    // First row should be selected (auto-scroll feature)
-    await window.waitForTimeout(100)
+    console.log('[Test] Checking playback state...')
+    const state = await window.evaluate(() => {
+      const store = (window as any).__vttStore
+      return {
+        playbackMode: store.playbackMode,
+        isPlaying: store.isPlaying,
+        selectedCueId: store.selectedCueId,
+        currentTime: store.currentTime
+      }
+    })
+    console.log('[Test] Playback state:', JSON.stringify(state, null, 2))
+
+    // First row should be selected (set by startPlaylistPlayback)
+    console.log('[Test] Waiting for row selection...')
+    await window.waitForTimeout(200)
     const selectedRows = await window.locator('.ag-row.ag-row-selected').count()
+    console.log('[Test] Selected rows count:', selectedRows)
+
+    if (selectedRows === 0) {
+      // Debug: log all rows
+      const rowCount = await window.locator('.ag-row').count()
+      console.log('[Test] Total rows:', rowCount)
+    }
+
     expect(selectedRows).toBeGreaterThan(0)
   })
 
   test('should start sequential playback from selected row', async () => {
+    test.setTimeout(15000) // Need extra time for AG Grid rendering
+
     // Load a VTT file
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
@@ -105,25 +128,65 @@ test.describe('Sequential Playback', () => {
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
-    // Get all rows and click the third one
-    const rows = await window.locator('.ag-row').all()
-    if (rows.length >= 3) {
-      await rows[2].click()
-      await window.waitForTimeout(50)
+    // Wait for grid to be ready and have at least 3 rows
+    await window.waitForFunction(() => {
+      const api = (window as any).__agGridApi
+      if (!api) return false
+      let count = 0
+      api.forEachNode(() => count++)
+      return count >= 3
+    }, { timeout: 5000 })
 
-      // Get the text of the third row
-      const thirdRowText = await rows[2].locator('[col-id="text"]').textContent()
+    // Wait a bit for AG Grid to fully render cells
+    await window.waitForTimeout(200)
 
-      // Click sequential play button
-      const sequentialBtn = window.locator('button:has-text("Play Sequential")')
-      await sequentialBtn.click()
+    // Click the third row (index 2) and get its text via evaluate
+    // Filter out AG Grid ghost rows (known issue - see CLAUDE.md)
+    const result = await window.evaluate(() => {
+      const allRows = Array.from(document.querySelectorAll('.ag-row'))
 
-      await window.waitForTimeout(100)
+      // Filter out ghost rows - rows that have no text content in their cells
+      const realRows = allRows.filter((row: any) => {
+        const textCell = row.querySelector('[col-id="text"]')
+        return textCell && textCell.textContent?.trim().length > 0
+      })
 
-      // Third row should still be selected (started from there)
-      const selectedRowText = await window.locator('.ag-row-selected [col-id="text"]').first().textContent()
-      expect(selectedRowText).toBe(thirdRowText)
+      console.log(`[Test Debug] Found ${allRows.length} total rows, ${realRows.length} real rows`)
+
+      if (realRows.length < 3) {
+        return { success: false, error: `Only ${realRows.length} real rows found (${allRows.length} total)`, text: null }
+      }
+
+      const thirdRow = realRows[2] as HTMLElement
+      thirdRow.click()
+
+      const textCell = thirdRow.querySelector('[col-id="text"]')
+      const text = textCell?.textContent?.trim() || null
+
+      if (!text) {
+        return { success: false, error: 'Text cell is empty', text: null }
+      }
+
+      return { success: true, error: null, text }
+    })
+
+    if (!result.success) {
+      throw new Error(`Could not get text from third row: ${result.error}`)
     }
+
+    const thirdRowText = result.text
+
+    await window.waitForTimeout(50)
+
+    // Click sequential play button
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
+    await sequentialBtn.click()
+
+    await window.waitForTimeout(100)
+
+    // Third row should still be selected (started from there)
+    const selectedRowText = await window.locator('.ag-row-selected [col-id="text"]').first().textContent()
+    expect(selectedRowText).toBe(thirdRowText)
   })
 
   test('should stop sequential playback when pause button clicked', async () => {
@@ -135,18 +198,18 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    const playBtn = window.locator('button:has-text("Play Sequential")')
+    const playBtn = window.locator('button:has-text("Play Segments")')
     await playBtn.click()
 
     // Button should change to pause
-    const pauseBtn = window.locator('button:has-text("Pause Sequential")')
+    const pauseBtn = window.locator('button:has-text("Pause Segments")')
     await expect(pauseBtn).toBeVisible()
 
     // Click pause
     await pauseBtn.click()
 
     // Button should change back to play
-    await expect(window.locator('button:has-text("Play Sequential")')).toBeVisible()
+    await expect(window.locator('button:has-text("Play Segments")')).toBeVisible()
   })
 
   test('should play segments in table order respecting sort', async () => {
@@ -170,54 +233,21 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(100)
 
     // Check that the playlist matches the initial order
     const playlistOrder = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return store.sequentialPlaylist
+      return store.playlist
     })
 
     expect(playlistOrder).toEqual(initialOrder)
   })
 
-  test('should advance to next segment during playback', async () => {
-    // Load files
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
-
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
-
-    // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
-
-    await window.waitForTimeout(50)
-
-    // Get initial index
-    const initialIndex = await window.evaluate(() => {
-      const store = (window as any).__vttStore
-      return store.sequentialPlaylistIndex
-    })
-
-    // Simulate segment completion by manually advancing
-    await window.evaluate(() => {
-      const store = (window as any).__vttStore
-      store.nextSequentialSegment()
-    })
-
-    await window.waitForTimeout(50)
-
-    // Index should have advanced
-    const newIndex = await window.evaluate(() => {
-      const store = (window as any).__vttStore
-      return store.sequentialPlaylistIndex
-    })
-
-    expect(newIndex).toBe(initialIndex + 1)
-  })
+  // Note: Advancement logic is tested in unit tests (vttStore.sequential.test.ts)
+  // This E2E test was removed because it tested store logic rather than E2E behavior
 
   test('should preserve playlist order even if table is resorted', async () => {
     // Load files
@@ -228,14 +258,14 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(50)
 
     // Get the playlist before sorting
     const playlistBefore = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return [...store.sequentialPlaylist]
+      return [...store.playlist]
     })
 
     // Sort the table by text column (click header)
@@ -246,7 +276,7 @@ test.describe('Sequential Playback', () => {
     // Get the playlist after sorting
     const playlistAfter = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return store.sequentialPlaylist
+      return store.playlist
     })
 
     // Playlist should be unchanged
@@ -254,16 +284,18 @@ test.describe('Sequential Playback', () => {
   })
 
   test('should disable sequential button when no media loaded', async () => {
-    // Load only VTT file, no media
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    // Load only VTT file without media reference
+    const vttPath = path.join(process.cwd(), 'test_data', 'no-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    // Sequential play button should be disabled
-    const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+    // Sequential play button should be disabled (no media path)
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await expect(sequentialBtn).toBeDisabled()
   })
 
   test('should work with single segment playback', async () => {
+    test.setTimeout(15000) // Need extra time for AG Grid rendering
+
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
@@ -272,34 +304,41 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(50)
 
     // Stop sequential playback
-    await window.locator('button:has-text("Pause Sequential")').click()
+    await window.locator('button:has-text("Pause Segments")').click()
 
     await window.waitForTimeout(50)
 
-    // Click play button on individual row (should use snippet mode)
-    const rows = await window.locator('.ag-row').all()
-    if (rows.length > 0) {
-      const playButton = rows[0].locator('button[title="Play snippet"]')
-      await playButton.click()
+    // Wait for grid to be ready with at least one row
+    await window.waitForFunction(() => {
+      const api = (window as any).__agGridApi
+      if (!api) return false
+      let count = 0
+      api.forEachNode(() => count++)
+      return count > 0
+    }, { timeout: 5000 })
 
-      await window.waitForTimeout(50)
+    // Click play button on first row (should use snippet mode)
+    // Use a simple selector that finds the first visible play button
+    const playButton = window.locator('button[title="Play snippet"]').first()
+    await playButton.click()
 
-      // Should be in snippet mode, not sequential mode
-      const modes = await window.evaluate(() => {
-        const store = (window as any).__vttStore
-        return {
-          snippetMode: store.snippetMode,
-          sequentialMode: store.sequentialMode
-        }
-      })
+    await window.waitForTimeout(50)
 
-      expect(modes.snippetMode).toBe(true)
-      expect(modes.sequentialMode).toBe(false)
-    }
+    // Should be in SEGMENTS_PLAYING mode with single-item playlist
+    const mode = await window.evaluate(() => {
+      const store = (window as any).__vttStore
+      return {
+        playbackMode: store.playbackMode,
+        playlistLength: store.playlist.length
+      }
+    })
+
+    expect(mode.playbackMode).toBe('SEGMENTS_PLAYING')
+    expect(mode.playlistLength).toBe(1) // Single segment playlist
   })
 })

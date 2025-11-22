@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test'
+import { checkXvfbAvailable } from './tests/helpers/xvfb-check'
 
 /**
  * Playwright configuration for VTT Caption Editor
@@ -15,6 +16,10 @@ import { defineConfig } from '@playwright/test'
  * - macOS: Tests run natively without special setup
  * - Linux: Requires Xvfb (run start-xvfb.sh first, then set DISPLAY=:99)
  */
+
+// Check Xvfb availability on Linux before running tests
+checkXvfbAvailable()
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,

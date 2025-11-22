@@ -460,6 +460,24 @@ function computeSpeakerSimilarity() {
 // Note: With immutableData: true and getRowId, AG Grid handles updates automatically
 // No need to manually refresh cells when segments change
 
+// Sync store.selectedCueId to AG Grid selection
+// This ensures when the store programmatically selects a cue (e.g., startPlaylistPlayback),
+// the AG Grid UI updates to show the selection
+watch(() => store.selectedCueId, (cueId) => {
+  if (!gridApi.value || !cueId) return
+
+  const rowNode = gridApi.value.getRowNode(cueId)
+  if (rowNode) {
+    // Always deselect all and select this node, even if AG Grid thinks it's already selected
+    // This ensures the selection is correct in the UI
+    console.log('[CaptionTable] Syncing store selection to AG Grid:', cueId)
+    gridApi.value.deselectAll()
+    rowNode.setSelected(true)
+    // Optionally ensure visible (but don't scroll if already visible)
+    gridApi.value.ensureNodeVisible(rowNode, null)
+  }
+})
+
 // Auto-scroll: watch currentTime and scroll to the intersecting row
 watch(() => store.currentTime, (currentTime) => {
   if (!autoScrollEnabled.value || !gridApi.value) return

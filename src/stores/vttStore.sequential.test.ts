@@ -180,7 +180,7 @@ Second segment
     // Try to move beyond last segment
     const hasNext2 = store.nextPlaylistSegment()
     expect(hasNext2).toBe(false)
-    expect(store.playbackMode).toBe(PlaybackMode.MEDIA_PLAYING) // Should return to MEDIA_PLAYING mode
+    expect(store.playbackMode).toBe(PlaybackMode.STOPPED) // Should return to STOPPED mode
     expect(store.isPlaying).toBe(false) // Should stop playing
     // Should have returned to start (seg1)
     expect(store.currentTime).toBe(0)
@@ -217,7 +217,7 @@ Second segment
     store.stopPlaylistPlayback(false)
 
     // Verify state is cleared
-    expect(store.playbackMode).toBe(PlaybackMode.MEDIA_PLAYING)
+    expect(store.playbackMode).toBe(PlaybackMode.STOPPED)
     expect(store.playlist).toEqual([])
     expect(store.playlistIndex).toBe(0)
     expect(store.isPlaying).toBe(false)
@@ -321,7 +321,7 @@ Second segment
     store.cancelPlaylistPlayback()
 
     // Verify playlist is cleared but playhead didn't move
-    expect(store.playbackMode).toBe(PlaybackMode.MEDIA_PLAYING)
+    expect(store.playbackMode).toBe(PlaybackMode.STOPPED)
     expect(store.playlist).toEqual([])
     expect(store.currentTime).toBe(3) // Still at seg2
   })
