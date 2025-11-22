@@ -3,12 +3,6 @@
     <button @click="playSnippet" class="action-btn" title="Play snippet">
       ▶️
     </button>
-    <button @click="seekToStart" class="action-btn" title="Seek to start">
-      ⏮️
-    </button>
-    <button @click="deleteCaption" class="action-btn delete-btn" title="Delete caption">
-      🗑️
-    </button>
   </div>
 </template>
 
@@ -44,21 +38,6 @@ function playSnippet() {
   store.setCurrentTime(rowData.value.startTime)
   store.setPlaying(true)
 }
-
-function seekToStart() {
-  if (!rowData.value) return
-  console.log('Seeking to start:', rowData.value.id)
-  store.setCurrentTime(rowData.value.startTime)
-  store.setPlaying(false)
-}
-
-function deleteCaption() {
-  if (!rowData.value) return
-  if (confirm('Are you sure you want to delete this caption?')) {
-    console.log('Deleting caption:', rowData.value.id)
-    store.deleteCue(rowData.value.id)
-  }
-}
 </script>
 
 <style scoped>
@@ -81,10 +60,5 @@ function deleteCaption() {
 .action-btn:hover {
   background: #f0f0f0;
   border-color: #999;
-}
-
-.delete-btn:hover {
-  background: #fee;
-  border-color: #fcc;
 }
 </style>

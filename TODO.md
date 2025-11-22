@@ -1,5 +1,5 @@
 High:
-* Context menu: Merge adjacent selected rows.
+
 * Delete "Seek to start" and "Delete caption" action button.
 * When sorting by speaker similarity, scroll to top.
 * Try not to scroll table when possible: just make sure the active row is in view.
@@ -25,7 +25,7 @@ Low:
 * Export SRT files.
 
 # Done:
-
+* Context menu: Merge adjacent selected rows.
 * Play table segments in table order.
 * Add "Speaker" menu.
 * Bulk set speaker for selected rows.

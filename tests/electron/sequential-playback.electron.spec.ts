@@ -284,7 +284,7 @@ test.describe('Sequential Playback', () => {
     // Click play button on individual row (should use snippet mode)
     const rows = await window.locator('.ag-row').all()
     if (rows.length > 0) {
-      const playButton = rows[0].locator('button[title="Play this segment"]')
+      const playButton = rows[0].locator('button[title="Play snippet"]')
       await playButton.click()
 
       await window.waitForTimeout(50)
