@@ -33,10 +33,9 @@ const rowData = computed(() => props.params?.data || props.data)
 
 function playSnippet() {
   if (!rowData.value) return
-  console.log('Playing snippet:', rowData.value.id)
-  store.setSnippetMode(true)
-  store.setCurrentTime(rowData.value.startTime)
-  store.setPlaying(true)
+  console.log('Playing segment:', rowData.value.id)
+  // Create a playlist of just this one segment
+  store.startPlaylistPlayback([rowData.value.id], 0)
 }
 </script>
 

@@ -1,7 +1,4 @@
 High:
-
-* Try not to scroll table when possible: just make sure the active row is in view.
-* "Autoplay (selected row)" is also autoadvancing to the next row somehow (perhaps when autoscroll is on)
 * "Add caption at current position" moves above media playback widget.
 
 * When sorting by speaker similarity, scroll to top.

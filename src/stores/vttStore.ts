@@ -26,12 +26,13 @@ export const useVTTStore = defineStore('vtt', () => {
   const currentTime = ref(0)
   const isPlaying = ref(false)
   const selectedCueId = ref<string | null>(null)
-  const snippetMode = ref(false)  // True when playing a single snippet, false for continuous playback
 
-  // Sequential playback state
-  const sequentialMode = ref(false)  // True when playing segments sequentially from the table
-  const sequentialPlaylist = ref<string[]>([])  // Ordered list of segment IDs to play
-  const sequentialPlaylistIndex = ref(0)  // Current position in the playlist
+  // Playlist-based playback state
+  // Empty playlist = Mode A (MEDIA_PLAYING): normal playback
+  // Non-empty playlist = Mode B (SEGMENTS_PLAYING): playlist-based playback
+  const playlist = ref<string[]>([])  // Ordered list of segment IDs to play (empty = Mode A)
+  const playlistIndex = ref(0)  // Current position in the playlist
+  const playlistStartIndex = ref(0)  // Starting position (for returning after completion)
 
   // Computed
   const currentCue = computed(() => {
@@ -45,12 +46,13 @@ export const useVTTStore = defineStore('vtt', () => {
   // Computed property for mediaFilePath - single source of truth from document.metadata
   const mediaFilePath = computed(() => document.value.metadata.mediaFilePath || null)
 
-  // Computed property for current sequential segment
-  const currentSequentialSegment = computed(() => {
-    if (!sequentialMode.value || sequentialPlaylistIndex.value >= sequentialPlaylist.value.length) {
+  // Computed properties for playback mode
+  const isSegmentsPlaying = computed(() => playlist.value.length > 0)
+  const currentPlaylistSegment = computed(() => {
+    if (!isSegmentsPlaying.value || playlistIndex.value >= playlist.value.length) {
       return null
     }
-    const segmentId = sequentialPlaylist.value[sequentialPlaylistIndex.value]
+    const segmentId = playlist.value[playlistIndex.value]
     return document.value.segments.find(s => s.id === segmentId) || null
   })
 
@@ -286,26 +288,21 @@ export const useVTTStore = defineStore('vtt', () => {
     selectedCueId.value = cueId
   }
 
-  function setSnippetMode(enabled: boolean) {
-    snippetMode.value = enabled
-  }
-
   /**
-   * Start sequential playback of segments in the order they appear in the table
+   * Start playlist-based playback (Mode B: SEGMENTS_PLAYING)
    * @param segmentIds - Ordered array of segment IDs to play
    * @param startIndex - Index to start playback from (default 0)
    */
-  function startSequentialPlayback(segmentIds: string[], startIndex: number = 0) {
-    console.log('Starting sequential playback with', segmentIds.length, 'segments, starting at index', startIndex)
-    sequentialPlaylist.value = segmentIds
-    sequentialPlaylistIndex.value = startIndex
-    sequentialMode.value = true
-    snippetMode.value = false  // Disable snippet mode
+  function startPlaylistPlayback(segmentIds: string[], startIndex: number = 0) {
+    console.log('Starting playlist playback with', segmentIds.length, 'segments, starting at index', startIndex)
+    playlist.value = segmentIds
+    playlistIndex.value = startIndex
+    playlistStartIndex.value = startIndex
 
     // Start playing the first segment
-    const segment = currentSequentialSegment.value
+    const segment = currentPlaylistSegment.value
     if (segment) {
-      console.log('Playing first segment in sequence:', segment.id)
+      console.log('Playing first segment in playlist:', segment.id)
       setCurrentTime(segment.startTime)
       setPlaying(true)
       selectCue(segment.id)
@@ -313,35 +310,48 @@ export const useVTTStore = defineStore('vtt', () => {
   }
 
   /**
-   * Stop sequential playback and clear the playlist
+   * Stop playlist playback and return to Mode A (MEDIA_PLAYING)
+   * @param returnToStart - If true, return playhead to the start of the first segment in the playlist
    */
-  function stopSequentialPlayback() {
-    console.log('Stopping sequential playback')
-    sequentialMode.value = false
-    sequentialPlaylist.value = []
-    sequentialPlaylistIndex.value = 0
+  function stopPlaylistPlayback(returnToStart: boolean = false) {
+    console.log('Stopping playlist playback, returnToStart:', returnToStart)
+
+    // Return to start of playlist if requested
+    if (returnToStart && playlist.value.length > 0) {
+      const firstSegmentId = playlist.value[playlistStartIndex.value]
+      const firstSegment = document.value.segments.find(s => s.id === firstSegmentId)
+      if (firstSegment) {
+        console.log('Returning to start of playlist:', firstSegmentId)
+        setCurrentTime(firstSegment.startTime)
+        selectCue(firstSegmentId)
+      }
+    }
+
+    playlist.value = []
+    playlistIndex.value = 0
+    playlistStartIndex.value = 0
     setPlaying(false)
   }
 
   /**
-   * Move to the next segment in the sequential playlist
+   * Move to the next segment in the playlist
    * @returns true if there's a next segment, false if we've reached the end
    */
-  function nextSequentialSegment(): boolean {
-    if (!sequentialMode.value) {
+  function nextPlaylistSegment(): boolean {
+    if (!isSegmentsPlaying.value) {
       return false
     }
 
-    const nextIndex = sequentialPlaylistIndex.value + 1
-    if (nextIndex >= sequentialPlaylist.value.length) {
-      console.log('Reached end of sequential playlist')
-      stopSequentialPlayback()
+    const nextIndex = playlistIndex.value + 1
+    if (nextIndex >= playlist.value.length) {
+      console.log('Reached end of playlist')
+      stopPlaylistPlayback(true)  // Return to start when playlist completes
       return false
     }
 
-    console.log('Moving to next segment in sequence, index:', nextIndex)
-    sequentialPlaylistIndex.value = nextIndex
-    const segment = currentSequentialSegment.value
+    console.log('Moving to next segment in playlist, index:', nextIndex)
+    playlistIndex.value = nextIndex
+    const segment = currentPlaylistSegment.value
     if (segment) {
       console.log('Playing next segment:', segment.id)
       setCurrentTime(segment.startTime)
@@ -352,6 +362,17 @@ export const useVTTStore = defineStore('vtt', () => {
     return false
   }
 
+  /**
+   * Cancel playlist playback due to manual intervention (e.g., scrubbing)
+   * Clears the playlist without returning to start
+   */
+  function cancelPlaylistPlayback() {
+    console.log('Canceling playlist playback due to manual intervention')
+    playlist.value = []
+    playlistIndex.value = 0
+    playlistStartIndex.value = 0
+  }
+
   return {
     // State
     document,
@@ -360,14 +381,14 @@ export const useVTTStore = defineStore('vtt', () => {
     currentTime,
     isPlaying,
     selectedCueId,
-    snippetMode,
-    sequentialMode,
-    sequentialPlaylist,
-    sequentialPlaylistIndex,
+    playlist,
+    playlistIndex,
+    playlistStartIndex,
 
     // Computed
     currentCue,
-    currentSequentialSegment,
+    isSegmentsPlaying,
+    currentPlaylistSegment,
 
     // Actions
     loadFromFile,
@@ -385,9 +406,9 @@ export const useVTTStore = defineStore('vtt', () => {
     setCurrentTime,
     setPlaying,
     selectCue,
-    setSnippetMode,
-    startSequentialPlayback,
-    stopSequentialPlayback,
-    nextSequentialSegment
+    startPlaylistPlayback,
+    stopPlaylistPlayback,
+    nextPlaylistSegment,
+    cancelPlaylistPlayback
   }
 })
