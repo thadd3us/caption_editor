@@ -1,8 +1,7 @@
 <template>
   <div class="caption-table">
     <div v-if="store.document.filePath" class="file-path-display">
-      <span class="file-path-label">📄 VTT File:</span>
-      <span class="file-path-value">{{ store.document.filePath }}</span>
+      <span class="file-path-value">📄 {{ store.document.filePath }}</span>
     </div>
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
@@ -55,7 +54,7 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
 import { useVTTStore, PlaybackMode } from '../stores/vttStore'
-import { formatTimestamp } from '../utils/vttParser'
+import { formatTimestampSimple } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
 import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
@@ -81,8 +80,8 @@ const rowData = computed(() => {
     id: cue.id,
     startTime: cue.startTime,
     endTime: cue.endTime,
-    startTimeFormatted: formatTimestamp(cue.startTime),
-    endTimeFormatted: formatTimestamp(cue.endTime),
+    startTimeFormatted: formatTimestampSimple(cue.startTime),
+    endTimeFormatted: formatTimestampSimple(cue.endTime),
     text: cue.text,
     speakerName: cue.speakerName,
     rating: cue.rating,
@@ -164,6 +163,26 @@ const columnDefs = ref<ColDef[]>([
     editable: true,
     sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    cellEditorParams: {
+      onKeyDown: (event: KeyboardEvent) => {
+        // Handle +/- keys during editing to increment/decrement by 0.1s
+        if (event.key === '+' || event.key === '=') {
+          event.preventDefault()
+          const input = event.target as HTMLInputElement
+          const currentValue = parseFloat(input.value)
+          if (!isNaN(currentValue)) {
+            input.value = (currentValue + 0.1).toFixed(3)
+          }
+        } else if (event.key === '-') {
+          event.preventDefault()
+          const input = event.target as HTMLInputElement
+          const currentValue = parseFloat(input.value)
+          if (!isNaN(currentValue)) {
+            input.value = Math.max(0, currentValue - 0.1).toFixed(3)
+          }
+        }
+      }
+    },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -182,21 +201,20 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('Start time edited:', params.newValue)
       try {
-        // Parse and validate
-        const timestamp = params.newValue
-        // Simple validation - the parser will do the full validation
-        if (!timestamp.match(/^\d{2}:\d{2}:\d{2}\.\d{3}$/)) {
-          throw new Error('Invalid format. Use HH:MM:SS.mmm')
-        }
+        // Parse and validate - accept simple format (ssss.000)
+        const timestamp = params.newValue.trim()
 
-        // Convert to seconds and update
-        const parts = timestamp.split(':')
-        const seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2])
+        // Try to parse as float (simple format)
+        const seconds = parseFloat(timestamp)
+
+        if (isNaN(seconds) || seconds < 0) {
+          throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
+        }
 
         store.updateCue(params.data.id, { startTime: seconds })
       } catch (err) {
         alert('Invalid start time: ' + (err instanceof Error ? err.message : 'Unknown error'))
-        params.node?.setDataValue('startTimeFormatted', formatTimestamp(params.data.startTime))
+        params.node?.setDataValue('startTimeFormatted', formatTimestampSimple(params.data.startTime))
       }
     }
   },
@@ -208,6 +226,26 @@ const columnDefs = ref<ColDef[]>([
     editable: true,
     sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    cellEditorParams: {
+      onKeyDown: (event: KeyboardEvent) => {
+        // Handle +/- keys during editing to increment/decrement by 0.1s
+        if (event.key === '+' || event.key === '=') {
+          event.preventDefault()
+          const input = event.target as HTMLInputElement
+          const currentValue = parseFloat(input.value)
+          if (!isNaN(currentValue)) {
+            input.value = (currentValue + 0.1).toFixed(3)
+          }
+        } else if (event.key === '-') {
+          event.preventDefault()
+          const input = event.target as HTMLInputElement
+          const currentValue = parseFloat(input.value)
+          if (!isNaN(currentValue)) {
+            input.value = Math.max(0, currentValue - 0.1).toFixed(3)
+          }
+        }
+      }
+    },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -226,18 +264,20 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('End time edited:', params.newValue)
       try {
-        const timestamp = params.newValue
-        if (!timestamp.match(/^\d{2}:\d{2}:\d{2}\.\d{3}$/)) {
-          throw new Error('Invalid format. Use HH:MM:SS.mmm')
-        }
+        // Parse and validate - accept simple format (ssss.000)
+        const timestamp = params.newValue.trim()
 
-        const parts = timestamp.split(':')
-        const seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2])
+        // Try to parse as float (simple format)
+        const seconds = parseFloat(timestamp)
+
+        if (isNaN(seconds) || seconds < 0) {
+          throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
+        }
 
         store.updateCue(params.data.id, { endTime: seconds })
       } catch (err) {
         alert('Invalid end time: ' + (err instanceof Error ? err.message : 'Unknown error'))
-        params.node?.setDataValue('endTimeFormatted', formatTimestamp(params.data.endTime))
+        params.node?.setDataValue('endTimeFormatted', formatTimestampSimple(params.data.endTime))
       }
     }
   }
@@ -454,6 +494,12 @@ function computeSpeakerSimilarity() {
       defaultState: { sort: null }
     })
     console.log('Auto-sorted by speaker similarity (descending)')
+
+    // Scroll to top after sorting (if method is available)
+    if (typeof gridApi.value.ensureIndexVisible === 'function') {
+      gridApi.value.ensureIndexVisible(0, 'top')
+      console.log('Scrolled to top of grid')
+    }
   }
 }
 

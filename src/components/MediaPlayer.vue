@@ -2,7 +2,6 @@
   <div class="media-player">
     <div v-if="hasMedia && mediaFileName" class="media-info">
       <span class="media-filename">📁 {{ mediaFileName }}</span>
-      <span class="media-duration">⏱️ {{ formatTime(duration) }}</span>
     </div>
     <div class="video-container">
       <video
@@ -32,6 +31,12 @@
     </div>
 
     <div class="controls">
+      <div class="caption-controls">
+        <button @click="addCaptionAtCurrentTime" class="add-caption-btn" :disabled="!hasMedia">
+          ➕ Add Caption at Current Position
+        </button>
+      </div>
+
       <div class="playback-controls">
         <button @click="togglePlayPause" class="control-btn" :disabled="!hasMedia">
           {{ store.isPlaying ? '⏸️' : '▶️' }}
@@ -69,12 +74,6 @@
             {{ currentCaptionText }}
           </template>
         </div>
-      </div>
-
-      <div class="caption-controls">
-        <button @click="addCaptionAtCurrentTime" class="add-caption-btn" :disabled="!hasMedia">
-          ➕ Add Caption at Current Position
-        </button>
       </div>
     </div>
 
@@ -292,15 +291,8 @@ function addCaptionAtCurrentTime() {
 }
 
 function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600)
-  const mins = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-  const ms = Math.floor((seconds % 1) * 1000)
-
-  if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`
-  }
-  return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`
+  // Use simple seconds format (ssss.000)
+  return seconds.toFixed(3)
 }
 
 // Watch for play/pause from store (triggered by action buttons)

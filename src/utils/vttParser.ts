@@ -24,7 +24,7 @@ export function getCurrentTimestamp(): string {
 }
 
 /**
- * Parse timestamp in format HH:MM:SS.mmm or MM:SS.mmm to seconds
+ * Parse timestamp in format HH:MM:SS.mmm, MM:SS.mmm, or ssss.000 to seconds
  */
 function parseTimestamp(timestamp: string): number {
   console.log('Parsing timestamp:', timestamp)
@@ -37,6 +37,9 @@ function parseTimestamp(timestamp: string): number {
   } else if (parts.length === 2) {
     // MM:SS.mmm
     seconds = parseInt(parts[0]) * 60 + parseFloat(parts[1])
+  } else if (parts.length === 1) {
+    // ssss.000 (simple seconds format)
+    seconds = parseFloat(parts[0])
   } else {
     throw new Error(`Invalid timestamp format: ${timestamp}`)
   }
@@ -72,7 +75,7 @@ function completeCue(
 }
 
 /**
- * Format seconds to VTT timestamp HH:MM:SS.mmm
+ * Format seconds to VTT timestamp HH:MM:SS.mmm (for VTT file format)
  */
 export function formatTimestamp(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
@@ -84,6 +87,13 @@ export function formatTimestamp(seconds: number): string {
   const s = secs.toFixed(3).padStart(6, '0')
 
   return `${h}:${m}:${s}`
+}
+
+/**
+ * Format seconds to simple seconds display ssss.000 (for UI display)
+ */
+export function formatTimestampSimple(seconds: number): string {
+  return seconds.toFixed(3)
 }
 
 /**
