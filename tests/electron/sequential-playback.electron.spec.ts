@@ -137,13 +137,46 @@ test.describe('Sequential Playback', () => {
       return count >= 3
     }, { timeout: 5000 })
 
-    // Click the third row (index 2)
-    const thirdRow = window.locator('.ag-row').nth(2)
-    await thirdRow.click()
-    await window.waitForTimeout(50)
+    // Wait a bit for AG Grid to fully render cells
+    await window.waitForTimeout(200)
 
-    // Get the text of the third row
-    const thirdRowText = await thirdRow.locator('[col-id="text"]').textContent()
+    // Click the third row (index 2) and get its text via evaluate
+    // Filter out AG Grid ghost rows (known issue - see CLAUDE.md)
+    const result = await window.evaluate(() => {
+      const allRows = Array.from(document.querySelectorAll('.ag-row'))
+
+      // Filter out ghost rows - rows that have no text content in their cells
+      const realRows = allRows.filter((row: any) => {
+        const textCell = row.querySelector('[col-id="text"]')
+        return textCell && textCell.textContent?.trim().length > 0
+      })
+
+      console.log(`[Test Debug] Found ${allRows.length} total rows, ${realRows.length} real rows`)
+
+      if (realRows.length < 3) {
+        return { success: false, error: `Only ${realRows.length} real rows found (${allRows.length} total)`, text: null }
+      }
+
+      const thirdRow = realRows[2] as HTMLElement
+      thirdRow.click()
+
+      const textCell = thirdRow.querySelector('[col-id="text"]')
+      const text = textCell?.textContent?.trim() || null
+
+      if (!text) {
+        return { success: false, error: 'Text cell is empty', text: null }
+      }
+
+      return { success: true, error: null, text }
+    })
+
+    if (!result.success) {
+      throw new Error(`Could not get text from third row: ${result.error}`)
+    }
+
+    const thirdRowText = result.text
+
+    await window.waitForTimeout(50)
 
     // Click sequential play button
     const sequentialBtn = window.locator('button:has-text("Play Segments")')
@@ -290,8 +323,8 @@ test.describe('Sequential Playback', () => {
     }, { timeout: 5000 })
 
     // Click play button on first row (should use snippet mode)
-    const firstRow = window.locator('.ag-row').first()
-    const playButton = firstRow.locator('button[title="Play snippet"]')
+    // Use a simple selector that finds the first visible play button
+    const playButton = window.locator('button[title="Play snippet"]').first()
     await playButton.click()
 
     await window.waitForTimeout(50)
