@@ -11,6 +11,7 @@ import {
   deleteCue as deleteCueFromDoc,
   renameSpeaker as renameSpeakerInDoc,
   splitSegment as splitSegmentInDoc,
+  mergeAdjacentSegments as mergeAdjacentSegmentsInDoc,
   getCurrentTimestamp
 } from '../utils/vttParser'
 
@@ -262,6 +263,11 @@ export const useVTTStore = defineStore('vtt', () => {
     document.value = splitSegmentInDoc(document.value, segmentId, wordIndex)
   }
 
+  function mergeAdjacentSegments(segmentIds: string[]) {
+    console.log('Merging adjacent segments in store:', segmentIds)
+    document.value = mergeAdjacentSegmentsInDoc(document.value, segmentIds)
+  }
+
   function setCurrentTime(time: number) {
     currentTime.value = time
 
@@ -375,6 +381,7 @@ export const useVTTStore = defineStore('vtt', () => {
     bulkSetSpeaker,
     bulkDeleteCues,
     splitSegmentAtWordIndex,
+    mergeAdjacentSegments,
     setCurrentTime,
     setPlaying,
     selectCue,

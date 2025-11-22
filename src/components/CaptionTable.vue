@@ -498,6 +498,38 @@ function handleComputeSpeakerSimilarity() {
   computeSpeakerSimilarity()
 }
 
+/**
+ * Check if selected segments are temporally adjacent based on ordinal indices
+ */
+function areSegmentsAdjacent(segmentIds: string[]): boolean {
+  if (segmentIds.length < 2) return false
+
+  // Find all segments with their ordinals
+  const segments = segmentIds
+    .map(id => store.document.segments.find(s => s.id === id))
+    .filter((s): s is typeof store.document.segments[0] => s !== undefined)
+
+  if (segments.length !== segmentIds.length) return false
+
+  // Sort by ordinal
+  const sortedSegments = [...segments].sort((a, b) => {
+    const ordinalA = a.ordinal ?? 0
+    const ordinalB = b.ordinal ?? 0
+    return ordinalA - ordinalB
+  })
+
+  // Check if ordinals are consecutive
+  for (let i = 0; i < sortedSegments.length - 1; i++) {
+    const currentOrdinal = sortedSegments[i].ordinal ?? 0
+    const nextOrdinal = sortedSegments[i + 1].ordinal ?? 0
+    if (nextOrdinal !== currentOrdinal + 1) {
+      return false
+    }
+  }
+
+  return true
+}
+
 // Handle right-click context menu on cells
 function onCellContextMenu(event: CellContextMenuEvent) {
   if (!gridApi.value) return
@@ -530,6 +562,10 @@ function onCellContextMenu(event: CellContextMenuEvent) {
   // Store selected rows for context menu actions
   selectedRowsForContextMenu.value = selectedRows
 
+  // Check if selected segments are adjacent
+  const segmentIds = selectedRows.map(row => row.id)
+  const isAdjacent = areSegmentsAdjacent(segmentIds)
+
   // Build context menu items
   contextMenuItems.value = [
     {
@@ -543,6 +579,15 @@ function onCellContextMenu(event: CellContextMenuEvent) {
           detail: { rowCount: selectedRowsForContextMenu.value.length }
         }))
       }
+    },
+    {
+      label: `Merge Adjacent Segments (${selectedRows.length})`,
+      action: () => {
+        // Merge the adjacent segments
+        const segmentIds = selectedRowsForContextMenu.value.map(row => row.id)
+        store.mergeAdjacentSegments(segmentIds)
+      },
+      disabled: !isAdjacent || selectedRows.length < 2
     },
     {
       label: 'Delete Selected',
