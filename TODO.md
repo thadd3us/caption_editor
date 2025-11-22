@@ -1,5 +1,29 @@
 High:
 
+I'd like to clean up the different modes in which we can be playing, the way they can be entered, and their state.
+I'm not sure how close or far we are to this, but I think this is the desired state:
+
+Mode A) MEDIA_PLAYING: the media file is just playing forwards normally.  Initiated via the play button near the media.
+In mode A, moving the playhead manually doesn't stop playback, it just continues from the point where it was moved to.
+
+Mode B) SEGMENTS_PLAYING: there's a list of segment ids to be played in a particular order.  Initiated in one of several ways:
+  1. Clicking the play button in the AG Grid on a row creates a playlist of length one, of just that row, and plays it.
+  2. If "Autoplay selected row" is turned on, and a new row is selected in the table, it's identical to #1 right above -- as if that row's play button was clicked.
+  3. Clicking the "Play Segments" button above the AG Grid creates a playlist that starts with the currently selected row (first row if none selected) and goes through the AG Grid in the order they're currently displayed.
+When this mode B finishes without interruption, the playhead returns to the beginning of the first row that was played.
+In mode B, moving the playhead manually ends the playback of the playlist.
+
+If either playback mode is active:
+* Pausing playback pauses the playhead where it is and ends that playback mode.
+* Starting any of these playback methods immediately ends any other that is active and replaces it.
+* "Autoplay selected row" has no effect if the selected row changes due to playhead movement during playback.
+
+In either playback mode, or even when playback is not happening, if "Auto-scroll" is turned on (the default), moving the playhead, either through playback or the user manually dragging it, should:
+* Highlight in the AG Grid the first segment that contains the playhead (again, this shouldn't trigger "Autoplay selected row")
+* Attempt to ensure this segment is "in view" in the table's scroll position -- but don't necessarily scroll this row to the top of the table, which is the current behavior -- that produces too much scrolling and the UI jumps around unpredictably.
+
+
+
 * Try not to scroll table when possible: just make sure the active row is in view.
 * "Autoplay (selected row)" is also autoadvancing to the next row somehow (perhaps when autoscroll is on)
 * "Add caption at current position" moves above media playback widget.
