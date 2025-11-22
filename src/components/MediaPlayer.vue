@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
@@ -201,7 +201,7 @@ function onTimeUpdate() {
   if (mediaElement.value) {
     store.setCurrentTime(mediaElement.value.currentTime)
 
-    // Mode B (SEGMENTS_PLAYING): Check if we should advance to next segment
+    // SEGMENTS_PLAYING mode: Check if we should advance to next segment
     if (segmentEndTime.value !== null && mediaElement.value.currentTime >= segmentEndTime.value) {
       console.log('Segment playback complete')
 
@@ -231,8 +231,8 @@ function onPlay() {
 }
 
 function onPause() {
-  // Pausing stops any playlist playback (Mode B)
-  if (store.isSegmentsPlaying) {
+  // Pausing stops any playlist playback (SEGMENTS_PLAYING mode)
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
     console.log('Pause detected - stopping playlist playback')
     store.stopPlaylistPlayback(false)  // Don't return to start on manual pause
     segmentEndTime.value = null
@@ -260,8 +260,8 @@ function onScrub(event: Event) {
   // Mark as manual scrub
   isManualScrub.value = true
 
-  // Mode B: Manual scrubbing cancels playlist playback
-  if (store.isSegmentsPlaying) {
+  // SEGMENTS_PLAYING mode: Manual scrubbing cancels playlist playback
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
     console.log('Manual scrub detected - canceling playlist playback')
     store.cancelPlaylistPlayback()
     segmentEndTime.value = null
@@ -301,16 +301,16 @@ watch(() => store.isPlaying, (playing) => {
   if (!mediaElement.value) return
 
   if (playing) {
-    // Mode B (SEGMENTS_PLAYING): Set up segment end time for playlist playback
-    if (store.isSegmentsPlaying) {
+    // SEGMENTS_PLAYING mode: Set up segment end time for playlist playback
+    if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
       const currentSegment = store.currentPlaylistSegment
       if (currentSegment) {
-        console.log('Mode B: Starting playlist playback for segment:', currentSegment.id)
+        console.log('SEGMENTS_PLAYING: Starting playlist playback for segment:', currentSegment.id)
         segmentEndTime.value = currentSegment.endTime
       }
     } else {
-      // Mode A (MEDIA_PLAYING): Normal playback, no segment tracking
-      console.log('Mode A: Starting normal media playback')
+      // MEDIA_PLAYING mode: Normal playback, no segment tracking
+      console.log('MEDIA_PLAYING: Starting normal media playback')
       segmentEndTime.value = null
     }
 

@@ -54,7 +54,7 @@ import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
-import { useVTTStore } from '../stores/vttStore'
+import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import { formatTimestamp } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
@@ -299,11 +299,11 @@ function onSelectionChanged(event: SelectionChangedEvent) {
 
 // Sequential playback button label and tooltip
 const sequentialPlayButtonLabel = computed(() => {
-  return store.isSegmentsPlaying ? '⏸ Pause Segments' : '▶️ Play Segments'
+  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸ Pause Segments' : '▶️ Play Segments'
 })
 
 const sequentialPlayButtonTooltip = computed(() => {
-  if (store.isSegmentsPlaying) {
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
     return 'Pause segment playback'
   }
   return 'Play segments in table order, skipping silence'
@@ -316,7 +316,7 @@ const sequentialPlayButtonTooltip = computed(() => {
 function toggleSequentialPlayback() {
   if (!gridApi.value) return
 
-  if (store.isSegmentsPlaying) {
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
     // Stop playlist playback
     console.log('Stopping playlist playback')
     store.stopPlaylistPlayback(false)  // Don't return to start on manual stop

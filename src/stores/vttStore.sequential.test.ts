@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useVTTStore } from './vttStore'
+import { useVTTStore, PlaybackMode } from './vttStore'
 // import type { VTTDocument } from '../types/schema'
 
 describe('Playlist Playback Store', () => {
@@ -38,7 +38,7 @@ Third segment
     store.startPlaylistPlayback(segmentIds, 0)
 
     // Verify state
-    expect(store.isSegmentsPlaying).toBe(true)
+    expect(store.playbackMode).toBe(PlaybackMode.SEGMENTS_PLAYING)
     expect(store.playlist).toEqual(['seg1', 'seg2', 'seg3'])
     expect(store.playlistIndex).toBe(0)
     expect(store.playlistStartIndex).toBe(0)
@@ -175,12 +175,12 @@ Second segment
     // Move to second segment
     const hasNext1 = store.nextPlaylistSegment()
     expect(hasNext1).toBe(true)
-    expect(store.isSegmentsPlaying).toBe(true) // Still in playlist mode
+    expect(store.playbackMode).toBe(PlaybackMode.SEGMENTS_PLAYING) // Still in playlist mode
 
     // Try to move beyond last segment
     const hasNext2 = store.nextPlaylistSegment()
     expect(hasNext2).toBe(false)
-    expect(store.isSegmentsPlaying).toBe(false) // Should stop playlist mode
+    expect(store.playbackMode).toBe(PlaybackMode.MEDIA_PLAYING) // Should return to MEDIA_PLAYING mode
     expect(store.isPlaying).toBe(false) // Should stop playing
     // Should have returned to start (seg1)
     expect(store.currentTime).toBe(0)
@@ -210,14 +210,14 @@ Second segment
     store.startPlaylistPlayback(segmentIds, 0)
 
     // Verify it's playing
-    expect(store.isSegmentsPlaying).toBe(true)
+    expect(store.playbackMode).toBe(PlaybackMode.SEGMENTS_PLAYING)
     expect(store.isPlaying).toBe(true)
 
     // Stop playlist playback (manual stop, don't return to start)
     store.stopPlaylistPlayback(false)
 
     // Verify state is cleared
-    expect(store.isSegmentsPlaying).toBe(false)
+    expect(store.playbackMode).toBe(PlaybackMode.MEDIA_PLAYING)
     expect(store.playlist).toEqual([])
     expect(store.playlistIndex).toBe(0)
     expect(store.isPlaying).toBe(false)
@@ -234,8 +234,8 @@ Second segment
     // Should not crash, but won't start playing (no segments to play)
     expect(store.playlist).toEqual([])
     expect(store.currentPlaylistSegment).toBeNull()
-    // With empty playlist, isSegmentsPlaying is false (empty playlist = Mode A)
-    expect(store.isSegmentsPlaying).toBe(false)
+    // Should still be in SEGMENTS_PLAYING mode (empty playlist edge case)
+    expect(store.playbackMode).toBe(PlaybackMode.SEGMENTS_PLAYING)
   })
 
   it('should preserve playlist order even if document changes', () => {
@@ -321,7 +321,7 @@ Second segment
     store.cancelPlaylistPlayback()
 
     // Verify playlist is cleared but playhead didn't move
-    expect(store.isSegmentsPlaying).toBe(false)
+    expect(store.playbackMode).toBe(PlaybackMode.MEDIA_PLAYING)
     expect(store.playlist).toEqual([])
     expect(store.currentTime).toBe(3) // Still at seg2
   })
