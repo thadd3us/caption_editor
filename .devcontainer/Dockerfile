@@ -124,15 +124,15 @@ RUN cd /tmp/python-deps && \
     rm -rf /home/dev/models/xet && \
     echo "Whisper-tiny model downloaded successfully"
 
-# Pre-download NVIDIA Parakeet model (default model for production)
-# Note: This is a ~2.4GB download and may take time during build
-RUN cd /tmp/python-deps && \
-    uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
-    rm -rf /home/dev/models/xet && \
-    echo "Parakeet TDT model downloaded successfully"
+# TODO: Reenable this.
+# # Pre-download NVIDIA Parakeet model (default model for production)
+# # Note: This is a ~2.4GB download and may take time during build
+# RUN cd /tmp/python-deps && \
+#     uv run python -c "import nemo.collections.asr as nemo_asr; model = nemo_asr.models.ASRModel.from_pretrained(model_name='nvidia/parakeet-tdt-0.6b-v3'); print('Parakeet model downloaded successfully')" && \
+#     rm -rf /home/dev/models/xet && \
+#     echo "Parakeet TDT model downloaded successfully"
 
-# Brief pause to ensure models are properly cached
-RUN echo "Finalizing model downloads..." && sleep 30 && echo "Model downloads complete"
+RUN echo "Finalizing model downloads..." && echo "Model downloads complete"
 
 # ============================================================================
 # NODE.JS DEPENDENCIES - Do these LAST so changes only rebuild from here
