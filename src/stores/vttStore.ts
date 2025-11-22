@@ -19,6 +19,8 @@ import {
  * Playback modes for the media player
  */
 export enum PlaybackMode {
+  /** Not playing - media is paused or stopped */
+  STOPPED = 'STOPPED',
   /** Normal continuous playback - media plays forward normally */
   MEDIA_PLAYING = 'MEDIA_PLAYING',
   /** Playlist-based segment playback - plays specific segments in order */
@@ -34,11 +36,11 @@ export const useVTTStore = defineStore('vtt', () => {
   const mediaPath = ref<string | null>(null)
 
   const currentTime = ref(0)
-  const isPlaying = ref(false)
+  const isPlaying = ref(false)  // Kept for compatibility with media element events
   const selectedCueId = ref<string | null>(null)
 
-  // Playback mode state
-  const playbackMode = ref<PlaybackMode>(PlaybackMode.MEDIA_PLAYING)
+  // Playback mode state - single source of truth for playback status
+  const playbackMode = ref<PlaybackMode>(PlaybackMode.STOPPED)
 
   // Playlist-based playback state (only used in SEGMENTS_PLAYING mode)
   const playlist = ref<string[]>([])  // Ordered list of segment IDs to play
@@ -321,7 +323,7 @@ export const useVTTStore = defineStore('vtt', () => {
   }
 
   /**
-   * Stop playlist playback and return to MEDIA_PLAYING mode
+   * Stop playlist playback and return to STOPPED mode
    * @param returnToStart - If true, return playhead to the start of the first segment in the playlist
    */
   function stopPlaylistPlayback(returnToStart: boolean = false) {
@@ -338,7 +340,7 @@ export const useVTTStore = defineStore('vtt', () => {
       }
     }
 
-    playbackMode.value = PlaybackMode.MEDIA_PLAYING
+    playbackMode.value = PlaybackMode.STOPPED
     playlist.value = []
     playlistIndex.value = 0
     playlistStartIndex.value = 0
@@ -376,11 +378,11 @@ export const useVTTStore = defineStore('vtt', () => {
 
   /**
    * Cancel playlist playback due to manual intervention (e.g., scrubbing)
-   * Returns to MEDIA_PLAYING mode without returning to start
+   * Returns to STOPPED mode without returning to start
    */
   function cancelPlaylistPlayback() {
     console.log('Canceling playlist playback due to manual intervention')
-    playbackMode.value = PlaybackMode.MEDIA_PLAYING
+    playbackMode.value = PlaybackMode.STOPPED
     playlist.value = []
     playlistIndex.value = 0
     playlistStartIndex.value = 0
