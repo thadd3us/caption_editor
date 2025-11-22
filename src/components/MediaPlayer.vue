@@ -90,15 +90,16 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
 const videoElement = ref<HTMLVideoElement | null>(null)
 const audioElement = ref<HTMLAudioElement | null>(null)
 const duration = ref(0)
-const snippetEndTime = ref<number | null>(null)
+const segmentEndTime = ref<number | null>(null)  // Track when current segment should end
 const scrubberElement = ref<HTMLInputElement | null>(null)
+const isManualScrub = ref(false)  // Track if user is manually scrubbing
 
 // Context menu state
 const isContextMenuVisible = ref(false)
@@ -200,43 +201,26 @@ function onTimeUpdate() {
   if (mediaElement.value) {
     store.setCurrentTime(mediaElement.value.currentTime)
 
-    // Check if we should stop (snippet playback)
-    if (snippetEndTime.value !== null && mediaElement.value.currentTime >= snippetEndTime.value) {
-      console.log('Snippet playback complete')
+    // SEGMENTS_PLAYING mode: Check if we should advance to next segment
+    if (segmentEndTime.value !== null && mediaElement.value.currentTime >= segmentEndTime.value) {
+      console.log('Segment playback complete')
 
-      // Check if we're in sequential mode
-      if (store.sequentialMode) {
-        // Move to next segment in the playlist
-        const hasNext = store.nextSequentialSegment()
-        if (hasNext) {
-          // Continue playing the next segment
-          const nextSegment = store.currentSequentialSegment
-          if (nextSegment) {
-            console.log('Sequential: moving to next segment:', nextSegment.id)
-            snippetEndTime.value = nextSegment.endTime
-            mediaElement.value.currentTime = nextSegment.startTime
-            // Keep playing (don't pause)
-          }
-        } else {
-          // Reached end of playlist
-          console.log('Sequential: reached end of playlist')
-          mediaElement.value.pause()
-          snippetEndTime.value = null
+      // Move to next segment in the playlist
+      const hasNext = store.nextPlaylistSegment()
+      if (hasNext) {
+        // Continue playing the next segment
+        const nextSegment = store.currentPlaylistSegment
+        if (nextSegment) {
+          console.log('Playlist: moving to next segment:', nextSegment.id)
+          segmentEndTime.value = nextSegment.endTime
+          mediaElement.value.currentTime = nextSegment.startTime
+          // Keep playing (don't pause)
         }
       } else {
-        // Single snippet mode - pause and seek back
-        console.log('Single snippet playback complete, pausing')
+        // Reached end of playlist - stopPlaylistPlayback will handle returning to start
+        console.log('Playlist: reached end of playlist')
         mediaElement.value.pause()
-
-        // Seek back to start of snippet
-        const cue = store.document.segments.find(c => c.endTime === snippetEndTime.value)
-        if (cue) {
-          mediaElement.value.currentTime = cue.startTime
-          store.setCurrentTime(cue.startTime)
-        }
-
-        snippetEndTime.value = null
-        store.setSnippetMode(false)
+        segmentEndTime.value = null
       }
     }
   }
@@ -247,6 +231,12 @@ function onPlay() {
 }
 
 function onPause() {
+  // Pausing stops any playlist playback (SEGMENTS_PLAYING mode)
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    console.log('Pause detected - stopping playlist playback')
+    store.stopPlaylistPlayback(false)  // Don't return to start on manual pause
+    segmentEndTime.value = null
+  }
   store.setPlaying(false)
 }
 
@@ -265,12 +255,27 @@ function togglePlayPause() {
 function onScrub(event: Event) {
   const target = event.target as HTMLInputElement
   const time = parseFloat(target.value)
-  console.log('Scrubbing to:', time)
+  console.log('Manual scrub to:', time)
+
+  // Mark as manual scrub
+  isManualScrub.value = true
+
+  // SEGMENTS_PLAYING mode: Manual scrubbing cancels playlist playback
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    console.log('Manual scrub detected - canceling playlist playback')
+    store.cancelPlaylistPlayback()
+    segmentEndTime.value = null
+  }
 
   if (mediaElement.value) {
     mediaElement.value.currentTime = time
     store.setCurrentTime(time)
   }
+
+  // Reset flag after a short delay
+  setTimeout(() => {
+    isManualScrub.value = false
+  }, 100)
 }
 
 function addCaptionAtCurrentTime() {
@@ -296,29 +301,17 @@ watch(() => store.isPlaying, (playing) => {
   if (!mediaElement.value) return
 
   if (playing) {
-    // Check for sequential playback mode
-    if (store.sequentialMode) {
-      const currentSegment = store.currentSequentialSegment
+    // SEGMENTS_PLAYING mode: Set up segment end time for playlist playback
+    if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+      const currentSegment = store.currentPlaylistSegment
       if (currentSegment) {
-        console.log('Starting sequential playback for segment:', currentSegment.id)
-        snippetEndTime.value = currentSegment.endTime
-      }
-    }
-    // Only set up snippet playback if snippetMode is enabled
-    else if (store.snippetMode && store.selectedCueId) {
-      const selectedCue = store.document.segments.find(c => c.id === store.selectedCueId)
-
-      if (selectedCue) {
-        const timeDiff = Math.abs(store.currentTime - selectedCue.startTime)
-
-        if (timeDiff < 0.1) {
-          console.log('Starting snippet playback for cue:', selectedCue.id)
-          snippetEndTime.value = selectedCue.endTime
-        }
+        console.log('SEGMENTS_PLAYING: Starting playlist playback for segment:', currentSegment.id)
+        segmentEndTime.value = currentSegment.endTime
       }
     } else {
-      // Continuous playback mode - clear any snippet end time
-      snippetEndTime.value = null
+      // MEDIA_PLAYING mode: Normal playback, no segment tracking
+      console.log('MEDIA_PLAYING: Starting normal media playback')
+      segmentEndTime.value = null
     }
 
     if (mediaElement.value.paused) {

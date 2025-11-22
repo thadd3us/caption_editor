@@ -54,7 +54,7 @@ import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
-import { useVTTStore } from '../stores/vttStore'
+import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import { formatTimestamp } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
@@ -284,28 +284,27 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   if (selectedRows.length > 0) {
     const row = selectedRows[0]
     const cueId = row.id
-    const startTime = row.startTime
     console.log('Selected cue:', cueId, 'isAutoScrolling:', isAutoScrolling)
     store.selectCue(cueId)
 
-    // If autoplay is enabled AND we're not auto-scrolling, play the snippet
+    // If autoplay is enabled AND we're not auto-scrolling, play the segment
     // (During auto-scroll, we don't want to trigger autoplay)
     if (autoplayEnabled.value && !isAutoScrolling) {
-      console.log('Autoplay: playing snippet for cue:', cueId)
-      store.setCurrentTime(startTime)
-      store.setPlaying(true)
+      console.log('Autoplay: playing segment for cue:', cueId)
+      // Create a playlist of just this one segment
+      store.startPlaylistPlayback([cueId], 0)
     }
   }
 }
 
 // Sequential playback button label and tooltip
 const sequentialPlayButtonLabel = computed(() => {
-  return store.sequentialMode ? '⏸ Pause Sequential' : '▶️ Play Sequential'
+  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸ Pause Segments' : '▶️ Play Segments'
 })
 
 const sequentialPlayButtonTooltip = computed(() => {
-  if (store.sequentialMode) {
-    return 'Pause sequential playback'
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    return 'Pause segment playback'
   }
   return 'Play segments in table order, skipping silence'
 })
@@ -317,12 +316,12 @@ const sequentialPlayButtonTooltip = computed(() => {
 function toggleSequentialPlayback() {
   if (!gridApi.value) return
 
-  if (store.sequentialMode) {
-    // Stop sequential playback
-    console.log('Stopping sequential playback')
-    store.stopSequentialPlayback()
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    // Stop playlist playback
+    console.log('Stopping playlist playback')
+    store.stopPlaylistPlayback(false)  // Don't return to start on manual stop
   } else {
-    // Start sequential playback
+    // Start playlist playback with all segments in table order
     // Get all rows in their current display order
     const allSegmentIds: string[] = []
     gridApi.value.forEachNodeAfterFilterAndSort((node) => {
@@ -347,8 +346,8 @@ function toggleSequentialPlayback() {
       }
     }
 
-    console.log('Starting sequential playback with', allSegmentIds.length, 'segments from index', startIndex)
-    store.startSequentialPlayback(allSegmentIds, startIndex)
+    console.log('Starting playlist playback with', allSegmentIds.length, 'segments from index', startIndex)
+    store.startPlaylistPlayback(allSegmentIds, startIndex)
   }
 }
 
@@ -479,8 +478,9 @@ watch(() => store.currentTime, (currentTime) => {
       gridApi.value.deselectAll()
       rowNode.setSelected(true)
 
-      // Scroll it to the top
-      gridApi.value.ensureNodeVisible(rowNode, 'top')
+      // Scroll just enough to ensure the row is visible (don't force it to top)
+      // This reduces UI jumping when the row is already visible
+      gridApi.value.ensureNodeVisible(rowNode, null)
 
       console.log('Auto-scrolled to cue:', cue.id, 'at time:', currentTime)
 
