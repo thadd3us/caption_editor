@@ -75,24 +75,45 @@ test.describe('Sequential Playback', () => {
   })
 
   test('should start sequential playback from top when no row selected', async () => {
-    // Load a VTT file with multiple segments
+    console.log('[Test] Loading VTT file...')
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    // Load media file
+    console.log('[Test] Loading media file...')
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
-    // Click sequential play button
+    console.log('[Test] Clicking Play Segments button...')
     const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await sequentialBtn.click()
 
-    // Button should change to "Pause Segments"
+    console.log('[Test] Verifying button changed to Pause Segments...')
     await expect(window.locator('button:has-text("Pause Segments")')).toBeVisible()
 
-    // First row should be selected (auto-scroll feature)
-    await window.waitForTimeout(100)
+    console.log('[Test] Checking playback state...')
+    const state = await window.evaluate(() => {
+      const store = (window as any).__vttStore
+      return {
+        playbackMode: store.playbackMode,
+        isPlaying: store.isPlaying,
+        selectedCueId: store.selectedCueId,
+        currentTime: store.currentTime
+      }
+    })
+    console.log('[Test] Playback state:', JSON.stringify(state, null, 2))
+
+    // First row should be selected (set by startPlaylistPlayback)
+    console.log('[Test] Waiting for row selection...')
+    await window.waitForTimeout(200)
     const selectedRows = await window.locator('.ag-row.ag-row-selected').count()
+    console.log('[Test] Selected rows count:', selectedRows)
+
+    if (selectedRows === 0) {
+      // Debug: log all rows
+      const rowCount = await window.locator('.ag-row').count()
+      console.log('[Test] Total rows:', rowCount)
+    }
+
     expect(selectedRows).toBeGreaterThan(0)
   })
 
