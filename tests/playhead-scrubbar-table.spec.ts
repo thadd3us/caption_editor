@@ -281,9 +281,9 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     const secondRowTime = await rows[1].locator('[col-id="startTime"]').textContent()
     const thirdRowTime = await rows[2].locator('[col-id="startTime"]').textContent()
     console.log('Row times (after sorting):', firstRowTime, secondRowTime, thirdRowTime)
-    expect(firstRowTime).toBe('00:00:00.500')  // First cue at 0.5s
-    expect(secondRowTime).toBe('00:00:02.000')  // Second cue at 2s
-    expect(thirdRowTime).toBe('00:00:08.000')   // Third cue at 8s
+    expect(firstRowTime).toBe('0.500')  // First cue at 0.5s
+    expect(secondRowTime).toBe('2.000')  // Second cue at 2s
+    expect(thirdRowTime).toBe('8.000')   // Third cue at 8s
 
     // Click on first row (0.5s cue) and verify playhead moves
     await rows[0].click()
