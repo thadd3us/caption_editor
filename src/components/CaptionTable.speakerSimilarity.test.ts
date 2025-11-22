@@ -109,7 +109,8 @@ describe('CaptionTable - Speaker Similarity', () => {
       refreshCells: mockRefreshCells,
       applyColumnState: mockApplyColumnState,
       getColumn: mockGetColumn,
-      setColumnVisible: mockSetColumnVisible
+      setColumnVisible: mockSetColumnVisible,
+      ensureIndexVisible: vi.fn()
     }
 
     // Call computeSpeakerSimilarity

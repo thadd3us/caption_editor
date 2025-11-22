@@ -495,11 +495,9 @@ function computeSpeakerSimilarity() {
     })
     console.log('Auto-sorted by speaker similarity (descending)')
 
-    // Scroll to top after sorting (if method is available)
-    if (typeof gridApi.value.ensureIndexVisible === 'function') {
-      gridApi.value.ensureIndexVisible(0, 'top')
-      console.log('Scrolled to top of grid')
-    }
+    // Scroll to top after sorting
+    gridApi.value.ensureIndexVisible(0, 'top')
+    console.log('Scrolled to top of grid')
   }
 }
 
