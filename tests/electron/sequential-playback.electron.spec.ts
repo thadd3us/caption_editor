@@ -70,7 +70,7 @@ test.describe('Sequential Playback', () => {
     await loadVTTFile(vttPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await expect(sequentialBtn).toBeVisible()
   })
 
@@ -84,11 +84,11 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Click sequential play button
-    const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await sequentialBtn.click()
 
-    // Button should change to "Pause Sequential"
-    await expect(window.locator('button:has-text("Pause Sequential")')).toBeVisible()
+    // Button should change to "Pause Segments"
+    await expect(window.locator('button:has-text("Pause Segments")')).toBeVisible()
 
     // First row should be selected (auto-scroll feature)
     await window.waitForTimeout(100)
@@ -115,7 +115,7 @@ test.describe('Sequential Playback', () => {
       const thirdRowText = await rows[2].locator('[col-id="text"]').textContent()
 
       // Click sequential play button
-      const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+      const sequentialBtn = window.locator('button:has-text("Play Segments")')
       await sequentialBtn.click()
 
       await window.waitForTimeout(100)
@@ -135,18 +135,18 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    const playBtn = window.locator('button:has-text("Play Sequential")')
+    const playBtn = window.locator('button:has-text("Play Segments")')
     await playBtn.click()
 
     // Button should change to pause
-    const pauseBtn = window.locator('button:has-text("Pause Sequential")')
+    const pauseBtn = window.locator('button:has-text("Pause Segments")')
     await expect(pauseBtn).toBeVisible()
 
     // Click pause
     await pauseBtn.click()
 
     // Button should change back to play
-    await expect(window.locator('button:has-text("Play Sequential")')).toBeVisible()
+    await expect(window.locator('button:has-text("Play Segments")')).toBeVisible()
   })
 
   test('should play segments in table order respecting sort', async () => {
@@ -170,14 +170,14 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(100)
 
     // Check that the playlist matches the initial order
     const playlistOrder = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return store.sequentialPlaylist
+      return store.playlist
     })
 
     expect(playlistOrder).toEqual(initialOrder)
@@ -192,20 +192,20 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(50)
 
     // Get initial index
     const initialIndex = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return store.sequentialPlaylistIndex
+      return store.playlistIndex
     })
 
     // Simulate segment completion by manually advancing
     await window.evaluate(() => {
       const store = (window as any).__vttStore
-      store.nextSequentialSegment()
+      store.nextPlaylistSegment()
     })
 
     await window.waitForTimeout(50)
@@ -213,7 +213,7 @@ test.describe('Sequential Playback', () => {
     // Index should have advanced
     const newIndex = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return store.sequentialPlaylistIndex
+      return store.playlistIndex
     })
 
     expect(newIndex).toBe(initialIndex + 1)
@@ -228,14 +228,14 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(50)
 
     // Get the playlist before sorting
     const playlistBefore = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return [...store.sequentialPlaylist]
+      return [...store.playlist]
     })
 
     // Sort the table by text column (click header)
@@ -246,7 +246,7 @@ test.describe('Sequential Playback', () => {
     // Get the playlist after sorting
     const playlistAfter = await window.evaluate(() => {
       const store = (window as any).__vttStore
-      return store.sequentialPlaylist
+      return store.playlist
     })
 
     // Playlist should be unchanged
@@ -259,7 +259,7 @@ test.describe('Sequential Playback', () => {
     await loadVTTFile(vttPath)
 
     // Sequential play button should be disabled
-    const sequentialBtn = window.locator('button:has-text("Play Sequential")')
+    const sequentialBtn = window.locator('button:has-text("Play Segments")')
     await expect(sequentialBtn).toBeDisabled()
   })
 
@@ -272,12 +272,12 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Sequential")').click()
+    await window.locator('button:has-text("Play Segments")').click()
 
     await window.waitForTimeout(50)
 
     // Stop sequential playback
-    await window.locator('button:has-text("Pause Sequential")').click()
+    await window.locator('button:has-text("Pause Segments")').click()
 
     await window.waitForTimeout(50)
 
@@ -289,17 +289,17 @@ test.describe('Sequential Playback', () => {
 
       await window.waitForTimeout(50)
 
-      // Should be in snippet mode, not sequential mode
-      const modes = await window.evaluate(() => {
+      // Should be in SEGMENTS_PLAYING mode with single-item playlist
+      const mode = await window.evaluate(() => {
         const store = (window as any).__vttStore
         return {
-          snippetMode: store.snippetMode,
-          sequentialMode: store.sequentialMode
+          playbackMode: store.playbackMode,
+          playlistLength: store.playlist.length
         }
       })
 
-      expect(modes.snippetMode).toBe(true)
-      expect(modes.sequentialMode).toBe(false)
+      expect(mode.playbackMode).toBe('SEGMENTS_PLAYING')
+      expect(mode.playlistLength).toBe(1) // Single segment playlist
     }
   })
 })
