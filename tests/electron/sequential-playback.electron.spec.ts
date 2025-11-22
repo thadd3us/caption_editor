@@ -118,6 +118,8 @@ test.describe('Sequential Playback', () => {
   })
 
   test('should start sequential playback from selected row', async () => {
+    test.setTimeout(15000) // Need extra time for AG Grid rendering
+
     // Load a VTT file
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
@@ -259,6 +261,8 @@ test.describe('Sequential Playback', () => {
   })
 
   test('should work with single segment playback', async () => {
+    test.setTimeout(15000) // Need extra time for AG Grid rendering
+
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
