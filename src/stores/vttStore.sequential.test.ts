@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useVTTStore } from './vttStore'
-import type { VTTDocument } from '../types/schema'
+// import type { VTTDocument } from '../types/schema'
 
 describe('Sequential Playback Store', () => {
   beforeEach(() => {
