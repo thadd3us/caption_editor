@@ -11,7 +11,38 @@ test.describe('Sequential Playback', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeAll(async () => {
+  // Helper to load VTT file via IPC
+  async function loadVTTFile(filePath: string) {
+    await electronApp.evaluate(async ({ webContents }, path) => {
+      const windows = webContents.getAllWebContents()
+      if (windows.length > 0) {
+        windows[0].send('open-file', path)
+      }
+    }, filePath)
+
+    // Wait for file to load
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store && store.document && store.document.segments && store.document.segments.length > 0
+      },
+      { timeout: 5000 }
+    )
+  }
+
+  // Helper to load media file
+  async function loadMediaFile(filePath: string) {
+    await window.evaluate((path) => {
+      const store = (window as any).$store
+      if (store && store.loadMediaFile) {
+        store.loadMediaFile(path, path)
+      }
+    }, filePath)
+    await window.waitForTimeout(100)
+  }
+
+  // Launch fresh Electron instance before each test
+  test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
       args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
@@ -28,19 +59,15 @@ test.describe('Sequential Playback', () => {
     enableConsoleCapture(window)
   })
 
-  test.afterAll(async () => {
+  // Close Electron instance after each test
+  test.afterEach(async () => {
     await electronApp.close()
   })
 
   test('should show sequential play button in table header', async () => {
     // Load a VTT file with multiple segments
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    // Wait for file to load
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     // Sequential play button should be visible
     const sequentialBtn = window.locator('button:has-text("Play Sequential")')
@@ -50,19 +77,11 @@ test.describe('Sequential Playback', () => {
   test('should start sequential playback from top when no row selected', async () => {
     // Load a VTT file with multiple segments
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     // Load media file
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Click sequential play button
     const sequentialBtn = window.locator('button:has-text("Play Sequential")')
@@ -80,19 +99,11 @@ test.describe('Sequential Playback', () => {
   test('should start sequential playback from selected row', async () => {
     // Load a VTT file
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     // Load media file
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Get all rows and click the third one
     const rows = await window.locator('.ag-row').all()
@@ -118,18 +129,10 @@ test.describe('Sequential Playback', () => {
   test('should stop sequential playback when pause button clicked', async () => {
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Start sequential playback
     const playBtn = window.locator('button:has-text("Play Sequential")')
@@ -149,18 +152,10 @@ test.describe('Sequential Playback', () => {
   test('should play segments in table order respecting sort', async () => {
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Get the grid API and capture initial order
     const initialOrder = await window.evaluate(() => {
@@ -191,18 +186,10 @@ test.describe('Sequential Playback', () => {
   test('should advance to next segment during playback', async () => {
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Start sequential playback
     await window.locator('button:has-text("Play Sequential")').click()
@@ -235,18 +222,10 @@ test.describe('Sequential Playback', () => {
   test('should preserve playlist order even if table is resorted', async () => {
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Start sequential playback
     await window.locator('button:has-text("Play Sequential")').click()
@@ -277,11 +256,7 @@ test.describe('Sequential Playback', () => {
   test('should disable sequential button when no media loaded', async () => {
     // Load only VTT file, no media
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     // Sequential play button should be disabled
     const sequentialBtn = window.locator('button:has-text("Play Sequential")')
@@ -291,18 +266,10 @@ test.describe('Sequential Playback', () => {
   test('should work with single segment playback', async () => {
     // Load files
     const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('file-opened', filePath)
-    }, vttPath)
-
-    await window.waitForTimeout(100)
+    await loadVTTFile(vttPath)
 
     const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await window.evaluate((filePath) => {
-      window.electronAPI.ipcRenderer.emit('media-file-selected', filePath)
-    }, audioPath)
-
-    await window.waitForTimeout(100)
+    await loadMediaFile(audioPath)
 
     // Start sequential playback
     await window.locator('button:has-text("Play Sequential")').click()
