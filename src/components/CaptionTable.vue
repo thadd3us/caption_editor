@@ -58,6 +58,7 @@ import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import { formatTimestampSimple } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
+import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
@@ -126,6 +127,7 @@ const columnDefs = ref<ColDef[]>([
     width: 150,
     editable: true,
     sortable: true,
+    cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       store.updateCue(params.data.id, { speakerName: params.newValue })
@@ -807,5 +809,19 @@ onUnmounted(() => {
   line-height: 1.3;
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+/* Enable header text wrapping */
+:deep(.ag-header-cell-text) {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  line-height: 1.2;
+}
+
+:deep(.ag-header-cell-label) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 </style>
