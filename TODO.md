@@ -1,13 +1,13 @@
 High:
 
 
-* "Add caption at current position" moves above media playback widget.
+* Delete the media file duration that's displayed to the right of media filepath.
+* Delete the "VTT File: " text that's displayed to the left of VTT filepath.
+* The "Add caption at current position" button on the bottom right should move above media playback widget.
+* After sorting by speaker similarity, scroll to top of the AG Grid.
+* Render and accept all times not as hh:mm:ss.000 but just a second count ssss.000.  When editing a timestamp in the AG Grid, you can use +- buttons to increase decrease the time by 0.1s.
 
-* When sorting by speaker similarity, scroll to top.
-* Delete duration from right of media filepath
-* Delete "VTT File: " to the left of VTT filepath
-* Rename "Play Sequential" to just a play button.
-* Option to not render all times as hh:mm:ss.000 but just sss.000.  Use +- buttons to move time.
+* Rename "Play Sequential" to just be a play button.
 
 
 Medium:
