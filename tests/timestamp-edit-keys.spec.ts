@@ -12,8 +12,8 @@ test.describe('Timestamp Editing with +/- Keys', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeAll(async () => {
-    // Launch Electron app
+  test.beforeEach(async () => {
+    // Launch Electron app (fresh instance for each test)
     electronApp = await electron.launch({
       args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
       env: {
@@ -29,34 +29,27 @@ test.describe('Timestamp Editing with +/- Keys', () => {
     enableConsoleCapture(window)
   })
 
-  test.afterAll(async () => {
+  test.afterEach(async () => {
     await electronApp.close()
   })
 
   test('should increment start time by 0.1s when pressing + key during edit', async () => {
-    // Load a VTT file
+    // Load a VTT file directly using store
     const vttContent = `WEBVTT
 
 00:00:01.000 --> 00:00:04.000
 Test caption`
 
     await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/test.vtt')
     }, vttContent)
 
     await window.waitForTimeout(200)
 
     // Find the start time cell (should show "1.000" in simple format)
-    const startTimeCell = window.locator('[col-id="startTime"]').first()
+    // Use ag-cell to target data cells, not header cells
+    const startTimeCell = window.locator('.ag-cell[col-id="startTime"]').first()
     await expect(startTimeCell).toBeVisible()
     await expect(startTimeCell).toContainText('1.000')
 
@@ -69,7 +62,7 @@ Test caption`
     await window.waitForTimeout(100)
 
     // The input should now show 1.100
-    const input = window.locator('[col-id="startTime"] input').first()
+    const input = window.locator('.ag-cell[col-id="startTime"] input').first()
     await expect(input).toHaveValue('1.100')
 
     // Press Enter to confirm
@@ -88,22 +81,14 @@ Test caption`
 Test caption`
 
     await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/test.vtt')
     }, vttContent)
 
     await window.waitForTimeout(200)
 
     // Find the start time cell
-    const startTimeCell = window.locator('[col-id="startTime"]').first()
+    const startTimeCell = window.locator('.ag-cell[col-id="startTime"]').first()
     await expect(startTimeCell).toBeVisible()
     await expect(startTimeCell).toContainText('2.500')
 
@@ -116,7 +101,7 @@ Test caption`
     await window.waitForTimeout(100)
 
     // The input should now show 2.400
-    const input = window.locator('[col-id="startTime"] input').first()
+    const input = window.locator('.ag-cell[col-id="startTime"] input').first()
     await expect(input).toHaveValue('2.400')
 
     // Press Enter to confirm
@@ -135,22 +120,14 @@ Test caption`
 Test caption`
 
     await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/test.vtt')
     }, vttContent)
 
     await window.waitForTimeout(200)
 
     // Find the end time cell
-    const endTimeCell = window.locator('[col-id="endTime"]').first()
+    const endTimeCell = window.locator('.ag-cell[col-id="endTime"]').first()
     await expect(endTimeCell).toBeVisible()
     await expect(endTimeCell).toContainText('3.000')
 
@@ -163,7 +140,7 @@ Test caption`
     await window.waitForTimeout(100)
 
     // The input should now show 3.100
-    const input = window.locator('[col-id="endTime"] input').first()
+    const input = window.locator('.ag-cell[col-id="endTime"] input').first()
     await expect(input).toHaveValue('3.100')
 
     // Press Enter to confirm
@@ -182,22 +159,14 @@ Test caption`
 Test caption`
 
     await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/test.vtt')
     }, vttContent)
 
     await window.waitForTimeout(200)
 
     // Find the start time cell
-    const startTimeCell = window.locator('[col-id="startTime"]').first()
+    const startTimeCell = window.locator('.ag-cell[col-id="startTime"]').first()
     await expect(startTimeCell).toBeVisible()
     await expect(startTimeCell).toContainText('0.050')
 
@@ -210,7 +179,7 @@ Test caption`
     await window.waitForTimeout(50)
 
     // Should be 0.000 (clamped at 0)
-    const input = window.locator('[col-id="startTime"] input').first()
+    const input = window.locator('.ag-cell[col-id="startTime"] input').first()
     await expect(input).toHaveValue('0.000')
 
     // Press - again, should stay at 0
@@ -227,22 +196,14 @@ Test caption`
 Test caption`
 
     await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/test.vtt')
     }, vttContent)
 
     await window.waitForTimeout(200)
 
     // Find the start time cell
-    const startTimeCell = window.locator('[col-id="startTime"]').first()
+    const startTimeCell = window.locator('.ag-cell[col-id="startTime"]').first()
     await expect(startTimeCell).toBeVisible()
     await expect(startTimeCell).toContainText('5.000')
 
@@ -250,7 +211,7 @@ Test caption`
     await startTimeCell.dblclick()
     await window.waitForTimeout(100)
 
-    const input = window.locator('[col-id="startTime"] input').first()
+    const input = window.locator('.ag-cell[col-id="startTime"] input').first()
 
     // Press + three times (5.0 -> 5.3)
     await window.keyboard.press('+')
@@ -284,23 +245,15 @@ Test caption`
 Caption at 90.5 seconds`
 
     await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/test.vtt')
     }, vttContent)
 
     await window.waitForTimeout(200)
 
     // Verify times are displayed in simple format
-    const startTimeCell = window.locator('[col-id="startTime"]').first()
-    const endTimeCell = window.locator('[col-id="endTime"]').first()
+    const startTimeCell = window.locator('.ag-cell[col-id="startTime"]').first()
+    const endTimeCell = window.locator('.ag-cell[col-id="endTime"]').first()
 
     // Should show 90.500, not 00:01:30.500
     await expect(startTimeCell).toContainText('90.500')

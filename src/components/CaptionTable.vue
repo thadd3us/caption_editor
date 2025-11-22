@@ -35,6 +35,7 @@
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
       @cell-context-menu="onCellContextMenu"
+      @cell-editing-started="onCellEditingStarted"
       :domLayout="'normal'"
       :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
     />
@@ -163,26 +164,6 @@ const columnDefs = ref<ColDef[]>([
     editable: true,
     sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
-    cellEditorParams: {
-      onKeyDown: (event: KeyboardEvent) => {
-        // Handle +/- keys during editing to increment/decrement by 0.1s
-        if (event.key === '+' || event.key === '=') {
-          event.preventDefault()
-          const input = event.target as HTMLInputElement
-          const currentValue = parseFloat(input.value)
-          if (!isNaN(currentValue)) {
-            input.value = (currentValue + 0.1).toFixed(3)
-          }
-        } else if (event.key === '-') {
-          event.preventDefault()
-          const input = event.target as HTMLInputElement
-          const currentValue = parseFloat(input.value)
-          if (!isNaN(currentValue)) {
-            input.value = Math.max(0, currentValue - 0.1).toFixed(3)
-          }
-        }
-      }
-    },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -226,26 +207,6 @@ const columnDefs = ref<ColDef[]>([
     editable: true,
     sortable: true,
     cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
-    cellEditorParams: {
-      onKeyDown: (event: KeyboardEvent) => {
-        // Handle +/- keys during editing to increment/decrement by 0.1s
-        if (event.key === '+' || event.key === '=') {
-          event.preventDefault()
-          const input = event.target as HTMLInputElement
-          const currentValue = parseFloat(input.value)
-          if (!isNaN(currentValue)) {
-            input.value = (currentValue + 0.1).toFixed(3)
-          }
-        } else if (event.key === '-') {
-          event.preventDefault()
-          const input = event.target as HTMLInputElement
-          const currentValue = parseFloat(input.value)
-          if (!isNaN(currentValue)) {
-            input.value = Math.max(0, currentValue - 0.1).toFixed(3)
-          }
-        }
-      }
-    },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -593,6 +554,50 @@ function areSegmentsAdjacent(segmentIds: string[]): boolean {
   }
 
   return true
+}
+
+// Handle +/- keys for timestamp editing
+function onCellEditingStarted(event: any) {
+  const colId = event.column?.getColId()
+  if (colId === 'startTime' || colId === 'endTime') {
+    // Attach keyboard handler for +/- keys when editing timestamp cells
+    setTimeout(() => {
+      const input = document.querySelector(`.ag-cell[col-id="${colId}"] input`) as HTMLInputElement
+      if (input) {
+        console.log('Attached +/- key handler to', colId, 'input')
+        const keyHandler = (keyEvent: KeyboardEvent) => {
+          if (keyEvent.key === '+' || keyEvent.key === '=') {
+            console.log('+ key pressed, incrementing from', input.value)
+            keyEvent.preventDefault()
+            keyEvent.stopPropagation()
+            const currentValue = parseFloat(input.value)
+            if (!isNaN(currentValue)) {
+              const newValue = (currentValue + 0.1).toFixed(3)
+              input.value = newValue
+              // Trigger input event so AG Grid knows the value changed
+              input.dispatchEvent(new Event('input', { bubbles: true }))
+              console.log('Incremented to', newValue)
+            }
+          } else if (keyEvent.key === '-') {
+            console.log('- key pressed, decrementing from', input.value)
+            keyEvent.preventDefault()
+            keyEvent.stopPropagation()
+            const currentValue = parseFloat(input.value)
+            if (!isNaN(currentValue)) {
+              const newValue = Math.max(0, currentValue - 0.1).toFixed(3)
+              input.value = newValue
+              // Trigger input event so AG Grid knows the value changed
+              input.dispatchEvent(new Event('input', { bubbles: true }))
+              console.log('Decremented to', newValue)
+            }
+          }
+        }
+        input.addEventListener('keydown', keyHandler, { capture: true })
+      } else {
+        console.warn('Could not find input for', colId)
+      }
+    }, 50)
+  }
 }
 
 // Handle right-click context menu on cells
