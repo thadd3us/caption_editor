@@ -761,4 +761,18 @@ onUnmounted(() => {
   padding-top: 6px;
   padding-bottom: 6px;
 }
+
+/* Enable header text wrapping */
+:deep(.ag-header-cell-text) {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  line-height: 1.2;
+}
+
+:deep(.ag-header-cell-label) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 </style>
