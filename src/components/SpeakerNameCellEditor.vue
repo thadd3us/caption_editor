@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 import type { ICellEditorParams } from 'ag-grid-community'
 
@@ -109,20 +109,22 @@ function getValue() {
 }
 
 // Called after the editor is rendered - focus the input
+// AG Grid calls this after the component is attached to the DOM
 function afterGuiAttached() {
-  inputRef.value?.focus()
-  inputRef.value?.select()
+  // Use nextTick to ensure DOM is fully updated
+  // and setTimeout to ensure AG Grid has finished its setup
+  setTimeout(() => {
+    if (inputRef.value) {
+      inputRef.value.focus()
+      inputRef.value.select()
+    }
+  }, 0)
 }
 
 // Expose methods required by AG Grid
 defineExpose({
   getValue,
   afterGuiAttached
-})
-
-onMounted(() => {
-  // Focus and select all text when mounted
-  afterGuiAttached()
 })
 </script>
 
