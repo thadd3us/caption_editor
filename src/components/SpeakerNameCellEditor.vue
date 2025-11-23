@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 import type { ICellEditorParams } from 'ag-grid-community'
 
@@ -111,14 +111,18 @@ function getValue() {
 // Called after the editor is rendered - focus the input
 // AG Grid calls this after the component is attached to the DOM
 function afterGuiAttached() {
-  // Use nextTick to ensure DOM is fully updated
-  // and setTimeout to ensure AG Grid has finished its setup
-  setTimeout(() => {
-    if (inputRef.value) {
-      inputRef.value.focus()
-      inputRef.value.select()
-    }
-  }, 0)
+  // Use a more robust approach for cross-platform focus:
+  // 1. nextTick ensures Vue has finished rendering
+  // 2. requestAnimationFrame ensures browser has painted
+  // 3. This works reliably on both macOS and Linux
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      if (inputRef.value) {
+        inputRef.value.focus()
+        inputRef.value.select()
+      }
+    })
+  })
 }
 
 // Expose methods required by AG Grid
