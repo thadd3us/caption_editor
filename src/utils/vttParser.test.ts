@@ -891,7 +891,7 @@ No words here`
       expect(result.document?.segments[0].words).toBeUndefined()
     })
 
-    it('should preserve word timestamps when editing segment text', () => {
+    it('should realign word timestamps when editing segment text', () => {
       const segment: TranscriptSegment = {
         id: 'test-1',
         startTime: 0.5,
@@ -907,13 +907,14 @@ No words here`
         segments: Object.freeze([segment])
       }
 
-      // Edit the text (words should remain unchanged even though they might be inconsistent)
+      // Edit the text - words should be realigned to match the new text
       const updatedDoc = updateCue(doc, 'test-1', { text: 'Modified content' })
 
       expect(updatedDoc.segments[0].text).toBe('Modified content')
       expect(updatedDoc.segments[0].words).toHaveLength(2)
-      expect(updatedDoc.segments[0].words![0].text).toBe('Original')
-      expect(updatedDoc.segments[0].words![1].text).toBe('text')
+      // Words should be realigned - no matches, so new words without timestamps
+      expect(updatedDoc.segments[0].words![0]).toEqual({ text: 'Modified' })
+      expect(updatedDoc.segments[0].words![1]).toEqual({ text: 'content' })
     })
   })
 })

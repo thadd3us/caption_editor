@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import type { TranscriptSegment, TranscriptWord, VTTDocument, ParseResult, SegmentHistoryEntry, SegmentSpeakerEmbedding, TranscriptMetadata } from '../types/schema'
 import { HistoryAction } from '../types/schema'
 import { splitSegmentAtWord } from './splitSegmentAtWord'
+import { realignWords } from './realignWords'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files
@@ -499,11 +500,21 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
     return document
   }
 
+  // If text is being updated and the cue has words, realign the words
+  let finalUpdates = updates
+  if (updates.text !== undefined && originalCue.words && originalCue.words.length > 0) {
+    const realignedWords = realignWords(originalCue.words, updates.text)
+    finalUpdates = {
+      ...updates,
+      words: realignedWords.length > 0 ? realignedWords : undefined
+    }
+  }
+
   // Update the cues with new timestamp
   const currentTimestamp = getCurrentTimestamp()
   const updatedCues = document.segments.map(cue =>
     cue.id === cueId
-      ? { ...cue, ...updates, timestamp: currentTimestamp }
+      ? { ...cue, ...finalUpdates, timestamp: currentTimestamp }
       : cue
   )
 
