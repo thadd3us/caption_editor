@@ -90,7 +90,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useVTTStore, PlaybackMode } from '../stores/vttStore'
-import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
+import ContextMenu from './ContextMenu.vue'
+import type { ContextMenuItem } from './ContextMenu.types'
 
 const store = useVTTStore()
 const videoElement = ref<HTMLVideoElement | null>(null)

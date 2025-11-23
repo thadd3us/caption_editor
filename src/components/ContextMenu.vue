@@ -24,11 +24,7 @@
 </template>
 
 <script setup lang="ts">
-export interface ContextMenuItem {
-  label: string
-  action: () => void
-  disabled?: boolean
-}
+import type { ContextMenuItem } from './ContextMenu.types'
 
 defineProps<{
   isVisible: boolean
