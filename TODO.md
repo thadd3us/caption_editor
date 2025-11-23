@@ -1,12 +1,5 @@
 High:
 
-
-* Delete the media file duration that's displayed to the right of media filepath.
-* Delete the "VTT File: " text that's displayed to the left of VTT filepath.
-* The "Add caption at current position" button on the bottom right should move above media playback widget.
-* After sorting by speaker similarity, scroll to top of the AG Grid.
-* Render and accept all times not as hh:mm:ss.000 but just a second count ssss.000.  When editing a timestamp in the AG Grid, you can use +- buttons to increase decrease the time by 0.1s.
-
 * Rename "Play Sequential" to just be a play button.
 
 
@@ -23,6 +16,13 @@ Low:
 * Export SRT files.
 
 # Done
+
+* Delete the media file duration that's displayed to the right of media filepath.
+* Delete the "VTT File: " text that's displayed to the left of VTT filepath.
+* The "Add caption at current position" button on the bottom right should move above media playback widget.
+* After sorting by speaker similarity, scroll to top of the AG Grid.
+* Render and accept all times not as hh:mm:ss.000 but just a second count ssss.000.  When editing a timestamp in the AG Grid, you can use +- buttons to increase decrease the time by 0.1s.
+
 
 I'd like to clean up the different modes in which we can be playing, the way they can be entered, and their state.
 I'm not sure how close or far we are to this, but I think this is the desired state:
