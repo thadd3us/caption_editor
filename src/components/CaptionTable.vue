@@ -102,6 +102,16 @@ const columnDefs = ref<ColDef[]>([
     resizable: false
   },
   {
+    field: 'actions',
+    headerName: '▶️',
+    width: 50,
+    pinned: 'left',
+    cellRenderer: ActionButtonsCell,
+    filter: false,
+    sortable: false,
+    resizable: false
+  },
+  {
     field: 'text',
     headerName: 'Caption',
     flex: 1,
@@ -150,13 +160,6 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     cellRenderer: StarRatingCell,
     sortable: true,
-  },
-  {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 120,
-    cellRenderer: ActionButtonsCell,
-    filter: false
   },
   {
     field: 'startTimeFormatted',
