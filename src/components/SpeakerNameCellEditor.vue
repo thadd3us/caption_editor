@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 import type { ICellEditorParams } from 'ag-grid-community'
 
@@ -35,6 +35,14 @@ const store = useVTTStore()
 const inputRef = ref<HTMLInputElement | null>(null)
 const editValue = ref(props.params.value || '')
 const shouldStop = ref(false)
+
+// Debug logging for macOS troubleshooting
+console.log('[SpeakerNameCellEditor] Component created with initial value:', props.params.value)
+
+// Watch editValue changes
+watch(editValue, (newVal, oldVal) => {
+  console.log('[SpeakerNameCellEditor] editValue changed:', { oldVal, newVal })
+})
 
 // Generate unique datalist ID
 const datalistId = computed(() => `speaker-datalist-${props.params.node.id}`)
@@ -70,6 +78,13 @@ const filteredSpeakers = computed(() => {
 
 // Handle keyboard navigation - allow arrow keys for text editing
 function handleKeyDown(event: KeyboardEvent) {
+  console.log('[SpeakerNameCellEditor] keydown event:', {
+    key: event.key,
+    currentEditValue: editValue.value,
+    inputElementValue: inputRef.value?.value,
+    shouldStop: shouldStop.value
+  })
+
   // Stop propagation of arrow keys so they work within the input
   if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
     event.stopPropagation()
@@ -77,19 +92,31 @@ function handleKeyDown(event: KeyboardEvent) {
 
   // Enter key accepts the current value and stops editing
   if (event.key === 'Enter') {
+    console.log('[SpeakerNameCellEditor] Enter key pressed')
+    console.log('[SpeakerNameCellEditor] Before preventDefault - editValue:', editValue.value)
+    console.log('[SpeakerNameCellEditor] Before preventDefault - input.value:', inputRef.value?.value)
+
     event.preventDefault()  // Prevent default form submission behavior
     event.stopPropagation() // Stop AG Grid from handling this
     shouldStop.value = true
 
+    console.log('[SpeakerNameCellEditor] After preventDefault - editValue:', editValue.value)
+    console.log('[SpeakerNameCellEditor] After preventDefault - input.value:', inputRef.value?.value)
+    console.log('[SpeakerNameCellEditor] Scheduling stopEditing with setTimeout(0)')
+
     // On macOS, we need a small delay to ensure v-model has updated
     // before we stop editing and AG Grid calls getValue()
     setTimeout(() => {
+      console.log('[SpeakerNameCellEditor] In setTimeout callback - editValue:', editValue.value)
+      console.log('[SpeakerNameCellEditor] In setTimeout callback - input.value:', inputRef.value?.value)
+      console.log('[SpeakerNameCellEditor] Calling stopEditing()')
       props.params.stopEditing()
     }, 0)
   }
 
   // Escape key cancels editing
   if (event.key === 'Escape') {
+    console.log('[SpeakerNameCellEditor] Escape key pressed - canceling edit')
     event.preventDefault()
     event.stopPropagation()
     editValue.value = props.params.value || ''
@@ -99,6 +126,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
   // Tab key accepts current value and moves to next cell
   if (event.key === 'Tab') {
+    console.log('[SpeakerNameCellEditor] Tab key pressed')
     shouldStop.value = true
     // Let AG Grid handle tab navigation naturally
   }
@@ -106,7 +134,9 @@ function handleKeyDown(event: KeyboardEvent) {
 
 // Handle blur - accept current value when focus is lost
 function handleBlur() {
+  console.log('[SpeakerNameCellEditor] blur event - shouldStop:', shouldStop.value)
   if (!shouldStop.value) {
+    console.log('[SpeakerNameCellEditor] Blur triggered stopEditing - editValue:', editValue.value)
     shouldStop.value = true
     props.params.stopEditing()
   }
@@ -114,21 +144,33 @@ function handleBlur() {
 
 // Required by AG Grid: Return the final value
 function getValue() {
-  return editValue.value.trim()
+  const trimmedValue = editValue.value.trim()
+  console.log('[SpeakerNameCellEditor] getValue() called')
+  console.log('[SpeakerNameCellEditor] editValue.value:', editValue.value)
+  console.log('[SpeakerNameCellEditor] trimmed value:', trimmedValue)
+  console.log('[SpeakerNameCellEditor] input element value:', inputRef.value?.value)
+  return trimmedValue
 }
 
 // Called after the editor is rendered - focus the input
 // AG Grid calls this after the component is attached to the DOM
 function afterGuiAttached() {
+  console.log('[SpeakerNameCellEditor] afterGuiAttached() called')
   // Use a more robust approach for cross-platform focus:
   // 1. nextTick ensures Vue has finished rendering
   // 2. requestAnimationFrame ensures browser has painted
   // 3. This works reliably on both macOS and Linux
   nextTick(() => {
+    console.log('[SpeakerNameCellEditor] In nextTick')
     requestAnimationFrame(() => {
+      console.log('[SpeakerNameCellEditor] In requestAnimationFrame')
       if (inputRef.value) {
+        console.log('[SpeakerNameCellEditor] Focusing and selecting input')
         inputRef.value.focus()
         inputRef.value.select()
+        console.log('[SpeakerNameCellEditor] Input focused, activeElement:', document.activeElement === inputRef.value)
+      } else {
+        console.log('[SpeakerNameCellEditor] WARNING: inputRef.value is null!')
       }
     })
   })

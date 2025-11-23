@@ -81,6 +81,8 @@ Second message`
   })
 
   test('should commit speaker name when Enter is pressed', async () => {
+    console.log('=== TEST START: should commit speaker name when Enter is pressed ===')
+
     // Load VTT with speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
@@ -103,11 +105,14 @@ First message`
     const captionCount = window.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('1', { timeout: 2000 })
 
+    console.log('[TEST] Starting to edit speaker cell')
+
     // Start editing the speaker cell
     await window.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
 
+      console.log('[TEST] Calling startEditingCell')
       gridApi.startEditingCell({
         rowIndex: 0,
         colKey: 'speakerName'
@@ -116,25 +121,43 @@ First message`
 
     await window.waitForTimeout(100)
 
+    console.log('[TEST] Looking for input element')
+
     // Type a new name and press Enter
     const input = window.locator('.speaker-name-editor')
     await expect(input).toBeVisible()
 
+    console.log('[TEST] Input visible, filling with "Charlie"')
+
     // Clear the input and type new name
     await input.fill('Charlie')
+
+    // Check input value before pressing Enter
+    const inputValueBefore = await input.inputValue()
+    console.log('[TEST] Input value before Enter:', inputValueBefore)
+
+    console.log('[TEST] Pressing Enter key')
 
     // Press Enter to commit
     await input.press('Enter')
 
+    console.log('[TEST] Waiting 200ms after Enter')
     await window.waitForTimeout(200)
 
     // Verify the name was updated in the store
+    console.log('[TEST] Checking store for updated speaker name')
     const speakerName = await window.evaluate(() => {
       const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments[0].speakerName
+      if (!vttStore) {
+        console.log('[TEST] No store found!')
+        return null
+      }
+      const name = vttStore.document.segments[0].speakerName
+      console.log('[TEST] Store speaker name:', name)
+      return name
     })
 
+    console.log('[TEST] Final speakerName value:', speakerName)
     expect(speakerName).toBe('Charlie')
 
     // Verify the cell is no longer being edited
