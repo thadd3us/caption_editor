@@ -59,7 +59,8 @@ import { formatTimestampSimple } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
 import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
-import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
+import ContextMenu from './ContextMenu.vue'
+import type { ContextMenuItem } from './ContextMenu.types'
 
 const store = useVTTStore()
 const gridApi = ref<GridApi | null>(null)

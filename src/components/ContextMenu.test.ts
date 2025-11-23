@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
+import ContextMenu from './ContextMenu.vue'
+import type { ContextMenuItem } from './ContextMenu.types'
 
 describe('ContextMenu', () => {
   const mockItems: ContextMenuItem[] = [
