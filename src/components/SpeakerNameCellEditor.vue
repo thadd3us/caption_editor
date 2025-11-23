@@ -156,6 +156,7 @@ function getValue() {
 // AG Grid calls this after the component is attached to the DOM
 function afterGuiAttached() {
   console.log('[SpeakerNameCellEditor] afterGuiAttached() called')
+
   // Use a more robust approach for cross-platform focus:
   // 1. nextTick ensures Vue has finished rendering
   // 2. requestAnimationFrame ensures browser has painted
@@ -176,11 +177,34 @@ function afterGuiAttached() {
   })
 }
 
+// Tell AG Grid whether to cancel the edit
+// These are called before getValue() to determine if edit should be cancelled
+function isCancelBeforeStart() {
+  console.log('[SpeakerNameCellEditor] isCancelBeforeStart() called, returning false')
+  return false
+}
+
+function isCancelAfterEnd() {
+  console.log('[SpeakerNameCellEditor] isCancelAfterEnd() called, returning false')
+  return false
+}
+
 // Expose methods required by AG Grid
+console.log('[SpeakerNameCellEditor] About to defineExpose with methods:', {
+  getValue: typeof getValue,
+  afterGuiAttached: typeof afterGuiAttached,
+  isCancelBeforeStart: typeof isCancelBeforeStart,
+  isCancelAfterEnd: typeof isCancelAfterEnd
+})
+
 defineExpose({
   getValue,
-  afterGuiAttached
+  afterGuiAttached,
+  isCancelBeforeStart,
+  isCancelAfterEnd
 })
+
+console.log('[SpeakerNameCellEditor] defineExpose called')
 </script>
 
 <style scoped>
