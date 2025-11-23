@@ -77,12 +77,21 @@ function handleKeyDown(event: KeyboardEvent) {
 
   // Enter key accepts the current value and stops editing
   if (event.key === 'Enter') {
+    event.preventDefault()  // Prevent default form submission behavior
+    event.stopPropagation() // Stop AG Grid from handling this
     shouldStop.value = true
-    props.params.stopEditing()
+
+    // On macOS, we need a small delay to ensure v-model has updated
+    // before we stop editing and AG Grid calls getValue()
+    setTimeout(() => {
+      props.params.stopEditing()
+    }, 0)
   }
 
   // Escape key cancels editing
   if (event.key === 'Escape') {
+    event.preventDefault()
+    event.stopPropagation()
     editValue.value = props.params.value || ''
     shouldStop.value = true
     props.params.stopEditing()
