@@ -1,4 +1,5 @@
 High:
+* Use this model for speaker ID: https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM
 * Context menu: Merge adjacent selected rows.
 * Delete "Seek to start" and "Delete caption" action button.
 * When sorting by speaker similarity, scroll to top.
