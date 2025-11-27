@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { TranscriptSegment, VTTDocument, ParseResult, SegmentHistoryEntry, SegmentSpeakerEmbedding, TranscriptMetadata } from '../types/schema'
+import type { TranscriptSegment, TranscriptWord, VTTDocument, ParseResult, SegmentHistoryEntry, SegmentSpeakerEmbedding, TranscriptMetadata } from '../types/schema'
 import { HistoryAction } from '../types/schema'
 import { splitSegmentAtWord } from './splitSegmentAtWord'
+import { realignWords } from './realignWords'
 
 /**
  * Sentinel prefix for app-specific NOTE comments in VTT files
@@ -24,7 +25,7 @@ export function getCurrentTimestamp(): string {
 }
 
 /**
- * Parse timestamp in format HH:MM:SS.mmm or MM:SS.mmm to seconds
+ * Parse timestamp in format HH:MM:SS.mmm, MM:SS.mmm, or ssss.000 to seconds
  */
 function parseTimestamp(timestamp: string): number {
   console.log('Parsing timestamp:', timestamp)
@@ -37,6 +38,9 @@ function parseTimestamp(timestamp: string): number {
   } else if (parts.length === 2) {
     // MM:SS.mmm
     seconds = parseInt(parts[0]) * 60 + parseFloat(parts[1])
+  } else if (parts.length === 1) {
+    // ssss.000 (simple seconds format)
+    seconds = parseFloat(parts[0])
   } else {
     throw new Error(`Invalid timestamp format: ${timestamp}`)
   }
@@ -72,7 +76,7 @@ function completeCue(
 }
 
 /**
- * Format seconds to VTT timestamp HH:MM:SS.mmm
+ * Format seconds to VTT timestamp HH:MM:SS.mmm (for VTT file format)
  */
 export function formatTimestamp(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
@@ -84,6 +88,13 @@ export function formatTimestamp(seconds: number): string {
   const s = secs.toFixed(3).padStart(6, '0')
 
   return `${h}:${m}:${s}`
+}
+
+/**
+ * Format seconds to simple seconds display ssss.000 (for UI display)
+ */
+export function formatTimestampSimple(seconds: number): string {
+  return seconds.toFixed(3)
 }
 
 /**
@@ -308,7 +319,7 @@ export function parseVTT(content: string): ParseResult {
       success: true,
       document: {
         metadata: transcriptMetadata || { id: uuidv4() },
-        segments: Object.freeze(cues),
+        segments: sortCues(cues),  // Sort and assign ordinals
         history: historyEntries.length > 0 ? Object.freeze(historyEntries) : undefined,
         embeddings: embeddings.length > 0 ? Object.freeze(embeddings) : undefined
       }
@@ -398,6 +409,18 @@ function sortCues(segments: readonly TranscriptSegment[]): readonly TranscriptSe
 }
 
 /**
+ * Compute ordinal indices for segments based on their position in a sorted array
+ * Returns a map of segment ID to ordinal index
+ */
+export function computeSegmentOrdinals(segments: readonly TranscriptSegment[]): Map<string, number> {
+  const ordinalMap = new Map<string, number>()
+  segments.forEach((segment, index) => {
+    ordinalMap.set(segment.id, index)
+  })
+  return ordinalMap
+}
+
+/**
  * Find the index of the segment that should be selected for a given time.
  * Returns the index of the segment that contains the time, or the last segment before it.
  * Returns -1 if there are no segments or if time is before all segments.
@@ -477,11 +500,21 @@ export function updateCue(document: VTTDocument, cueId: string, updates: Partial
     return document
   }
 
+  // If text is being updated and the cue has words, realign the words
+  let finalUpdates = updates
+  if (updates.text !== undefined && originalCue.words && originalCue.words.length > 0) {
+    const realignedWords = realignWords(originalCue.words, updates.text)
+    finalUpdates = {
+      ...updates,
+      words: realignedWords.length > 0 ? realignedWords : undefined
+    }
+  }
+
   // Update the cues with new timestamp
   const currentTimestamp = getCurrentTimestamp()
   const updatedCues = document.segments.map(cue =>
     cue.id === cueId
-      ? { ...cue, ...updates, timestamp: currentTimestamp }
+      ? { ...cue, ...finalUpdates, timestamp: currentTimestamp }
       : cue
   )
 
@@ -593,6 +626,107 @@ export function splitSegment(document: VTTDocument, segmentId: string, wordIndex
 
   // Add history entry for the original segment (before split)
   newDocument = addHistoryEntry(newDocument, segment, HistoryAction.Modified)
+
+  return newDocument
+}
+
+/**
+ * Merge multiple adjacent segments into a single segment (returns new document)
+ * Segments are merged by:
+ * - Concatenating all word-level timestamps
+ * - Using the first segment's start time and last segment's end time
+ * - Taking the highest rating among all segments
+ * - Taking the first non-empty speaker label
+ * - Recording all original segments in history
+ *
+ * @param document - The document to modify
+ * @param segmentIds - IDs of segments to merge (must be temporally adjacent based on ordinal index)
+ * @returns New document with merged segment, or original document if merge fails
+ */
+export function mergeAdjacentSegments(document: VTTDocument, segmentIds: string[]): VTTDocument {
+  console.log('Merging segments:', segmentIds)
+
+  if (segmentIds.length < 2) {
+    console.warn('Need at least 2 segments to merge')
+    return document
+  }
+
+  // Find all segments to merge
+  const segmentsToMerge = segmentIds
+    .map(id => document.segments.find(s => s.id === id))
+    .filter((s): s is TranscriptSegment => s !== undefined)
+
+  if (segmentsToMerge.length !== segmentIds.length) {
+    console.warn('Some segments not found')
+    return document
+  }
+
+  // Compute ordinal map for the document's segments
+  const ordinalMap = computeSegmentOrdinals(document.segments)
+
+  // Sort segments by their ordinal index
+  const sortedSegments = [...segmentsToMerge].sort((a, b) => {
+    const ordinalA = ordinalMap.get(a.id) ?? 0
+    const ordinalB = ordinalMap.get(b.id) ?? 0
+    return ordinalA - ordinalB
+  })
+
+  // Check if segments are adjacent based on ordinal indices
+  for (let i = 0; i < sortedSegments.length - 1; i++) {
+    const currentOrdinal = ordinalMap.get(sortedSegments[i].id) ?? 0
+    const nextOrdinal = ordinalMap.get(sortedSegments[i + 1].id) ?? 0
+    if (nextOrdinal !== currentOrdinal + 1) {
+      console.warn('Segments are not adjacent (ordinal gap detected)')
+      return document
+    }
+  }
+
+  // Concatenate all words from all segments
+  const allWords: TranscriptWord[] = []
+  for (const segment of sortedSegments) {
+    if (segment.words && segment.words.length > 0) {
+      allWords.push(...segment.words)
+    }
+  }
+
+  // Find the highest rating
+  const ratings = sortedSegments
+    .map(s => s.rating)
+    .filter((r): r is number => r !== undefined)
+  const highestRating = ratings.length > 0 ? Math.max(...ratings) : undefined
+
+  // Find the first non-empty speaker label
+  const speakerName = sortedSegments.find(s => s.speakerName)?.speakerName
+
+  // Create merged segment
+  const mergedSegment: TranscriptSegment = {
+    id: uuidv4(),
+    startTime: sortedSegments[0].startTime,
+    endTime: sortedSegments[sortedSegments.length - 1].endTime,
+    text: sortedSegments.map(s => s.text).join(' '),
+    words: allWords.length > 0 ? allWords : undefined,
+    speakerName,
+    rating: highestRating,
+    timestamp: getCurrentTimestamp()
+  }
+
+  // Remove all original segments
+  const segmentIdsSet = new Set(segmentIds)
+  const remainingSegments = document.segments.filter(s => !segmentIdsSet.has(s.id))
+
+  // Add merged segment
+  const newSegments = [...remainingSegments, mergedSegment]
+
+  // Create new document with sorted segments
+  let newDocument: VTTDocument = {
+    ...document,
+    segments: sortCues(newSegments)
+  }
+
+  // Add history entries for all original segments
+  for (const segment of sortedSegments) {
+    newDocument = addHistoryEntry(newDocument, segment, HistoryAction.Modified)
+  }
 
   return newDocument
 }

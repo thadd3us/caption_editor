@@ -3,12 +3,6 @@
     <button @click="playSnippet" class="action-btn" title="Play snippet">
       ▶️
     </button>
-    <button @click="seekToStart" class="action-btn" title="Seek to start">
-      ⏮️
-    </button>
-    <button @click="deleteCaption" class="action-btn delete-btn" title="Delete caption">
-      🗑️
-    </button>
   </div>
 </template>
 
@@ -39,25 +33,9 @@ const rowData = computed(() => props.params?.data || props.data)
 
 function playSnippet() {
   if (!rowData.value) return
-  console.log('Playing snippet:', rowData.value.id)
-  store.setSnippetMode(true)
-  store.setCurrentTime(rowData.value.startTime)
-  store.setPlaying(true)
-}
-
-function seekToStart() {
-  if (!rowData.value) return
-  console.log('Seeking to start:', rowData.value.id)
-  store.setCurrentTime(rowData.value.startTime)
-  store.setPlaying(false)
-}
-
-function deleteCaption() {
-  if (!rowData.value) return
-  if (confirm('Are you sure you want to delete this caption?')) {
-    console.log('Deleting caption:', rowData.value.id)
-    store.deleteCue(rowData.value.id)
-  }
+  console.log('Playing segment:', rowData.value.id)
+  // Create a playlist of just this one segment
+  store.startPlaylistPlayback([rowData.value.id], 0)
 }
 </script>
 
@@ -81,10 +59,5 @@ function deleteCaption() {
 .action-btn:hover {
   background: #f0f0f0;
   border-color: #999;
-}
-
-.delete-btn:hover {
-  background: #fee;
-  border-color: #fcc;
 }
 </style>

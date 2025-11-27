@@ -1,8 +1,7 @@
 <template>
   <div class="caption-table">
     <div v-if="store.document.filePath" class="file-path-display">
-      <span class="file-path-label">📄 VTT File:</span>
-      <span class="file-path-value">{{ store.document.filePath }}</span>
+      <span class="file-path-value">📄 {{ store.document.filePath }}</span>
     </div>
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
@@ -36,6 +35,7 @@
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
       @cell-context-menu="onCellContextMenu"
+      @cell-editing-started="onCellEditingStarted"
       :domLayout="'normal'"
       :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
     />
@@ -54,10 +54,11 @@ import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
-import { useVTTStore } from '../stores/vttStore'
-import { formatTimestamp } from '../utils/vttParser'
+import { useVTTStore, PlaybackMode } from '../stores/vttStore'
+import { formatTimestampSimple } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
+import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import ContextMenu, { type ContextMenuItem } from './ContextMenu.vue'
 
 const store = useVTTStore()
@@ -81,8 +82,8 @@ const rowData = computed(() => {
     id: cue.id,
     startTime: cue.startTime,
     endTime: cue.endTime,
-    startTimeFormatted: formatTimestamp(cue.startTime),
-    endTimeFormatted: formatTimestamp(cue.endTime),
+    startTimeFormatted: formatTimestampSimple(cue.startTime),
+    endTimeFormatted: formatTimestampSimple(cue.endTime),
     text: cue.text,
     speakerName: cue.speakerName,
     rating: cue.rating,
@@ -126,6 +127,7 @@ const columnDefs = ref<ColDef[]>([
     width: 150,
     editable: true,
     sortable: true,
+    cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       store.updateCue(params.data.id, { speakerName: params.newValue })
@@ -182,21 +184,20 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('Start time edited:', params.newValue)
       try {
-        // Parse and validate
-        const timestamp = params.newValue
-        // Simple validation - the parser will do the full validation
-        if (!timestamp.match(/^\d{2}:\d{2}:\d{2}\.\d{3}$/)) {
-          throw new Error('Invalid format. Use HH:MM:SS.mmm')
-        }
+        // Parse and validate - accept simple format (ssss.000)
+        const timestamp = params.newValue.trim()
 
-        // Convert to seconds and update
-        const parts = timestamp.split(':')
-        const seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2])
+        // Try to parse as float (simple format)
+        const seconds = parseFloat(timestamp)
+
+        if (isNaN(seconds) || seconds < 0) {
+          throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
+        }
 
         store.updateCue(params.data.id, { startTime: seconds })
       } catch (err) {
         alert('Invalid start time: ' + (err instanceof Error ? err.message : 'Unknown error'))
-        params.node?.setDataValue('startTimeFormatted', formatTimestamp(params.data.startTime))
+        params.node?.setDataValue('startTimeFormatted', formatTimestampSimple(params.data.startTime))
       }
     }
   },
@@ -226,18 +227,20 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('End time edited:', params.newValue)
       try {
-        const timestamp = params.newValue
-        if (!timestamp.match(/^\d{2}:\d{2}:\d{2}\.\d{3}$/)) {
-          throw new Error('Invalid format. Use HH:MM:SS.mmm')
-        }
+        // Parse and validate - accept simple format (ssss.000)
+        const timestamp = params.newValue.trim()
 
-        const parts = timestamp.split(':')
-        const seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2])
+        // Try to parse as float (simple format)
+        const seconds = parseFloat(timestamp)
+
+        if (isNaN(seconds) || seconds < 0) {
+          throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
+        }
 
         store.updateCue(params.data.id, { endTime: seconds })
       } catch (err) {
         alert('Invalid end time: ' + (err instanceof Error ? err.message : 'Unknown error'))
-        params.node?.setDataValue('endTimeFormatted', formatTimestamp(params.data.endTime))
+        params.node?.setDataValue('endTimeFormatted', formatTimestampSimple(params.data.endTime))
       }
     }
   }
@@ -284,28 +287,27 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   if (selectedRows.length > 0) {
     const row = selectedRows[0]
     const cueId = row.id
-    const startTime = row.startTime
     console.log('Selected cue:', cueId, 'isAutoScrolling:', isAutoScrolling)
     store.selectCue(cueId)
 
-    // If autoplay is enabled AND we're not auto-scrolling, play the snippet
+    // If autoplay is enabled AND we're not auto-scrolling, play the segment
     // (During auto-scroll, we don't want to trigger autoplay)
     if (autoplayEnabled.value && !isAutoScrolling) {
-      console.log('Autoplay: playing snippet for cue:', cueId)
-      store.setCurrentTime(startTime)
-      store.setPlaying(true)
+      console.log('Autoplay: playing segment for cue:', cueId)
+      // Create a playlist of just this one segment
+      store.startPlaylistPlayback([cueId], 0)
     }
   }
 }
 
 // Sequential playback button label and tooltip
 const sequentialPlayButtonLabel = computed(() => {
-  return store.sequentialMode ? '⏸ Pause Sequential' : '▶️ Play Sequential'
+  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸ Pause Segments' : '▶️ Play Segments'
 })
 
 const sequentialPlayButtonTooltip = computed(() => {
-  if (store.sequentialMode) {
-    return 'Pause sequential playback'
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    return 'Pause segment playback'
   }
   return 'Play segments in table order, skipping silence'
 })
@@ -317,12 +319,12 @@ const sequentialPlayButtonTooltip = computed(() => {
 function toggleSequentialPlayback() {
   if (!gridApi.value) return
 
-  if (store.sequentialMode) {
-    // Stop sequential playback
-    console.log('Stopping sequential playback')
-    store.stopSequentialPlayback()
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    // Stop playlist playback
+    console.log('Stopping playlist playback')
+    store.stopPlaylistPlayback(false)  // Don't return to start on manual stop
   } else {
-    // Start sequential playback
+    // Start playlist playback with all segments in table order
     // Get all rows in their current display order
     const allSegmentIds: string[] = []
     gridApi.value.forEachNodeAfterFilterAndSort((node) => {
@@ -347,8 +349,8 @@ function toggleSequentialPlayback() {
       }
     }
 
-    console.log('Starting sequential playback with', allSegmentIds.length, 'segments from index', startIndex)
-    store.startSequentialPlayback(allSegmentIds, startIndex)
+    console.log('Starting playlist playback with', allSegmentIds.length, 'segments from index', startIndex)
+    store.startPlaylistPlayback(allSegmentIds, startIndex)
   }
 }
 
@@ -455,11 +457,33 @@ function computeSpeakerSimilarity() {
       defaultState: { sort: null }
     })
     console.log('Auto-sorted by speaker similarity (descending)')
+
+    // Scroll to top after sorting
+    gridApi.value.ensureIndexVisible(0, 'top')
+    console.log('Scrolled to top of grid')
   }
 }
 
 // Note: With immutableData: true and getRowId, AG Grid handles updates automatically
 // No need to manually refresh cells when segments change
+
+// Sync store.selectedCueId to AG Grid selection
+// This ensures when the store programmatically selects a cue (e.g., startPlaylistPlayback),
+// the AG Grid UI updates to show the selection
+watch(() => store.selectedCueId, (cueId) => {
+  if (!gridApi.value || !cueId) return
+
+  const rowNode = gridApi.value.getRowNode(cueId)
+  if (rowNode) {
+    // Always deselect all and select this node, even if AG Grid thinks it's already selected
+    // This ensures the selection is correct in the UI
+    console.log('[CaptionTable] Syncing store selection to AG Grid:', cueId)
+    gridApi.value.deselectAll()
+    rowNode.setSelected(true)
+    // Optionally ensure visible (but don't scroll if already visible)
+    gridApi.value.ensureNodeVisible(rowNode, null)
+  }
+})
 
 // Auto-scroll: watch currentTime and scroll to the intersecting row
 watch(() => store.currentTime, (currentTime) => {
@@ -479,8 +503,9 @@ watch(() => store.currentTime, (currentTime) => {
       gridApi.value.deselectAll()
       rowNode.setSelected(true)
 
-      // Scroll it to the top
-      gridApi.value.ensureNodeVisible(rowNode, 'top')
+      // Scroll just enough to ensure the row is visible (don't force it to top)
+      // This reduces UI jumping when the row is already visible
+      gridApi.value.ensureNodeVisible(rowNode, null)
 
       console.log('Auto-scrolled to cue:', cue.id, 'at time:', currentTime)
 
@@ -496,6 +521,85 @@ watch(() => store.currentTime, (currentTime) => {
 function handleComputeSpeakerSimilarity() {
   console.log('Compute speaker similarity event received')
   computeSpeakerSimilarity()
+}
+
+/**
+ * Check if selected segments are temporally adjacent based on ordinal indices
+ */
+function areSegmentsAdjacent(segmentIds: string[]): boolean {
+  if (segmentIds.length < 2) return false
+
+  // Find all segments
+  const segments = segmentIds
+    .map(id => store.document.segments.find(s => s.id === id))
+    .filter((s): s is typeof store.document.segments[0] => s !== undefined)
+
+  if (segments.length !== segmentIds.length) return false
+
+  // Compute ordinal map
+  const ordinalMap = new Map<string, number>()
+  store.document.segments.forEach((segment, index) => {
+    ordinalMap.set(segment.id, index)
+  })
+
+  // Get ordinals for selected segments
+  const ordinals = segments
+    .map(s => ordinalMap.get(s.id))
+    .filter((o): o is number => o !== undefined)
+    .sort((a, b) => a - b)
+
+  // Check if ordinals are consecutive
+  for (let i = 0; i < ordinals.length - 1; i++) {
+    if (ordinals[i + 1] !== ordinals[i] + 1) {
+      return false
+    }
+  }
+
+  return true
+}
+
+// Handle +/- keys for timestamp editing
+function onCellEditingStarted(event: any) {
+  const colId = event.column?.getColId()
+  if (colId === 'startTime' || colId === 'endTime') {
+    // Attach keyboard handler for +/- keys when editing timestamp cells
+    setTimeout(() => {
+      const input = document.querySelector(`.ag-cell[col-id="${colId}"] input`) as HTMLInputElement
+      if (input) {
+        console.log('Attached +/- key handler to', colId, 'input')
+        const keyHandler = (keyEvent: KeyboardEvent) => {
+          if (keyEvent.key === '+' || keyEvent.key === '=') {
+            console.log('+ key pressed, incrementing from', input.value)
+            keyEvent.preventDefault()
+            keyEvent.stopPropagation()
+            const currentValue = parseFloat(input.value)
+            if (!isNaN(currentValue)) {
+              const newValue = (currentValue + 0.1).toFixed(3)
+              input.value = newValue
+              // Trigger input event so AG Grid knows the value changed
+              input.dispatchEvent(new Event('input', { bubbles: true }))
+              console.log('Incremented to', newValue)
+            }
+          } else if (keyEvent.key === '-') {
+            console.log('- key pressed, decrementing from', input.value)
+            keyEvent.preventDefault()
+            keyEvent.stopPropagation()
+            const currentValue = parseFloat(input.value)
+            if (!isNaN(currentValue)) {
+              const newValue = Math.max(0, currentValue - 0.1).toFixed(3)
+              input.value = newValue
+              // Trigger input event so AG Grid knows the value changed
+              input.dispatchEvent(new Event('input', { bubbles: true }))
+              console.log('Decremented to', newValue)
+            }
+          }
+        }
+        input.addEventListener('keydown', keyHandler, { capture: true })
+      } else {
+        console.warn('Could not find input for', colId)
+      }
+    }, 50)
+  }
 }
 
 // Handle right-click context menu on cells
@@ -530,6 +634,10 @@ function onCellContextMenu(event: CellContextMenuEvent) {
   // Store selected rows for context menu actions
   selectedRowsForContextMenu.value = selectedRows
 
+  // Check if selected segments are adjacent
+  const segmentIds = selectedRows.map(row => row.id)
+  const isAdjacent = areSegmentsAdjacent(segmentIds)
+
   // Build context menu items
   contextMenuItems.value = [
     {
@@ -543,6 +651,15 @@ function onCellContextMenu(event: CellContextMenuEvent) {
           detail: { rowCount: selectedRowsForContextMenu.value.length }
         }))
       }
+    },
+    {
+      label: `Merge Adjacent Segments (${selectedRows.length})`,
+      action: () => {
+        // Merge the adjacent segments
+        const segmentIds = selectedRowsForContextMenu.value.map(row => row.id)
+        store.mergeAdjacentSegments(segmentIds)
+      },
+      disabled: !isAdjacent || selectedRows.length < 2
     },
     {
       label: 'Delete Selected',
@@ -692,5 +809,19 @@ onUnmounted(() => {
   line-height: 1.3;
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+/* Enable header text wrapping */
+:deep(.ag-header-cell-text) {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  line-height: 1.2;
+}
+
+:deep(.ag-header-cell-label) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 </style>
