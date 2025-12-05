@@ -105,12 +105,12 @@ def serialize_vtt(
 
     # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
     metadata_json = metadata_copy.model_dump(by_alias=True, exclude_none=True)
-    lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json)}\n")
+    lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json, separators=(',', ':'))}\n")
 
     for segment in segments:
         # Add NOTE with entire segment using CAPTION_EDITOR sentinel
         segment_json = segment.model_dump(by_alias=True, exclude_none=True)
-        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:TranscriptSegment {json.dumps(segment_json)}\n")
+        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:TranscriptSegment {json.dumps(segment_json, separators=(',', ':'))}\n")
 
         # Format timestamps
         start = format_timestamp(segment.start_time)
@@ -124,6 +124,6 @@ def serialize_vtt(
     if embeddings:
         for embedding in embeddings:
             embedding_json = embedding.model_dump(by_alias=True, exclude_none=True)
-            lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding {json.dumps(embedding_json)}")
+            lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding {json.dumps(embedding_json, separators=(',', ':'))}")
 
     return "\n".join(lines)
