@@ -86,18 +86,7 @@ Compute speaker embedding vectors for each segment in a VTT file. This is useful
 
 **Prerequisites:**
 
-1. **Accept the model terms on HuggingFace:**
-   - Visit https://huggingface.co/pyannote/embedding
-   - Click "Agree and access repository"
-   - Accept the user agreement
-   - Wait a few minutes for access to propagate
-
-2. **Set your HuggingFace token:**
-   ```bash
-   export HF_TOKEN=your_huggingface_token_here
-   ```
-
-3. **Have a VTT file with CAPTION_EDITOR metadata:**
+1. **Have a VTT file with CAPTION_EDITOR metadata:**
    - VTT file must include `NOTE CAPTION_EDITOR:TranscriptMetadata` with media file path
    - VTT file must include `NOTE CAPTION_EDITOR:VTTCue` for each segment
    - Media file path is relative to the VTT file directory
@@ -105,27 +94,20 @@ Compute speaker embedding vectors for each segment in a VTT file. This is useful
 **Run embedding computation:**
 
 ```bash
-# Basic usage (outputs to <vtt_file>.embeddings.jsonl)
+# Basic usage (writes embeddings to the VTT file as NOTE comments)
 uv run embed path/to/transcript.vtt
 
-# Specify output file
-uv run embed transcript.vtt --output embeddings.jsonl
-
 # Use a different model
-uv run embed transcript.vtt --model pyannote/wespeaker-voxceleb-resnet34-LM
+uv run embed transcript.vtt --model pyannote/embedding
 ```
 
-**Output format (JSONL):**
-```json
-{"segment_id": "uuid-1", "start_time": 0.0, "end_time": 3.0, "embedding": [0.123, -0.456, ...]}
-{"segment_id": "uuid-2", "start_time": 3.944, "end_time": 7.0, "embedding": [0.789, -0.234, ...]}
-```
+**Output format:**
 
-Each line contains:
-- `segment_id`: UUID of the VTT segment
-- `start_time`: Start time in seconds
-- `end_time`: End time in seconds
-- `embedding`: 512-dimensional vector (for pyannote/embedding model)
+The embeddings are written back to the VTT file as `NOTE CAPTION_EDITOR:SegmentSpeakerEmbedding` comments. Each embedding contains:
+- `segmentId`: UUID of the VTT segment
+- `speakerEmbedding`: 512-dimensional vector (for default wespeaker model)
+
+**Note:** The default model (`pyannote/wespeaker-voxceleb-resnet34-LM`) is publicly accessible and doesn't require a HuggingFace token. Some alternative models (like `pyannote/embedding`) are gated and require accepting terms and setting `HF_TOKEN`.
 
 ### Options
 

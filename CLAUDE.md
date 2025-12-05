@@ -96,7 +96,7 @@ Tests should run quickly to maintain development velocity:
   - ✅ **ASR Segment Splitting**: 13/13 passing (unit tests)
   - ✅ **ASR Post-Processing Pipeline**: 4/4 passing (integration tests with fixtures)
   - ✅ **VTT Parsing/Serialization**: 3/3 passing
-  - ✅ **Embedding**: 2/2 passing (requires HF_TOKEN)
+  - ✅ **Embedding**: 2/2 passing (no HF_TOKEN required for default model)
   - ✅ **Transcription**: 2/2 passing (Whisper + Parakeet)
 - ✅ UI/Interaction E2E Tests: 43/43 passing ⭐ **ALL PASSING!**
 - ✅ Electron Platform E2E Tests: 25/25 passing ⭐ **ALL PASSING!**
@@ -197,12 +197,12 @@ npx playwright test tests/electron/full-pipeline.electron.spec.ts
 DISPLAY=:99 npx playwright test tests/electron/full-pipeline.electron.spec.ts
 
 # Full E2E mode (regenerates all intermediate files from scratch)
-# Requires HF_TOKEN for speaker embedding generation
+# Note: Default embedding model (wespeaker) doesn't require HF_TOKEN
 # macOS:
-HF_TOKEN=your_token FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
+FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
 
 # Linux/Docker:
-DISPLAY=:99 HF_TOKEN=your_token FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
+DISPLAY=:99 FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
 ```
 
 Pipeline stages (intermediate outputs in `test_data/full_pipeline/`):
@@ -230,10 +230,10 @@ Current performance:
 - Core splitting tests: ~0.1s for 13 tests (no ASR required) ✅
 - Post-processing pipeline tests: ~0.1s for 4 tests (use fixtures) ✅
 - VTT parsing tests: ~0.1s for 3 tests ✅
-- Embedding test: ~10s for 1 test (requires HF_TOKEN) ✅
+- Embedding test: ~10s for 1 test (uses public wespeaker model) ✅
 - Audio conversion test: ~1s for 1 test ✅
 - Transcription tests: ~180s for 2 tests (Whisper + Parakeet, require HF_TOKEN) ✅
-- Total: ~3 minutes for 24 tests (all passing with HF_TOKEN) ⭐
+- Total: ~3 minutes for 24 tests (all passing, transcription tests require HF_TOKEN) ⭐
 
 #### Run Specific Test Files
 ```bash
@@ -787,7 +787,7 @@ DISPLAY=:99 npx playwright test
 
 **Expected Results:**
 - Unit tests: All passing (164/164) ✅
-- Python tests: All passing (24/24 with HF_TOKEN) ✅
+- Python tests: All passing (24/24, transcription tests require HF_TOKEN) ✅
 - UI/Interaction E2E tests: 43/43 passing ✅
 - Electron Platform E2E tests: 25/25 passing ✅
 
@@ -874,14 +874,23 @@ Computes speaker embeddings and stores them in the VTT file as NOTE comments.
 **Usage:**
 ```bash
 cd transcribe
-HF_TOKEN=your_token uv run python embed.py path/to/file.vtt
+# Default model (wespeaker) - no token required
+uv run python embed.py path/to/file.vtt
+
+# Alternative gated models require HF_TOKEN
+HF_TOKEN=your_token uv run python embed.py path/to/file.vtt --model pyannote/embedding
 ```
 
 **How it works:**
-1. Skips segments shorter than 0.5 seconds (too short for reliable embeddings)
+1. Skips segments shorter than 0.3 seconds (too short for reliable embeddings)
 2. Computes speaker embeddings using pyannote.audio
 3. Writes embeddings to VTT file as `SegmentSpeakerEmbedding` NOTE comments
 4. Each embedding is a vector of floats associated with a segment ID
+
+**Default model:**
+- `pyannote/wespeaker-voxceleb-resnet34-LM` - 256-dimensional embeddings
+- Publicly accessible (no HF token required)
+- Good for speaker clustering and similarity analysis
 
 **Implementation details:**
 - Uses a map-based approach: `segment_id -> embedding`
@@ -889,7 +898,7 @@ HF_TOKEN=your_token uv run python embed.py path/to/file.vtt
   ```
   NOTE CAPTION_EDITOR:SegmentSpeakerEmbedding {"segmentId":"uuid","speakerEmbedding":[0.1,0.2,...]}
   ```
-- Short segments (<0.5s) don't get embeddings
+- Short segments (<0.3s) don't get embeddings
 - Embeddings are parsed and preserved by both Python and TypeScript parsers
 - Can be used later for speaker clustering, diarization, or similarity analysis
 
@@ -901,7 +910,7 @@ HF_TOKEN=your_token uv run python embed.py path/to/file.vtt
 
 **Tests:**
 - `tests/test_vtt_lib.py`: Tests parsing and serialization (3 tests)
-- `tests/test_embed.py::test_embed_osr_audio`: Tests embedding computation with VTT file (1 test)
+- `tests/test_embed.py::test_embed_osr_audio`: Tests embedding computation with VTT file (1 test, no HF_TOKEN required)
 - `tests/test_embed.py::test_convert_to_wav`: Tests audio format conversion (1 test)
 - All use syrupy snapshots and tmp_path fixture
 - Total: 5 tests, all passing

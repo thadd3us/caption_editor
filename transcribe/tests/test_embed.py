@@ -70,11 +70,10 @@ def test_convert_to_wav():
 
 
 def test_embed_osr_audio(snapshot):
-    """Test embedding computation with snapshot comparison."""
-    # Skip test if HF_TOKEN is not set
-    if not os.getenv("HF_TOKEN"):
-        pytest.skip("HF_TOKEN environment variable not set")
+    """Test embedding computation with snapshot comparison.
 
+    Note: Uses default wespeaker model which doesn't require HF_TOKEN.
+    """
     assert TEST_VTT.exists(), f"Test VTT file not found: {TEST_VTT}"
     assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
@@ -90,6 +89,10 @@ def test_embed_osr_audio(snapshot):
 
         # Run embed.py as subprocess
         embed_script = Path(__file__).parent.parent / "embed.py"
+        # Pass HF_TOKEN if available (not needed for default model)
+        env = dict(os.environ)
+        if "HF_TOKEN" in os.environ:
+            env["HF_TOKEN"] = os.environ["HF_TOKEN"]
         result = subprocess.run(
             [
                 "python", str(embed_script),
@@ -98,7 +101,7 @@ def test_embed_osr_audio(snapshot):
             capture_output=True,
             text=True,
             check=True,
-            env={**os.environ, "HF_TOKEN": os.getenv("HF_TOKEN", "")},
+            env=env,
         )
 
         # Parse the updated VTT file to extract embeddings

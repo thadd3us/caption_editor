@@ -25,15 +25,9 @@ from vtt_lib import parse_vtt_file, serialize_vtt
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
 
 
-def get_hf_token() -> str:
-    """Get HuggingFace token from environment."""
-    token = os.getenv("HF_TOKEN")
-    if not token:
-        raise ValueError(
-            "HF_TOKEN environment variable not set. "
-            "Please set it with your HuggingFace token."
-        )
-    return token
+def get_hf_token() -> Optional[str]:
+    """Get HuggingFace token from environment (optional for public models)."""
+    return os.getenv("HF_TOKEN")
 
 
 def convert_to_wav(media_file: Path, temp_dir: Path) -> Path:
@@ -152,7 +146,7 @@ def main(
         help="Path to the VTT file",
     ),
     model: str = typer.Option(
-        "pyannote/embedding",
+        "pyannote/wespeaker-voxceleb-resnet34-LM",
         "--model",
         "-m",
         help="Pyannote embedding model to use",
@@ -165,7 +159,7 @@ def main(
     """
     Compute speaker embeddings for each segment in a VTT file.
 
-    Requires HF_TOKEN environment variable to be set.
+    HF_TOKEN environment variable is optional (only needed for gated models).
     Writes embeddings as NOTE comments in the VTT file.
     """
     # Use a temporary directory that persists through the whole function
@@ -173,7 +167,7 @@ def main(
     temp_dir = Path(temp_dir_obj.name)
 
     try:
-        # Get HuggingFace token
+        # Get HuggingFace token (optional for public models)
         token = get_hf_token()
 
         # Parse VTT file
@@ -214,7 +208,11 @@ def main(
             embedding_model = Model.from_pretrained(snapshots[0].parent)
         else:
             typer.echo(f"Downloading {model=}")
-            embedding_model = Model.from_pretrained(model, use_auth_token=token)
+            # Use token if available, otherwise download public model without auth
+            if token:
+                embedding_model = Model.from_pretrained(model, use_auth_token=token)
+            else:
+                embedding_model = Model.from_pretrained(model)
         assert embedding_model, f"Failed to load."
         inference = Inference(embedding_model, window="whole")
 
