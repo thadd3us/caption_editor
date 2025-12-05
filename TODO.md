@@ -1,5 +1,5 @@
 High:
-
+https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM
 * Rename "Play Sequential" to just be a play button.
 
 
