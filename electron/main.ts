@@ -1,8 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
+import { existsSync, readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
-import { readFileSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -528,7 +528,7 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
 
     // Validate that transcribe.py exists
     const scriptPath = path.join(cwd, 'transcribe.py')
-    if (!fs.existsSync(scriptPath)) {
+    if (!existsSync(scriptPath)) {
       throw new Error(`transcribe.py not found at ${scriptPath}`)
     }
   } else {
@@ -543,13 +543,13 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     }
 
     // Validate that Python interpreter exists
-    if (!fs.existsSync(pythonCommand)) {
+    if (!existsSync(pythonCommand)) {
       throw new Error(`Python interpreter not found at ${pythonCommand}. Ensure the app is properly packaged with bundled Python environment.`)
     }
 
     // Validate that transcribe.py exists
     const scriptPath = path.join(cwd, 'transcribe.py')
-    if (!fs.existsSync(scriptPath)) {
+    if (!existsSync(scriptPath)) {
       throw new Error(`transcribe.py not found at ${scriptPath}. Ensure the app is properly packaged with Python scripts.`)
     }
   }
