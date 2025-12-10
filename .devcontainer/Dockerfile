@@ -168,6 +168,9 @@ USER dev
 ENV NODE_ENV=development
 # Disable OneLogger telemetry in development
 ENV ONE_LOGGER_DISABLE=1
+# Set DISPLAY for Xvfb virtual display server (used for headless Electron tests)
+# Start Xvfb with: start-xvfb.sh (see CLAUDE.md for details)
+ENV DISPLAY=:99
 
 # Set working directory to the workspace mount point
 WORKDIR /workspace

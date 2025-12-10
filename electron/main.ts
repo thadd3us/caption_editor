@@ -525,6 +525,12 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     if (model) {
       pythonArgs.push('--model', model)
     }
+
+    // Validate that transcribe.py exists
+    const scriptPath = path.join(cwd, 'transcribe.py')
+    if (!fs.existsSync(scriptPath)) {
+      throw new Error(`transcribe.py not found at ${scriptPath}`)
+    }
   } else {
     // Production mode: use bundled Python
     pythonCommand = path.join(process.resourcesPath, 'transcribe', 'venv', 'bin', 'python')
@@ -534,6 +540,17 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     // Add model flag if specified
     if (model) {
       pythonArgs.push('--model', model)
+    }
+
+    // Validate that Python interpreter exists
+    if (!fs.existsSync(pythonCommand)) {
+      throw new Error(`Python interpreter not found at ${pythonCommand}. Ensure the app is properly packaged with bundled Python environment.`)
+    }
+
+    // Validate that transcribe.py exists
+    const scriptPath = path.join(cwd, 'transcribe.py')
+    if (!fs.existsSync(scriptPath)) {
+      throw new Error(`transcribe.py not found at ${scriptPath}. Ensure the app is properly packaged with Python scripts.`)
     }
   }
 

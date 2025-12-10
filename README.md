@@ -6,18 +6,40 @@
 * Carefully preserves version history of edited captions.
 
 ### Quick Start (Desktop)
+
+#### Development Mode
+```bash
+# Install dependencies
+npm install
+
+# Build the Electron app (must be done first)
+npm run build:all
+
+# Run in development mode (with hot reload)
+npm run dev:electron
+
+# Or run the built app directly
+npm start
+```
+
+#### Production / Packaged Mode
 ```bash
 # Build everything
 npm run build:all
 
-# Run the Electron app
-npm run dev:electron
+# Package for your platform (creates distributable app)
+npm run package:mac     # macOS (.app bundle)
+npm run package:win     # Windows (.exe installer)
+npm run package:linux   # Linux (AppImage)
 
-# Package for your platform
-npm run package:mac     # macOS
-npm run package:win     # Windows
-npm run package:linux   # Linux
+# The packaged app will be in the dist/ directory
+# Note: Python environment bundling is not yet implemented
 ```
+
+**Note on Python ASR Integration:**
+- In **development mode**, the app uses `uv run python` to execute transcription scripts from `transcribe/`
+- In **production mode** (packaged app), Python environment bundling is planned but not yet implemented
+- The app will validate that required Python scripts exist before attempting to run ASR
 
 ### Core Functionality
 
@@ -87,6 +109,8 @@ The devcontainer includes:
 
 This project has comprehensive test coverage including unit tests, end-to-end tests, and build verification.
 
+#### Quick Test Commands
+
 ```bash
 # Run ALL tests (unit + e2e + build verification) - recommended for CI/pre-commit
 npm run test:all
@@ -111,6 +135,31 @@ npx playwright show-report # View Playwright HTML report
 # First-time setup
 npx playwright install    # Install Playwright browsers
 ```
+
+#### Platform-Specific Testing (Linux/Docker)
+
+On Linux containers without a display server (like the devcontainer), you need Xvfb for Electron tests:
+
+```bash
+# Start Xvfb (only needed once per container session)
+start-xvfb.sh
+
+# Run Electron tests with DISPLAY set
+# Note: DISPLAY=:99 is set by default in the devcontainer
+npm run test:e2e
+
+# Or manually with DISPLAY:
+DISPLAY=:99 npx playwright test tests/electron/
+```
+
+**Troubleshooting Xvfb:**
+- If tests fail with "Missing X server", run `start-xvfb.sh`
+- Check if running: `ps aux | grep "[X]vfb"`
+- For more debugging tips, see `CLAUDE.md` → "Why Xvfb Keeps Dying"
+
+**macOS/Windows:**
+- Xvfb is not needed - tests work natively
+- Just run `npm run test:e2e` directly
 
 **Recommended workflow:**
 - During development: `npm run test:unit` (fast feedback)

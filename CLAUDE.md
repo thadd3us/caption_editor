@@ -748,7 +748,9 @@ npm run build:all && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/elec
 
 ### Troubleshooting
 
-**Tests fail with "Missing X server or $DISPLAY" (Linux only):**
+#### Tests fail with "Missing X server or $DISPLAY" (Linux only)
+
+**Quick fix:**
 ```bash
 # Check if Xvfb is running
 ps aux | grep "[X]vfb"
@@ -763,7 +765,99 @@ cat /tmp/xvfb.log
 DISPLAY=:99 npx playwright test tests/electron/
 ```
 
-**Tests fail with "Process failed to launch" (Any platform):**
+#### Why Xvfb Keeps Dying
+
+**Common causes:**
+
+1. **Zombie Electron processes holding the display**
+   - When tests crash or are killed (Ctrl+C), Electron processes can linger
+   - These hold onto `:99` display, preventing Xvfb from restarting cleanly
+   - **Solution:** Kill zombie processes before restarting Xvfb
+
+2. **Stale lock files**
+   - Lock file `/tmp/.X99-lock` persists after Xvfb dies
+   - New Xvfb can't start because it thinks display is in use
+   - **Solution:** Remove stale lock files
+
+3. **Out of memory**
+   - Multiple Electron instances running simultaneously can exhaust memory
+   - Xvfb gets OOM killed by the kernel
+   - **Solution:** Run tests sequentially, not in parallel
+
+4. **Multiple Xvfb instances**
+   - Starting Xvfb twice creates conflicts
+   - Second instance dies immediately
+   - **Solution:** Check if already running before starting
+
+**Comprehensive cleanup and restart:**
+```bash
+# 1. Kill all Xvfb processes
+pkill Xvfb
+
+# 2. Kill all zombie Electron processes (important!)
+pkill -9 electron
+
+# 3. Remove stale lock files
+rm -f /tmp/.X99-lock /tmp/.X11-unix/X99
+
+# 4. Verify nothing is running
+ps aux | grep -E "(Xvfb|electron)" | grep -v grep
+
+# 5. Start fresh Xvfb
+start-xvfb.sh
+
+# 6. Verify it's running
+ps aux | grep "[X]vfb"
+```
+
+**Monitoring and debugging:**
+```bash
+# Check if Xvfb is running (won't match grep itself)
+ps aux | grep "[X]vfb"
+
+# Get Xvfb PID
+pgrep Xvfb
+
+# Check Xvfb logs (warnings about keysyms are normal)
+cat /tmp/xvfb.log
+
+# Check for stale lock files
+ls -lh /tmp/.X99-lock
+
+# Find zombie Electron processes
+ps aux | grep electron | grep -v grep
+
+# Kill all Electron processes if tests are stuck
+pkill -9 electron
+
+# Check memory usage (OOM can kill Xvfb)
+free -h
+
+# Monitor Xvfb memory usage
+ps aux | grep "[X]vfb" | awk '{print $6}'  # RSS in KB
+```
+
+**Performance measurement:**
+```bash
+# Use GNU time to measure test performance
+/usr/bin/time -v DISPLAY=:99 npx playwright test tests/electron/asr-menu.electron.spec.ts
+
+# Key metrics:
+# - Elapsed (wall clock) time: Total duration
+# - User time: CPU time in user mode
+# - System time: CPU time in kernel mode
+# - Percent of CPU: Multi-core utilization (>100% = parallel)
+# - Maximum resident set size: Peak memory usage
+```
+
+**Best practices:**
+- Always set `DISPLAY=:99` in the same command as your test run (doesn't persist)
+- Kill zombie Electron processes after interrupted tests
+- Run `pkill Xvfb && start-xvfb.sh` if you see display errors
+- Check `/tmp/xvfb.log` if Xvfb fails to start
+
+#### Tests fail with "Process failed to launch" (Any platform)
+
 ```bash
 # Make sure build completed
 npm run build:all
@@ -774,7 +868,8 @@ ls -la dist-electron/main.cjs
 ls -la dist-electron/preload.cjs
 ```
 
-**Tests fail with sandbox errors (Linux only):**
+#### Tests fail with sandbox errors (Linux only)
+
 The `--no-sandbox` flag is already configured in all test files. If you still see sandbox errors, it means the non-root user environment needs this flag, which is already applied.
 
 ### Why Xvfb? (Linux/Docker)
