@@ -26,6 +26,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
+  maxFailures: process.env.CI ? 10 : undefined,
   timeout: 30000, // 30 second timeout for Electron tests
 
   // Use platform-agnostic snapshot paths (remove -darwin/-linux suffixes)

@@ -13,13 +13,13 @@ test.describe('File Association - Open VTT files from OS', () => {
 
   test('should open VTT file passed as command line argument and auto-load media', async () => {
     // Path to the test VTT file with media reference
-    const vttFilePath = path.join(process.cwd(), 'test_data/with-media-reference.vtt')
-    const audioFilePath = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
+    const vttFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
+    const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     // Launch Electron with the VTT file as an argument (simulates double-clicking the file)
     electronApp = await electron.launch({
       args: [
-        path.join(process.cwd(), 'dist-electron/main.cjs'),
+        path.join(getElectronMainPath()),
         '--no-sandbox',
         vttFilePath  // Pass VTT file path as argument
       ],
@@ -136,11 +136,11 @@ test.describe('File Association - Open VTT files from OS', () => {
   })
 
   test('should handle open-file event on macOS', async () => {
-    const vttFilePath = path.join(process.cwd(), 'test_data/with-media-reference.vtt')
+    const vttFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
 
     // Launch Electron without file argument first
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -186,7 +186,7 @@ test.describe('File Association - Open VTT files from OS', () => {
 
   test('should have onFileOpen API exposed', async () => {
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',

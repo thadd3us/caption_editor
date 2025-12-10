@@ -12,7 +12,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeAll(async () => {
+  test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
       args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
@@ -29,8 +29,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     enableConsoleCapture(window)
   })
 
-  test.afterAll(async () => {
-    await electronApp.close()
+  test.afterEach(async () => {
+    if (electronApp) { await electronApp.close().catch(() => {}) }
   })
 
   // Helper function to seek to a time

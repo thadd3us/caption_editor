@@ -4,6 +4,7 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
+import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -12,10 +13,10 @@ test.describe('Electron App', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeAll(async () => {
+  test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [getElectronMainPath(), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -29,8 +30,8 @@ test.describe('Electron App', () => {
     enableConsoleCapture(window)
   })
 
-  test.afterAll(async () => {
-    await electronApp.close()
+  test.afterEach(async () => {
+    if (electronApp) { await electronApp.close().catch(() => {}) }
   })
 
   test('should launch the application', async () => {
@@ -71,7 +72,7 @@ test.describe('Electron App', () => {
 
   test('should load and display VTT content', async () => {
     // Create a temporary VTT file
-    const testVTTPath = path.join(process.cwd(), 'test_data/test.vtt')
+    const testVTTPath = path.join(getProjectRoot(), 'test_data/test.vtt')
     const vttContent = `WEBVTT
 
 00:00:00.000 --> 00:00:05.000
@@ -82,7 +83,7 @@ Second caption
 `
 
     // Ensure test_data directory exists
-    await fs.mkdir(path.join(process.cwd(), 'test_data'), { recursive: true })
+    await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
     await fs.writeFile(testVTTPath, vttContent)
 
     // Load VTT file programmatically
@@ -151,14 +152,14 @@ Test caption
 
   test('should handle file drops', async () => {
     // Create a test VTT file
-    const testVTTPath = path.join(process.cwd(), 'test_data/drop-test.vtt')
+    const testVTTPath = path.join(getProjectRoot(), 'test_data/drop-test.vtt')
     const vttContent = `WEBVTT
 
 00:00:00.000 --> 00:00:05.000
 Dropped caption
 `
 
-    await fs.mkdir(path.join(process.cwd(), 'test_data'), { recursive: true })
+    await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
     await fs.writeFile(testVTTPath, vttContent)
 
     // Simulate file drop via electronAPI

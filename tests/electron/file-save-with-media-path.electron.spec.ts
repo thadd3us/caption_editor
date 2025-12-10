@@ -25,7 +25,7 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     //   └── subdir/
     //       └── saved.vtt (save-as location)
 
-    tempDir = path.join(process.cwd(), 'test_data/temp-media-test')
+    tempDir = path.join(getProjectRoot(), 'test_data/temp-media-test')
     await fs.mkdir(tempDir, { recursive: true })
 
     subdirPath = path.join(tempDir, 'subdir')
@@ -36,7 +36,7 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     saveAsPath = path.join(subdirPath, 'saved.vtt')
 
     // Copy media file to temp directory
-    const sourceMedia = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
+    const sourceMedia = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
     await fs.copyFile(sourceMedia, mediaFilePath)
 
     // Create VTT file with media reference (just filename since they're in same directory)
@@ -83,7 +83,7 @@ Second caption
     // Step 1: Launch Electron with the VTT file
     electronApp = await electron.launch({
       args: [
-        path.join(process.cwd(), 'dist-electron/main.cjs'),
+        path.join(getElectronMainPath()),
         '--no-sandbox',
         testVttPath
       ],

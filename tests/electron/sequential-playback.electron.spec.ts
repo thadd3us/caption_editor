@@ -45,7 +45,7 @@ test.describe('Sequential Playback', () => {
   test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -66,7 +66,7 @@ test.describe('Sequential Playback', () => {
 
   test('should show sequential play button in table header', async () => {
     // Load a VTT file with multiple segments
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
     // Sequential play button should be visible
@@ -76,11 +76,11 @@ test.describe('Sequential Playback', () => {
 
   test('should start sequential playback from top when no row selected', async () => {
     console.log('[Test] Loading VTT file...')
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
     console.log('[Test] Loading media file...')
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
+    const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
     console.log('[Test] Clicking Play Segments button...')
@@ -121,11 +121,11 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load a VTT file
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
     // Load media file
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
+    const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
     // Wait for grid to be ready and have at least 3 rows
@@ -191,10 +191,10 @@ test.describe('Sequential Playback', () => {
 
   test('should stop sequential playback when pause button clicked', async () => {
     // Load files
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
+    const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
     // Start sequential playback
@@ -214,10 +214,10 @@ test.describe('Sequential Playback', () => {
 
   test('should play segments in table order respecting sort', async () => {
     // Load files
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
+    const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
     // Get the grid API and capture initial order
@@ -251,10 +251,10 @@ test.describe('Sequential Playback', () => {
 
   test('should preserve playlist order even if table is resorted', async () => {
     // Load files
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
+    const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
     // Start sequential playback
@@ -285,7 +285,7 @@ test.describe('Sequential Playback', () => {
 
   test('should disable sequential button when no media loaded', async () => {
     // Load only VTT file without media reference
-    const vttPath = path.join(process.cwd(), 'test_data', 'no-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'no-media-reference.vtt')
     await loadVTTFile(vttPath)
 
     // Sequential play button should be disabled (no media path)
@@ -297,10 +297,10 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load files
-    const vttPath = path.join(process.cwd(), 'test_data', 'with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
     await loadVTTFile(vttPath)
 
-    const audioPath = path.join(process.cwd(), 'test_data', 'OSR_us_000_0010_8k.wav')
+    const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(audioPath)
 
     // Start sequential playback

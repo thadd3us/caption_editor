@@ -23,7 +23,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     // Launch Electron app
     // Note: Requires Xvfb on Linux - run `start-xvfb.sh` first
     const electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -39,9 +39,9 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     await window.waitForSelector('.app', { timeout: 10000 })
 
     // Create a test VTT file
-    const testVttPath = path.join(process.cwd(), 'test_data/sample.vtt.copy')
+    const testVttPath = path.join(getProjectRoot(), 'test_data/sample.vtt.copy')
     const originalContent = fs.readFileSync(
-      path.join(process.cwd(), 'test_data/sample.vtt'),
+      path.join(getProjectRoot(), 'test_data/sample.vtt'),
       'utf-8'
     )
     fs.writeFileSync(testVttPath, originalContent, 'utf-8')
@@ -108,7 +108,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
   test('should handle multiple files dropped simultaneously', async () => {
     // Note: Requires Xvfb on Linux - run `start-xvfb.sh` first
     const electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',

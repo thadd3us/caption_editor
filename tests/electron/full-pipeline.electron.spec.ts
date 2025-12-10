@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename)
  */
 
 test.describe('Full E2E Pipeline', () => {
-  const PIPELINE_DIR = path.join(process.cwd(), 'test_data/full_pipeline')
+  const PIPELINE_DIR = path.join(getProjectRoot(), 'test_data/full_pipeline')
   const FULL_E2E = process.env.FULL_E2E === '1'
 
   test('should transcribe audio, add embeddings, load in UI, modify, and save', async () => {
@@ -40,7 +40,7 @@ test.describe('Full E2E Pipeline', () => {
       // ============================================================
       // STAGE 1: Transcribe audio with ASR
       // ============================================================
-      const srcAudio = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
+      const srcAudio = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
       const stage1Output = path.join(PIPELINE_DIR, '1_after_transcribe.vtt')
 
       if (FULL_E2E || !fs.existsSync(stage1Output)) {
@@ -121,7 +121,7 @@ test.describe('Full E2E Pipeline', () => {
       console.log('Launching Electron app...')
       electronApp = await electron.launch({
         args: [
-          path.join(process.cwd(), 'dist-electron/main.cjs'),
+          path.join(getElectronMainPath()),
           '--no-sandbox',
           stage3Working
         ],
@@ -249,7 +249,7 @@ test.describe('Full E2E Pipeline', () => {
     let window: Page
 
     try {
-      const sampleFile = path.join(process.cwd(), 'test_data/sample_with_words.vtt')
+      const sampleFile = path.join(getProjectRoot(), 'test_data/sample_with_words.vtt')
       expect(fs.existsSync(sampleFile)).toBe(true)
 
       // Read and verify the sample file
@@ -262,7 +262,7 @@ test.describe('Full E2E Pipeline', () => {
       // Launch Electron app with the sample file
       electronApp = await electron.launch({
         args: [
-          path.join(process.cwd(), 'dist-electron/main.cjs'),
+          path.join(getElectronMainPath()),
           '--no-sandbox',
           sampleFile
         ],

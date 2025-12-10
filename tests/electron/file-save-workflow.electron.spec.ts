@@ -43,11 +43,11 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
   test.beforeEach(async () => {
     // Create a temporary directory for test files
-    tempDir = path.join(process.cwd(), 'test_data/temp-save-test')
+    tempDir = path.join(getProjectRoot(), 'test_data/temp-save-test')
     await fs.mkdir(tempDir, { recursive: true })
 
     // Copy sample.vtt to temp directory for testing
-    const sourceVtt = path.join(process.cwd(), 'test_data/sample.vtt')
+    const sourceVtt = path.join(getProjectRoot(), 'test_data/sample.vtt')
     testVttPath = path.join(tempDir, 'test-captions.vtt')
     await fs.copyFile(sourceVtt, testVttPath)
 
@@ -74,7 +74,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     electronApp = await electron.launch({
       args: [
-        path.join(process.cwd(), 'dist-electron/main.cjs'),
+        path.join(getElectronMainPath()),
         '--no-sandbox',
         testVttPath
       ],
@@ -183,12 +183,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   test('should save-as VTT file to new location and update UI', async () => {
     // Setup: Copy the original sample file
     console.log('Setup: Creating initial VTT file for save-as test')
-    const sourceVtt = path.join(process.cwd(), 'test_data/sample.vtt')
+    const sourceVtt = path.join(getProjectRoot(), 'test_data/sample.vtt')
     await fs.copyFile(sourceVtt, testVttPath)
 
     electronApp = await electron.launch({
       args: [
-        path.join(process.cwd(), 'dist-electron/main.cjs'),
+        path.join(getElectronMainPath()),
         '--no-sandbox',
         testVttPath
       ],
@@ -277,7 +277,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   test('should load, modify, and save speaker_name field via table UI', async () => {
     // Step 1: Copy the OSR test file which has speaker names to temp directory
     console.log('Step 1: Setting up test with OSR file containing speaker names')
-    const osrSourceVtt = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.vtt')
+    const osrSourceVtt = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.vtt')
     const osrTestPath = path.join(tempDir, 'osr-test-speakers.vtt')
     await fs.copyFile(osrSourceVtt, osrTestPath)
 
@@ -285,7 +285,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 2: Launching Electron with OSR file:', osrTestPath)
     electronApp = await electron.launch({
       args: [
-        path.join(process.cwd(), 'dist-electron/main.cjs'),
+        path.join(getElectronMainPath()),
         '--no-sandbox',
         osrTestPath
       ],

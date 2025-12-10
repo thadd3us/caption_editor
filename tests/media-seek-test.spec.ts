@@ -12,7 +12,7 @@ test.describe('Media Element Seek Test', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeAll(async () => {
+  test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
       args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
@@ -29,8 +29,8 @@ test.describe('Media Element Seek Test', () => {
     enableConsoleCapture(window)
   })
 
-  test.afterAll(async () => {
-    await electronApp.close()
+  test.afterEach(async () => {
+    if (electronApp) { await electronApp.close().catch(() => {}) }
   })
 
   test('should set audio currentTime and update store via timeupdate event', async () => {

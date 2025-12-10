@@ -12,10 +12,10 @@ test.describe('Electron VTT Media Auto-loading', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeAll(async () => {
+  test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -29,16 +29,16 @@ test.describe('Electron VTT Media Auto-loading', () => {
     enableConsoleCapture(window)
   })
 
-  test.afterAll(async () => {
-    await electronApp.close()
+  test.afterEach(async () => {
+    if (electronApp) { await electronApp.close().catch(() => {}) }
   })
 
   test('should auto-load media file when VTT has mediaFilePath metadata', async () => {
     test.setTimeout(30000)
 
     // Use the actual test fixture files
-    const vttPath = path.join(process.cwd(), 'test_data/with-media-reference.vtt')
-    const mediaPath = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
+    const vttPath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
+    const mediaPath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     // Verify both files exist
     await fs.access(vttPath)
@@ -112,7 +112,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
     await window.waitForTimeout(200)
 
     // Create a VTT with a non-existent media reference
-    const testVTTPath = path.join(process.cwd(), 'test_data/missing-media-ref.vtt')
+    const testVTTPath = path.join(getProjectRoot(), 'test_data/missing-media-ref.vtt')
     const vttContent = `WEBVTT
 
 NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"550e8400-e29b-41d4-a716-446655440000","mediaFilePath":"nonexistent-file.wav"}
@@ -124,7 +124,7 @@ NOTE CAPTION_EDITOR:TranscriptSegment {"id":"84ec6681-574b-4570-aecb-5bcaea9415a
 Test caption
 `
 
-    await fs.mkdir(path.join(process.cwd(), 'test_data'), { recursive: true })
+    await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
     await fs.writeFile(testVTTPath, vttContent)
 
     // Load the VTT
@@ -165,7 +165,7 @@ Test caption
     test.setTimeout(30000)
 
     // First, manually load a media file
-    const mediaPath = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
+    const mediaPath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     await window.evaluate(async (filePath) => {
       if (!window.electronAPI) return
@@ -190,7 +190,7 @@ Test caption
     expect(initialMediaPath).toBeTruthy()
 
     // Now load VTT with media reference
-    const vttPath = path.join(process.cwd(), 'test_data/with-media-reference.vtt')
+    const vttPath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
 
     await window.evaluate(async (filePath) => {
       if (!window.electronAPI) return
