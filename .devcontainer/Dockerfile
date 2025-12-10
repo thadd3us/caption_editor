@@ -62,6 +62,8 @@ RUN apt-get update && apt-get install -y \
     pybind11-dev \
     # Disk usage analyzer
     ncdu \
+    # Time command for performance measurement
+    time \
     # Sudo for non-root user
     sudo
 
