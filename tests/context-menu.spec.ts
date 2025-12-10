@@ -22,6 +22,9 @@ test.describe('VTT Editor - Context Menu', () => {
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
     enableConsoleCapture(window)
+
+    // Wait for AG Grid to be ready (more reliable than waiting for store)
+    await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
   test.afterEach(async () => {

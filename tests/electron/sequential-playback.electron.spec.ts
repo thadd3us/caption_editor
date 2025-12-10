@@ -3,6 +3,7 @@ import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
+import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

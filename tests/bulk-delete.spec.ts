@@ -22,6 +22,9 @@ test.describe('VTT Editor - Bulk Delete', () => {
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
     enableConsoleCapture(window)
+
+    // Wait for AG Grid to be ready (more reliable than waiting for store)
+    await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
   test.afterEach(async () => {
@@ -33,6 +36,11 @@ test.describe('VTT Editor - Bulk Delete', () => {
   })
 
   test('should delete multiple selected rows after confirmation', async () => {
+    // Wait for store to be available
+    await window.waitForFunction(() => {
+      return (window as any).$store !== undefined
+    }, { timeout: 5000 })
+
     // Load VTT with multiple cues
     const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store

@@ -5,6 +5,7 @@ import * as fs from 'fs'
 import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
+import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

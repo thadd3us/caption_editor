@@ -17,6 +17,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 import { enableConsoleCapture } from '../helpers/console'
+import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 
 test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
   test('should expose getPathForFile API (note: returns empty for synthetic File objects)', async () => {
