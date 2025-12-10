@@ -2,7 +2,6 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
-import * as os from 'os'
 import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
@@ -14,83 +13,60 @@ const __dirname = path.dirname(__filename)
  * Full E2E Pipeline Test
  *
  * This test can run in two modes:
- * 1. FAST MODE (default): Uses pre-generated golden files from test_data/full_pipeline/
- *    - All outputs go to a temporary directory (not checked in)
- *    - Golden files are read-only, used as cached inputs
- * 2. FULL E2E MODE: Set FULL_E2E=1 to regenerate golden files from scratch
- *    - Runs all pipeline stages (transcribe, embed, UI)
- *    - Copies outputs to test_data/full_pipeline/ to update golden files
+ * 1. FAST MODE (default): Uses pre-generated intermediate files from test_data/full_pipeline/
+ * 2. FULL E2E MODE: Set FULL_E2E=1 to regenerate all intermediate files from scratch
  *
  * Pipeline stages:
  * - Stage 1: Transcribe audio with transcribe.py -> produces 1_after_transcribe.vtt
  * - Stage 2: Add speaker embeddings with embed.py -> produces 2_after_embed.vtt
  * - Stage 3: Load in UI, modify rating and speaker -> produces 3_after_ui_edit.vtt
  *
- * Each stage's output is checked in as a golden file, allowing fast iteration on later stages.
+ * Each stage's output is checked in, allowing fast iteration on later stages.
  */
 
 test.describe('Full E2E Pipeline', () => {
-  const GOLDEN_DIR = path.join(process.cwd(), 'test_data/full_pipeline')
+  const PIPELINE_DIR = path.join(process.cwd(), 'test_data/full_pipeline')
   const FULL_E2E = process.env.FULL_E2E === '1'
-
-  let tempDir: string
-
-  test.beforeEach(() => {
-    // Create a unique temp directory for this test run
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'full-pipeline-'))
-    console.log(`Test working directory: ${tempDir}`)
-  })
-
-  test.afterEach(() => {
-    // Clean up temp directory
-    if (tempDir && fs.existsSync(tempDir)) {
-      fs.rmSync(tempDir, { recursive: true, force: true })
-    }
-  })
 
   test('should transcribe audio, add embeddings, load in UI, modify, and save', async () => {
     test.setTimeout(30000) // Extend timeout for this E2E test
     let electronApp: ElectronApplication
     let window: Page
 
+    // Ensure pipeline directory exists
+    fs.mkdirSync(PIPELINE_DIR, { recursive: true })
+
     try {
       // ============================================================
       // STAGE 1: Transcribe audio with ASR
       // ============================================================
       const srcAudio = path.join(process.cwd(), 'test_data/OSR_us_000_0010_8k.wav')
-      const stage1Golden = path.join(GOLDEN_DIR, '1_after_transcribe.vtt')
-      const stage1Output = path.join(tempDir, '1_after_transcribe.vtt')
+      const stage1Output = path.join(PIPELINE_DIR, '1_after_transcribe.vtt')
 
-      if (FULL_E2E || !fs.existsSync(stage1Golden)) {
+      if (FULL_E2E || !fs.existsSync(stage1Output)) {
         console.log('\n=== STAGE 1: Running transcribe.py ===')
 
-        // Copy audio to temp directory for transcribe.py
-        const tempAudio = path.join(tempDir, 'OSR_us_000_0010_8k.wav')
-        fs.copyFileSync(srcAudio, tempAudio)
+        // Copy audio to pipeline directory for transcribe.py
+        const pipelineAudio = path.join(PIPELINE_DIR, 'OSR_us_000_0010_8k.wav')
+        if (!fs.existsSync(pipelineAudio)) {
+          fs.copyFileSync(srcAudio, pipelineAudio)
+        }
 
-        const transcribeCmd = `cd transcribe && uv run python transcribe.py "${tempAudio}"`
+        const transcribeCmd = `cd transcribe && uv run python transcribe.py "${pipelineAudio}"`
         execSync(transcribeCmd, { stdio: 'inherit' })
 
         // Move the output to stage1Output
-        const generatedVtt = path.join(tempDir, 'OSR_us_000_0010_8k.vtt')
+        const generatedVtt = path.join(PIPELINE_DIR, 'OSR_us_000_0010_8k.vtt')
         if (fs.existsSync(generatedVtt)) {
-          fs.renameSync(generatedVtt, stage1Output)
+          fs.copyFileSync(generatedVtt, stage1Output)
+          fs.unlinkSync(generatedVtt)
         }
 
         expect(fs.existsSync(stage1Output)).toBe(true)
         console.log(`✓ Stage 1 complete: ${stage1Output}`)
-
-        // In FULL_E2E mode, update the golden file
-        if (FULL_E2E) {
-          fs.mkdirSync(GOLDEN_DIR, { recursive: true })
-          fs.copyFileSync(stage1Output, stage1Golden)
-          console.log(`✓ Updated golden file: ${stage1Golden}`)
-        }
       } else {
         console.log('\n=== STAGE 1: Using cached transcription ===')
-        console.log(`Using golden file: ${stage1Golden}`)
-        // Copy golden file to temp directory
-        fs.copyFileSync(stage1Golden, stage1Output)
+        console.log(`Using existing: ${stage1Output}`)
       }
 
       // Verify stage 1 output has cues
@@ -101,10 +77,9 @@ test.describe('Full E2E Pipeline', () => {
       // ============================================================
       // STAGE 2: Add speaker embeddings
       // ============================================================
-      const stage2Golden = path.join(GOLDEN_DIR, '2_after_embed.vtt')
-      const stage2Output = path.join(tempDir, '2_after_embed.vtt')
+      const stage2Output = path.join(PIPELINE_DIR, '2_after_embed.vtt')
 
-      if (FULL_E2E || !fs.existsSync(stage2Golden)) {
+      if (FULL_E2E || !fs.existsSync(stage2Output)) {
         console.log('\n=== STAGE 2: Running embed.py ===')
 
         // Check if HF_TOKEN is available
@@ -121,18 +96,9 @@ test.describe('Full E2E Pipeline', () => {
           execSync(embedCmd, { stdio: 'inherit' })
           console.log(`✓ Stage 2 complete: ${stage2Output}`)
         }
-
-        // In FULL_E2E mode, update the golden file
-        if (FULL_E2E) {
-          fs.mkdirSync(GOLDEN_DIR, { recursive: true })
-          fs.copyFileSync(stage2Output, stage2Golden)
-          console.log(`✓ Updated golden file: ${stage2Golden}`)
-        }
       } else {
         console.log('\n=== STAGE 2: Using cached embeddings ===')
-        console.log(`Using golden file: ${stage2Golden}`)
-        // Copy golden file to temp directory
-        fs.copyFileSync(stage2Golden, stage2Output)
+        console.log(`Using existing: ${stage2Output}`)
       }
 
       // Verify stage 2 output
@@ -147,8 +113,8 @@ test.describe('Full E2E Pipeline', () => {
       // ============================================================
       console.log('\n=== STAGE 3: UI interaction ===')
 
-      // Copy stage 2 output to a working file for UI to modify (in temp directory)
-      const stage3Working = path.join(tempDir, '3_working.vtt')
+      // Copy stage 2 output to a working file for UI to modify
+      const stage3Working = path.join(PIPELINE_DIR, '3_working.vtt')
       fs.copyFileSync(stage2Output, stage3Working)
 
       // Launch Electron app with the working file
@@ -221,18 +187,10 @@ test.describe('Full E2E Pipeline', () => {
       await window.waitForTimeout(500)
       console.log('✓ Saved file')
 
-      // Copy the saved working file to stage 3 output (in temp directory)
-      const stage3Output = path.join(tempDir, '3_after_ui_edit.vtt')
+      // Copy the saved working file to stage 3 output
+      const stage3Output = path.join(PIPELINE_DIR, '3_after_ui_edit.vtt')
       fs.copyFileSync(stage3Working, stage3Output)
       console.log(`✓ Stage 3 complete: ${stage3Output}`)
-
-      // In FULL_E2E mode, update the golden file
-      if (FULL_E2E) {
-        const stage3Golden = path.join(GOLDEN_DIR, '3_after_ui_edit.vtt')
-        fs.mkdirSync(GOLDEN_DIR, { recursive: true })
-        fs.copyFileSync(stage3Output, stage3Golden)
-        console.log(`✓ Updated golden file: ${stage3Golden}`)
-      }
 
       // Close the app
       await electronApp.close()
@@ -277,13 +235,10 @@ test.describe('Full E2E Pipeline', () => {
       console.log('\n🎉 Full E2E pipeline test completed successfully!')
 
     } finally {
-      // Cleanup is handled by test.afterEach
-      if (electronApp) {
-        try {
-          await electronApp.close()
-        } catch (e) {
-          // Already closed
-        }
+      // Clean up working file
+      const stage3Working = path.join(PIPELINE_DIR, '3_working.vtt')
+      if (fs.existsSync(stage3Working)) {
+        fs.unlinkSync(stage3Working)
       }
     }
   })
