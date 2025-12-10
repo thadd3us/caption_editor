@@ -122,6 +122,21 @@ function createMenu() {
       ]
     },
 
+    // AI Annotations menu
+    {
+      label: 'AI Annotations',
+      submenu: [
+        {
+          label: 'Caption with Speech Recognizer',
+          enabled: false,  // Will be enabled when media is loaded
+          id: 'asr-caption',
+          click: () => {
+            mainWindow?.webContents.send('menu-asr-caption')
+          }
+        }
+      ]
+    },
+
     // View menu
     {
       label: 'View',
@@ -469,6 +484,124 @@ ipcMain.handle('file:toURL', async (_event, filePath: string) => {
     }
   }
 })
+
+/**
+ * Update menu item enabled state
+ */
+ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
+  const menu = Menu.getApplicationMenu()
+  if (menu) {
+    const asrItem = menu.getMenuItemById('asr-caption')
+    if (asrItem) {
+      asrItem.enabled = enabled
+    }
+  }
+})
+
+/**
+ * Run ASR transcription on media file
+ */
+ipcMain.handle('asr:transcribe', async (_event, options: {
+  mediaFilePath: string,
+  model?: string  // Optional model override (default: nvidia/parakeet-tdt-0.6b-v3)
+}) => {
+  const { mediaFilePath, model } = options
+
+  // Determine if we're in dev mode
+  const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
+
+  let pythonCommand: string
+  let pythonArgs: string[]
+  let cwd: string
+
+  if (isDev) {
+    // Dev mode: use uv run python
+    const appPath = path.join(__dirname, '..')
+    pythonCommand = 'uv'
+    pythonArgs = ['run', 'python', 'transcribe.py', mediaFilePath]
+    cwd = path.join(appPath, 'transcribe')
+
+    // Add model flag if specified
+    if (model) {
+      pythonArgs.push('--model', model)
+    }
+  } else {
+    // Production mode: use bundled Python
+    pythonCommand = path.join(process.resourcesPath, 'transcribe', 'venv', 'bin', 'python')
+    pythonArgs = ['transcribe.py', mediaFilePath]
+    cwd = path.join(process.resourcesPath, 'transcribe')
+
+    // Add model flag if specified
+    if (model) {
+      pythonArgs.push('--model', model)
+    }
+  }
+
+  console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd })
+
+  // Import spawn here to use in subprocess
+  const { spawn } = await import('child_process')
+
+  return new Promise((resolve, reject) => {
+    const proc = spawn(pythonCommand, pythonArgs, { cwd })
+    let stdout = ''
+    let stderr = ''
+
+    // Store process for cancellation
+    const processId = Date.now().toString()
+    activeProcesses.set(processId, proc)
+
+    proc.stdout?.on('data', (data) => {
+      const chunk = data.toString()
+      stdout += chunk
+      // Send output to renderer in real-time
+      mainWindow?.webContents.send('asr:output', { processId, type: 'stdout', data: chunk })
+    })
+
+    proc.stderr?.on('data', (data) => {
+      const chunk = data.toString()
+      stderr += chunk
+      // Send output to renderer in real-time
+      mainWindow?.webContents.send('asr:output', { processId, type: 'stderr', data: chunk })
+    })
+
+    proc.on('close', (code) => {
+      activeProcesses.delete(processId)
+
+      if (code === 0) {
+        // Success - output VTT file should be alongside media file
+        const vttPath = mediaFilePath.replace(/\.[^.]+$/, '.vtt')
+        resolve({ success: true, vttPath, processId })
+      } else {
+        reject(new Error(`ASR process exited with code ${code}\n\nstderr:\n${stderr}`))
+      }
+    })
+
+    proc.on('error', (error) => {
+      activeProcesses.delete(processId)
+      reject(error)
+    })
+
+    // Send initial process ID to renderer
+    mainWindow?.webContents.send('asr:started', { processId })
+  })
+})
+
+/**
+ * Cancel running ASR process
+ */
+ipcMain.handle('asr:cancel', async (_event, processId: string) => {
+  const proc = activeProcesses.get(processId)
+  if (proc) {
+    proc.kill('SIGTERM')
+    activeProcesses.delete(processId)
+    return { success: true }
+  }
+  return { success: false, error: 'Process not found' }
+})
+
+// Store active ASR processes
+const activeProcesses = new Map<string, any>()
 
 // Handle file drops from system
 ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) => {

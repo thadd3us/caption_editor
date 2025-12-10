@@ -24,6 +24,44 @@ const localStorageMock = (() => {
 
 global.localStorage = localStorageMock as any
 
+// Helper to create mock Electron API
+function createMockElectronAPI(overrides = {}) {
+  return {
+    isElectron: true,
+    openFile: vi.fn(),
+    readFile: vi.fn(),
+    saveFile: vi.fn(),
+    saveExistingFile: vi.fn(),
+    statFile: vi.fn(),
+    fileToURL: vi.fn(),
+    processDroppedFiles: vi.fn(),
+    getPathForFile: vi.fn(),
+    onFileOpen: vi.fn(),
+    onFileDropped: vi.fn(),
+    path: {
+      dirname: vi.fn(),
+      basename: vi.fn(),
+      relative: vi.fn(),
+      resolve: vi.fn(),
+      isAbsolute: vi.fn(),
+      normalize: vi.fn(),
+      join: vi.fn()
+    },
+    ipcRenderer: {
+      on: vi.fn(),
+      send: vi.fn()
+    },
+    asr: {
+      transcribe: vi.fn(),
+      cancel: vi.fn(),
+      onOutput: vi.fn(),
+      onStarted: vi.fn()
+    },
+    updateAsrMenuEnabled: vi.fn(),
+    ...overrides
+  }
+}
+
 describe('FileDropZone', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -42,27 +80,9 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = {
-        isElectron: true,
-        openFile: vi.fn(),
-        readFile: vi.fn(),
-        saveFile: vi.fn(),
-        saveExistingFile: vi.fn(),
-        statFile: vi.fn(),
-        fileToURL: vi.fn(),
-        processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn(),
-        onFileDropped: vi.fn(),
-        path: {
-          dirname: vi.fn(),
-          basename: vi.fn(),
-          relative: vi.fn(),
-          resolve: vi.fn(),
-          isAbsolute: vi.fn(),
-          normalize: vi.fn(),
-          join: vi.fn()
-        }
-      }
+      global.window.electronAPI = createMockElectronAPI({
+        processDroppedFiles: mockProcessDroppedFiles
+      }) as any
 
       const wrapper = mount(FileDropZone)
       const store = useVTTStore()
@@ -95,27 +115,9 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = {
-        isElectron: true,
-        openFile: vi.fn(),
-        readFile: vi.fn(),
-        saveFile: vi.fn(),
-        saveExistingFile: vi.fn(),
-        statFile: vi.fn(),
-        fileToURL: vi.fn(),
-        processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn(),
-        onFileDropped: vi.fn(),
-        path: {
-          dirname: vi.fn(),
-          basename: vi.fn(),
-          relative: vi.fn(),
-          resolve: vi.fn(),
-          isAbsolute: vi.fn(),
-          normalize: vi.fn(),
-          join: vi.fn()
-        }
-      }
+      global.window.electronAPI = createMockElectronAPI({
+        processDroppedFiles: mockProcessDroppedFiles
+      }) as any
 
       const wrapper = mount(FileDropZone)
       const store = useVTTStore()
@@ -153,27 +155,9 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = {
-        isElectron: true,
-        openFile: vi.fn(),
-        readFile: vi.fn(),
-        saveFile: vi.fn(),
-        saveExistingFile: vi.fn(),
-        statFile: vi.fn(),
-        fileToURL: vi.fn(),
-        processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn(),
-        onFileDropped: vi.fn(),
-        path: {
-          dirname: vi.fn(),
-          basename: vi.fn(),
-          relative: vi.fn(),
-          resolve: vi.fn(),
-          isAbsolute: vi.fn(),
-          normalize: vi.fn(),
-          join: vi.fn()
-        }
-      }
+      global.window.electronAPI = createMockElectronAPI({
+        processDroppedFiles: mockProcessDroppedFiles
+      }) as any
 
       const wrapper = mount(FileDropZone)
       const store = useVTTStore()
@@ -207,27 +191,9 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = {
-        isElectron: true,
-        openFile: vi.fn(),
-        readFile: vi.fn(),
-        saveFile: vi.fn(),
-        saveExistingFile: vi.fn(),
-        statFile: vi.fn(),
-        fileToURL: vi.fn(),
-        processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn(),
-        onFileDropped: vi.fn(),
-        path: {
-          dirname: vi.fn(),
-          basename: vi.fn(),
-          relative: vi.fn(),
-          resolve: vi.fn(),
-          isAbsolute: vi.fn(),
-          normalize: vi.fn(),
-          join: vi.fn()
-        }
-      }
+      global.window.electronAPI = createMockElectronAPI({
+        processDroppedFiles: mockProcessDroppedFiles
+      }) as any
 
       const wrapper = mount(FileDropZone)
       const store = useVTTStore()
@@ -273,27 +239,9 @@ Second cue with same ID`
         }
       ])
 
-      global.window.electronAPI = {
-        isElectron: true,
-        openFile: vi.fn(),
-        readFile: vi.fn(),
-        saveFile: vi.fn(),
-        saveExistingFile: vi.fn(),
-        statFile: vi.fn(),
-        fileToURL: vi.fn(),
-        processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn(),
-        onFileDropped: vi.fn(),
-        path: {
-          dirname: vi.fn(),
-          basename: vi.fn(),
-          relative: vi.fn(),
-          resolve: vi.fn(),
-          isAbsolute: vi.fn(),
-          normalize: vi.fn(),
-          join: vi.fn()
-        }
-      }
+      global.window.electronAPI = createMockElectronAPI({
+        processDroppedFiles: mockProcessDroppedFiles
+      }) as any
 
       const wrapper = mount(FileDropZone)
       const store = useVTTStore()
@@ -331,27 +279,10 @@ Second cue with same ID`
         }
       ])
 
-      global.window.electronAPI = {
-        isElectron: true,
+      global.window.electronAPI = createMockElectronAPI({
         openFile: mockOpenFile,
-        readFile: vi.fn(),
-        saveFile: vi.fn(),
-        saveExistingFile: vi.fn(),
-        statFile: vi.fn(),
-        fileToURL: vi.fn(),
-        processDroppedFiles: mockProcessDroppedFiles,
-        onFileOpen: vi.fn(),
-        onFileDropped: vi.fn(),
-        path: {
-          dirname: vi.fn(),
-          basename: vi.fn(),
-          relative: vi.fn(),
-          resolve: vi.fn(),
-          isAbsolute: vi.fn(),
-          normalize: vi.fn(),
-          join: vi.fn()
-        }
-      }
+        processDroppedFiles: mockProcessDroppedFiles
+      }) as any
 
       const wrapper = mount(FileDropZone)
       const component = wrapper.vm as any

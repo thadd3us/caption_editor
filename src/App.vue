@@ -29,6 +29,18 @@
       @close="closeDeleteConfirmDialog"
       @confirm="handleConfirmDelete"
     />
+    <ConfirmAsrDialog
+      :is-visible="isAsrConfirmDialogVisible"
+      @confirm="handleAsrConfirmed"
+      @cancel="closeAsrConfirmDialog"
+    />
+    <AsrModal
+      ref="asrModal"
+      :is-visible="isAsrModalVisible"
+      :is-running="isAsrRunning"
+      :failed="asrFailed"
+      @cancel="handleAsrCancel"
+    />
   </div>
 </template>
 
@@ -41,6 +53,8 @@ import FileDropZone from './components/FileDropZone.vue'
 import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
 import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
 import ConfirmDeleteDialog from './components/ConfirmDeleteDialog.vue'
+import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
+import AsrModal from './components/AsrModal.vue'
 import packageJson from '../package.json'
 
 // Log version on startup
@@ -64,6 +78,14 @@ const isDeleteConfirmDialogOpen = ref(false)
 const deleteRowCount = ref(0)
 const selectedCueIdsForDelete = ref<string[]>([])
 let isResizing = false
+
+// ASR state
+const isAsrConfirmDialogVisible = ref(false)
+const isAsrModalVisible = ref(false)
+const isAsrRunning = ref(false)
+const asrFailed = ref(false)
+const asrModal = ref<InstanceType<typeof AsrModal> | null>(null)
+let currentAsrProcessId: string | null = null
 
 // Track if we've already attempted auto-load for the current document
 const attemptedAutoLoad = ref<string | null>(null)
@@ -270,6 +292,17 @@ watch(
   { immediate: true, deep: true }
 )
 
+// Watch for media path changes and update ASR menu enabled state
+watch(
+  () => store.mediaPath,
+  (mediaPath) => {
+    if ((window as any).electronAPI?.updateAsrMenuEnabled) {
+      (window as any).electronAPI.updateAsrMenuEnabled(!!mediaPath)
+    }
+  },
+  { immediate: true }
+)
+
 // Menu action handlers
 async function handleMenuOpenFile() {
   fileDropZone.value?.triggerFileInput()
@@ -341,6 +374,105 @@ async function handleMenuSaveAs() {
   }
 }
 
+// ASR menu handler
+function handleMenuAsrCaption() {
+  console.log('[ASR] Menu item clicked')
+
+  // Check if there are existing segments
+  if (store.document.segments.length > 0) {
+    // Show confirmation dialog
+    isAsrConfirmDialogVisible.value = true
+  } else {
+    // No segments, proceed directly
+    startAsrTranscription()
+  }
+}
+
+function closeAsrConfirmDialog() {
+  isAsrConfirmDialogVisible.value = false
+}
+
+function handleAsrConfirmed() {
+  isAsrConfirmDialogVisible.value = false
+  startAsrTranscription()
+}
+
+async function startAsrTranscription() {
+  if (!window.electronAPI?.asr) {
+    console.error('[ASR] Electron API not available')
+    return
+  }
+
+  if (!store.mediaPath) {
+    console.error('[ASR] No media file loaded')
+    return
+  }
+
+  console.log('[ASR] Starting transcription for:', store.mediaPath)
+
+  // Show ASR modal
+  isAsrModalVisible.value = true
+  isAsrRunning.value = true
+  asrFailed.value = false
+
+  try {
+    // Get model override from environment variable (for testing)
+    const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
+
+    if (model) {
+      console.log('[ASR] Using model override:', model)
+    }
+
+    // Start ASR transcription
+    const result = await window.electronAPI.asr.transcribe({
+      mediaFilePath: store.mediaPath,
+      model
+    })
+
+    console.log('[ASR] Transcription completed successfully:', result.vttPath)
+
+    // Load the generated VTT file
+    const vttResult = await window.electronAPI.readFile(result.vttPath)
+
+    if (vttResult.success && vttResult.content) {
+      store.loadFromFile(vttResult.content, result.vttPath)
+      console.log('[ASR] VTT file loaded successfully')
+    } else {
+      throw new Error('Failed to read generated VTT file: ' + vttResult.error)
+    }
+
+    // Close modal on success
+    isAsrModalVisible.value = false
+    isAsrRunning.value = false
+    currentAsrProcessId = null
+  } catch (err) {
+    console.error('[ASR] Transcription failed:', err)
+    asrFailed.value = true
+    isAsrRunning.value = false
+
+    // Show error in modal terminal
+    if (asrModal.value) {
+      asrModal.value.appendOutput('\n\n❌ Error: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    }
+  }
+}
+
+async function handleAsrCancel() {
+  console.log('[ASR] Cancel button clicked')
+
+  if (isAsrRunning.value && currentAsrProcessId && window.electronAPI?.asr) {
+    // Cancel the running process
+    console.log('[ASR] Cancelling process:', currentAsrProcessId)
+    await window.electronAPI.asr.cancel(currentAsrProcessId)
+  }
+
+  // Close modal
+  isAsrModalVisible.value = false
+  isAsrRunning.value = false
+  asrFailed.value = false
+  currentAsrProcessId = null
+}
+
 // Also attempt auto-load on mount (for localStorage recovery)
 onMounted(() => {
   setTimeout(() => {
@@ -357,6 +489,7 @@ onMounted(() => {
   ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
   ;(window as any).openBulkSetSpeakerDialog = openBulkSetSpeakerDialog
   ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
+  ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
 
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
@@ -371,7 +504,25 @@ onMounted(() => {
         // Dispatch custom event that CaptionTable will listen for
         window.dispatchEvent(new CustomEvent('computeSpeakerSimilarity'))
       })
+      ipcRenderer.on('menu-asr-caption', handleMenuAsrCaption)
       console.log('[App] ✓ Native menu IPC listeners registered')
+    }
+
+    // Set up ASR output listeners
+    if ((window as any).electronAPI.asr) {
+      (window as any).electronAPI.asr.onOutput((data: { processId: string, type: string, data: string }) => {
+        console.log('[ASR] Output:', data.type, data.data)
+        if (asrModal.value) {
+          asrModal.value.appendOutput(data.data)
+        }
+      })
+
+      (window as any).electronAPI.asr.onStarted((data: { processId: string }) => {
+        console.log('[ASR] Process started:', data.processId)
+        currentAsrProcessId = data.processId
+      })
+
+      console.log('[App] ✓ ASR output listeners registered')
     }
   }
 

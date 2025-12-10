@@ -116,7 +116,33 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ipcRenderer: {
     on: (channel: string, callback: () => void) => {
       ipcRenderer.on(channel, callback)
+    },
+    send: (channel: string, ...args: any[]) => {
+      ipcRenderer.send(channel, ...args)
     }
+  },
+
+  /**
+   * ASR transcription APIs
+   */
+  asr: {
+    transcribe: (options: { mediaFilePath: string, model?: string }) =>
+      ipcRenderer.invoke('asr:transcribe', options),
+    cancel: (processId: string) =>
+      ipcRenderer.invoke('asr:cancel', processId),
+    onOutput: (callback: (data: { processId: string, type: 'stdout' | 'stderr', data: string }) => void) => {
+      ipcRenderer.on('asr:output', (_event, data) => callback(data))
+    },
+    onStarted: (callback: (data: { processId: string }) => void) => {
+      ipcRenderer.on('asr:started', (_event, data) => callback(data))
+    }
+  },
+
+  /**
+   * Update menu enabled/disabled state
+   */
+  updateAsrMenuEnabled: (enabled: boolean) => {
+    ipcRenderer.send('menu:updateAsrEnabled', enabled)
   }
 })
 

@@ -77,6 +77,11 @@ export interface ElectronAPI {
   }>>
 
   /**
+   * Get file path from File object (for drag-and-drop)
+   */
+  getPathForFile: (file: File) => string | null
+
+  /**
    * Check if running in Electron
    */
   isElectron: boolean
@@ -103,6 +108,36 @@ export interface ElectronAPI {
     normalize: (p: string) => string
     join: (...paths: string[]) => string
   }
+
+  /**
+   * IPC renderer for menu events and custom channels
+   */
+  ipcRenderer: {
+    on: (channel: string, callback: () => void) => void
+    send: (channel: string, ...args: any[]) => void
+  }
+
+  /**
+   * ASR transcription APIs
+   */
+  asr: {
+    transcribe: (options: { mediaFilePath: string, model?: string }) => Promise<{
+      success: boolean
+      vttPath: string
+      processId: string
+    }>
+    cancel: (processId: string) => Promise<{
+      success: boolean
+      error?: string
+    }>
+    onOutput: (callback: (data: { processId: string, type: 'stdout' | 'stderr', data: string }) => void) => void
+    onStarted: (callback: (data: { processId: string }) => void) => void
+  }
+
+  /**
+   * Update ASR menu item enabled state
+   */
+  updateAsrMenuEnabled: (enabled: boolean) => void
 }
 
 declare global {

@@ -99,9 +99,10 @@ Tests should run quickly to maintain development velocity:
   - ✅ **Embedding**: 2/2 passing (no HF_TOKEN required for default model)
   - ✅ **Transcription**: 2/2 passing (Whisper + Parakeet)
 - ✅ UI/Interaction E2E Tests: 43/43 passing ⭐ **ALL PASSING!**
-- ✅ Electron Platform E2E Tests: 25/25 passing ⭐ **ALL PASSING!**
+- ✅ Electron Platform E2E Tests: 28/28 passing ⭐ **ALL PASSING!**
+  - Includes 3 tests for ASR menu integration (`asr-menu.electron.spec.ts`)
 
-**Total: 279/279 tests passing (24 Python + 255 TypeScript) - 100% pass rate!** ⭐
+**Total: 282/282 tests passing (24 Python + 258 TypeScript) - 100% pass rate!** ⭐
 
 **Note:** All E2E tests run in Electron only (no browser mode). The default `playwright test` command launches Electron automatically after building.
 
@@ -374,9 +375,80 @@ npx playwright show-report
 - Menu includes:
   - **File**: Open, Save, Save As
   - **Edit**: Standard editing commands + Rename Speaker
+  - **Speaker**: Rename Speaker, Sort by Similarity
+  - **AI Annotations**: Caption with Speech Recognizer
   - **View**: Zoom, reload, dev tools
   - **Window**: Minimize, zoom, close
   - **Help**: Version info
+
+### AI Annotations Menu (ASR Integration)
+
+The app includes a native menu item to run speech recognition on loaded media files, automatically generating VTT captions.
+
+**Menu Item:**
+- **AI Annotations → Caption with Speech Recognizer**
+- Enabled only when a media file is loaded
+- Runs Python ASR subprocess (`transcribe/transcribe.py`)
+
+**Features:**
+- **Modal UI**: Shows real-time terminal output (stdout/stderr) from the Python subprocess
+- **Progress tracking**: Displays tqdm progress bars and colored output from the ASR script
+- **Confirmation dialog**: Warns before deleting existing captions
+- **Cancel support**: Kill button to terminate the running subprocess
+- **Error handling**: Modal stays open on failure with red "Close Failed ASR Run" button
+- **Auto-load**: Generated VTT file is automatically loaded into the editor on success
+
+**Architecture:**
+
+**Dev Mode vs Production:**
+- **Dev mode** (when running tests or `npm run dev:electron`):
+  - Uses `uv run python transcribe.py` to execute the ASR script
+  - Fast startup, no packaging overhead
+  - Leverages existing uv environment at `/code/transcribe/`
+- **Production mode** (packaged macOS app):
+  - Uses bundled Python environment in `app.asar.unpacked/transcribe/`
+  - Self-contained, no external dependencies required
+  - Python interpreter and dependencies packaged with the app
+
+**Detection:**
+```typescript
+const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
+```
+
+**Model Configuration:**
+- **Default model**: `nvidia/parakeet-tdt-0.6b-v3` (best quality)
+- **Test override**: Set `window.__ASR_MODEL_OVERRIDE` to use a different model (e.g., `'openai/whisper-tiny'` for faster testing)
+- Model is passed via `--model` flag to `transcribe.py`
+
+**IPC Architecture:**
+- **Main process** (`electron/main.ts`):
+  - `asr:transcribe` handler spawns Python subprocess
+  - Streams stdout/stderr to renderer via `asr:output` events
+  - Sends `asr:started` event with process ID
+  - Returns success with VTT path, or rejects with error
+- **Renderer** (`App.vue`):
+  - Listens for `menu-asr-caption` event from menu
+  - Shows confirmation dialog if segments exist
+  - Displays ASR modal with real-time output
+  - Loads generated VTT file on success
+
+**Components:**
+- `src/components/AsrModal.vue`: Terminal output modal with cancel button
+- `src/components/ConfirmAsrDialog.vue`: Warning dialog for overwriting existing captions
+- Handlers in `App.vue`: `handleMenuAsrCaption()`, `startAsrTranscription()`, `handleAsrCancel()`
+
+**Testing:**
+- E2E test: `tests/electron/asr-menu.electron.spec.ts`
+- Tests ASR with `whisper-tiny` model (faster than default)
+- Verifies modal display, output streaming, VTT generation, and segment loading
+- Includes test for confirmation dialog when segments exist
+- Includes test for menu disabled state when no media loaded
+
+**Packaging Notes (for future production builds):**
+- Python environment needs to be bundled with Electron app
+- Use `uv export` + `uv venv` to create standalone Python environment
+- Package Python code in `app.asar.unpacked/transcribe/` (not in asar for native modules)
+- Update `electron-builder.json` with `extraResources` and `asarUnpack` configuration
 
 ### State Management
 - Uses Pinia for global state (`vttStore.ts`)
