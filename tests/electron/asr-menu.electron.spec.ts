@@ -2,6 +2,10 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 test.describe('ASR Menu Integration', () => {
   test('should run ASR transcription from menu', async () => {
@@ -179,11 +183,12 @@ test.describe('ASR Menu Integration', () => {
     await page.evaluate(() => {
       const store = (window as any).__vttStore
       store.loadMediaFile('file:///fake/path.wav', '/fake/path.wav')
-      store.addSegment({
-        startTime: 0,
-        endTime: 1,
-        text: 'Test segment'
-      })
+      store.addCue(0, 1)  // Add a 1-second cue starting at 0
+      // Update the text
+      if (store.document.segments.length > 0) {
+        const cue = store.document.segments[0]
+        store.updateCue(cue.id, { text: 'Test segment' })
+      }
     })
 
     // Trigger ASR menu action

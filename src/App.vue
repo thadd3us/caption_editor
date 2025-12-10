@@ -403,12 +403,12 @@ async function startAsrTranscription() {
     return
   }
 
-  if (!store.mediaPath) {
+  if (!store.mediaFilePath) {
     console.error('[ASR] No media file loaded')
     return
   }
 
-  console.log('[ASR] Starting transcription for:', store.mediaPath)
+  console.log('[ASR] Starting transcription for:', store.mediaFilePath)
 
   // Show ASR modal
   isAsrModalVisible.value = true
@@ -425,7 +425,7 @@ async function startAsrTranscription() {
 
     // Start ASR transcription
     const result = await window.electronAPI.asr.transcribe({
-      mediaFilePath: store.mediaPath,
+      mediaFilePath: store.mediaFilePath,
       model
     })
 
