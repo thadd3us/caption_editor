@@ -81,7 +81,7 @@ npm run package:linux   # Linux (AppImage)
 - Node.js 18+ and npm/pnpm/yarn
 - For testing: Playwright browsers (installed via `npx playwright install`)
 
-### Development Container (Recommended)
+### Development Container
 
 This project includes a complete devcontainer setup with all dependencies pre-installed:
 

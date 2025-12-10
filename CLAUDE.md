@@ -67,7 +67,7 @@ This ensures:
 **Example commit workflow:**
 ```bash
 # 1. Make sure all tests pass
-npm test
+npm run test:unit
 DISPLAY=:99 npx playwright test tests/electron/
 
 # 2. Stage all changes
@@ -206,10 +206,16 @@ FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
 DISPLAY=:99 FULL_E2E=1 npx playwright test tests/electron/full-pipeline.electron.spec.ts
 ```
 
-Pipeline stages (intermediate outputs in `test_data/full_pipeline/`):
-1. **Stage 1**: `1_after_transcribe.vtt` - Audio transcription with `transcribe.py`
-2. **Stage 2**: `2_after_embed.vtt` - Speaker embeddings added with `embed.py`
-3. **Stage 3**: `3_after_ui_edit.vtt` - UI modifications (rating, speaker name)
+Pipeline stages:
+1. **Stage 1**: Audio transcription with `transcribe.py` → `1_after_transcribe.vtt`
+2. **Stage 2**: Speaker embeddings added with `embed.py` → `2_after_embed.vtt`
+3. **Stage 3**: UI modifications (rating, speaker name) → `3_after_ui_edit.vtt`
+
+**Test output behavior:**
+- **Fast mode (default)**: Uses golden files from `test_data/full_pipeline/` as cached inputs (read-only)
+- **All test outputs**: Written to temporary directory (cleaned up automatically)
+- **FULL_E2E=1 mode**: Updates golden files in `test_data/full_pipeline/` after regenerating from scratch
+- **Important**: Tests never modify files in `test_data/` unless FULL_E2E=1 is set
 
 The test verifies:
 - Speaker embeddings are preserved after UI edits
@@ -275,10 +281,12 @@ npm run build:all
 ./scripts/run-all-tests.sh
 
 # Or manually:
-npm test -- --coverage           # Unit tests with coverage
+npm run test:unit:coverage      # Unit tests with coverage (non-watch mode)
 npx playwright test              # All E2E tests
 cd transcribe && uv run pytest tests/ -v  # Python tests
 ```
+
+**Important:** Use `npm run test:unit` for non-watch mode. The `npm test` command runs vitest in watch mode and will wait for input.
 
 ### Timeout Configuration
 

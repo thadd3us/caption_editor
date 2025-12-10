@@ -47,9 +47,9 @@ echo ""
 # 2. TypeScript unit tests
 echo "📝 Running TypeScript unit tests..."
 if [ "$COVERAGE" = true ]; then
-  npm test -- --coverage
+  npm run test:unit:coverage
 else
-  npm test
+  npm run test:unit
 fi
 echo ""
 
