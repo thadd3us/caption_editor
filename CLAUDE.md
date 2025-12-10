@@ -696,9 +696,27 @@ The `--no-sandbox` flag and `DISPLAY` environment variable in the test files are
 
 #### Linux / Docker Containers (Sculptor Sandbox)
 
-On Linux containers without a display server, you need Xvfb (X Virtual Framebuffer):
+On Linux containers without a display server, you need Xvfb (X Virtual Framebuffer).
 
-**Step 1:** Start Xvfb using the provided script:
+**In the devcontainer:**
+- Xvfb auto-starts on container start via `postStartCommand`
+- `DISPLAY=:99` is automatically set in the environment
+
+```bash
+# Build and run Electron tests (DISPLAY already set)
+npm run build:all
+npx playwright test tests/electron/
+
+# Run specific test file
+npx playwright test tests/electron/app.electron.spec.ts
+
+# Run with verbose output
+npx playwright test tests/electron/ --reporter=list
+```
+
+**Outside the devcontainer (manual setup):**
+
+If Xvfb is not running, start it manually:
 
 ```bash
 # Start Xvfb on display :99
@@ -706,24 +724,10 @@ start-xvfb.sh
 
 # Verify it's running
 ps aux | grep "[X]vfb"
-```
 
-**Step 2:** Run Electron tests with DISPLAY variable:
-
-```bash
-# Run all Electron tests (DISPLAY must be set in the same command)
+# Run tests with DISPLAY set
 DISPLAY=:99 npx playwright test tests/electron/
-
-# Run specific test file
-DISPLAY=:99 npx playwright test tests/electron/app.electron.spec.ts
-
-# Run with verbose output
-DISPLAY=:99 npx playwright test tests/electron/ --reporter=list
 ```
-
-> **Important:** Set `DISPLAY=:99` in the same command as the test run. The environment variable doesn't persist across separate bash commands in the sandbox.
-
-> **Note:** Xvfb needs to be restarted each time the container restarts. It's included in the dev container but doesn't auto-start.
 
 ### Test Configuration Details
 
@@ -740,7 +744,12 @@ The tests are configured to work on both platforms:
 npm run build:all && npx playwright test tests/electron/
 ```
 
-**Linux/Docker:**
+**Linux/Docker (devcontainer):**
+```bash
+npm run build:all && npx playwright test tests/electron/
+```
+
+**Linux/Docker (manual setup):**
 ```bash
 npm run build:all && start-xvfb.sh && DISPLAY=:99 npx playwright test tests/electron/
 ```

@@ -7,6 +7,7 @@
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
   "postCreateCommand": "npm ci",
+  "postStartCommand": "start-xvfb.sh || true",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -42,7 +43,8 @@
     }
   },
   "remoteEnv": {
-    "NODE_ENV": "development"
+    "NODE_ENV": "development",
+    "DISPLAY": ":99"
   },
   "remoteUser": "dev"
 }
