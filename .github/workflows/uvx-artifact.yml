@@ -1,0 +1,200 @@
+name: Build UVX Artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+      create_release:
+        description: 'Create GitHub release'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-uvx-artifact:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version must be in format X.Y.Z (e.g., 1.0.0)"
+            exit 1
+          fi
+
+      - name: Check if tag exists (when creating release)
+        if: inputs.create_release
+        run: |
+          if git rev-parse "uvx-v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag uvx-v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Update version in pyproject.toml
+        run: |
+          cd transcribe
+          # Update version using sed
+          sed -i 's/^version = .*/version = "${{ inputs.version }}"/' pyproject.toml
+          echo "Updated pyproject.toml to version ${{ inputs.version }}"
+          grep "^version" pyproject.toml
+
+      - name: Build package
+        run: |
+          chmod +x scripts/package-for-uvx.sh
+          ./scripts/package-for-uvx.sh
+
+      - name: Find artifacts
+        id: find-artifacts
+        run: |
+          WHEEL_PATH=$(find dist-uvx -name "*.whl" -type f | head -n 1)
+          SDIST_PATH=$(find dist-uvx -name "*.tar.gz" -type f | head -n 1)
+          OVERRIDES_PATH="dist-uvx/overrides.txt"
+
+          if [ -z "$WHEEL_PATH" ] || [ -z "$SDIST_PATH" ]; then
+            echo "Error: Artifacts not found in dist-uvx directory"
+            exit 1
+          fi
+
+          if [ ! -f "$OVERRIDES_PATH" ]; then
+            echo "Error: overrides.txt not found"
+            exit 1
+          fi
+
+          echo "wheel_path=$WHEEL_PATH" >> $GITHUB_OUTPUT
+          echo "wheel_name=$(basename $WHEEL_PATH)" >> $GITHUB_OUTPUT
+          echo "sdist_path=$SDIST_PATH" >> $GITHUB_OUTPUT
+          echo "sdist_name=$(basename $SDIST_PATH)" >> $GITHUB_OUTPUT
+          echo "overrides_path=$OVERRIDES_PATH" >> $GITHUB_OUTPUT
+
+          echo "Found artifacts:"
+          echo "  Wheel: $WHEEL_PATH"
+          echo "  Source: $SDIST_PATH"
+          echo "  Overrides: $OVERRIDES_PATH"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: transcribe-uvx-${{ inputs.version }}
+          path: |
+            ${{ steps.find-artifacts.outputs.wheel_path }}
+            ${{ steps.find-artifacts.outputs.sdist_path }}
+            ${{ steps.find-artifacts.outputs.overrides_path }}
+          retention-days: 90
+
+      - name: Create and push tag
+        if: inputs.create_release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "uvx-v${{ inputs.version }}" -m "UVX Release v${{ inputs.version }}"
+          git push origin "uvx-v${{ inputs.version }}"
+
+      - name: Create GitHub Release
+        if: inputs.create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: uvx-v${{ inputs.version }}
+          name: Transcribe UVX v${{ inputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ steps.find-artifacts.outputs.wheel_path }}
+            ${{ steps.find-artifacts.outputs.sdist_path }}
+            ${{ steps.find-artifacts.outputs.overrides_path }}
+          body: |
+            ## Transcribe Tools v${{ inputs.version }}
+
+            Python transcription and speaker embedding tools, packaged for use with `uvx`.
+
+            ### Installation with UVX
+
+            Run directly without installation (requires `overrides.txt` for dependency resolution):
+
+            ```bash
+            # Download overrides.txt (needed for numpy compatibility)
+            curl -O https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/overrides.txt
+
+            # Transcribe audio/video files
+            uvx --from https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/${{ steps.find-artifacts.outputs.wheel_name }} --overrides overrides.txt transcribe audio.wav
+
+            # Compute speaker embeddings
+            uvx --from https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/${{ steps.find-artifacts.outputs.wheel_name }} --overrides overrides.txt embed captions.vtt
+            ```
+
+            **Why overrides.txt?** NeMo Toolkit has a conservative `numpy<2.0` constraint in its metadata, but works perfectly fine with numpy 2.x in practice. The overrides file tells uvx to use numpy 2.x anyway.
+
+            ### Available Commands
+
+            - **transcribe**: Audio/video transcription using NVIDIA Parakeet or OpenAI Whisper
+            - **embed**: Compute speaker embeddings from VTT files using pyannote.audio
+
+            ### Usage Examples
+
+            **Transcribe with default model (Parakeet):**
+            ```bash
+            uvx --from <URL> transcribe audio.wav
+            ```
+
+            **Transcribe with Whisper:**
+            ```bash
+            uvx --from <URL> transcribe audio.wav --model openai/whisper-large-v3
+            ```
+
+            **Compute speaker embeddings:**
+            ```bash
+            uvx --from <URL> embed captions.vtt
+            ```
+
+            ### System Requirements
+
+            - Python 3.11-3.12
+            - ffmpeg (for audio/video processing)
+            - CUDA-capable GPU (recommended for faster transcription)
+
+            ### Notes
+
+            - First run will download dependencies (~2-3GB for ASR models)
+            - Dependencies are cached by uv for subsequent runs
+            - Models are cached by transformers/NeMo after first use
+
+            ---
+            Built automatically by GitHub Actions from commit ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print usage instructions
+        run: |
+          echo ""
+          echo "==> Build complete!"
+          echo ""
+          if [ "${{ inputs.create_release }}" = "true" ]; then
+            echo "==> GitHub Release created at:"
+            echo "    https://github.com/${{ github.repository }}/releases/tag/uvx-v${{ inputs.version }}"
+            echo ""
+            echo "==> Users can run with:"
+            echo "    uvx --from https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/${{ steps.find-artifacts.outputs.wheel_name }} transcribe --help"
+          else
+            echo "==> Artifacts uploaded to GitHub Actions"
+            echo "    Download from: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+          echo ""

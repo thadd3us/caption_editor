@@ -989,6 +989,62 @@ If you see timeout failures, don't just increase the timeout - investigate why t
 
 ## Python Transcription Tools
 
+### UVX Distribution (GitHub Actions)
+
+The Python transcription tools can be distributed as uvx-compatible artifacts via GitHub Actions.
+
+**How to create a release:**
+
+1. **Manual trigger** via GitHub Actions UI:
+   - Go to Actions → "Build UVX Artifact"
+   - Click "Run workflow"
+   - Enter version (e.g., `1.0.0`)
+   - Check "Create GitHub release" to publish
+   - Artifacts are uploaded to GitHub release with tag `uvx-v{version}`
+
+2. **What gets built:**
+   - **Wheel** (`.whl`): Binary distribution (~23KB)
+   - **Source distribution** (`.tar.gz`): Source code with metadata
+   - **overrides.txt**: Dependency overrides for uvx (see below)
+
+**Usage with uvx:**
+
+```bash
+# Download overrides.txt (needed once)
+curl -O https://github.com/YOUR_ORG/YOUR_REPO/releases/download/uvx-v1.0.0/overrides.txt
+
+# Run transcribe directly (dependencies fetched on first run)
+uvx --from https://github.com/YOUR_ORG/YOUR_REPO/releases/download/uvx-v1.0.0/transcribe-1.0.0-py3-none-any.whl \
+    --overrides overrides.txt \
+    transcribe audio.wav
+
+# Run embed
+uvx --from https://github.com/YOUR_ORG/YOUR_REPO/releases/download/uvx-v1.0.0/transcribe-1.0.0-py3-none-any.whl \
+    --overrides overrides.txt \
+    embed captions.vtt
+```
+
+**Why overrides.txt?**
+
+The `overrides.txt` file is needed because:
+- **nemo-toolkit 2.5.2** publishes metadata with `numpy>=1.22,<2.0`
+- This is overly conservative - NeMo actually works fine with numpy 2.x
+- The constraint was [fixed by NVidia](https://github.com/NVIDIA-NeMo/NeMo/issues/14505) but not yet in published releases
+- `overrides.txt` tells uvx: "ignore nemo's constraint, use numpy>=2.0"
+
+**Local packaging script:**
+
+```bash
+./scripts/package-for-uvx.sh
+```
+
+This creates artifacts in `dist-uvx/` with wheel, source dist, and overrides.txt.
+
+**Files:**
+- **Script**: `scripts/package-for-uvx.sh` - Build wheel, sdist, and overrides.txt
+- **Workflow**: `.github/workflows/uvx-artifact.yml` - GitHub Actions workflow
+- **Overrides**: `dist-uvx/overrides.txt` - Dependency overrides for uvx users
+
 ### ASR Segment Splitting (transcribe/transcribe.py)
 
 Added intelligent segment splitting to prevent overly long VTT cues that interfere with speaker ID and UI usability.

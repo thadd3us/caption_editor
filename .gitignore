@@ -17,6 +17,9 @@ dist-electron
 release
 out
 
+# Docker build metadata
+build.metadata.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -58,6 +61,7 @@ env/
 .pytest_cache/
 *.egg-info/
 dist/
+dist-uvx/
 build/
 !build/icon.icns
 !build/icon.ico

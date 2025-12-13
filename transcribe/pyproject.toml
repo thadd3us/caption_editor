@@ -52,3 +52,21 @@ override-dependencies = [
 # torchcodec is made optional via override-dependencies above
 # On platforms without torchcodec wheels (Linux aarch64), pyannote.audio will use torchaudio for audio loading
 # See diarization/cli.py which preloads audio using torchaudio to support both scenarios
+
+[tool.setuptools]
+# Use find_packages to discover Python modules, exclude test directories
+py-modules = [
+    "transcribe",
+    "embed",
+    "asr_results_to_vtt",
+    "capture_raw_asr_output",
+    "schema",
+    "vtt_lib",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "test_data*", "test_fixtures*"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
