@@ -407,10 +407,12 @@ The app includes a native menu item to run speech recognition on loaded media fi
   - Uses `uv run python transcribe.py` to execute the ASR script
   - Fast startup, no packaging overhead
   - Leverages existing uv environment at `/code/transcribe/`
-- **Production mode** (packaged macOS app):
-  - Uses bundled Python environment in `app.asar.unpacked/transcribe/`
-  - Self-contained, no external dependencies required
-  - Python interpreter and dependencies packaged with the app
+- **Production mode** (packaged app):
+  - Uses `uvx` to run directly from GitHub repository at a specific commit hash
+  - No Python bundling required - much smaller app size!
+  - Requires `uv` to be installed on the user's system
+  - Fetches and caches dependencies automatically on first run
+  - Command: `uvx --from git+https://github.com/thadd3us/caption_editor@<hash>#subdirectory=transcribe --overrides overrides.txt transcribe`
 
 **Environment Variables for Dev Mode:**
 To force dev mode execution (useful when Electron is packaged but you want to run from code tree):
@@ -460,11 +462,18 @@ const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || proce
 - Includes test for confirmation dialog when segments exist
 - Includes test for menu disabled state when no media loaded
 
-**Packaging Notes (for future production builds):**
-- Python environment needs to be bundled with Electron app
-- Use `uv export` + `uv venv` to create standalone Python environment
-- Package Python code in `app.asar.unpacked/transcribe/` (not in asar for native modules)
-- Update `electron-builder.json` with `extraResources` and `asarUnpack` configuration
+**Production Mode Setup:**
+- **User requirement**: `uv` must be installed on the user's system
+  - Installation: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  - Documentation: https://docs.astral.sh/uv/getting-started/installation/
+- **Packaged files**: Only `overrides.txt` is bundled (in `process.resourcesPath`)
+  - Configured in `electron-builder.json` under `extraResources`
+  - File location in packaged app: `<app>/Contents/Resources/overrides.txt`
+- **Commit hash**: Update `electron/main.ts` when releasing new versions
+  - Change `const commitHash = 'f8bcf53'` to the desired commit
+  - Or use a git tag: `const commitHash = 'v1.3.4'`
+- **First run**: `uvx` automatically downloads and caches Python dependencies
+- **Error handling**: Clear error message if `uvx` is not found on PATH
 
 ### State Management
 - Uses Pinia for global state (`vttStore.ts`)

@@ -11,6 +11,12 @@
     "package.json",
     "VERSION"
   ],
+  "extraResources": [
+    {
+      "from": "transcribe/overrides.txt",
+      "to": "overrides.txt"
+    }
+  ],
   "extraMetadata": {
     "main": "dist-electron/main.cjs"
   },

@@ -493,10 +493,19 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
       throw new Error(`transcribe.py not found at ${scriptPath}. Code tree root: ${codeTreeRoot}`)
     }
   } else {
-    // Production mode: use bundled Python
-    pythonCommand = path.join(process.resourcesPath, 'transcribe', 'venv', 'bin', 'python')
-    pythonArgs = ['transcribe.py', mediaFilePath]
-    cwd = path.join(process.resourcesPath, 'transcribe')
+    // Production mode: use uvx to run from GitHub repository
+    // GitHub repository and commit hash (can be updated for new releases)
+    const gitRepo = 'git+https://github.com/thadd3us/caption_editor'
+    const commitHash = 'f8bcf53'  // Update this to the commit hash you want to use
+
+    pythonCommand = 'uvx'
+    pythonArgs = [
+      '--from', `${gitRepo}@${commitHash}#subdirectory=transcribe`,
+      '--overrides', path.join(process.resourcesPath, 'overrides.txt'),
+      'transcribe',
+      mediaFilePath
+    ]
+    cwd = process.cwd()  // Can run from any directory with uvx
 
     // Add chunk size if specified
     if (chunkSize !== undefined) {
@@ -508,16 +517,17 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
       pythonArgs.push('--model', model)
     }
 
-    // Validate that Python interpreter exists
-    if (!existsSync(pythonCommand)) {
-      throw new Error(`Python interpreter not found at ${pythonCommand}. Ensure the app is properly packaged with bundled Python environment.`)
+    // Validate that overrides.txt exists
+    const overridesPath = path.join(process.resourcesPath, 'overrides.txt')
+    if (!existsSync(overridesPath)) {
+      throw new Error(
+        `overrides.txt not found at ${overridesPath}. ` +
+        `Ensure the app is properly packaged with the overrides file.`
+      )
     }
 
-    // Validate that transcribe.py exists
-    const scriptPath = path.join(cwd, 'transcribe.py')
-    if (!existsSync(scriptPath)) {
-      throw new Error(`transcribe.py not found at ${scriptPath}. Ensure the app is properly packaged with Python scripts.`)
-    }
+    // Note: We don't validate uvx exists here because we want a clear error message
+    // if it's not installed (which will come from the spawn error)
   }
 
   console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd, isDev, runFromCodeTree })
@@ -562,7 +572,18 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
 
     proc.on('error', (error) => {
       activeProcesses.delete(processId)
-      reject(error)
+
+      // Provide helpful error message if uvx is not found
+      if ((error as any).code === 'ENOENT' && pythonCommand === 'uvx') {
+        reject(new Error(
+          `uvx command not found. Please install uv to use ASR features:\n\n` +
+          `  curl -LsSf https://astral.sh/uv/install.sh | sh\n\n` +
+          `Or visit: https://docs.astral.sh/uv/getting-started/installation/\n\n` +
+          `Original error: ${error.message}`
+        ))
+      } else {
+        reject(error)
+      }
     })
 
     // Send initial process ID to renderer
