@@ -408,11 +408,11 @@ The app includes a native menu item to run speech recognition on loaded media fi
   - Fast startup, no packaging overhead
   - Leverages existing uv environment at `/code/transcribe/`
 - **Production mode** (packaged app):
-  - Uses `uvx` to run directly from GitHub repository at a specific commit hash
+  - Uses bundled `uvx` binary to run directly from GitHub repository at a specific commit hash
   - No Python bundling required - much smaller app size!
-  - Requires `uv` to be installed on the user's system
-  - Fetches and caches dependencies automatically on first run
-  - Command: `uvx --from git+https://github.com/thadd3us/caption_editor@<hash>#subdirectory=transcribe --overrides overrides.txt transcribe`
+  - `uvx` binary is bundled for macOS arm64 and Linux x64
+  - Fetches and caches Python dependencies automatically on first run
+  - Command: `<bundled-uvx> --from git+https://github.com/thadd3us/caption_editor@<hash>#subdirectory=transcribe --overrides overrides.txt transcribe`
 
 **Environment Variables for Dev Mode:**
 To force dev mode execution (useful when Electron is packaged but you want to run from code tree):
@@ -463,17 +463,18 @@ const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || proce
 - Includes test for menu disabled state when no media loaded
 
 **Production Mode Setup:**
-- **User requirement**: `uv` must be installed on the user's system
-  - Installation: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-  - Documentation: https://docs.astral.sh/uv/getting-started/installation/
-- **Packaged files**: Only `overrides.txt` is bundled (in `process.resourcesPath`)
-  - Configured in `electron-builder.json` under `extraResources`
-  - File location in packaged app: `<app>/Contents/Resources/overrides.txt`
+- **Bundled files**:
+  - `uvx` binary (platform-specific): `build/bin/uvx-macos-arm64` and `build/bin/uvx-linux-x64`
+    - Packaged to `<app>/Contents/Resources/bin/uvx` (macOS) or `<app>/resources/bin/uvx` (Linux)
+  - `overrides.txt`: Dependency overrides for nemo-toolkit numpy constraint
+    - Packaged to `<app>/Contents/Resources/overrides.txt`
+  - Both configured in `electron-builder.json` under `extraResources`
+- **Platforms supported**: macOS arm64 (Apple Silicon) and Linux x64
 - **Commit hash**: Update `electron/main.ts` when releasing new versions
   - Change `const commitHash = 'f8bcf53'` to the desired commit
-  - Or use a git tag: `const commitHash = 'v1.3.4'`
-- **First run**: `uvx` automatically downloads and caches Python dependencies
-- **Error handling**: Clear error message if `uvx` is not found on PATH
+  - Or use a git tag: `const commitHash = 'v1.3.5'`
+- **First run**: `uvx` automatically downloads and caches Python dependencies (~500MB)
+- **No user installation required**: Everything is bundled, no need for users to install `uv`
 
 ### State Management
 - Uses Pinia for global state (`vttStore.ts`)
