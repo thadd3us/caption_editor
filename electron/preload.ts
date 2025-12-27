@@ -84,20 +84,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   /**
-   * Listen for files dropped (intercepted by main process)
-   */
-  onFileDropped: (callback: (filePaths: string[]) => void) => {
-    console.log('[preload] Registering onFileDropped callback')
-    ipcRenderer.on('file-dropped-from-main', (_event, filePaths) => {
-      console.log('[preload] ✓ Received file-dropped-from-main IPC message')
-      console.log('[preload] ✓ File paths received:', filePaths)
-      console.log('[preload] ✓ Calling renderer callback with paths')
-      callback(filePaths)
-      console.log('[preload] ✓ Callback executed successfully')
-    })
-  },
-
-  /**
    * Path utilities - expose Node.js path module functions for use in renderer
    */
   path: {
@@ -146,59 +132,35 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 })
 
-// Handle file drop events
-// With webSecurity: false and sandbox: false, file.path should be available
+// Handle file drop events using webUtils.getPathForFile()
 window.addEventListener('DOMContentLoaded', () => {
-  console.log('[preload] Registered drop handler on document')
-
   document.addEventListener('dragover', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log('[preload] Dragover event - allowing drop')
   })
 
   document.addEventListener('drop', async (e) => {
     e.preventDefault()
     e.stopPropagation()
 
-    console.log('[preload] ✓ Drop event detected!')
-
     const files = e.dataTransfer?.files
-    console.log('[preload] ✓ Number of files dropped:', files?.length || 0)
-
     if (!files || files.length === 0) {
-      console.log('[preload] ✗ No files in drop event')
       return
     }
 
-    // Use webUtils.getPathForFile() to get file paths (only way in modern Electron)
+    // Extract file paths using webUtils
     const filePaths: string[] = []
-
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      console.log('[preload] File', i, ':', {
-        name: file.name,
-        type: file.type,
-        size: file.size
-      })
-
       try {
-        // Use webUtils.getPathForFile() - this is the ONLY way to get paths in modern Electron
-        const filePath = webUtils.getPathForFile(file)
-        console.log('[preload]   ✓ Got path using webUtils.getPathForFile():', filePath)
+        const filePath = webUtils.getPathForFile(files[i])
         filePaths.push(filePath)
       } catch (err) {
-        console.error('[preload]   ✗ Error getting path for file:', err)
+        console.error('[preload] Error getting path for file:', err)
       }
     }
 
     if (filePaths.length > 0) {
-      console.log('[preload] ✓ Extracted', filePaths.length, 'file paths using webUtils')
-      console.log('[preload] ✓ Sending to main process:', filePaths)
-      ipcRenderer.send('files-dropped-in-preload', filePaths)
-      console.log('[preload] ✓ IPC message sent')
-    } else {
-      console.log('[preload] ✗ No valid file paths extracted')
+      ipcRenderer.send('files-dropped', filePaths)
     }
   })
 })

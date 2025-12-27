@@ -22,18 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 
 const store = useVTTStore()
 const showDropZone = ref(false)
-
-onMounted(() => {
-  // Listen for Electron file drops from preload script
-  window.addEventListener('electron-files-dropped', ((event: CustomEvent<{ filePaths: string[] }>) => {
-    handleElectronFileDrop(event)
-  }) as EventListener)
-})
 
 async function triggerFileInput() {
   if (!window.electronAPI) {
@@ -45,9 +38,9 @@ async function triggerFileInput() {
   const filePaths = await window.electronAPI.openFile({
     properties: ['openFile', 'multiSelections'],
     filters: [
+      { name: 'All Files', extensions: ['*'] },
       { name: 'VTT Files', extensions: ['vtt'] },
-      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
-      { name: 'All Files', extensions: ['*'] }
+      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
     ]
   })
 
@@ -68,20 +61,9 @@ function handleDragLeave(e: DragEvent) {
 }
 
 async function handleDrop(e: DragEvent) {
-  console.log('[handleDrop] Files dropped')
-  e.preventDefault() // Prevent browser from opening the file
-  // DON'T stopPropagation - let the preload script's document listener also handle this
-
+  e.preventDefault()
   showDropZone.value = false
-
-  // The preload script will dispatch 'electron-files-dropped' event with full file paths
-  console.log('[handleDrop] Waiting for electron-files-dropped event from preload script')
-}
-
-async function handleElectronFileDrop(event: CustomEvent<{ filePaths: string[] }>) {
-  console.log('[handleElectronFileDrop] Received electron-files-dropped event with paths:', event.detail.filePaths)
-  showDropZone.value = false
-  await processElectronFiles(event.detail.filePaths)
+  // File processing is handled by preload script → main process → App.vue IPC listener
 }
 
 async function processElectronFiles(filePaths: string[]) {

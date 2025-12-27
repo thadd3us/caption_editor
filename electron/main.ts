@@ -230,58 +230,6 @@ function createWindow() {
       fileToOpen = null
     }
   })
-
-  // Handle file drops at the webContents level to capture file paths
-  // This is the proper way to handle drag-and-drop in Electron
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    console.log('[main] will-navigate event triggered with URL:', url)
-
-    // Check if this is a file:// URL from a drag-drop
-    if (url.startsWith('file://')) {
-      event.preventDefault()
-      console.log('[main] ✓ Prevented file navigation (file:// URL detected)')
-
-      // Extract file path properly - on Unix/Mac, file:// URLs have three slashes
-      // file:///Users/... -> /Users/...
-      // file:///C:/Users/... -> C:/Users/... (Windows with file:///)
-      // file://C:/Users/... -> C:/Users/... (Windows with file://)
-      let filePath = url
-
-      // Remove 'file://' prefix
-      if (filePath.startsWith('file://')) {
-        filePath = filePath.substring(7) // Remove 'file://'
-      }
-
-      // On Unix/Mac, file URLs start with file:/// so we have leading / left
-      // On Windows, file URLs are file:///C:/ so we also have leading / that needs removal
-      if (filePath.startsWith('/') && /^\/[A-Za-z]:/.test(filePath)) {
-        // Windows path like /C:/Users -> C:/Users
-        filePath = filePath.substring(1)
-      }
-
-      filePath = decodeURIComponent(filePath)
-
-      console.log('[main] ✓ Extracted file path:', filePath)
-      console.log('[main] ✓ Sending file-dropped-from-main IPC with paths:', [filePath])
-
-      mainWindow?.webContents.send('file-dropped-from-main', [filePath])
-
-      console.log('[main] ✓ IPC message sent successfully')
-    } else {
-      console.log('[main] ✗ Not a file:// URL, allowing navigation to proceed')
-    }
-  })
-
-  // Prevent file drops from triggering downloads
-  mainWindow.webContents.session.on('will-download', (event, item) => {
-    event.preventDefault()
-    console.log('[main] Prevented download for:', item.getFilename())
-  })
-
-  // Set up protocol handling for file drops
-  mainWindow.webContents.setWindowOpenHandler(() => {
-    return { action: 'deny' }
-  })
 }
 
 // Handle file opening from OS (macOS)
@@ -319,17 +267,10 @@ app.whenReady().then(() => {
     }
   }
 
-  // Handle files dropped in preload (alternative to will-navigate)
-  ipcMain.on('files-dropped-in-preload', (_event, filePaths: string[]) => {
-    console.log('[main] ✓ Received files-dropped-in-preload IPC from preload')
-    console.log('[main] ✓ File paths:', filePaths)
-    console.log('[main] ✓ Forwarding to renderer via file-dropped-from-main')
-
+  // Handle files dropped from preload
+  ipcMain.on('files-dropped', (_event, filePaths: string[]) => {
     if (mainWindow && mainWindow.webContents) {
-      mainWindow.webContents.send('file-dropped-from-main', filePaths)
-      console.log('[main] ✓ Forwarded successfully')
-    } else {
-      console.log('[main] ✗ No main window available to forward to')
+      mainWindow.webContents.send('files-dropped', filePaths)
     }
   })
 })
@@ -354,9 +295,9 @@ ipcMain.handle('dialog:openFile', async (_event, options?: {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
+      { name: 'All Files', extensions: ['*'] },
       { name: 'VTT Files', extensions: ['vtt'] },
-      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
-      { name: 'All Files', extensions: ['*'] }
+      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
     ]
   })
 
