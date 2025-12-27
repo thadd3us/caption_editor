@@ -194,13 +194,6 @@ npm run build:all
 npm run dev:electron
 ```
 
-### Electron won't start
-```bash
-# Clean and rebuild
-rm -rf dist dist-electron
-npm run build:all
-npm run dev:electron
-```
 
 Note: On Linux, Electron requires GTK libraries. If you see `libgtk-3.so.0` errors, install them:
 ```bash

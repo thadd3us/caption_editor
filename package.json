@@ -1,5 +1,7 @@
 {
   "name": "caption-editor",
+  "description": "A WebVTT caption file editor with media playback support, including synchronizing selected caption with the current position of the media playback.",
+  "author": "Thad Hughes",
   "version": "1.2.1",
   "type": "module",
   "main": "dist-electron/main.cjs",
@@ -14,6 +16,7 @@
     "package:mac": "npm run build:all && electron-builder --mac",
     "package:win": "npm run build:all && electron-builder --win",
     "package:linux": "npm run build:all && electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps",
     "preview": "vite preview",
     "test": "vitest",
     "test:unit": "vitest run",
@@ -35,7 +38,6 @@
     "vue": "^3.4.21"
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.7.2",
     "@playwright/test": "^1.56.1",
     "@types/node": "^20.11.24",
     "@types/uuid": "^9.0.8",
