@@ -455,12 +455,15 @@ ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
  */
 ipcMain.handle('asr:transcribe', async (_event, options: {
   mediaFilePath: string,
-  model?: string  // Optional model override (default: nvidia/parakeet-tdt-0.6b-v3)
+  model?: string,  // Optional model override (default: nvidia/parakeet-tdt-0.6b-v3)
+  chunkSize?: number  // Optional chunk size in seconds (default: 180)
 }) => {
-  const { mediaFilePath, model } = options
+  const { mediaFilePath, model, chunkSize } = options
 
   // Determine if we're in dev mode
-  const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
+  // Use explicit env var first, then fallback to NODE_ENV/VITE_DEV_SERVER_URL
+  const runFromCodeTree = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
+  const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
 
   let pythonCommand: string
   let pythonArgs: string[]
@@ -468,10 +471,16 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
 
   if (isDev) {
     // Dev mode: use uv run python
-    const appPath = path.join(__dirname, '..')
+    // Use CAPTION_EDITOR_CODE_TREE_ROOT if set, otherwise compute from __dirname
+    const codeTreeRoot = process.env.CAPTION_EDITOR_CODE_TREE_ROOT || path.join(__dirname, '..')
     pythonCommand = 'uv'
     pythonArgs = ['run', 'python', 'transcribe.py', mediaFilePath]
-    cwd = path.join(appPath, 'transcribe')
+    cwd = path.join(codeTreeRoot, 'transcribe')
+
+    // Add chunk size if specified
+    if (chunkSize !== undefined) {
+      pythonArgs.push('--chunk-size', chunkSize.toString())
+    }
 
     // Add model flag if specified
     if (model) {
@@ -481,13 +490,18 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     // Validate that transcribe.py exists
     const scriptPath = path.join(cwd, 'transcribe.py')
     if (!existsSync(scriptPath)) {
-      throw new Error(`transcribe.py not found at ${scriptPath}`)
+      throw new Error(`transcribe.py not found at ${scriptPath}. Code tree root: ${codeTreeRoot}`)
     }
   } else {
     // Production mode: use bundled Python
     pythonCommand = path.join(process.resourcesPath, 'transcribe', 'venv', 'bin', 'python')
     pythonArgs = ['transcribe.py', mediaFilePath]
     cwd = path.join(process.resourcesPath, 'transcribe')
+
+    // Add chunk size if specified
+    if (chunkSize !== undefined) {
+      pythonArgs.push('--chunk-size', chunkSize.toString())
+    }
 
     // Add model flag if specified
     if (model) {
@@ -506,7 +520,7 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     }
   }
 
-  console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd })
+  console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd, isDev, runFromCodeTree })
 
   // Import spawn here to use in subprocess
   const { spawn } = await import('child_process')

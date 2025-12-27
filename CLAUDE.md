@@ -412,13 +412,27 @@ The app includes a native menu item to run speech recognition on loaded media fi
   - Self-contained, no external dependencies required
   - Python interpreter and dependencies packaged with the app
 
+**Environment Variables for Dev Mode:**
+To force dev mode execution (useful when Electron is packaged but you want to run from code tree):
+- `CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE=1` - Forces dev mode (uses `uv run python`)
+- `CAPTION_EDITOR_CODE_TREE_ROOT=/path/to/code` - Specifies code tree root (defaults to computing from `__dirname`)
+
+**Example usage:**
+```bash
+CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE=1 \
+CAPTION_EDITOR_CODE_TREE_ROOT=/Users/thad/src/caption_editor \
+/Applications/VTT\ Caption\ Editor.app/Contents/MacOS/VTT\ Caption\ Editor
+```
+
 **Detection:**
 ```typescript
-const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
+const runFromCodeTree = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
+const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
 ```
 
 **Model Configuration:**
 - **Default model**: `nvidia/parakeet-tdt-0.6b-v3` (best quality)
+- **Default chunk size**: 300 seconds (5 minutes) - passed via `--chunk-size` flag
 - **Test override**: Set `window.__ASR_MODEL_OVERRIDE` to use a different model (e.g., `'openai/whisper-tiny'` for faster testing)
 - Model is passed via `--model` flag to `transcribe.py`
 

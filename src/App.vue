@@ -423,10 +423,14 @@ async function startAsrTranscription() {
       console.log('[ASR] Using model override:', model)
     }
 
+    // Use chunk size of 300 seconds (5 minutes) for better handling of long audio files
+    const chunkSize = 300
+
     // Start ASR transcription
     const result = await window.electronAPI.asr.transcribe({
       mediaFilePath: store.mediaFilePath,
-      model
+      model,
+      chunkSize
     })
 
     console.log('[ASR] Transcription completed successfully:', result.vttPath)
