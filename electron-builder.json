@@ -8,7 +8,8 @@
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
-    "package.json"
+    "package.json",
+    "VERSION"
   ],
   "extraMetadata": {
     "main": "dist-electron/main.cjs"

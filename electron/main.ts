@@ -7,9 +7,20 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Read version from VERSION file (single source of truth)
+// Read version from VERSION file (single source of truth).
+// NOTE: We package `VERSION` into `app.asar` so this path works in production.
 const versionFilePath = path.join(__dirname, '../VERSION')
-const APP_VERSION = readFileSync(versionFilePath, 'utf-8').trim()
+let APP_VERSION: string
+try {
+  APP_VERSION = readFileSync(versionFilePath, 'utf-8').trim()
+} catch (err) {
+  // No fallback: fail fast with a clear message if packaging is misconfigured.
+  throw new Error(
+    `VERSION not found at ${versionFilePath}. ` +
+      `Ensure electron-builder packages VERSION into app.asar.\n\n` +
+      `Original error: ${err instanceof Error ? err.message : String(err)}`
+  )
+}
 
 // Log version on startup
 console.log(`[main] ========================================`)
