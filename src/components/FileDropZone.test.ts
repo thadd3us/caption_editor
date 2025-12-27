@@ -293,9 +293,9 @@ Second cue with same ID`
       expect(mockOpenFile).toHaveBeenCalledWith({
         properties: ['openFile', 'multiSelections'],
         filters: [
+          { name: 'All Files', extensions: ['*'] },
           { name: 'VTT Files', extensions: ['vtt'] },
-          { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
-          { name: 'All Files', extensions: ['*'] }
+          { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
         ]
       })
 
