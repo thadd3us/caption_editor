@@ -464,15 +464,16 @@ const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || proce
 
 **Production Mode Setup:**
 - **Bundled files**:
-  - `uvx` binary (platform-specific): `build/bin/uvx-macos-arm64` and `build/bin/uvx-linux-x64`
-    - Packaged to `<app>/Contents/Resources/bin/uvx` (macOS) or `<app>/resources/bin/uvx` (Linux)
+  - `uvx` binaries (platform-specific): `electron/bin/uvx-macos-arm64` and `electron/bin/uvx-linux-x64`
+    - Kept in same relative location in both dev and packaged app
+    - Packaged via `electron-builder.json` "files" array (copied into app.asar)
+    - Path resolution: `path.join(__dirname, '..', 'electron', 'bin', 'uvx-${platform}-${arch}')`
   - `overrides.txt`: Dependency overrides for nemo-toolkit numpy constraint
-    - Packaged to `<app>/Contents/Resources/overrides.txt`
-  - Both configured in `electron-builder.json` under `extraResources`
+    - Packaged to `<app>/Contents/Resources/overrides.txt` via `extraResources`
 - **Platforms supported**: macOS arm64 (Apple Silicon) and Linux x64
 - **Commit hash**: Update `electron/main.ts` when releasing new versions
   - Change `const commitHash = 'f8bcf53'` to the desired commit
-  - Or use a git tag: `const commitHash = 'v1.3.5'`
+  - Or use a git tag: `const commitHash = 'v1.3.6'`
 - **First run**: `uvx` automatically downloads and caches Python dependencies (~500MB)
 - **No user installation required**: Everything is bundled, no need for users to install `uv`
 

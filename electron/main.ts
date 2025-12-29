@@ -498,8 +498,15 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     const gitRepo = 'git+https://github.com/thadd3us/caption_editor'
     const commitHash = 'f8bcf53'  // Update this to the commit hash you want to use
 
-    // Use bundled uvx binary
-    pythonCommand = path.join(process.resourcesPath, 'bin', 'uvx')
+    // Determine platform-specific uvx binary name
+    const platform = process.platform === 'darwin' ? 'macos' : 'linux'
+    const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
+    const uvxBinaryName = `uvx-${platform}-${arch}`
+
+    // Use uvx binary from electron/bin/ (works in both dev and packaged mode)
+    // In dev: __dirname is dist-electron/, so ../electron/bin/
+    // In packaged: electron/bin/ is copied alongside dist-electron/ in app.asar
+    pythonCommand = path.join(__dirname, '..', 'electron', 'bin', uvxBinaryName)
     pythonArgs = [
       '--from', `${gitRepo}@${commitHash}#subdirectory=transcribe`,
       '--overrides', path.join(process.resourcesPath, 'overrides.txt'),
@@ -522,6 +529,7 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     if (!existsSync(pythonCommand)) {
       throw new Error(
         `Bundled uvx not found at ${pythonCommand}. ` +
+        `Platform: ${platform}, Arch: ${arch}. ` +
         `Ensure the app is properly packaged with uvx binary.`
       )
     }
