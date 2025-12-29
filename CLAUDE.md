@@ -463,13 +463,13 @@ const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || proce
 - Includes test for menu disabled state when no media loaded
 
 **Production Mode Setup:**
-- **Bundled files**:
+- **Bundled files** (all in `electron/` directory):
   - `uvx` binaries (platform-specific): `electron/bin/uvx-macos-arm64` and `electron/bin/uvx-linux-x64`
-    - Kept in same relative location in both dev and packaged app
-    - Packaged via `electron-builder.json` "files" array (copied into app.asar)
     - Path resolution: `path.join(__dirname, '..', 'electron', 'bin', 'uvx-${platform}-${arch}')`
-  - `overrides.txt`: Dependency overrides for nemo-toolkit numpy constraint
-    - Packaged to `<app>/Contents/Resources/overrides.txt` via `extraResources`
+  - `overrides.txt`: Dependency overrides for nemo-toolkit numpy constraint at `electron/overrides.txt`
+    - Path resolution: `path.join(__dirname, '..', 'electron', 'overrides.txt')`
+  - All kept in same relative location in both dev and packaged app
+  - Packaged via `electron-builder.json` "files" array: `"electron/**/*"` (copied into app.asar)
 - **Platforms supported**: macOS arm64 (Apple Silicon) and Linux x64
 - **Commit hash**: Update `electron/main.ts` when releasing new versions
   - Change `const commitHash = 'f8bcf53'` to the desired commit

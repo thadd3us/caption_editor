@@ -503,13 +503,15 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
     const uvxBinaryName = `uvx-${platform}-${arch}`
 
-    // Use uvx binary from electron/bin/ (works in both dev and packaged mode)
-    // In dev: __dirname is dist-electron/, so ../electron/bin/
-    // In packaged: electron/bin/ is copied alongside dist-electron/ in app.asar
+    // Use uvx binary and overrides.txt from electron/ (works in both dev and packaged mode)
+    // In dev: __dirname is dist-electron/, so ../electron/
+    // In packaged: electron/ is copied alongside dist-electron/ in app.asar
     pythonCommand = path.join(__dirname, '..', 'electron', 'bin', uvxBinaryName)
+    const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
+
     pythonArgs = [
       '--from', `${gitRepo}@${commitHash}#subdirectory=transcribe`,
-      '--overrides', path.join(process.resourcesPath, 'overrides.txt'),
+      '--overrides', overridesPath,
       'transcribe',
       mediaFilePath
     ]
@@ -535,7 +537,6 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     }
 
     // Validate that overrides.txt exists
-    const overridesPath = path.join(process.resourcesPath, 'overrides.txt')
     if (!existsSync(overridesPath)) {
       throw new Error(
         `overrides.txt not found at ${overridesPath}. ` +
