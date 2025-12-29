@@ -493,10 +493,20 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
       throw new Error(`transcribe.py not found at ${scriptPath}. Code tree root: ${codeTreeRoot}`)
     }
   } else {
-    // Production mode: use bundled Python
-    pythonCommand = path.join(process.resourcesPath, 'transcribe', 'venv', 'bin', 'python')
-    pythonArgs = ['transcribe.py', mediaFilePath]
-    cwd = path.join(process.resourcesPath, 'transcribe')
+    // Production mode: use bundled uvx to run from GitHub repository
+    // GitHub repository and commit hash (can be updated for new releases)
+    const gitRepo = 'git+https://github.com/thadd3us/caption_editor'
+    const commitHash = 'f8bcf53'  // Update this to the commit hash you want to use
+
+    // Use bundled uvx binary
+    pythonCommand = path.join(process.resourcesPath, 'bin', 'uvx')
+    pythonArgs = [
+      '--from', `${gitRepo}@${commitHash}#subdirectory=transcribe`,
+      '--overrides', path.join(process.resourcesPath, 'overrides.txt'),
+      'transcribe',
+      mediaFilePath
+    ]
+    cwd = process.cwd()  // Can run from any directory with uvx
 
     // Add chunk size if specified
     if (chunkSize !== undefined) {
@@ -508,15 +518,21 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
       pythonArgs.push('--model', model)
     }
 
-    // Validate that Python interpreter exists
+    // Validate that bundled uvx exists
     if (!existsSync(pythonCommand)) {
-      throw new Error(`Python interpreter not found at ${pythonCommand}. Ensure the app is properly packaged with bundled Python environment.`)
+      throw new Error(
+        `Bundled uvx not found at ${pythonCommand}. ` +
+        `Ensure the app is properly packaged with uvx binary.`
+      )
     }
 
-    // Validate that transcribe.py exists
-    const scriptPath = path.join(cwd, 'transcribe.py')
-    if (!existsSync(scriptPath)) {
-      throw new Error(`transcribe.py not found at ${scriptPath}. Ensure the app is properly packaged with Python scripts.`)
+    // Validate that overrides.txt exists
+    const overridesPath = path.join(process.resourcesPath, 'overrides.txt')
+    if (!existsSync(overridesPath)) {
+      throw new Error(
+        `overrides.txt not found at ${overridesPath}. ` +
+        `Ensure the app is properly packaged with the overrides file.`
+      )
     }
   }
 

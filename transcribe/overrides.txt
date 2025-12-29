@@ -1,0 +1,5 @@
+# Override nemo-toolkit's overly conservative numpy constraint
+# NeMo actually works fine with numpy 2.x
+# See: https://github.com/NVIDIA-NeMo/NeMo/issues/14505
+nemo-toolkit>=2.5.0 ; python_version >= "3.9"
+numpy>=2.0
