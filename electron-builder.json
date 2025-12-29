@@ -8,6 +8,7 @@
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
+    "electron/bin/**/*",
     "package.json",
     "VERSION"
   ],
@@ -15,10 +16,6 @@
     {
       "from": "transcribe/overrides.txt",
       "to": "overrides.txt"
-    },
-    {
-      "from": "build/bin/uvx-${os}-${arch}",
-      "to": "bin/uvx"
     }
   ],
   "extraMetadata": {
