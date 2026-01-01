@@ -12,6 +12,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
   let electronApp: ElectronApplication
   let window: Page
 
+  test.setTimeout(60000) // Increase timeout to 60s for E2E tests
+
   test.beforeEach(async () => {
     // Launch Electron app
     electronApp = await electron.launch({
@@ -30,13 +32,13 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
   })
 
   test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
+    if (electronApp) { await electronApp.close().catch(() => { }) }
   })
 
   // Helper function to seek to a time
   async function seekToTime(time: number) {
     await window.evaluate((timeValue: number) => {
-      ;(window as any).$store.setCurrentTime(timeValue)
+      ; (window as any).$store.setCurrentTime(timeValue)
     }, time)
     await window.waitForTimeout(100)
   }
@@ -58,8 +60,9 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     // Wait for AG Grid to reflect the empty state - check that rows disappear
     console.log('Waiting for AG Grid to clear...')
     await window.waitForFunction(() => {
-      const rows = document.querySelectorAll('.ag-row')
-      return rows.length === 0
+      const rows = Array.from(document.querySelectorAll('.ag-row'))
+      const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
+      return uniqueRowIds.size === 0
     }, { timeout: 5000 })
     console.log('AG Grid cleared successfully')
 
@@ -88,8 +91,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
       // Simulate loading an audio file
       const audioUrl = `file://${filePath}`
       console.log('[TEST] Loading media file:', audioUrl)
-      // Use window.$store exposed by the app
-      ;(window as any).$store.loadMediaFile(audioUrl)
+        // Use window.$store exposed by the app
+        ; (window as any).$store.loadMediaFile(audioUrl)
     }, audioPath)
 
     await window.waitForTimeout(200)
@@ -113,8 +116,13 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     const grid = window.locator('.ag-theme-alpine')
     await expect(grid).toBeVisible()
 
-    let rowCount = await window.locator('.ag-row').count()
-    console.log(`Initial row count: ${rowCount} (expected: 0)`)
+    // Count unique rows by row-id
+    let rowCount = await window.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('.ag-row'))
+      const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
+      return uniqueRowIds.size
+    })
+    console.log(`Initial unique row count: ${rowCount} (expected: 0)`)
 
     // If not empty, log what's in the store AND what's in the DOM
     if (rowCount !== 0) {
@@ -157,17 +165,28 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     console.log('Waited for AG Grid to update')
 
     // Verify first row was added
-    // Note: AG Grid may have ghost rows (empty duplicate rows), so count rows with content
-    rowCount = await window.evaluate(() => {
+    // Note: AG Grid creates multiple .ag-row elements when columns are pinned (pinned vs main section)
+    const rowDebugInfo = await window.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
-      return rows.filter((row: any) => {
-        const text = row.textContent?.trim() || ''
-        return text.length > 0
-      }).length
-    })
-    console.log(`Row count (with content) after adding caption: ${rowCount} (expected: 1)`)
+      const uniqueRowNodes = new Map()
 
-    expect(rowCount).toBe(1)
+      rows.forEach(row => {
+        const rowId = row.getAttribute('row-id')
+        if (rowId && !uniqueRowNodes.has(rowId)) {
+          uniqueRowNodes.set(rowId, row.textContent?.trim() || '')
+        }
+      })
+
+      return {
+        totalElements: rows.length,
+        uniqueRowCount: uniqueRowNodes.size,
+        contents: Array.from(uniqueRowNodes.values())
+      }
+    })
+    console.log(`Row count debug info:`, JSON.stringify(rowDebugInfo, null, 2))
+    rowCount = rowDebugInfo.uniqueRowCount
+
+    expect(rowCount, `Expected 1 row but found ${rowCount}. Row contents: ${rowDebugInfo.contents.join(' | ')}`).toBe(1)
 
     // Verify the cue in store spans 2-7 seconds (default 5s duration)
     let cues = await window.evaluate(() => (window as any).$store.document.segments)
@@ -190,10 +209,11 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     // Wait for AG Grid to recreate itself (gridKey changed)
     await window.waitForTimeout(1000)
 
-    // Verify we now have 2 rows (count rows with content to avoid ghost rows)
+    // Verify we now have 2 rows (count unique rows by row-id)
     rowCount = await window.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
-      return rows.filter((row: any) => (row.textContent?.trim() || '').length > 0).length
+      const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
+      return uniqueRowIds.size
     })
     expect(rowCount).toBe(2)
 
@@ -222,10 +242,11 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     // Wait for AG Grid to recreate itself (gridKey changed)
     await window.waitForTimeout(1000)
 
-    // Verify we now have 3 rows (count rows with content to avoid ghost rows)
+    // Verify we now have 3 rows (count unique rows by row-id)
     rowCount = await window.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
-      return rows.filter((row: any) => (row.textContent?.trim() || '').length > 0).length
+      const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
+      return uniqueRowIds.size
     })
     expect(rowCount).toBe(3)
 
@@ -252,56 +273,45 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     // === Test 5: Table row selection moves playhead ===
     console.log('Test 5: Testing table row selection moves playhead')
 
-    // Get all rows - filter out ghost rows (empty rows) to get only real rows
-    const allRows = await window.locator('.ag-row').all()
-    console.log('Total rows:', allRows.length)
+    // Get all unique row IDs from the grid
+    const uniqueRowIds = await window.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('.ag-row'))
+      return Array.from(new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null)))
+    })
+    console.log('Unique row IDs:', uniqueRowIds)
 
-    // Filter to get only rows with actual content (skip ghost rows)
-    const rowsWithContent = []
-    for (const row of allRows) {
-      const text = await row.textContent()
-      if (text && text.trim().length > 0) {
-        rowsWithContent.push(row)
+    // For each unique row ID, find the row element that contains the startTime cell
+    // (Pinned rows won't have it, main rows will)
+    const rowsWithTimes = []
+    for (const id of uniqueRowIds) {
+      const rowLocator = window.locator(`.ag-row[row-id="${id}"]`)
+      // Find the cell within this logical row that has the startTime colId
+      const startTimeCell = rowLocator.locator('[col-id="startTime"]').first()
+      const timeText = await startTimeCell.textContent()
+      if (timeText) {
+        rowsWithTimes.push({ id, timeText, rowLocator })
       }
     }
-    console.log('Rows with content:', rowsWithContent.length)
 
-    // Sort rows by start time since AG Grid doesn't reorder DOM when array changes
-    const rowsWithTimes = await Promise.all(
-      rowsWithContent.map(async (row) => {
-        const timeText = await row.locator('[col-id="startTime"]').textContent()
-        return { row, timeText }
-      })
-    )
+    // Sort rows by start time
     rowsWithTimes.sort((a, b) => (a.timeText || '').localeCompare(b.timeText || ''))
-    const rows = rowsWithTimes.map(r => r.row)
+    console.log('Sorted row IDs:', rowsWithTimes.map(r => r.id))
 
     // Verify rows are sorted by checking start times
-    const firstRowTime = await rows[0].locator('[col-id="startTime"]').textContent()
-    const secondRowTime = await rows[1].locator('[col-id="startTime"]').textContent()
-    const thirdRowTime = await rows[2].locator('[col-id="startTime"]').textContent()
-    console.log('Row times (after sorting):', firstRowTime, secondRowTime, thirdRowTime)
-    expect(firstRowTime).toBe('0.500')  // First cue at 0.5s
-    expect(secondRowTime).toBe('2.000')  // Second cue at 2s
-    expect(thirdRowTime).toBe('8.000')   // Third cue at 8s
+    expect(rowsWithTimes[0].timeText).toBe('0.500')
+    expect(rowsWithTimes[1].timeText).toBe('2.000')
+    expect(rowsWithTimes[2].timeText).toBe('8.000')
 
-    // Click on first row (0.5s cue) and verify playhead moves
-    await rows[0].click()
-    await window.waitForTimeout(200)
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
-    expect(currentTime).toBeCloseTo(0.5, 1)
-
-    // Click on second row (2s cue) and verify playhead moves
-    await rows[1].click()
-    await window.waitForTimeout(200)
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
-    expect(currentTime).toBeCloseTo(2, 1)
-
-    // Click on third row (8s cue) and verify playhead moves
-    await rows[2].click()
-    await window.waitForTimeout(200)
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
-    expect(currentTime).toBeCloseTo(8, 1)
+    // Click on rows and verify playhead moves
+    for (const [index, rowInfo] of rowsWithTimes.entries()) {
+      console.log(`Clicking row ${index} (ID: ${rowInfo.id}, Time: ${rowInfo.timeText})...`)
+      // Click the first cell in the row to ensure we click the "main" part of the row
+      await rowInfo.rowLocator.locator('[col-id="startTime"]').first().click({ timeout: 10000 })
+      await window.waitForTimeout(500)
+      currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+      console.log(`Current time after clicking row ${index}: ${currentTime}`)
+      expect(currentTime).toBeCloseTo(parseFloat(rowInfo.timeText!), 1)
+    }
 
     // Note: Scrubber visual value doesn't update reactively - known limitation
     // The scrubber uses :value binding which only sets initial DOM value

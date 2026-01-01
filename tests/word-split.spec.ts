@@ -25,16 +25,15 @@ test.describe('VTT Editor - Word-Level Split', () => {
   })
 
   test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
-
-  test.afterEach(async () => {
     // Close any open context menus
-    await window.evaluate(() => {
-      const overlay = document.querySelector('.context-menu-overlay')
-      if (overlay) (overlay as HTMLElement).click()
-    })
-    await window.waitForTimeout(100)
+    if (window) {
+      await window.evaluate(() => {
+        const overlay = document.querySelector('.context-menu-overlay')
+        if (overlay) (overlay as HTMLElement).click()
+      }).catch(() => {}) // Ignore errors if window is already closed
+    }
+    
+    if (electronApp) { await electronApp.close().catch(() => {}) }
   })
 
   test('should render words as spans when segment has word-level timestamps', async () => {

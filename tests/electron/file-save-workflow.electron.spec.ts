@@ -32,6 +32,9 @@ function normalizeVTTForSnapshot(vttContent: string): string {
     '"actionTimestamp":"<TIMESTAMP>"'
   )
 
+  // Strip SegmentSpeakerEmbedding notes as they are large and can vary
+  normalized = normalized.replace(/^NOTE CAPTION_EDITOR:SegmentSpeakerEmbedding .*\n?/gm, '')
+
   return normalized
 }
 
