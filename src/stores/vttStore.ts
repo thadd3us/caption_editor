@@ -31,8 +31,8 @@ export const useVTTStore = defineStore('vtt', () => {
   // State - all state lives in memory only, persisted by saving VTT files
   const document = ref<VTTDocument>(createEmptyDocument())
 
-  // Media URL - always a file:// URL in Electron mode
-  // Example: file:///Users/name/path/to/audio.wav
+  // Media URL - always a media:// URL in Electron mode
+  // Example: media:///Users/name/path/to/audio.wav
   const mediaPath = ref<string | null>(null)
 
   const currentTime = ref(0)
@@ -114,7 +114,7 @@ export const useVTTStore = defineStore('vtt', () => {
 
   /**
    * Load a media file for playback (Electron mode)
-   * @param path - file:// URL to use as media element src
+   * @param path - media:// URL to use as media element src
    * @param filePath - Absolute file path to store in document metadata (will be converted to relative on export)
    */
   function loadMediaFile(path: string, filePath?: string) {

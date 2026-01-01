@@ -1,11 +1,30 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, readFileSync } from 'fs'
-import { fileURLToPath } from 'url'
+import { existsSync, readFileSync, createReadStream } from 'fs'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+const vtt_files = ['vtt']
+const MIME_TYPES: Record<string, string> = {
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.ogg': 'video/ogg',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.mov': 'video/quicktime',
+  '.m4a': 'audio/mp4',
+  '.flac': 'audio/flac'
+}
+const media_files = Object.keys(MIME_TYPES).map(ext => ext.substring(1))
+const all_files = vtt_files.concat(media_files)
+
+// Register custom protocols as privileged for media streaming
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'media', privileges: { secure: true, standard: true, supportFetchAPI: true, stream: true, bypassCSP: false } }
+])
 
 // Read version from VERSION file (single source of truth).
 // NOTE: We package `VERSION` into `app.asar` so this path works in production.
@@ -17,8 +36,8 @@ try {
   // No fallback: fail fast with a clear message if packaging is misconfigured.
   throw new Error(
     `VERSION not found at ${versionFilePath}. ` +
-      `Ensure electron-builder packages VERSION into app.asar.\n\n` +
-      `Original error: ${err instanceof Error ? err.message : String(err)}`
+    `Ensure electron-builder packages VERSION into app.asar.\n\n` +
+    `Original error: ${err instanceof Error ? err.message : String(err)}`
   )
 }
 
@@ -206,8 +225,29 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,  // Disabled to allow file.path property in drag-and-drop
-      webSecurity: false  // Disable web security to allow file.path access
+      webSecurity: true,
+      allowRunningInsecureContent: false
     }
+  })
+
+  // Set up Content Security Policy
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval is needed for Vite in dev, unsafe-inline for some libraries
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob:",
+      "media-src 'self' media: blob:", // Allow our custom media protocol
+      "connect-src 'self' ws: http: https:" // Allow dev server connections
+    ].join('; ')
+
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp]
+      }
+    })
   })
 
   // In development, load from Vite dev server
@@ -248,6 +288,54 @@ app.on('open-file', (event, filePath) => {
 })
 
 app.whenReady().then(() => {
+  // Create a custom media protocol handler to securely serve local files.
+  // Using a custom protocol is required once webSecurity is enabled.
+  protocol.handle('media', async (request) => {
+    try {
+      const url = new URL(request.url)
+      // Extract the path - it should be everything after 'media://local'
+      let filePath = decodeURIComponent(url.pathname)
+
+      // Normalize for pathToFileURL (remove leading slash if it's a Windows drive letter)
+      if (process.platform === 'win32' && filePath.startsWith('/')) {
+        filePath = filePath.substring(1)
+      }
+
+      // Detect MIME type based on extension
+      const ext = path.extname(filePath).toLowerCase()
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream'
+
+      // IMPORTANT: For large media files (movies, etc.), we MUST support streaming.
+      // 1. We pass the original request headers (which may contain 'Range') to net.fetch.
+      // 2. net.fetch returns a ReadableStream which is piped directly to the renderer.
+      // 3. This ensures that only the requested bytes are read from disk, allowing
+      //    the media player to seek and load metadata efficiently without fetching 
+      //    the entire file into memory.
+      const response = await net.fetch(pathToFileURL(filePath).toString(), {
+        bypassCustomProtocolHandlers: true,
+        method: request.method,
+        headers: request.headers
+      })
+
+      // We must return a new Response to ensure headers like Content-Type 
+      // are correctly set for the browser to detect duration/metadata.
+      const headers = new Headers(response.headers)
+      headers.set('Content-Type', contentType)
+
+      // Accept-Ranges is critical for seeking and duration detection in Chrome
+      headers.set('Accept-Ranges', 'bytes')
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers
+      })
+    } catch (error) {
+      console.error('[main] media:// protocol error:', error)
+      return new Response('Invalid media URL', { status: 400 })
+    }
+  })
+
   createMenu()
   createWindow()
 
@@ -292,12 +380,13 @@ ipcMain.handle('dialog:openFile', async (_event, options?: {
 }) => {
   if (!mainWindow) return null
 
+
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
-      { name: 'All Files', extensions: ['*'] },
-      { name: 'VTT Files', extensions: ['vtt'] },
-      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
+      { name: 'All Supported Files', extensions: all_files },
+      { name: 'VTT Files', extensions: vtt_files },
+      { name: 'Media Files', extensions: media_files }
     ]
   })
 
@@ -425,8 +514,9 @@ ipcMain.handle('file:toURL', async (_event, filePath: string) => {
     // Ensure the file exists and we can access it
     await fs.access(filePath)
 
-    // Return file:// URL
-    const url = `file://${filePath}`
+    // Return media:// URL instead of file://
+    // Using media://local/path format for clean URL parsing
+    const url = `media://local${filePath}`
     return { success: true, url, filePath }
   } catch (error) {
     console.error('Error converting file to URL:', error)
@@ -624,7 +714,7 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
       const ext = path.extname(filePath).toLowerCase()
       console.log('[main]   - File extension:', ext)
 
-      if (ext === '.vtt') {
+      if (vtt_files.includes(ext.substring(1))) {
         console.log('[main]   - Reading VTT file content')
         const content = await fs.readFile(filePath, 'utf-8')
         console.log('[main]   - VTT content length:', content.length)
@@ -635,8 +725,8 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
           content
         })
         console.log('[main]   ✓ VTT file added to results')
-      } else if (['.mp4', '.webm', '.ogg', '.mp3', '.wav', '.mov', '.m4a'].includes(ext)) {
-        const url = `file://${filePath}`
+      } else if (media_files.includes(ext.substring(1))) {
+        const url = `media://local${filePath}`
         console.log('[main]   - Creating media URL:', url)
         results.push({
           type: 'media',
@@ -654,6 +744,5 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
   }
 
   console.log('[main] ✓ Finished processing files, returning', results.length, 'results')
-  console.log('[main] ✓ Results:', results)
   return results
 })
