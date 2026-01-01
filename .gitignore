@@ -65,7 +65,6 @@ dist-uvx/
 !build/icon.icns
 !build/icon.ico
 !build/icon.png
-!build/bin/
 build/
 .uv/
 .python-version
