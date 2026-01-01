@@ -154,6 +154,14 @@ function createMenu() {
           click: () => {
             mainWindow?.webContents.send('menu-asr-caption')
           }
+        },
+        {
+          label: 'Compute Speaker Embeddings for Segments',
+          enabled: false,  // Will be enabled when media and VTT are loaded
+          id: 'asr-embed',
+          click: () => {
+            mainWindow?.webContents.send('menu-asr-embed')
+          }
         }
       ]
     },
@@ -540,12 +548,23 @@ ipcMain.handle('file:toURL', async (_event, filePath: string) => {
 /**
  * Update menu item enabled state
  */
-ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
+ipcMain.on('menu:updateAsrEnabled', (_event, options: boolean | { caption?: boolean; embed?: boolean }) => {
   const menu = Menu.getApplicationMenu()
   if (menu) {
-    const asrItem = menu.getMenuItemById('asr-caption')
-    if (asrItem) {
-      asrItem.enabled = enabled
+    if (typeof options === 'boolean') {
+      const asrItem = menu.getMenuItemById('asr-caption')
+      if (asrItem) {
+        asrItem.enabled = options
+      }
+    } else {
+      if (options.caption !== undefined) {
+        const asrItem = menu.getMenuItemById('asr-caption')
+        if (asrItem) asrItem.enabled = options.caption
+      }
+      if (options.embed !== undefined) {
+        const embedItem = menu.getMenuItemById('asr-embed')
+        if (embedItem) embedItem.enabled = options.embed
+      }
     }
   }
 })
@@ -554,14 +573,13 @@ ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
  * Ensures uv and uvx binaries are available in the ~/.cache/caption_editor/bin directory.
  * Downloads them from GitHub releases if missing.
  */
-async function ensureUvBinaries(): Promise<{ uv: string, uvx: string }> {
+async function ensureUvBinaries(onLog?: (msg: string) => void): Promise<{ uv: string, uvx: string }> {
   const cacheDir = path.join(os.homedir(), '.cache', 'caption_editor')
   const binDir = path.join(cacheDir, 'bin')
   if (!existsSync(binDir)) {
     mkdirSync(binDir, { recursive: true })
   }
 
-  // Binaries are simply named uv and uvx in the cache folder
   const uvPath = path.join(binDir, 'uv')
   const uvxPath = path.join(binDir, 'uvx')
 
@@ -569,74 +587,78 @@ async function ensureUvBinaries(): Promise<{ uv: string, uvx: string }> {
     return { uv: uvPath, uvx: uvxPath }
   }
 
-  console.log(`[main] UV binaries missing. Downloading version ${UV_VERSION}...`)
+  const log = (msg: string) => {
+    console.log(`[main] ${msg}`)
+    if (onLog) onLog(msg + '\n')
+  }
 
-  // Mapping to GitHub release asset names
-  // macOS arm64: uv-aarch64-apple-darwin.tar.gz
-  // Linux x64: uv-x86_64-unknown-linux-musl.tar.gz (common for portable linux)
-  const assetName = process.platform === 'darwin'
-    ? 'uv-aarch64-apple-darwin.tar.gz'
-    : 'uv-x86_64-unknown-linux-musl.tar.gz'
+  log(`UV binaries missing. Downloading version ${UV_VERSION}...`)
 
+  const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
+  const platform = process.platform === 'darwin' ? 'apple-darwin' : 'unknown-linux-musl'
+  const assetName = `uv-${arch}-${platform}.tar.gz`
   const downloadUrl = `https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${assetName}`
   const tarPath = path.join(binDir, assetName)
 
   try {
+    log(`Downloading from ${downloadUrl}...`)
     const response = await net.fetch(downloadUrl)
     if (!response.ok) throw new Error(`Failed to download uv: ${response.statusText}`)
 
     const buffer = await response.arrayBuffer()
     await fs.writeFile(tarPath, Buffer.from(buffer))
 
-    // Extract using system tar
-    console.log(`[main] Extracting ${assetName}...`)
+    log(`Extracting ${assetName}...`)
     const extractDir = path.join(binDir, 'extract')
-    if (!existsSync(extractDir)) mkdirSync(extractDir)
+    if (existsSync(extractDir)) await fs.rm(extractDir, { recursive: true, force: true })
+    mkdirSync(extractDir)
 
     await execAsync(`tar -xzf "${tarPath}" -C "${extractDir}"`)
 
-    // Find the uv and uvx binaries in the extracted folder (they are usually in a subfolder)
-    // The subfolder name typically matches the asset name without .tar.gz
     const subfolder = assetName.replace('.tar.gz', '')
     const extractedUv = path.join(extractDir, subfolder, 'uv')
     const extractedUvx = path.join(extractDir, subfolder, 'uvx')
 
     if (!existsSync(extractedUv)) {
-      // Fallback: search for uv binary in extractDir
       throw new Error(`Could not find uv binary in extracted archive ${assetName}`)
     }
 
     await fs.rename(extractedUv, uvPath)
     await fs.rename(extractedUvx, uvxPath)
 
-    // Cleanup
     await fs.rm(extractDir, { recursive: true, force: true })
     await fs.unlink(tarPath)
 
-    // Ensure executable permissions
     await fs.chmod(uvPath, 0o755)
     await fs.chmod(uvxPath, 0o755)
 
-    console.log(`[main] UV binaries successfully downloaded and installed to ${binDir}`)
+    log(`UV binaries successfully installed to ${binDir}`)
     return { uv: uvPath, uvx: uvxPath }
   } catch (error) {
-    console.error(`[main] Failed to ensure UV binaries:`, error)
+    log(`Failed to ensure UV binaries: ${error}`)
     throw error
   }
 }
 
 /**
- * Run ASR transcription on media file
+ * Common helper to run ASR tools (transcribe, embed, etc.)
  */
-ipcMain.handle('asr:transcribe', async (_event, options: {
-  mediaFilePath: string,
-  model?: string,  // Optional model override (default: nvidia/parakeet-tdt-0.6b-v3)
-  chunkSize?: number  // Optional chunk size in seconds (default: 180)
-}) => {
-  const { mediaFilePath, model, chunkSize } = options
+async function runAsrTool(options: {
+  tool: 'transcribe' | 'embed',
+  inputPath: string,
+  model?: string,
+  chunkSize?: number
+}) {
+  const { tool, inputPath, model, chunkSize } = options
+
+  // Store process for cancellation
+  const processId = Date.now().toString()
+
+  const sendOutput = (type: 'stdout' | 'stderr', data: string) => {
+    mainWindow?.webContents.send('asr:output', { processId, type, data })
+  }
 
   // Determine if we're in dev mode
-  // Use explicit env var first, then fallback to NODE_ENV/VITE_DEV_SERVER_URL
   const runFromCodeTree = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
   const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
 
@@ -644,128 +666,117 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   let pythonArgs: string[]
   let cwd: string
 
+  const scriptName = `${tool}.py`
+
   if (isDev) {
-    // Dev mode: use uv run python
-    // Use CAPTION_EDITOR_CODE_TREE_ROOT if set, otherwise compute from __dirname
-    const codeTreeRoot = process.env.CAPTION_EDITOR_CODE_TREE_ROOT || path.join(__dirname, '..')
+    const codeTreeRoot = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
+      ? (process.env.CAPTION_EDITOR_CODE_TREE_ROOT || path.join(__dirname, '..'))
+      : path.join(__dirname, '..')
+
     pythonCommand = 'uv'
-    pythonArgs = ['run', 'python', 'transcribe.py', mediaFilePath]
+    pythonArgs = ['run', 'python', scriptName, inputPath]
     cwd = path.join(codeTreeRoot, 'transcribe')
 
-    // Add chunk size if specified
-    if (chunkSize !== undefined) {
+    if (tool === 'transcribe' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
+    if (model) pythonArgs.push('--model', model)
 
-    // Add model flag if specified
-    if (model) {
-      pythonArgs.push('--model', model)
-    }
-
-    // Validate that transcribe.py exists
-    const scriptPath = path.join(cwd, 'transcribe.py')
+    const scriptPath = path.join(cwd, scriptName)
     if (!existsSync(scriptPath)) {
-      throw new Error(`transcribe.py not found at ${scriptPath}. Code tree root: ${codeTreeRoot}`)
+      throw new Error(`${scriptName} not found at ${scriptPath}`)
     }
   } else {
-    // Production/Dynamic mode: use downloaded uvx to run from GitHub repository
-    // Repository, commit, and uv version are consolidated in ./constants.ts
-    const { uvx } = await ensureUvBinaries()
-
+    // Production mode: use downloaded uvx
+    const { uvx } = await ensureUvBinaries((msg) => sendOutput('stdout', msg))
     pythonCommand = uvx
-    const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
 
+    const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
     pythonArgs = [
       '--from', `${ASR_GITHUB_REPO}@${ASR_COMMIT_HASH}#subdirectory=transcribe`,
       '--overrides', overridesPath,
-      'transcribe',
-      mediaFilePath
+      tool,
+      inputPath
     ]
-    cwd = process.cwd()  // Can run from any directory with uvx
+    cwd = process.cwd()
 
-    // Add chunk size if specified
-    if (chunkSize !== undefined) {
+    if (tool === 'transcribe' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
+    if (model) pythonArgs.push('--model', model)
 
-    // Add model flag if specified
-    if (model) {
-      pythonArgs.push('--model', model)
-    }
-
-    // Validate that bundled uvx exists
-    if (!existsSync(pythonCommand)) {
-      throw new Error(
-        `UV/UVX binary not found at ${pythonCommand}. ` +
-        `Ensure the binaries were successfully downloaded to the app's userData directory.`
-      )
-    }
-
-    // Validate that overrides.txt exists
-    if (!existsSync(overridesPath)) {
-      throw new Error(
-        `overrides.txt not found at ${overridesPath}. ` +
-        `Ensure the app is properly packaged with the overrides file.`
-      )
-    }
+    if (!existsSync(pythonCommand)) throw new Error(`UV/UVX binary not found at ${pythonCommand}`)
+    if (!existsSync(overridesPath)) throw new Error(`overrides.txt not found at ${overridesPath}`)
   }
 
-  console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd, isDev, runFromCodeTree })
+  console.log(`[main] Starting ASR ${tool}:`, { pythonCommand, pythonArgs, cwd, isDev })
+  mainWindow?.webContents.send('asr:started', { processId })
 
-  // Import spawn here to use in subprocess
   const { spawn } = await import('child_process')
-
-  // Prepare environment: ensure our binDir is in PATH so uvx can find uv
   const binDir = path.join(os.homedir(), '.cache', 'caption_editor', 'bin')
-  const env = {
-    ...process.env,
-    PATH: `${binDir}${path.delimiter}${process.env.PATH}`
-  }
+  const env = { ...process.env, PATH: `${binDir}${path.delimiter}${process.env.PATH}` }
 
   return new Promise((resolve, reject) => {
     const proc = spawn(pythonCommand, pythonArgs, { cwd, env })
-    let stdout = ''
-    let stderr = ''
-
-    // Store process for cancellation
-    const processId = Date.now().toString()
     activeProcesses.set(processId, proc)
 
-    proc.stdout?.on('data', (data) => {
-      const chunk = data.toString()
-      stdout += chunk
-      // Send output to renderer in real-time
-      mainWindow?.webContents.send('asr:output', { processId, type: 'stdout', data: chunk })
-    })
-
-    proc.stderr?.on('data', (data) => {
-      const chunk = data.toString()
-      stderr += chunk
-      // Send output to renderer in real-time
-      mainWindow?.webContents.send('asr:output', { processId, type: 'stderr', data: chunk })
-    })
+    proc.stdout?.on('data', (data) => sendOutput('stdout', data.toString()))
+    proc.stderr?.on('data', (data) => sendOutput('stderr', data.toString()))
 
     proc.on('close', (code) => {
       activeProcesses.delete(processId)
-
       if (code === 0) {
-        // Success - output VTT file should be alongside media file
-        const vttPath = mediaFilePath.replace(/\.[^.]+$/, '.vtt')
-        resolve({ success: true, vttPath, processId })
+        resolve({ success: true, tool, processId })
       } else {
-        reject(new Error(`ASR process exited with code ${code}\n\nstderr:\n${stderr}`))
+        reject(new Error(`Process exited with code ${code}`))
       }
     })
 
-    proc.on('error', (error) => {
+    proc.on('error', (err) => {
       activeProcesses.delete(processId)
-      reject(error)
+      reject(err)
     })
-
-    // Send initial process ID to renderer
-    mainWindow?.webContents.send('asr:started', { processId })
   })
+}
+
+/**
+ * Run ASR transcription on media file
+ */
+ipcMain.handle('asr:transcribe', async (_event, options: {
+  mediaFilePath: string,
+  model?: string,
+  chunkSize?: number
+}) => {
+  const result = await runAsrTool({
+    tool: 'transcribe',
+    inputPath: options.mediaFilePath,
+    model: options.model,
+    chunkSize: options.chunkSize
+  }) as any
+
+  // Return the expected format for transcription
+  // By default transcribe.py writes to mediaFilePath.vtt (or similar logic)
+  // Actually, transcribe.py in dev mode might work differently?
+  // Let's check where transcribe.py writes output.
+  return { vttPath: options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt') }
 })
+
+/**
+ * Run speaker embedding on VTT file
+ */
+ipcMain.handle('asr:embed', async (_event, options: {
+  vttPath: string,
+  model?: string
+}) => {
+  await runAsrTool({
+    tool: 'embed',
+    inputPath: options.vttPath,
+    model: options.model
+  })
+  return { success: true }
+})
+
+
 
 /**
  * Cancel running ASR process

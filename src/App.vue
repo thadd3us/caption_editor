@@ -39,6 +39,7 @@
       :is-visible="isAsrModalVisible"
       :is-running="isAsrRunning"
       :failed="asrFailed"
+      :title="asrModalTitle"
       @cancel="handleAsrCancel"
     />
   </div>
@@ -84,7 +85,8 @@ const isAsrConfirmDialogVisible = ref(false)
 const isAsrModalVisible = ref(false)
 const isAsrRunning = ref(false)
 const asrFailed = ref(false)
-const asrModal = ref<InstanceType<typeof AsrModal> | null>(null)
+const asrModalTitle = ref('Speech Recognition')
+const asrModal = ref<any>(null)
 let currentAsrProcessId: string | null = null
 
 // Track if we've already attempted auto-load for the current document
@@ -292,12 +294,15 @@ watch(
   { immediate: true, deep: true }
 )
 
-// Watch for media path changes and update ASR menu enabled state
+// Watch for media path and segments changes and update ASR menu enabled state
 watch(
-  () => store.mediaPath,
-  (mediaPath) => {
+  [() => store.mediaPath, () => store.document.segments.length],
+  ([mediaPath, segmentCount]) => {
     if ((window as any).electronAPI?.updateAsrMenuEnabled) {
-      (window as any).electronAPI.updateAsrMenuEnabled(!!mediaPath)
+      (window as any).electronAPI.updateAsrMenuEnabled({
+        caption: !!mediaPath,
+        embed: !!mediaPath && segmentCount > 0
+      })
     }
   },
   { immediate: true }
@@ -376,16 +381,39 @@ async function handleMenuSaveAs() {
 
 // ASR menu handler
 function handleMenuAsrCaption() {
-  console.log('[ASR] Menu item clicked')
-
-  // Check if there are existing segments
+  console.log('[ASR] Caption menu item clicked')
   if (store.document.segments.length > 0) {
-    // Show confirmation dialog
     isAsrConfirmDialogVisible.value = true
   } else {
-    // No segments, proceed directly
     startAsrTranscription()
   }
+}
+
+// Speaker Embedding menu handler
+async function handleMenuAsrEmbed() {
+  console.log('[ASR] Embed menu item clicked')
+  
+  // We need to ensure the VTT file is saved before embedding
+  if (!store.document.filePath) {
+    // If no file path, ask user to save it first
+    alert('Please save the VTT file before computing speaker embeddings.')
+    handleMenuSaveAs()
+    return
+  }
+
+  // Auto-save the current state to the existing file
+  const content = store.exportToString()
+  const result = await (window as any).electronAPI.saveExistingFile({
+    filePath: store.document.filePath,
+    content
+  })
+
+  if (!result.success) {
+    alert('Failed to save VTT file before embedding: ' + result.error)
+    return
+  }
+
+  startAsrEmbedding()
 }
 
 function closeAsrConfirmDialog() {
@@ -395,6 +423,46 @@ function closeAsrConfirmDialog() {
 function handleAsrConfirmed() {
   isAsrConfirmDialogVisible.value = false
   startAsrTranscription()
+}
+
+async function startAsrEmbedding() {
+  if (!window.electronAPI?.asr) return
+  if (!store.document.filePath) return
+
+  console.log('[ASR] Starting speaker embedding for:', store.document.filePath)
+
+  isAsrModalVisible.value = true
+  isAsrRunning.value = true
+  asrFailed.value = false
+  asrModalTitle.value = 'Computing Embeddings'
+
+  try {
+    const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
+    
+    await window.electronAPI.asr.embed({
+      vttPath: store.document.filePath,
+      model
+    })
+
+    console.log('[ASR] Speaker embedding completed successfully')
+
+    // Reload the VTT file to see the new embeddings
+    const vttResult = await window.electronAPI.readFile(store.document.filePath)
+    if (vttResult.success && vttResult.content) {
+      store.loadFromFile(vttResult.content, store.document.filePath)
+      console.log('[ASR] VTT file reloaded with embeddings')
+    }
+
+    isAsrModalVisible.value = false
+    isAsrRunning.value = false
+  } catch (err) {
+    console.error('[ASR] Speaker embedding failed:', err)
+    asrFailed.value = true
+    isAsrRunning.value = false
+    if (asrModal.value) {
+      asrModal.value.appendOutput('\n\n❌ Error: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    }
+  }
 }
 
 async function startAsrTranscription() {
@@ -414,6 +482,7 @@ async function startAsrTranscription() {
   isAsrModalVisible.value = true
   isAsrRunning.value = true
   asrFailed.value = false
+  asrModalTitle.value = 'Speech Recognition'
 
   try {
     // Get model override from environment variable (for testing)
@@ -494,6 +563,7 @@ onMounted(() => {
   ;(window as any).openBulkSetSpeakerDialog = openBulkSetSpeakerDialog
   ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
+  ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
 
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
@@ -509,24 +579,36 @@ onMounted(() => {
         window.dispatchEvent(new CustomEvent('computeSpeakerSimilarity'))
       })
       ipcRenderer.on('menu-asr-caption', handleMenuAsrCaption)
+      ipcRenderer.on('menu-asr-embed', handleMenuAsrEmbed)
       console.log('[App] ✓ Native menu IPC listeners registered')
     }
 
     // Set up ASR output listeners
-    if ((window as any).electronAPI.asr) {
-      (window as any).electronAPI.asr.onOutput((data: { processId: string, type: string, data: string }) => {
-        console.log('[ASR] Output:', data.type, data.data)
-        if (asrModal.value) {
-          asrModal.value.appendOutput(data.data)
-        }
-      })
+    if (window.electronAPI?.asr) {
+      console.log('[App] Registering ASR listeners. asr keys:', Object.keys(window.electronAPI.asr))
+      
+      const asr = window.electronAPI.asr
+      if (typeof asr.onOutput === 'function') {
+        asr.onOutput((data: { processId: string, type: 'stdout' | 'stderr', data: string }) => {
+          console.log('[ASR] Output:', data.type, data.data)
+          if (asrModal.value) {
+            asrModal.value.appendOutput(data.data)
+          }
+        })
+      } else {
+        console.error('[App] window.electronAPI.asr.onOutput is NOT a function!', typeof asr.onOutput)
+      }
 
-      (window as any).electronAPI.asr.onStarted((data: { processId: string }) => {
-        console.log('[ASR] Process started:', data.processId)
-        currentAsrProcessId = data.processId
-      })
+      if (typeof asr.onStarted === 'function') {
+        asr.onStarted((data: { processId: string }) => {
+          console.log('[ASR] Process started:', data.processId)
+          currentAsrProcessId = data.processId
+        })
+      } else {
+        console.error('[App] window.electronAPI.asr.onStarted is NOT a function!', typeof asr.onStarted)
+      }
 
-      console.log('[App] ✓ ASR output listeners registered')
+      console.log('[App] ✓ ASR output listeners registration attempted')
     }
   }
 

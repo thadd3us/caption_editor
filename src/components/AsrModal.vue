@@ -2,7 +2,7 @@
   <div v-if="isVisible" class="asr-modal-overlay" @click.self="handleOverlayClick">
     <div class="asr-modal">
       <div class="asr-modal-header">
-        <h2>Speech Recognition</h2>
+        <h2>{{ title || 'Speech Recognition' }}</h2>
         <p class="asr-status">{{ statusText }}</p>
       </div>
 
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import Ansi from 'ansi-to-html'
 
 const convert = new Ansi({
@@ -36,6 +36,7 @@ const props = defineProps<{
   isVisible: boolean
   isRunning: boolean
   failed: boolean
+  title?: string
 }>()
 
 const emit = defineEmits<{

@@ -1,3 +1,12 @@
+Next up is to package the python script called transcribe/embed.py behind a menu item under "AI Annotations"
+
+* Drag-n-drop vtt and media files into app.
+* Make sure 
+
+
+
+
+
 High:
 https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM
 * Rename "Play Sequential" to just be a play button.

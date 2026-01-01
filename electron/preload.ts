@@ -110,6 +110,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   asr: {
     transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number }) =>
       ipcRenderer.invoke('asr:transcribe', options),
+    embed: (options: { vttPath: string, model?: string }) =>
+      ipcRenderer.invoke('asr:embed', options),
     cancel: (processId: string) =>
       ipcRenderer.invoke('asr:cancel', processId),
     onOutput: (callback: (data: { processId: string, type: 'stdout' | 'stderr', data: string }) => void) => {
@@ -123,8 +125,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   /**
    * Update menu enabled/disabled state
    */
-  updateAsrMenuEnabled: (enabled: boolean) => {
-    ipcRenderer.send('menu:updateAsrEnabled', enabled)
+  updateAsrMenuEnabled: (options: boolean | { caption?: boolean; embed?: boolean }) => {
+    ipcRenderer.send('menu:updateAsrEnabled', options)
   }
 })
 
