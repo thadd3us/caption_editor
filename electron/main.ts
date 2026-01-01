@@ -1,8 +1,13 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, readFileSync, createReadStream } from 'fs'
+import { existsSync, readFileSync, createReadStream, mkdirSync } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+import * as os from 'os'
+
+const execAsync = promisify(exec)
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -311,19 +316,38 @@ app.whenReady().then(() => {
       // 3. This ensures that only the requested bytes are read from disk, allowing
       //    the media player to seek and load metadata efficiently without fetching 
       //    the entire file into memory.
+      console.log(`[main] media:// request: ${request.url}`, {
+        method: request.method,
+        range: request.headers.get('Range')
+      })
+
       const response = await net.fetch(pathToFileURL(filePath).toString(), {
         bypassCustomProtocolHandlers: true,
         method: request.method,
         headers: request.headers
       })
 
+      // Get file size to ensure Content-Length is present
+      const stats = await fs.stat(filePath)
+      const fileSize = stats.size
+
       // We must return a new Response to ensure headers like Content-Type 
       // are correctly set for the browser to detect duration/metadata.
       const headers = new Headers(response.headers)
       headers.set('Content-Type', contentType)
-
-      // Accept-Ranges is critical for seeking and duration detection in Chrome
       headers.set('Accept-Ranges', 'bytes')
+
+      // If it's not a partial response, ensure Content-Length is set correctly
+      if (response.status !== 206 && !headers.has('Content-Length')) {
+        headers.set('Content-Length', fileSize.toString())
+      }
+
+      console.log(`[main] media:// response: ${response.status}`, {
+        contentType: headers.get('Content-Type'),
+        contentLength: headers.get('Content-Length'),
+        contentRange: headers.get('Content-Range'),
+        acceptRanges: headers.get('Accept-Ranges')
+      })
 
       return new Response(response.body, {
         status: response.status,
@@ -540,6 +564,83 @@ ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
   }
 })
 
+const UV_VERSION = '0.7.12'
+
+/**
+ * Ensures uv and uvx binaries are available in the ~/.cache/caption_editor/bin directory.
+ * Downloads them from GitHub releases if missing.
+ */
+async function ensureUvBinaries(): Promise<{ uv: string, uvx: string }> {
+  const cacheDir = path.join(os.homedir(), '.cache', 'caption_editor')
+  const binDir = path.join(cacheDir, 'bin')
+  if (!existsSync(binDir)) {
+    mkdirSync(binDir, { recursive: true })
+  }
+
+  // Binaries are simply named uv and uvx in the cache folder
+  const uvPath = path.join(binDir, 'uv')
+  const uvxPath = path.join(binDir, 'uvx')
+
+  if (existsSync(uvPath) && existsSync(uvxPath)) {
+    return { uv: uvPath, uvx: uvxPath }
+  }
+
+  console.log(`[main] UV binaries missing. Downloading version ${UV_VERSION}...`)
+
+  // Mapping to GitHub release asset names
+  // macOS arm64: uv-aarch64-apple-darwin.tar.gz
+  // Linux x64: uv-x86_64-unknown-linux-musl.tar.gz (common for portable linux)
+  const assetName = process.platform === 'darwin'
+    ? 'uv-aarch64-apple-darwin.tar.gz'
+    : 'uv-x86_64-unknown-linux-musl.tar.gz'
+
+  const downloadUrl = `https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${assetName}`
+  const tarPath = path.join(binDir, assetName)
+
+  try {
+    const response = await net.fetch(downloadUrl)
+    if (!response.ok) throw new Error(`Failed to download uv: ${response.statusText}`)
+
+    const buffer = await response.arrayBuffer()
+    await fs.writeFile(tarPath, Buffer.from(buffer))
+
+    // Extract using system tar
+    console.log(`[main] Extracting ${assetName}...`)
+    const extractDir = path.join(binDir, 'extract')
+    if (!existsSync(extractDir)) mkdirSync(extractDir)
+
+    await execAsync(`tar -xzf "${tarPath}" -C "${extractDir}"`)
+
+    // Find the uv and uvx binaries in the extracted folder (they are usually in a subfolder)
+    // The subfolder name typically matches the asset name without .tar.gz
+    const subfolder = assetName.replace('.tar.gz', '')
+    const extractedUv = path.join(extractDir, subfolder, 'uv')
+    const extractedUvx = path.join(extractDir, subfolder, 'uvx')
+
+    if (!existsSync(extractedUv)) {
+      // Fallback: search for uv binary in extractDir
+      throw new Error(`Could not find uv binary in extracted archive ${assetName}`)
+    }
+
+    await fs.rename(extractedUv, uvPath)
+    await fs.rename(extractedUvx, uvxPath)
+
+    // Cleanup
+    await fs.rm(extractDir, { recursive: true, force: true })
+    await fs.unlink(tarPath)
+
+    // Ensure executable permissions
+    await fs.chmod(uvPath, 0o755)
+    await fs.chmod(uvxPath, 0o755)
+
+    console.log(`[main] UV binaries successfully downloaded and installed to ${binDir}`)
+    return { uv: uvPath, uvx: uvxPath }
+  } catch (error) {
+    console.error(`[main] Failed to ensure UV binaries:`, error)
+    throw error
+  }
+}
+
 /**
  * Run ASR transcription on media file
  */
@@ -583,20 +684,14 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
       throw new Error(`transcribe.py not found at ${scriptPath}. Code tree root: ${codeTreeRoot}`)
     }
   } else {
-    // Production mode: use bundled uvx to run from GitHub repository
+    // Production/Dynamic mode: use downloaded uvx to run from GitHub repository
+    const { uvx } = await ensureUvBinaries()
+
     // GitHub repository and commit hash (can be updated for new releases)
     const gitRepo = 'git+https://github.com/thadd3us/caption_editor'
     const commitHash = 'f8bcf53'  // Update this to the commit hash you want to use
 
-    // Determine platform-specific uvx binary name
-    const platform = process.platform === 'darwin' ? 'macos' : 'linux'
-    const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
-    const uvxBinaryName = `uvx-${platform}-${arch}`
-
-    // Use uvx binary and overrides.txt from electron/ (works in both dev and packaged mode)
-    // In dev: __dirname is dist-electron/, so ../electron/
-    // In packaged: electron/ is copied alongside dist-electron/ in app.asar
-    pythonCommand = path.join(__dirname, '..', 'electron', 'bin', uvxBinaryName)
+    pythonCommand = uvx
     const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
 
     pythonArgs = [
@@ -620,9 +715,8 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     // Validate that bundled uvx exists
     if (!existsSync(pythonCommand)) {
       throw new Error(
-        `Bundled uvx not found at ${pythonCommand}. ` +
-        `Platform: ${platform}, Arch: ${arch}. ` +
-        `Ensure the app is properly packaged with uvx binary.`
+        `UV/UVX binary not found at ${pythonCommand}. ` +
+        `Ensure the binaries were successfully downloaded to the app's userData directory.`
       )
     }
 
@@ -640,8 +734,15 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   // Import spawn here to use in subprocess
   const { spawn } = await import('child_process')
 
+  // Prepare environment: ensure our binDir is in PATH so uvx can find uv
+  const binDir = path.join(os.homedir(), '.cache', 'caption_editor', 'bin')
+  const env = {
+    ...process.env,
+    PATH: `${binDir}${path.delimiter}${process.env.PATH}`
+  }
+
   return new Promise((resolve, reject) => {
-    const proc = spawn(pythonCommand, pythonArgs, { cwd })
+    const proc = spawn(pythonCommand, pythonArgs, { cwd, env })
     let stdout = ''
     let stderr = ''
 

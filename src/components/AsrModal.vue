@@ -7,7 +7,7 @@
       </div>
 
       <div class="asr-terminal" ref="terminalRef">
-        <pre>{{ terminalOutput }}</pre>
+        <pre v-html="formattedTerminalOutput"></pre>
       </div>
 
       <div class="asr-modal-footer">
@@ -23,7 +23,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import Ansi from 'ansi-to-html'
+
+const convert = new Ansi({
+  newline: true,
+  escapeXML: true,
+  stream: true
+})
 
 const props = defineProps<{
   isVisible: boolean
@@ -37,6 +44,10 @@ const emit = defineEmits<{
 
 const terminalOutput = ref('')
 const terminalRef = ref<HTMLElement | null>(null)
+
+const formattedTerminalOutput = computed(() => {
+  return convert.toHtml(terminalOutput.value)
+})
 
 const statusText = computed(() => {
   if (props.failed) return 'Process failed'
