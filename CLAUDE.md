@@ -11,17 +11,15 @@
 
 ### Version Management
 
-**IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version by 0.01!**
+**IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version!**
 
-After making changes to Node.js/TypeScript code:
-1. Open the `VERSION` file at the root of the project
-2. Increment the version by 0.01 (e.g., `1.2.1` → `1.2.2`)
-3. This ensures users can track which version they're running and helps with debugging
+The single source of truth for the app version and other constants is [electron/constants.ts](file:///Users/thad/src/caption_editor/electron/constants.ts).
 
-**Why VERSION file instead of package.json?**
-- The `VERSION` file is not used by the Dockerfile (`.devcontainer/Dockerfile`)
-- Changes to `package.json` trigger expensive Docker rebuilds
-- Keeping version tracking separate avoids unnecessary rebuild cycles
+After making changes:
+1. Update `APP_VERSION` in `electron/constants.ts` (e.g., `1.3.6`).
+2. (Optional) Update `UV_VERSION` or `ASR_COMMIT_HASH` if needed for transcription.
+3. The version in `package.json` is intentionally kept at `0.0.0` to avoid unnecessary Docker rebuilds.
+4. Packaging scripts (in `package.json`) automatically extract the version from `constants.ts` and pass it to `electron-builder`.
 
 ### DevContainer Performance
 

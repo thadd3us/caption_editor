@@ -9,8 +9,7 @@
     "dist/**/*",
     "dist-electron/**/*",
     "electron/**/*",
-    "package.json",
-    "VERSION"
+    "package.json"
   ],
   "extraMetadata": {
     "main": "dist-electron/main.cjs"
@@ -26,7 +25,10 @@
   ],
   "mac": {
     "category": "public.app-category.productivity",
-    "target": ["dmg", "zip"],
+    "target": [
+      "dmg",
+      "zip"
+    ],
     "icon": "build/icon.icns",
     "entitlements": "build/entitlements.mac.plist",
     "entitlementsInherit": "build/entitlements.mac.plist",
@@ -48,11 +50,17 @@
     ]
   },
   "win": {
-    "target": ["nsis", "portable"],
+    "target": [
+      "nsis",
+      "portable"
+    ],
     "icon": "build/icon.ico"
   },
   "linux": {
-    "target": ["AppImage", "deb"],
+    "target": [
+      "AppImage",
+      "deb"
+    ],
     "category": "Utility",
     "icon": "build/icon.png"
   }

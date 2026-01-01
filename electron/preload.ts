@@ -1,11 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { readFileSync } from 'fs'
 import * as path from 'path'
-
-// Read version from package.json (single source of truth)
-const packageJsonPath = path.join(__dirname, '../package.json')
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-const APP_VERSION = packageJson.version
+import { APP_VERSION } from './constants'
 
 // Log version on startup
 console.log(`[preload] VTT Caption Editor v${APP_VERSION} - Preload script loaded`)

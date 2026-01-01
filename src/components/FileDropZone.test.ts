@@ -178,8 +178,8 @@ describe('FileDropZone', () => {
 
     it('should handle errors gracefully', async () => {
       // Mock console.error to avoid noise in test output
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { })
 
       // Mock Electron API to return invalid VTT
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
@@ -216,8 +216,8 @@ describe('FileDropZone', () => {
 
     it('should show alert for VTT files with duplicate UUIDs', async () => {
       // Mock console.error to avoid noise in test output
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { })
 
       // Mock Electron API to return VTT with duplicate IDs
       const vttWithDuplicates = `WEBVTT
@@ -291,12 +291,7 @@ Second cue with same ID`
 
       // Verify Electron openFile was called
       expect(mockOpenFile).toHaveBeenCalledWith({
-        properties: ['openFile', 'multiSelections'],
-        filters: [
-          { name: 'All Files', extensions: ['*'] },
-          { name: 'VTT Files', extensions: ['vtt'] },
-          { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
-        ]
+        properties: ['openFile', 'multiSelections']
       })
 
       // Verify files were processed

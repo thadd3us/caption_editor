@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import * as os from 'os'
+import { APP_VERSION, UV_VERSION, ASR_COMMIT_HASH, ASR_GITHUB_REPO } from './constants'
 
 const execAsync = promisify(exec)
 
@@ -30,21 +31,6 @@ const all_files = vtt_files.concat(media_files)
 protocol.registerSchemesAsPrivileged([
   { scheme: 'media', privileges: { secure: true, standard: true, supportFetchAPI: true, stream: true, bypassCSP: false } }
 ])
-
-// Read version from VERSION file (single source of truth).
-// NOTE: We package `VERSION` into `app.asar` so this path works in production.
-const versionFilePath = path.join(__dirname, '../VERSION')
-let APP_VERSION: string
-try {
-  APP_VERSION = readFileSync(versionFilePath, 'utf-8').trim()
-} catch (err) {
-  // No fallback: fail fast with a clear message if packaging is misconfigured.
-  throw new Error(
-    `VERSION not found at ${versionFilePath}. ` +
-    `Ensure electron-builder packages VERSION into app.asar.\n\n` +
-    `Original error: ${err instanceof Error ? err.message : String(err)}`
-  )
-}
 
 // Log version on startup
 console.log(`[main] ========================================`)
@@ -564,8 +550,6 @@ ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
   }
 })
 
-const UV_VERSION = '0.7.12'
-
 /**
  * Ensures uv and uvx binaries are available in the ~/.cache/caption_editor/bin directory.
  * Downloads them from GitHub releases if missing.
@@ -685,17 +669,14 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     }
   } else {
     // Production/Dynamic mode: use downloaded uvx to run from GitHub repository
+    // Repository, commit, and uv version are consolidated in ./constants.ts
     const { uvx } = await ensureUvBinaries()
-
-    // GitHub repository and commit hash (can be updated for new releases)
-    const gitRepo = 'git+https://github.com/thadd3us/caption_editor'
-    const commitHash = 'f8bcf53'  // Update this to the commit hash you want to use
 
     pythonCommand = uvx
     const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
 
     pythonArgs = [
-      '--from', `${gitRepo}@${commitHash}#subdirectory=transcribe`,
+      '--from', `${ASR_GITHUB_REPO}@${ASR_COMMIT_HASH}#subdirectory=transcribe`,
       '--overrides', overridesPath,
       'transcribe',
       mediaFilePath
