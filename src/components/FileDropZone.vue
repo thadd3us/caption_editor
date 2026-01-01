@@ -36,12 +36,7 @@ async function triggerFileInput() {
 
   // Use Electron file picker
   const filePaths = await window.electronAPI.openFile({
-    properties: ['openFile', 'multiSelections'],
-    filters: [
-      { name: 'All Files', extensions: ['*'] },
-      { name: 'VTT Files', extensions: ['vtt'] },
-      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
-    ]
+    properties: ['openFile', 'multiSelections']
   })
 
   if (filePaths && filePaths.length > 0) {
