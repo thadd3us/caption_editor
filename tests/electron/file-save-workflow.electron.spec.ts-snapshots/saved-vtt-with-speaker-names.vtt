@@ -26,9 +26,9 @@ NOTE CAPTION_EDITOR:TranscriptSegment {"id":"<UUID>","startTime":30,"endTime":33
 00:00:30.000 --> 00:00:33.000
 A large size of stockings is hard to sell.
 
-NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks."}}
-NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background."}}
-NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":16.243,"endTime":20,"text":"The juice of lemons makes fine punch."}}
-NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","cue":{"id":"<UUID>","startTime":30,"endTime":33,"text":"A large size of stockings is hard to sell."}}
 NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","segment":{"id":"<UUID>","startTime":0,"endTime":3,"text":"The birch canoe slid on the smooth planks.","speakerName":"Alice","rating":1,"timestamp":"<TIMESTAMP>"}}
 NOTE CAPTION_EDITOR:SegmentHistoryEntry {"id":"<UUID>","action":"modified","actionTimestamp":"<TIMESTAMP>","segment":{"id":"<UUID>","startTime":3.944,"endTime":7,"text":"Glue the sheet to the dark blue background.","rating":2,"timestamp":"<TIMESTAMP>"}}
+
+
+
+
