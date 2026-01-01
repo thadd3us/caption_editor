@@ -46,6 +46,7 @@ export const useVTTStore = defineStore('vtt', () => {
   const playlist = ref<string[]>([])  // Ordered list of segment IDs to play
   const playlistIndex = ref(0)  // Current position in the playlist
   const playlistStartIndex = ref(0)  // Starting position (for returning after completion)
+  const isDirty = ref(false) // Track unsaved changes
 
   // Computed
   const currentCue = computed(() => {
@@ -105,6 +106,7 @@ export const useVTTStore = defineStore('vtt', () => {
       }
 
       document.value = loadedDoc
+      isDirty.value = false // Reset dirty flag on load
       console.log('Loaded document with', document.value.segments.length, 'segments')
     } else {
       console.error('Failed to load VTT:', result.error)
@@ -131,6 +133,7 @@ export const useVTTStore = defineStore('vtt', () => {
           mediaFilePath: filePath  // Store absolute path
         }
       }
+      isDirty.value = true // Loading media changes metadata
     }
   }
 
@@ -204,6 +207,7 @@ export const useVTTStore = defineStore('vtt', () => {
     }
 
     document.value = addCueToDoc(document.value, newCue)
+    isDirty.value = true
     return newCue.id
   }
 
@@ -228,11 +232,13 @@ export const useVTTStore = defineStore('vtt', () => {
     }
 
     document.value = updateCueInDoc(document.value, cueId, updates)
+    isDirty.value = true
   }
 
   function deleteCue(cueId: string) {
     console.log('Deleting segment:', cueId)
     document.value = deleteCueFromDoc(document.value, cueId)
+    isDirty.value = true
     if (selectedCueId.value === cueId) {
       selectedCueId.value = null
     }
@@ -241,6 +247,7 @@ export const useVTTStore = defineStore('vtt', () => {
   function renameSpeaker(oldName: string, newName: string) {
     console.log('Renaming speaker in store:', oldName, '->', newName)
     document.value = renameSpeakerInDoc(document.value, oldName, newName)
+    isDirty.value = true
   }
 
   function bulkSetSpeaker(cueIds: string[], speakerName: string) {
@@ -253,6 +260,7 @@ export const useVTTStore = defineStore('vtt', () => {
     }
 
     document.value = updatedDoc
+    isDirty.value = true
   }
 
   function bulkDeleteCues(cueIds: string[]) {
@@ -265,6 +273,7 @@ export const useVTTStore = defineStore('vtt', () => {
     }
 
     document.value = updatedDoc
+    isDirty.value = true
 
     // Clear selectedCueId if it was deleted
     if (selectedCueId.value && cueIds.includes(selectedCueId.value)) {
@@ -275,11 +284,13 @@ export const useVTTStore = defineStore('vtt', () => {
   function splitSegmentAtWordIndex(segmentId: string, wordIndex: number) {
     console.log('Splitting segment in store:', segmentId, 'at word index:', wordIndex)
     document.value = splitSegmentInDoc(document.value, segmentId, wordIndex)
+    isDirty.value = true
   }
 
   function mergeAdjacentSegments(segmentIds: string[]) {
     console.log('Merging adjacent segments in store:', segmentIds)
     document.value = mergeAdjacentSegmentsInDoc(document.value, segmentIds)
+    isDirty.value = true
   }
 
   function setCurrentTime(time: number) {
@@ -388,6 +399,10 @@ export const useVTTStore = defineStore('vtt', () => {
     playlistStartIndex.value = 0
   }
 
+  function setIsDirty(value: boolean) {
+    isDirty.value = value
+  }
+
   return {
     // State
     document,
@@ -400,6 +415,7 @@ export const useVTTStore = defineStore('vtt', () => {
     playlist,
     playlistIndex,
     playlistStartIndex,
+    isDirty,
 
     // Computed
     currentCue,
@@ -410,6 +426,7 @@ export const useVTTStore = defineStore('vtt', () => {
     loadMediaFile,
     exportToString,
     updateFilePath,
+    setIsDirty,
     addCue,
     updateCue,
     deleteCue,

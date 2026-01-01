@@ -309,8 +309,17 @@ watch(
 )
 
 // Menu action handlers
+function confirmDiscardChanges(): boolean {
+  if (store.isDirty) {
+    return confirm('You have unsaved changes. Are you sure you want to discard them?')
+  }
+  return true
+}
+
 async function handleMenuOpenFile() {
-  fileDropZone.value?.triggerFileInput()
+  if (confirmDiscardChanges()) {
+    fileDropZone.value?.triggerFileInput()
+  }
 }
 
 async function handleMenuSaveFile() {
@@ -336,6 +345,7 @@ async function handleMenuSaveFile() {
 
     if (result.success) {
       console.log('VTT file saved successfully to:', result.filePath)
+      store.setIsDirty(false)
       if (result.filePath && result.filePath !== store.document.filePath) {
         store.updateFilePath(result.filePath)
       }
@@ -366,6 +376,7 @@ async function handleMenuSaveAs() {
 
     if (result.success) {
       console.log('VTT file saved successfully:', result.filePath)
+      store.setIsDirty(false)
       if (result.filePath) {
         store.updateFilePath(result.filePath)
       }
@@ -382,6 +393,8 @@ async function handleMenuSaveAs() {
 // ASR menu handler
 function handleMenuAsrCaption() {
   console.log('[ASR] Caption menu item clicked')
+  if (!confirmDiscardChanges()) return
+
   if (store.document.segments.length > 0) {
     isAsrConfirmDialogVisible.value = true
   } else {
@@ -413,6 +426,7 @@ async function handleMenuAsrEmbed() {
     return
   }
 
+  store.setIsDirty(false)
   startAsrEmbedding()
 }
 
@@ -565,6 +579,14 @@ onMounted(() => {
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
 
+  window.addEventListener('beforeunload', (e) => {
+    if (store.isDirty) {
+      // Standard way to trigger the confirmation dialog in most browsers/Electron
+      e.preventDefault()
+      e.returnValue = ''
+    }
+  })
+
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {
     const { ipcRenderer } = (window as any).electronAPI
@@ -586,7 +608,6 @@ onMounted(() => {
     // Set up ASR output listeners
     if (window.electronAPI?.asr) {
       console.log('[App] Registering ASR listeners. asr keys:', Object.keys(window.electronAPI.asr))
-      
       const asr = window.electronAPI.asr
       if (typeof asr.onOutput === 'function') {
         asr.onOutput((data: { processId: string, type: 'stdout' | 'stderr', data: string }) => {
@@ -615,6 +636,8 @@ onMounted(() => {
   // Listen for files dropped via IPC
   if ((window as any).electronAPI?.ipcRenderer) {
     (window as any).electronAPI.ipcRenderer.on('files-dropped', async (_: any, filePaths: string[]) => {
+      if (!confirmDiscardChanges()) return
+
       if ((window as any).electronAPI?.processDroppedFiles) {
         const results = await (window as any).electronAPI.processDroppedFiles(filePaths)
 
