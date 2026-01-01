@@ -407,18 +407,34 @@ The app includes a native menu item to run speech recognition on loaded media fi
   - Uses `uv run python transcribe.py` to execute the ASR script
   - Fast startup, no packaging overhead
   - Leverages existing uv environment at `/code/transcribe/`
-- **Production mode** (packaged macOS app):
-  - Uses bundled Python environment in `app.asar.unpacked/transcribe/`
-  - Self-contained, no external dependencies required
-  - Python interpreter and dependencies packaged with the app
+- **Production mode** (packaged app):
+  - Uses bundled `uvx` binary to run directly from GitHub repository at a specific commit hash
+  - No Python bundling required - much smaller app size!
+  - `uvx` binary is bundled for macOS arm64 and Linux x64
+  - Fetches and caches Python dependencies automatically on first run
+  - Command: `<bundled-uvx> --from git+https://github.com/thadd3us/caption_editor@<hash>#subdirectory=transcribe --overrides overrides.txt transcribe`
+
+**Environment Variables for Dev Mode:**
+To force dev mode execution (useful when Electron is packaged but you want to run from code tree):
+- `CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE=1` - Forces dev mode (uses `uv run python`)
+- `CAPTION_EDITOR_CODE_TREE_ROOT=/path/to/code` - Specifies code tree root (defaults to computing from `__dirname`)
+
+**Example usage:**
+```bash
+CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE=1 \
+CAPTION_EDITOR_CODE_TREE_ROOT=/Users/thad/src/caption_editor \
+/Applications/VTT\ Caption\ Editor.app/Contents/MacOS/VTT\ Caption\ Editor
+```
 
 **Detection:**
 ```typescript
-const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
+const runFromCodeTree = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
+const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
 ```
 
 **Model Configuration:**
 - **Default model**: `nvidia/parakeet-tdt-0.6b-v3` (best quality)
+- **Default chunk size**: 300 seconds (5 minutes) - passed via `--chunk-size` flag
 - **Test override**: Set `window.__ASR_MODEL_OVERRIDE` to use a different model (e.g., `'openai/whisper-tiny'` for faster testing)
 - Model is passed via `--model` flag to `transcribe.py`
 
@@ -446,11 +462,19 @@ const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SER
 - Includes test for confirmation dialog when segments exist
 - Includes test for menu disabled state when no media loaded
 
-**Packaging Notes (for future production builds):**
-- Python environment needs to be bundled with Electron app
-- Use `uv export` + `uv venv` to create standalone Python environment
-- Package Python code in `app.asar.unpacked/transcribe/` (not in asar for native modules)
-- Update `electron-builder.json` with `extraResources` and `asarUnpack` configuration
+**Production Mode Setup:**
+- **Bundled files**:
+  - `uvx` binary (platform-specific): `build/bin/uvx-macos-arm64` and `build/bin/uvx-linux-x64`
+    - Packaged to `<app>/Contents/Resources/bin/uvx` (macOS) or `<app>/resources/bin/uvx` (Linux)
+  - `overrides.txt`: Dependency overrides for nemo-toolkit numpy constraint
+    - Packaged to `<app>/Contents/Resources/overrides.txt`
+  - Both configured in `electron-builder.json` under `extraResources`
+- **Platforms supported**: macOS arm64 (Apple Silicon) and Linux x64
+- **Commit hash**: Update `electron/main.ts` when releasing new versions
+  - Change `const commitHash = 'f8bcf53'` to the desired commit
+  - Or use a git tag: `const commitHash = 'v1.3.5'`
+- **First run**: `uvx` automatically downloads and caches Python dependencies (~500MB)
+- **No user installation required**: Everything is bundled, no need for users to install `uv`
 
 ### State Management
 - Uses Pinia for global state (`vttStore.ts`)

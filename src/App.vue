@@ -423,10 +423,14 @@ async function startAsrTranscription() {
       console.log('[ASR] Using model override:', model)
     }
 
+    // Use chunk size of 300 seconds (5 minutes) for better handling of long audio files
+    const chunkSize = 300
+
     // Start ASR transcription
     const result = await window.electronAPI.asr.transcribe({
       mediaFilePath: store.mediaFilePath,
-      model
+      model,
+      chunkSize
     })
 
     console.log('[ASR] Transcription completed successfully:', result.vttPath)
@@ -526,54 +530,31 @@ onMounted(() => {
     }
   }
 
-  // Listen for files dropped (intercepted by main process with full paths)
-  if ((window as any).electronAPI?.onFileDropped) {
-    console.log('[App] ✓ electronAPI.onFileDropped is available, registering handler');
-    (window as any).electronAPI.onFileDropped(async (filePaths: string[]) => {
-      console.log('[App] ✓ File drop handler called!')
-      console.log('[App] ✓ Received file paths:', filePaths)
-      console.log('[App] ✓ Number of files:', filePaths.length)
-
-      // Use the FileDropZone component to handle the files
-      if (fileDropZone.value && (window as any).electronAPI?.processDroppedFiles) {
-        console.log('[App] ✓ Calling electronAPI.processDroppedFiles')
+  // Listen for files dropped via IPC
+  if ((window as any).electronAPI?.ipcRenderer) {
+    (window as any).electronAPI.ipcRenderer.on('files-dropped', async (_: any, filePaths: string[]) => {
+      if ((window as any).electronAPI?.processDroppedFiles) {
         const results = await (window as any).electronAPI.processDroppedFiles(filePaths)
-        console.log('[App] ✓ Processed dropped files, got results:', results)
-        console.log('[App] ✓ Number of results:', results.length)
 
-        // Process the results directly
         for (const result of results) {
-          console.log('[App] ✓ Processing result:', result)
           if (result.type === 'vtt') {
-            console.log('[App] ✓ Loading VTT file:', result.filePath)
             try {
               store.loadFromFile(result.content, result.filePath)
-              console.log('[App] ✓ VTT file loaded successfully')
             } catch (err) {
-              console.error('[App] ✗ Failed to load VTT file:', err)
+              console.error('Failed to load VTT file:', err)
               alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
             }
           } else if (result.type === 'media') {
-            console.log('[App] ✓ Loading media file:', result.filePath)
             try {
               store.loadMediaFile(result.url, result.filePath)
-              console.log('[App] ✓ Media file loaded successfully')
             } catch (err) {
-              console.error('[App] ✗ Failed to load media file:', err)
+              console.error('Failed to load media file:', err)
               alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
             }
           }
         }
-        console.log('[App] ✓ All files processed successfully')
-      } else {
-        console.log('[App] ✗ Cannot process files - missing fileDropZone or processDroppedFiles API')
-        console.log('[App]   - fileDropZone.value:', fileDropZone.value)
-        console.log('[App]   - electronAPI.processDroppedFiles:', (window as any).electronAPI?.processDroppedFiles)
       }
     })
-    console.log('[App] ✓ File drop handler registered successfully')
-  } else {
-    console.log('[App] ✗ electronAPI.onFileDropped not available')
   }
 })
 </script>

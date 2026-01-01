@@ -7,9 +7,20 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Read version from VERSION file (single source of truth)
+// Read version from VERSION file (single source of truth).
+// NOTE: We package `VERSION` into `app.asar` so this path works in production.
 const versionFilePath = path.join(__dirname, '../VERSION')
-const APP_VERSION = readFileSync(versionFilePath, 'utf-8').trim()
+let APP_VERSION: string
+try {
+  APP_VERSION = readFileSync(versionFilePath, 'utf-8').trim()
+} catch (err) {
+  // No fallback: fail fast with a clear message if packaging is misconfigured.
+  throw new Error(
+    `VERSION not found at ${versionFilePath}. ` +
+      `Ensure electron-builder packages VERSION into app.asar.\n\n` +
+      `Original error: ${err instanceof Error ? err.message : String(err)}`
+  )
+}
 
 // Log version on startup
 console.log(`[main] ========================================`)
@@ -219,58 +230,6 @@ function createWindow() {
       fileToOpen = null
     }
   })
-
-  // Handle file drops at the webContents level to capture file paths
-  // This is the proper way to handle drag-and-drop in Electron
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    console.log('[main] will-navigate event triggered with URL:', url)
-
-    // Check if this is a file:// URL from a drag-drop
-    if (url.startsWith('file://')) {
-      event.preventDefault()
-      console.log('[main] ✓ Prevented file navigation (file:// URL detected)')
-
-      // Extract file path properly - on Unix/Mac, file:// URLs have three slashes
-      // file:///Users/... -> /Users/...
-      // file:///C:/Users/... -> C:/Users/... (Windows with file:///)
-      // file://C:/Users/... -> C:/Users/... (Windows with file://)
-      let filePath = url
-
-      // Remove 'file://' prefix
-      if (filePath.startsWith('file://')) {
-        filePath = filePath.substring(7) // Remove 'file://'
-      }
-
-      // On Unix/Mac, file URLs start with file:/// so we have leading / left
-      // On Windows, file URLs are file:///C:/ so we also have leading / that needs removal
-      if (filePath.startsWith('/') && /^\/[A-Za-z]:/.test(filePath)) {
-        // Windows path like /C:/Users -> C:/Users
-        filePath = filePath.substring(1)
-      }
-
-      filePath = decodeURIComponent(filePath)
-
-      console.log('[main] ✓ Extracted file path:', filePath)
-      console.log('[main] ✓ Sending file-dropped-from-main IPC with paths:', [filePath])
-
-      mainWindow?.webContents.send('file-dropped-from-main', [filePath])
-
-      console.log('[main] ✓ IPC message sent successfully')
-    } else {
-      console.log('[main] ✗ Not a file:// URL, allowing navigation to proceed')
-    }
-  })
-
-  // Prevent file drops from triggering downloads
-  mainWindow.webContents.session.on('will-download', (event, item) => {
-    event.preventDefault()
-    console.log('[main] Prevented download for:', item.getFilename())
-  })
-
-  // Set up protocol handling for file drops
-  mainWindow.webContents.setWindowOpenHandler(() => {
-    return { action: 'deny' }
-  })
 }
 
 // Handle file opening from OS (macOS)
@@ -308,17 +267,10 @@ app.whenReady().then(() => {
     }
   }
 
-  // Handle files dropped in preload (alternative to will-navigate)
-  ipcMain.on('files-dropped-in-preload', (_event, filePaths: string[]) => {
-    console.log('[main] ✓ Received files-dropped-in-preload IPC from preload')
-    console.log('[main] ✓ File paths:', filePaths)
-    console.log('[main] ✓ Forwarding to renderer via file-dropped-from-main')
-
+  // Handle files dropped from preload
+  ipcMain.on('files-dropped', (_event, filePaths: string[]) => {
     if (mainWindow && mainWindow.webContents) {
-      mainWindow.webContents.send('file-dropped-from-main', filePaths)
-      console.log('[main] ✓ Forwarded successfully')
-    } else {
-      console.log('[main] ✗ No main window available to forward to')
+      mainWindow.webContents.send('files-dropped', filePaths)
     }
   })
 })
@@ -343,9 +295,9 @@ ipcMain.handle('dialog:openFile', async (_event, options?: {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
+      { name: 'All Files', extensions: ['*'] },
       { name: 'VTT Files', extensions: ['vtt'] },
-      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] },
-      { name: 'All Files', extensions: ['*'] }
+      { name: 'Media Files', extensions: ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'mov', 'm4a'] }
     ]
   })
 
@@ -503,12 +455,15 @@ ipcMain.on('menu:updateAsrEnabled', (_event, enabled: boolean) => {
  */
 ipcMain.handle('asr:transcribe', async (_event, options: {
   mediaFilePath: string,
-  model?: string  // Optional model override (default: nvidia/parakeet-tdt-0.6b-v3)
+  model?: string,  // Optional model override (default: nvidia/parakeet-tdt-0.6b-v3)
+  chunkSize?: number  // Optional chunk size in seconds (default: 180)
 }) => {
-  const { mediaFilePath, model } = options
+  const { mediaFilePath, model, chunkSize } = options
 
   // Determine if we're in dev mode
-  const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
+  // Use explicit env var first, then fallback to NODE_ENV/VITE_DEV_SERVER_URL
+  const runFromCodeTree = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
+  const isDev = runFromCodeTree || process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL
 
   let pythonCommand: string
   let pythonArgs: string[]
@@ -516,10 +471,16 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
 
   if (isDev) {
     // Dev mode: use uv run python
-    const appPath = path.join(__dirname, '..')
+    // Use CAPTION_EDITOR_CODE_TREE_ROOT if set, otherwise compute from __dirname
+    const codeTreeRoot = process.env.CAPTION_EDITOR_CODE_TREE_ROOT || path.join(__dirname, '..')
     pythonCommand = 'uv'
     pythonArgs = ['run', 'python', 'transcribe.py', mediaFilePath]
-    cwd = path.join(appPath, 'transcribe')
+    cwd = path.join(codeTreeRoot, 'transcribe')
+
+    // Add chunk size if specified
+    if (chunkSize !== undefined) {
+      pythonArgs.push('--chunk-size', chunkSize.toString())
+    }
 
     // Add model flag if specified
     if (model) {
@@ -529,32 +490,53 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     // Validate that transcribe.py exists
     const scriptPath = path.join(cwd, 'transcribe.py')
     if (!existsSync(scriptPath)) {
-      throw new Error(`transcribe.py not found at ${scriptPath}`)
+      throw new Error(`transcribe.py not found at ${scriptPath}. Code tree root: ${codeTreeRoot}`)
     }
   } else {
-    // Production mode: use bundled Python
-    pythonCommand = path.join(process.resourcesPath, 'transcribe', 'venv', 'bin', 'python')
-    pythonArgs = ['transcribe.py', mediaFilePath]
-    cwd = path.join(process.resourcesPath, 'transcribe')
+    // Production mode: use bundled uvx to run from GitHub repository
+    // GitHub repository and commit hash (can be updated for new releases)
+    const gitRepo = 'git+https://github.com/thadd3us/caption_editor'
+    const commitHash = 'f8bcf53'  // Update this to the commit hash you want to use
+
+    // Use bundled uvx binary
+    pythonCommand = path.join(process.resourcesPath, 'bin', 'uvx')
+    pythonArgs = [
+      '--from', `${gitRepo}@${commitHash}#subdirectory=transcribe`,
+      '--overrides', path.join(process.resourcesPath, 'overrides.txt'),
+      'transcribe',
+      mediaFilePath
+    ]
+    cwd = process.cwd()  // Can run from any directory with uvx
+
+    // Add chunk size if specified
+    if (chunkSize !== undefined) {
+      pythonArgs.push('--chunk-size', chunkSize.toString())
+    }
 
     // Add model flag if specified
     if (model) {
       pythonArgs.push('--model', model)
     }
 
-    // Validate that Python interpreter exists
+    // Validate that bundled uvx exists
     if (!existsSync(pythonCommand)) {
-      throw new Error(`Python interpreter not found at ${pythonCommand}. Ensure the app is properly packaged with bundled Python environment.`)
+      throw new Error(
+        `Bundled uvx not found at ${pythonCommand}. ` +
+        `Ensure the app is properly packaged with uvx binary.`
+      )
     }
 
-    // Validate that transcribe.py exists
-    const scriptPath = path.join(cwd, 'transcribe.py')
-    if (!existsSync(scriptPath)) {
-      throw new Error(`transcribe.py not found at ${scriptPath}. Ensure the app is properly packaged with Python scripts.`)
+    // Validate that overrides.txt exists
+    const overridesPath = path.join(process.resourcesPath, 'overrides.txt')
+    if (!existsSync(overridesPath)) {
+      throw new Error(
+        `overrides.txt not found at ${overridesPath}. ` +
+        `Ensure the app is properly packaged with the overrides file.`
+      )
     }
   }
 
-  console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd })
+  console.log('[main] Starting ASR transcription:', { pythonCommand, pythonArgs, cwd, isDev, runFromCodeTree })
 
   // Import spawn here to use in subprocess
   const { spawn } = await import('child_process')
