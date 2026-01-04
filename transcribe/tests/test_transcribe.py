@@ -3,6 +3,9 @@
 import subprocess
 import sys
 from pathlib import Path
+from unittest.mock import patch
+
+from transcribe import app
 
 import pytest
 
@@ -63,3 +66,56 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
 
     # Use syrupy to snapshot the output
     assert vtt_content == snapshot
+
+
+def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
+    """Test that –embed flag triggers embedding and updates VTT."""
+    # Copy audio file to tmp_path
+    source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
+    test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
+    test_audio.write_bytes(source_audio.read_bytes())
+
+    output_path = tmp_path / "output.vtt"
+    transcribe_script = repo_root / "transcribe" / "transcribe.py"
+
+    # We want to mock the embedding model to avoid downloading it and slow tests
+    # We can mock the Inference class in embed.py or the compute_embedding function
+    with patch("embed.Model.from_pretrained") as mock_model, patch(
+        "embed.Inference"
+    ) as mock_inference:
+        # Mock inference to return a dummy embedding
+        dummy_embedding = [0.1] * 192  # Typical embedding size
+        mock_inference.return_value.side_effect = lambda x: dummy_embedding
+
+        from transcribe import main as transcribe_main
+        from typer.testing import CliRunner
+        runner = CliRunner()
+        
+        # Run transcription with --embed
+        result = runner.invoke(
+            app,
+            [
+                str(test_audio),
+                "--output",
+                str(output_path),
+                "--chunk-size",
+                "10",
+                "--overlap",
+                "5",
+                "--model",
+                "openai/whisper-tiny",
+                "--deterministic-ids",
+                "--embed",
+                "--min-segment-duration",
+                "0.0",
+            ],
+        )
+
+    assert result.exit_code == 0
+    assert "Running speaker embedding..." in result.stdout
+    assert output_path.exists()
+
+    vtt_content = output_path.read_text()
+    assert "SegmentSpeakerEmbedding" in vtt_content
+    # JSON serialization might not have spaces
+    assert "0.1,0.1,0.1" in vtt_content

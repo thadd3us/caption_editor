@@ -35,6 +35,8 @@ from schema import (
     TranscriptSegment,
 )
 from vtt_lib import serialize_vtt
+from embed import main as embed_main
+
 
 try:
     import nemo.collections.asr as nemo_asr
@@ -266,6 +268,21 @@ def main(
         "--deterministic-ids",
         help="Use simple incremental IDs (id_00000, id_00001, etc.) for testing instead of UUIDs",
     ),
+    embed: bool = typer.Option(
+        True,
+        "--embed/--no-embed",
+        help="Whether to automatically run speaker embedding on the output VTT",
+    ),
+    embed_model: str = typer.Option(
+        "pyannote/wespeaker-voxceleb-resnet34-LM",
+        "--embed-model",
+        help="Model to use for speaker embedding",
+    ),
+    min_segment_duration: float = typer.Option(
+        0.3,
+        "--min-segment-duration",
+        help="Shortest segment to embed (in seconds)",
+    ),
 ):
     """
     Transcribe media files to VTT format using NVIDIA Parakeet TDT model.
@@ -419,6 +436,18 @@ def main(
         output.write_text(vtt_content)
         typer.echo(f"Transcription complete: {output}")
         typer.echo(f"Generated {len(final_segments_list)} segments")
+
+        # Run embedding if requested
+        if embed:
+            typer.echo("Running speaker embedding...")
+            try:
+                embed_main(
+                    vtt_path=output,
+                    model=embed_model,
+                    min_segment_duration=min_segment_duration,
+                )
+            except Exception as e:
+                typer.echo(f"Warning: Speaker embedding failed: {e}", err=True)
 
 
 if __name__ == "__main__":
