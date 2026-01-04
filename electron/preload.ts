@@ -96,8 +96,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * IPC renderer for menu events
    */
   ipcRenderer: {
-    on: (channel: string, callback: () => void) => {
-      ipcRenderer.on(channel, callback)
+    on: (channel: string, callback: (...args: any[]) => void) => {
+      ipcRenderer.on(channel, (_event, ...args) => callback(...args))
     },
     send: (channel: string, ...args: any[]) => {
       ipcRenderer.send(channel, ...args)

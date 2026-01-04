@@ -84,13 +84,12 @@ describe('FileDropZone', () => {
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
-      const wrapper = mount(FileDropZone)
+      mount(FileDropZone)
       const store = useVTTStore()
 
       // Simulate Electron file drop
       const mockFilePaths = ['/path/to/test.vtt']
-      const component = wrapper.vm as any
-      await component.processElectronFiles(mockFilePaths)
+      await store.processFilePaths(mockFilePaths)
 
       // Verify Electron API was called
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
@@ -119,13 +118,12 @@ describe('FileDropZone', () => {
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
-      const wrapper = mount(FileDropZone)
+      mount(FileDropZone)
       const store = useVTTStore()
 
       // Simulate Electron media file drop
       const mockFilePaths = ['/path/to/video.mp4']
-      const component = wrapper.vm as any
-      await component.processElectronFiles(mockFilePaths)
+      await store.processFilePaths(mockFilePaths)
 
       // Verify Electron API was called
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
@@ -159,13 +157,12 @@ describe('FileDropZone', () => {
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
-      const wrapper = mount(FileDropZone)
+      mount(FileDropZone)
       const store = useVTTStore()
 
       // Simulate Electron drop with multiple files
       const mockFilePaths = ['/path/to/test.vtt', '/path/to/video.mp4']
-      const component = wrapper.vm as any
-      await component.processElectronFiles(mockFilePaths)
+      await store.processFilePaths(mockFilePaths)
 
       // Verify both files were processed
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
@@ -195,13 +192,12 @@ describe('FileDropZone', () => {
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
-      const wrapper = mount(FileDropZone)
+      mount(FileDropZone)
       const store = useVTTStore()
 
       // Simulate Electron drop with invalid VTT
       const mockFilePaths = ['/path/to/bad.vtt']
-      const component = wrapper.vm as any
-      await component.processElectronFiles(mockFilePaths)
+      await store.processFilePaths(mockFilePaths)
 
       // Verify error was logged and alert shown
       expect(consoleErrorSpy).toHaveBeenCalled()
@@ -243,13 +239,12 @@ Second cue with same ID`
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
-      const wrapper = mount(FileDropZone)
+      mount(FileDropZone)
       const store = useVTTStore()
 
       // Simulate Electron drop with duplicate UUID VTT
       const mockFilePaths = ['/path/to/duplicates.vtt']
-      const component = wrapper.vm as any
-      await component.processElectronFiles(mockFilePaths)
+      await store.processFilePaths(mockFilePaths)
 
       // Verify error was shown with specific message about duplicates
       expect(alertSpy).toHaveBeenCalled()

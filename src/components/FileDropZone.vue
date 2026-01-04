@@ -40,7 +40,7 @@ async function triggerFileInput() {
   })
 
   if (filePaths && filePaths.length > 0) {
-    await processElectronFiles(filePaths)
+    await store.processFilePaths(filePaths)
   }
 }
 
@@ -58,37 +58,7 @@ function handleDragLeave(e: DragEvent) {
 async function handleDrop(e: DragEvent) {
   e.preventDefault()
   showDropZone.value = false
-  // File processing is handled by preload script → main process → App.vue IPC listener
-}
-
-async function processElectronFiles(filePaths: string[]) {
-  if (!window.electronAPI) return
-
-  console.log('[processElectronFiles] Processing', filePaths.length, 'files via Electron:', filePaths)
-
-  const results = await window.electronAPI.processDroppedFiles(filePaths)
-  console.log('[processElectronFiles] Got results from Electron:', results)
-
-  for (const result of results) {
-    if (result.type === 'vtt' && result.content) {
-      try {
-        store.loadFromFile(result.content, result.filePath)
-        console.log('VTT file loaded successfully:', result.fileName)
-        // Note: Media auto-loading from VTT metadata is handled by App.vue watcher
-      } catch (err) {
-        console.error('Failed to load VTT file:', err)
-        alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-      }
-    } else if (result.type === 'media' && result.url) {
-      try {
-        store.loadMediaFile(result.url, result.filePath)
-        console.log('Media file loaded successfully:', result.fileName)
-      } catch (err) {
-        console.error('Failed to load media file:', err)
-        alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-      }
-    }
-  }
+  // Handled by preload script which emits files-dropped IPC event
 }
 
 // Expose methods to parent component
@@ -142,7 +112,7 @@ defineExpose({
   left: 0;
   right: 0;
   bottom: 0;
-  pointer-events: none;
+  pointer-events: all;
   z-index: 10;
 }
 </style>

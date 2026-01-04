@@ -636,29 +636,7 @@ onMounted(() => {
   // Listen for files dropped via IPC
   if ((window as any).electronAPI?.ipcRenderer) {
     (window as any).electronAPI.ipcRenderer.on('files-dropped', async (_: any, filePaths: string[]) => {
-      if (!confirmDiscardChanges()) return
-
-      if ((window as any).electronAPI?.processDroppedFiles) {
-        const results = await (window as any).electronAPI.processDroppedFiles(filePaths)
-
-        for (const result of results) {
-          if (result.type === 'vtt') {
-            try {
-              store.loadFromFile(result.content, result.filePath)
-            } catch (err) {
-              console.error('Failed to load VTT file:', err)
-              alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-            }
-          } else if (result.type === 'media') {
-            try {
-              store.loadMediaFile(result.url, result.filePath)
-            } catch (err) {
-              console.error('Failed to load media file:', err)
-              alert('Failed to load media file: ' + (err instanceof Error ? err.message : 'Unknown error'))
-            }
-          }
-        }
-      }
+      await store.processFilePaths(filePaths)
     })
   }
 })

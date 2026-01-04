@@ -403,6 +403,42 @@ export const useVTTStore = defineStore('vtt', () => {
     isDirty.value = value
   }
 
+  /**
+   * Processes an array of file paths (VTT or media) and loads them into the store.
+   * Prompts to discard changes if the store is dirty.
+   * @param filePaths Array of absolute file paths to process
+   */
+  async function processFilePaths(filePaths: string[]) {
+    if (isDirty.value) {
+      const confirmed = confirm('You have unsaved changes. Are you sure you want to discard them?')
+      if (!confirmed) return
+    }
+
+    const electronAPI = (window as any).electronAPI
+    if (!electronAPI || !electronAPI.processDroppedFiles) {
+      console.error('Electron processDroppedFiles API not available')
+      return
+    }
+
+    try {
+      const results = await electronAPI.processDroppedFiles(filePaths)
+      console.log('[vttStore] Processed file results:', results)
+
+      for (const result of results) {
+        if (result.type === 'vtt' && result.content) {
+          loadFromFile(result.content, result.filePath)
+          console.log('[vttStore] VTT file loaded successfully:', result.fileName)
+        } else if (result.type === 'media' && result.url) {
+          loadMediaFile(result.url, result.filePath)
+          console.log('[vttStore] Media file loaded successfully:', result.fileName)
+        }
+      }
+    } catch (err) {
+      console.error('[vttStore] Failed to process files:', err)
+      alert('Failed to process files: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    }
+  }
+
   return {
     // State
     document,
@@ -427,6 +463,7 @@ export const useVTTStore = defineStore('vtt', () => {
     exportToString,
     updateFilePath,
     setIsDirty,
+    processFilePaths,
     addCue,
     updateCue,
     deleteCue,

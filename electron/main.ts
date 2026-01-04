@@ -796,55 +796,43 @@ const activeProcesses = new Map<string, any>()
 
 // Handle file drops from system
 ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) => {
-  console.log('[main] ✓ processDroppedFiles IPC handler called')
-  console.log('[main] ✓ Received file paths:', filePaths)
-  console.log('[main] ✓ Number of files to process:', filePaths.length)
+  console.log('[main] processDroppedFiles called for', filePaths.length, 'files')
 
   const results = []
 
   for (const filePath of filePaths) {
-    console.log('[main] Processing file:', filePath)
     try {
       const stats = await fs.stat(filePath)
-      console.log('[main]   - File exists, is file:', stats.isFile())
-
-      if (!stats.isFile()) {
-        console.log('[main]   - Skipping (not a file)')
-        continue
-      }
+      if (!stats.isFile()) continue
 
       const ext = path.extname(filePath).toLowerCase()
-      console.log('[main]   - File extension:', ext)
+      const extensionWithoutDot = ext.substring(1)
 
-      if (vtt_files.includes(ext.substring(1))) {
-        console.log('[main]   - Reading VTT file content')
+      if (vtt_files.includes(extensionWithoutDot)) {
         const content = await fs.readFile(filePath, 'utf-8')
-        console.log('[main]   - VTT content length:', content.length)
         results.push({
           type: 'vtt',
           filePath,
           fileName: path.basename(filePath),
           content
         })
-        console.log('[main]   ✓ VTT file added to results')
-      } else if (media_files.includes(ext.substring(1))) {
+        console.log(`[main] Loaded VTT: ${filePath}`)
+      } else if (media_files.includes(extensionWithoutDot)) {
         const url = `media://local${filePath}`
-        console.log('[main]   - Creating media URL:', url)
         results.push({
           type: 'media',
           filePath,
           fileName: path.basename(filePath),
           url
         })
-        console.log('[main]   ✓ Media file added to results')
+        console.log(`[main] Created media URL for: ${filePath}`)
       } else {
-        console.log('[main]   - Skipping (unsupported file type)')
+        console.log(`[main] Skipping unsupported file type: ${ext}`)
       }
     } catch (error) {
-      console.error('[main]   ✗ Error processing dropped file:', error)
+      console.error(`[main] Error processing file ${filePath}:`, error)
     }
   }
 
-  console.log('[main] ✓ Finished processing files, returning', results.length, 'results')
   return results
 })
