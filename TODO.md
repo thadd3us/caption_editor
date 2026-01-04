@@ -1,7 +1,10 @@
 Next up is to package the python script called transcribe/embed.py behind a menu item under "AI Annotations"
 
 * Drag-n-drop vtt and media files into app.
-* Make sure 
+* Loading a large video seemed to block Apple-Q to exit the app?
+
+* Automatically run speaker id embedding after ASR.
+* Make a MAS build for Apple App Store.
 
 
 
