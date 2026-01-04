@@ -409,7 +409,7 @@ export const useVTTStore = defineStore('vtt', () => {
    * @param filePaths Array of absolute file paths to process
    */
   async function processFilePaths(filePaths: string[]) {
-    if (isDirty.value) {
+    if (isDirty.value && document.value.segments.length > 0) {
       const confirmed = confirm('You have unsaved changes. Are you sure you want to discard them?')
       if (!confirmed) return
     }

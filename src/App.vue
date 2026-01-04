@@ -310,7 +310,7 @@ watch(
 
 // Menu action handlers
 function confirmDiscardChanges(): boolean {
-  if (store.isDirty) {
+  if (store.isDirty && store.document.segments.length > 0) {
     return confirm('You have unsaved changes. Are you sure you want to discard them?')
   }
   return true
@@ -578,6 +578,7 @@ onMounted(() => {
   ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
+  ;(window as any).handleMenuOpenFile = handleMenuOpenFile
 
   window.addEventListener('beforeunload', (e) => {
     if (store.isDirty) {
