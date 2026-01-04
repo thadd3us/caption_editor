@@ -709,12 +709,17 @@ async function runAsrTool(options: {
     if (!existsSync(overridesPath)) throw new Error(`overrides.txt not found at ${overridesPath}`)
   }
 
-  console.log(`[main] Starting ASR ${tool}:`, { pythonCommand, pythonArgs, cwd, isDev })
   mainWindow?.webContents.send('asr:started', { processId })
 
   const { spawn } = await import('child_process')
   const binDir = path.join(os.homedir(), '.cache', 'caption_editor', 'bin')
-  const env = { ...process.env, PATH: `${binDir}${path.delimiter}${process.env.PATH}` }
+  const env = { ...process.env, PATH: `${binDir}${path.delimiter}${process.env.PATH || ''}` }
+
+  // Use a temporary directory for CWD to avoid issues with spaces in project paths 
+  // (some tools like uvx might have issues with spaces in current directory)
+  if (!cwd) {
+    cwd = os.tmpdir()
+  }
 
   let canceled = false
 

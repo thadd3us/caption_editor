@@ -1,21 +1,21 @@
 <template>
-  <BaseModal
-    :is-open="isOpen"
-    title="Delete Selected Rows"
-    max-width="450px"
+  <BaseModal 
+    :is-open="isOpen" 
+    :title="title" 
+    :max-width="maxWidth" 
     @close="handleCancel"
   >
-    <div class="warning-box">
-      Are you sure you want to delete {{ rowCount }} row{{ rowCount === 1 ? '' : 's' }}?
-      This action cannot be undone.
+    <div class="confirm-content">
+      <p v-if="message">{{ message }}</p>
+      <slot></slot>
     </div>
 
     <template #footer>
       <button class="dialog-button dialog-button-secondary" @click="handleCancel">
-        Cancel
+        {{ cancelText }}
       </button>
-      <button class="dialog-button dialog-button-danger" @click="handleConfirm">
-        Delete
+      <button class="dialog-button dialog-button-primary" @click="handleConfirm">
+        {{ confirmText }}
       </button>
     </template>
   </BaseModal>
@@ -24,35 +24,37 @@
 <script setup lang="ts">
 import BaseModal from './BaseModal.vue'
 
-defineProps<{
+withDefaults(defineProps<{
   isOpen: boolean
-  rowCount: number
-}>()
+  title?: string
+  message?: string
+  confirmText?: string
+  cancelText?: string
+  maxWidth?: string
+}>(), {
+  title: 'Confirm',
+  confirmText: 'Confirm',
+  cancelText: 'Cancel',
+  maxWidth: '450px'
+})
 
 const emit = defineEmits<{
-  close: []
   confirm: []
+  cancel: []
 }>()
-
-function handleCancel() {
-  emit('close')
-}
 
 function handleConfirm() {
   emit('confirm')
-  emit('close')
+}
+
+function handleCancel() {
+  emit('cancel')
 }
 </script>
 
 <style scoped>
-.warning-box {
-  background: #442a2a;
-  border-left: 4px solid #d32f2f;
-  padding: 16px;
-  border-radius: 4px;
-  color: #ffcdd2;
-  font-size: 14px;
-  line-height: 1.5;
+.confirm-content {
+  color: #ddd;
 }
 
 .dialog-button {
@@ -74,12 +76,12 @@ function handleConfirm() {
   background: #555;
 }
 
-.dialog-button-danger {
-  background: #d32f2f;
+.dialog-button-primary {
+  background: #3a7afe;
   color: #fff;
 }
 
-.dialog-button-danger:hover {
-  background: #c62828;
+.dialog-button-primary:hover {
+  background: #4d8dfa;
 }
 </style>

@@ -42,6 +42,23 @@
       :title="asrModalTitle"
       @cancel="handleAsrCancel"
     />
+
+    <!-- Generic Dialogs -->
+    <GenericConfirmDialog
+      :is-open="confirmState.isOpen"
+      :title="confirmState.title"
+      :message="confirmState.message"
+      :confirm-text="confirmState.confirmText"
+      :cancel-text="confirmState.cancelText"
+      @confirm="confirmState.resolve(true)"
+      @cancel="confirmState.resolve(false)"
+    />
+    <GenericAlertDialog
+      :is-open="alertState.isOpen"
+      :title="alertState.title"
+      :message="alertState.message"
+      @close="alertState.resolve()"
+    />
   </div>
 </template>
 
@@ -56,6 +73,8 @@ import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
 import ConfirmDeleteDialog from './components/ConfirmDeleteDialog.vue'
 import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
 import AsrModal from './components/AsrModal.vue'
+import GenericConfirmDialog from './components/GenericConfirmDialog.vue'
+import GenericAlertDialog from './components/GenericAlertDialog.vue'
 import packageJson from '../package.json'
 
 // Log version on startup
@@ -88,6 +107,61 @@ const asrFailed = ref(false)
 const asrModalTitle = ref('Speech Recognition')
 const asrModal = ref<any>(null)
 let currentAsrProcessId: string | null = null
+
+// Generic Dialog Promise Wrappers
+const confirmState = ref({
+  isOpen: false,
+  title: '',
+  message: '',
+  confirmText: 'Confirm',
+  cancelText: 'Cancel',
+  resolve: (value: boolean) => {}
+})
+
+const alertState = ref({
+  isOpen: false,
+  title: '',
+  message: '',
+  resolve: () => {}
+})
+
+async function showConfirm(options: { 
+  title?: string, 
+  message: string, 
+  confirmText?: string, 
+  cancelText?: string 
+}): Promise<boolean> {
+  return new Promise((resolve) => {
+    confirmState.value = {
+      isOpen: true,
+      title: options.title || 'Confirm',
+      message: options.message,
+      confirmText: options.confirmText || 'Confirm',
+      cancelText: options.cancelText || 'Cancel',
+      resolve: (value) => {
+        confirmState.value.isOpen = false
+        resolve(value)
+      }
+    }
+  })
+}
+
+async function showAlert(options: { 
+  title?: string, 
+  message: string 
+}): Promise<void> {
+  return new Promise((resolve) => {
+    alertState.value = {
+      isOpen: true,
+      title: options.title || 'Notice',
+      message: options.message,
+      resolve: () => {
+        alertState.value.isOpen = false
+        resolve()
+      }
+    }
+  })
+}
 
 // Track if we've already attempted auto-load for the current document
 const attemptedAutoLoad = ref<string | null>(null)
@@ -308,16 +382,23 @@ watch(
   { immediate: true }
 )
 
-// Menu action handlers
-function confirmDiscardChanges(): boolean {
+/**
+ * Menu action handlers
+ */
+async function confirmDiscardChanges(): Promise<boolean> {
   if (store.isDirty && store.document.segments.length > 0) {
-    return confirm('You have unsaved changes. Are you sure you want to discard them?')
+    return await showConfirm({
+      title: 'Unsaved Changes',
+      message: 'You have unsaved changes. Are you sure you want to discard them?',
+      confirmText: 'Discard changes',
+      cancelText: 'Keep changes'
+    })
   }
   return true
 }
 
 async function handleMenuOpenFile() {
-  if (confirmDiscardChanges()) {
+  if (await confirmDiscardChanges()) {
     fileDropZone.value?.triggerFileInput()
   }
 }
@@ -351,11 +432,17 @@ async function handleMenuSaveFile() {
       }
     } else {
       console.error('Failed to save VTT:', result.error)
-      alert('Failed to save VTT file: ' + result.error)
+      await showAlert({
+        title: 'Save Failed',
+        message: 'Failed to save VTT file: ' + result.error
+      })
     }
   } catch (err) {
     console.error('Failed to save VTT:', err)
-    alert('Failed to save VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    await showAlert({
+      title: 'Save Error',
+      message: 'Failed to save VTT file: ' + (err instanceof Error ? err.message : 'Unknown error')
+    })
   }
 }
 
@@ -382,18 +469,24 @@ async function handleMenuSaveAs() {
       }
     } else if (result.error !== 'Save canceled') {
       console.error('Failed to save VTT:', result.error)
-      alert('Failed to save VTT file: ' + result.error)
+      await showAlert({
+        title: 'Save Failed',
+        message: 'Failed to save VTT file: ' + result.error
+      })
     }
   } catch (err) {
     console.error('Failed to export VTT:', err)
-    alert('Failed to export VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    await showAlert({
+      title: 'Save Error',
+      message: 'Failed to export VTT file: ' + (err instanceof Error ? err.message : 'Unknown error')
+    })
   }
 }
 
 // ASR menu handler
-function handleMenuAsrCaption() {
+async function handleMenuAsrCaption() {
   console.log('[ASR] Caption menu item clicked')
-  if (!confirmDiscardChanges()) return
+  if (!(await confirmDiscardChanges())) return
 
   if (store.document.segments.length > 0) {
     isAsrConfirmDialogVisible.value = true
@@ -409,7 +502,10 @@ async function handleMenuAsrEmbed() {
   // We need to ensure the VTT file is saved before embedding
   if (!store.document.filePath) {
     // If no file path, ask user to save it first
-    alert('Please save the VTT file before computing speaker embeddings.')
+    await showAlert({
+      title: 'Save Required',
+      message: 'Please save the VTT file before computing speaker embeddings.'
+    })
     handleMenuSaveAs()
     return
   }
@@ -422,7 +518,10 @@ async function handleMenuAsrEmbed() {
   })
 
   if (!result.success) {
-    alert('Failed to save VTT file before embedding: ' + result.error)
+    await showAlert({
+      title: 'Save Failed',
+      message: 'Failed to save VTT file before embedding: ' + result.error
+    })
     return
   }
 
@@ -659,7 +758,16 @@ onMounted(() => {
   // Listen for files dropped via IPC
   if ((window as any).electronAPI?.ipcRenderer) {
     (window as any).electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
-      await store.processFilePaths(filePaths)
+      if (await confirmDiscardChanges()) {
+        try {
+          await store.processFilePaths(filePaths)
+        } catch (err) {
+          await showAlert({
+            title: 'File Drop Failed',
+            message: 'Failed to process files: ' + (err instanceof Error ? err.message : 'Unknown error')
+          })
+        }
+      }
     })
   }
 })

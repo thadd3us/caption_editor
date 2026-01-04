@@ -405,19 +405,13 @@ export const useVTTStore = defineStore('vtt', () => {
 
   /**
    * Processes an array of file paths (VTT or media) and loads them into the store.
-   * Prompts to discard changes if the store is dirty.
    * @param filePaths Array of absolute file paths to process
    */
   async function processFilePaths(filePaths: string[]) {
-    if (isDirty.value && document.value.segments.length > 0) {
-      const confirmed = confirm('You have unsaved changes. Are you sure you want to discard them?')
-      if (!confirmed) return
-    }
-
     const electronAPI = (window as any).electronAPI
     if (!electronAPI || !electronAPI.processDroppedFiles) {
       console.error('Electron processDroppedFiles API not available')
-      return
+      throw new Error('File processing API not available')
     }
 
     try {
@@ -435,7 +429,7 @@ export const useVTTStore = defineStore('vtt', () => {
       }
     } catch (err) {
       console.error('[vttStore] Failed to process files:', err)
-      alert('Failed to process files: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      throw err
     }
   }
 

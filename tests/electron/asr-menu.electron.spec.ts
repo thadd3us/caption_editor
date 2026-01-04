@@ -194,26 +194,36 @@ test.describe('ASR Menu Integration', () => {
 
     // Trigger ASR menu action
     await page.evaluate(() => {
-      window.confirm = () => true
       const handleMenuAsrCaption = (window as any).handleMenuAsrCaption
       if (handleMenuAsrCaption) {
         handleMenuAsrCaption()
       }
     })
 
-    // Wait for confirmation dialog to appear
-    await page.waitForSelector('.dialog-overlay', { timeout: 2000 })
-    console.log('[Test] Confirmation dialog appeared')
+    // Wait for the FIRST confirmation dialog (Unsaved Changes) to appear
+    const unsavedChangesModal = page.locator('.base-modal', { hasText: 'Unsaved Changes' })
+    await unsavedChangesModal.waitFor({ state: 'visible', timeout: 5000 })
+    console.log('[Test] Unsaved Changes confirmation dialog appeared')
+
+    // Confirm the first dialog
+    await unsavedChangesModal.locator('button:has-text("Discard changes")').click()
+    await unsavedChangesModal.waitFor({ state: 'hidden', timeout: 3000 })
+
+    // Wait for the SECOND confirmation dialog (Replace Captions) to appear
+    const replaceCaptionsModal = page.locator('.base-modal', { hasText: 'Replace Existing Captions?' })
+    await replaceCaptionsModal.waitFor({ state: 'visible', timeout: 5000 })
+    console.log('[Test] Replace Existing Captions? dialog appeared')
 
     // Verify dialog text
-    const dialogText = await page.locator('.dialog-content').textContent()
+    const dialogText = await replaceCaptionsModal.locator('.base-modal-content').textContent()
     expect(dialogText).toContain('delete all existing caption segments')
 
-    // Click cancel
-    await page.locator('.dialog-button-cancel').click()
+    // Click cancel on the second dialog
+    await replaceCaptionsModal.locator('button:has-text("Cancel")').click()
+    await replaceCaptionsModal.waitFor({ state: 'hidden', timeout: 3000 })
 
     // Verify dialog is closed
-    await page.waitForSelector('.dialog-overlay', { state: 'hidden', timeout: 2000 })
+    await page.waitForSelector('.base-modal-overlay', { state: 'hidden', timeout: 2000 })
 
     // Verify segment still exists
     const segmentCount = await page.evaluate(() => {
