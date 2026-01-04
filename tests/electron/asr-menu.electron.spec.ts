@@ -178,6 +178,7 @@ test.describe('ASR Menu Integration', () => {
     const page = await electronApp.firstWindow()
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
     // Create a fake media path and add a test segment
     await page.evaluate(() => {
@@ -193,6 +194,7 @@ test.describe('ASR Menu Integration', () => {
 
     // Trigger ASR menu action
     await page.evaluate(() => {
+      window.confirm = () => true
       const handleMenuAsrCaption = (window as any).handleMenuAsrCaption
       if (handleMenuAsrCaption) {
         handleMenuAsrCaption()

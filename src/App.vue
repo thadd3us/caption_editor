@@ -453,10 +453,21 @@ async function startAsrEmbedding() {
   try {
     const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
     
-    await window.electronAPI.asr.embed({
+    const result = await window.electronAPI.asr.embed({
       vttPath: store.document.filePath,
       model
     })
+
+    if (result.canceled) {
+      console.log('[ASR] Speaker embedding was canceled')
+      isAsrRunning.value = false
+      currentAsrProcessId = null
+      return
+    }
+
+    if (!result.success) {
+      throw new Error(result.error || 'Speaker embedding failed')
+    }
 
     console.log('[ASR] Speaker embedding completed successfully')
 
@@ -515,6 +526,17 @@ async function startAsrTranscription() {
       model,
       chunkSize
     })
+
+    if (result.canceled) {
+      console.log('[ASR] Transcription was canceled')
+      isAsrRunning.value = false
+      currentAsrProcessId = null
+      return
+    }
+
+    if (!result.success) {
+      throw new Error(result.error || 'Transcription failed')
+    }
 
     console.log('[ASR] Transcription completed successfully:', result.vttPath)
 

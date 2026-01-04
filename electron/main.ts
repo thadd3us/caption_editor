@@ -716,9 +716,33 @@ async function runAsrTool(options: {
   const binDir = path.join(os.homedir(), '.cache', 'caption_editor', 'bin')
   const env = { ...process.env, PATH: `${binDir}${path.delimiter}${process.env.PATH}` }
 
+  let canceled = false
+
   return new Promise((resolve, reject) => {
-    const proc = spawn(pythonCommand, pythonArgs, { cwd, env })
-    activeProcesses.set(processId, proc)
+    // Start process in its own process group so we can kill its children
+    const proc = spawn(pythonCommand, pythonArgs, {
+      cwd,
+      env,
+      detached: process.platform !== 'win32'
+    })
+
+    activeProcesses.set(processId, {
+      proc,
+      cancel: () => {
+        canceled = true
+        if (process.platform === 'win32') {
+          proc.kill()
+        } else {
+          try {
+            // Kill the entire process group
+            process.kill(-proc.pid!, 'SIGTERM')
+          } catch (e) {
+            // Fallback if PGID killing fails
+            proc.kill('SIGTERM')
+          }
+        }
+      }
+    })
 
     proc.stdout?.on('data', (data) => sendOutput('stdout', data.toString()))
     proc.stderr?.on('data', (data) => sendOutput('stderr', data.toString()))
@@ -727,14 +751,23 @@ async function runAsrTool(options: {
       activeProcesses.delete(processId)
       if (code === 0) {
         resolve({ success: true, tool, processId })
+      } else if (canceled || code === 143) {
+        console.log(`[main] ASR ${tool} process ${processId} canceled or terminated with code ${code}`)
+        resolve({ success: false, error: 'Canceled', canceled: true })
       } else {
-        reject(new Error(`Process exited with code ${code}`))
+        const errorMsg = `Process exited with code ${code}`
+        console.error(`[main] ASR ${tool} ${errorMsg}`)
+        reject(new Error(errorMsg))
       }
     })
 
     proc.on('error', (err) => {
       activeProcesses.delete(processId)
-      reject(err)
+      if (canceled) {
+        resolve({ success: false, error: 'Canceled', canceled: true })
+      } else {
+        reject(err)
+      }
     })
   })
 }
@@ -754,11 +787,10 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     chunkSize: options.chunkSize
   }) as any
 
-  // Return the expected format for transcription
-  // By default transcribe.py writes to mediaFilePath.vtt (or similar logic)
-  // Actually, transcribe.py in dev mode might work differently?
-  // Let's check where transcribe.py writes output.
-  return { vttPath: options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt') }
+  return {
+    ...result,
+    vttPath: options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt')
+  }
 })
 
 /**
@@ -768,12 +800,12 @@ ipcMain.handle('asr:embed', async (_event, options: {
   vttPath: string,
   model?: string
 }) => {
-  await runAsrTool({
+  const result = await runAsrTool({
     tool: 'embed',
     inputPath: options.vttPath,
     model: options.model
   })
-  return { success: true }
+  return result
 })
 
 
@@ -782,9 +814,10 @@ ipcMain.handle('asr:embed', async (_event, options: {
  * Cancel running ASR process
  */
 ipcMain.handle('asr:cancel', async (_event, processId: string) => {
-  const proc = activeProcesses.get(processId)
-  if (proc) {
-    proc.kill('SIGTERM')
+  const item = activeProcesses.get(processId)
+  if (item) {
+    console.log(`[main] Cancelling ASR process ${processId}`)
+    item.cancel()
     activeProcesses.delete(processId)
     return { success: true }
   }
