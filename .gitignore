@@ -62,9 +62,6 @@ env/
 *.egg-info/
 dist/
 dist-uvx/
-!build/icon.icns
-!build/icon.ico
-!build/icon.png
 build/
 .uv/
 .python-version

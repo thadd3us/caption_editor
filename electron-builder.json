@@ -3,7 +3,7 @@
   "productName": "Caption Editor",
   "directories": {
     "output": "release",
-    "buildResources": "build"
+    "buildResources": "assets/packaging"
   },
   "files": [
     "dist/**/*",
@@ -20,7 +20,7 @@
       "name": "WebVTT Caption File",
       "description": "WebVTT caption and subtitle file",
       "role": "Editor",
-      "icon": "build/icon.icns"
+      "icon": "assets/packaging/icon.icns"
     }
   ],
   "mac": {
@@ -29,9 +29,9 @@
       "dmg",
       "zip"
     ],
-    "icon": "build/icon.icns",
-    "entitlements": "build/entitlements.mac.plist",
-    "entitlementsInherit": "build/entitlements.mac.plist",
+    "icon": "assets/packaging/icon.icns",
+    "entitlements": "assets/packaging/entitlements.mac.plist",
+    "entitlementsInherit": "assets/packaging/entitlements.mac.plist",
     "hardenedRuntime": true,
     "gatekeeperAssess": false
   },
@@ -54,7 +54,7 @@
       "nsis",
       "portable"
     ],
-    "icon": "build/icon.ico"
+    "icon": "assets/packaging/icon.ico"
   },
   "linux": {
     "target": [
@@ -62,6 +62,6 @@
       "deb"
     ],
     "category": "Utility",
-    "icon": "build/icon.png"
+    "icon": "assets/packaging/icon.png"
   }
 }
