@@ -635,7 +635,7 @@ onMounted(() => {
 
   // Listen for files dropped via IPC
   if ((window as any).electronAPI?.ipcRenderer) {
-    (window as any).electronAPI.ipcRenderer.on('files-dropped', async (_: any, filePaths: string[]) => {
+    (window as any).electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
       await store.processFilePaths(filePaths)
     })
   }
