@@ -146,7 +146,7 @@ Test`
     await window.waitForTimeout(100)
 
     // Verify bulk set speaker dialog opened
-    const bulkSetDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Bulk Set Speaker' })
+    const bulkSetDialog = window.locator('.base-modal').filter({ hasText: 'Bulk Set Speaker' })
     await expect(bulkSetDialog).toBeVisible()
 
     // Close the dialog
@@ -193,7 +193,7 @@ Test`
     await window.waitForTimeout(100)
 
     // Verify delete confirmation dialog opened
-    const deleteDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
 
     // Close the dialog
@@ -249,7 +249,7 @@ Second`
     await window.waitForTimeout(100)
 
     // Verify bulk set speaker dialog opened
-    const bulkSetDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Bulk Set Speaker' })
+    const bulkSetDialog = window.locator('.base-modal').filter({ hasText: 'Bulk Set Speaker' })
     await expect(bulkSetDialog).toBeVisible()
 
     // Set speaker name
@@ -298,7 +298,7 @@ Second`
     await window.waitForTimeout(100)
 
     // Verify delete confirmation dialog opened
-    const deleteDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
 
     // Confirm delete

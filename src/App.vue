@@ -188,6 +188,7 @@ function handleRenameSpeaker({ oldName, newName }: { oldName: string; newName: s
 }
 
 function openBulkSetSpeakerDialog(event: Event) {
+  console.log('[App] openBulkSetSpeakerDialog called')
   const customEvent = event as CustomEvent
   const { rowCount } = customEvent.detail
 
