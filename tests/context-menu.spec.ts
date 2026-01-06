@@ -28,7 +28,20 @@ test.describe('VTT Editor - Context Menu', () => {
   })
 
   test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
+    if (electronApp) {
+      // Best effort to clear dirty state if window is still open
+      try {
+        if (window && !window.isClosed()) {
+          await window.evaluate(() => {
+            const store = (window as any).$store
+            if (store) store.setIsDirty(false)
+          })
+        }
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+      await electronApp.close().catch(() => { })
+    }
   })
 
   test('should show context menu with both options when rows are selected', async () => {
@@ -66,8 +79,8 @@ Second`
         { id: cues[0].id, text: cues[0].text }
       ]
 
-      // Store selected rows
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        // Store selected rows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       // Simulate showing context menu by dispatching a custom event
       // In real usage, this would be triggered by AG Grid's context menu event
@@ -123,7 +136,7 @@ Test`
       const cues = vttStore.document.segments
       const selectedRows = [{ id: cues[0].id, text: cues[0].text }]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
         detail: { rowCount: selectedRows.length }
@@ -133,7 +146,7 @@ Test`
     await window.waitForTimeout(100)
 
     // Verify bulk set speaker dialog opened
-    const bulkSetDialog = window.locator('.dialog-overlay').filter({ hasText: 'Bulk Set Speaker' })
+    const bulkSetDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Bulk Set Speaker' })
     await expect(bulkSetDialog).toBeVisible()
 
     // Close the dialog
@@ -170,7 +183,7 @@ Test`
       const cues = vttStore.document.segments
       const selectedRows = [{ id: cues[0].id, text: cues[0].text }]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
         detail: { rowCount: selectedRows.length }
@@ -180,7 +193,7 @@ Test`
     await window.waitForTimeout(100)
 
     // Verify delete confirmation dialog opened
-    const deleteDialog = window.locator('.dialog-overlay').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
 
     // Close the dialog
@@ -226,7 +239,7 @@ Second`
         { id: cues[1].id, text: cues[1].text }
       ]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
         detail: { rowCount: selectedRows.length }
@@ -236,7 +249,7 @@ Second`
     await window.waitForTimeout(100)
 
     // Verify bulk set speaker dialog opened
-    const bulkSetDialog = window.locator('.dialog-overlay').filter({ hasText: 'Bulk Set Speaker' })
+    const bulkSetDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Bulk Set Speaker' })
     await expect(bulkSetDialog).toBeVisible()
 
     // Set speaker name
@@ -275,7 +288,7 @@ Second`
         { id: cues[0].id, text: cues[0].text }
       ]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
         detail: { rowCount: selectedRows.length }
@@ -285,7 +298,7 @@ Second`
     await window.waitForTimeout(100)
 
     // Verify delete confirmation dialog opened
-    const deleteDialog = window.locator('.dialog-overlay').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = window.locator('.base-modal-overlay').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
 
     // Confirm delete

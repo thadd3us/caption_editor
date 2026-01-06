@@ -115,7 +115,7 @@ const confirmState = ref({
   message: '',
   confirmText: 'Confirm',
   cancelText: 'Cancel',
-  resolve: (value: boolean) => {}
+  resolve: (_value: boolean) => {}
 })
 
 const alertState = ref({
@@ -565,16 +565,17 @@ async function startAsrEmbedding() {
     }
 
     if (!result.success) {
-      throw new Error(result.error || 'Speaker embedding failed')
+      throw new Error(result.error || 'Embedding failed')
     }
 
-    console.log('[ASR] Speaker embedding completed successfully')
+    console.log('[ASR] Embedding completed successfully')
 
-    // Reload the VTT file to see the new embeddings
-    const vttResult = await window.electronAPI.readFile(store.document.filePath)
-    if (vttResult.success && vttResult.content) {
-      store.loadFromFile(vttResult.content, store.document.filePath)
+    // Reload the VTT file with embeddings using content returned from main
+    if (result.content) {
+      store.loadFromFile(result.content, store.document.filePath!)
       console.log('[ASR] VTT file reloaded with embeddings')
+    } else {
+      throw new Error('Embedding succeeded but no content was returned')
     }
 
     isAsrModalVisible.value = false
@@ -633,35 +634,38 @@ async function startAsrTranscription() {
       return
     }
 
-    if (!result.success) {
+    if (result.success) {
+      console.log('[ASR] Transcription completed successfully:', result.vttPath)
+
+      // Load the generated VTT file using the content returned directly from the main process
+      if (result.content) {
+        store.loadFromFile(result.content, result.vttPath)
+        console.log('[ASR] VTT file loaded successfully')
+      } else {
+        throw new Error('Transcription succeeded but no VTT content was returned')
+      }
+
+      // Close modal on success
+      isAsrModalVisible.value = false
+    } else {
       throw new Error(result.error || 'Transcription failed')
     }
-
-    console.log('[ASR] Transcription completed successfully:', result.vttPath)
-
-    // Load the generated VTT file
-    const vttResult = await window.electronAPI.readFile(result.vttPath)
-
-    if (vttResult.success && vttResult.content) {
-      store.loadFromFile(vttResult.content, result.vttPath)
-      console.log('[ASR] VTT file loaded successfully')
-    } else {
-      throw new Error('Failed to read generated VTT file: ' + vttResult.error)
-    }
-
-    // Close modal on success
-    isAsrModalVisible.value = false
-    isAsrRunning.value = false
-    currentAsrProcessId = null
-  } catch (err) {
+  } catch (err: any) {
     console.error('[ASR] Transcription failed:', err)
     asrFailed.value = true
-    isAsrRunning.value = false
+    asrModalTitle.value = 'Transcription Failed'
+    await showAlert({
+      title: 'Transcription Failed',
+      message: 'Failed to transcribe media: ' + (err.message || 'Unknown error')
+    })
 
     // Show error in modal terminal
     if (asrModal.value) {
       asrModal.value.appendOutput('\n\n❌ Error: ' + (err instanceof Error ? err.message : 'Unknown error'))
     }
+  } finally {
+    isAsrRunning.value = false
+    currentAsrProcessId = null
   }
 }
 
@@ -700,14 +704,31 @@ onMounted(() => {
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
   ;(window as any).handleMenuOpenFile = handleMenuOpenFile
+  ;(window as any).showAlert = showAlert
+  ;(window as any).showConfirm = showConfirm
 
-  window.addEventListener('beforeunload', (e) => {
-    if (store.isDirty) {
-      // Standard way to trigger the confirmation dialog in most browsers/Electron
-      e.preventDefault()
-      e.returnValue = ''
-    }
-  })
+  // Custom app close handling
+  if ((window as any).electronAPI) {
+    const api = (window as any).electronAPI
+    
+    api.onAppClose?.(async () => {
+      console.log('[App] Received app-close request')
+      if (store.isDirty && store.document.segments.length > 0) {
+        const confirmed = await showConfirm({
+          title: 'Unsaved Changes',
+          message: 'You have unsaved changes. Are you sure you want to quit and discard them?',
+          confirmText: 'Discard and Quit',
+          cancelText: 'Keep working'
+        })
+        
+        if (confirmed) {
+          api.quitApp()
+        }
+      } else {
+        api.quitApp()
+      }
+    })
+  }
 
   // Set up native menu IPC listeners
   if ((window as any).electronAPI) {

@@ -38,25 +38,25 @@ test.describe('Unsaved Changes Warning', () => {
         expect(state.segmentCount).toBe(1)
 
         // 4. Try to open a file (this should trigger handleMenuOpenFile)
-        let confirmCalled = false
-        page.on('dialog', async dialog => {
-            if (dialog.type() === 'confirm' && dialog.message().includes('unsaved changes')) {
-                confirmCalled = true
-                await dialog.accept() // Discard changes
-            }
-        })
-
-        // Mock openFile to avoid hanging on native dialogs
+        // Mock openFile to avoid hanging
         await page.evaluate(() => {
             (window as any).electronAPI.openFile = async () => []
         })
 
-        // Trigger handleMenuOpenFile directly
-        await page.evaluate(() => (window as any).handleMenuOpenFile())
+        // Trigger handleMenuOpenFile WITHOUT awaiting it so we can interact with the modal
+        await page.evaluate(() => {
+            setTimeout(() => (window as any).handleMenuOpenFile(), 0)
+        })
 
-        expect(confirmCalled).toBe(true)
+        // Wait for custom modal
+        const modal = page.locator('.base-modal', { hasText: 'Unsaved Changes' })
+        await modal.waitFor({ state: 'visible', timeout: 5000 })
 
-        // Clean up: Disable dirty bit so we can close without beforeunload prompt
+        // Discard changes
+        await modal.locator('button:has-text("Discard changes")').click()
+        await modal.waitFor({ state: 'hidden', timeout: 5000 })
+
+        // Clean up
         await page.evaluate(() => (window as any).$store.setIsDirty(false))
         await electronApp.close()
     })
@@ -78,14 +78,11 @@ test.describe('Unsaved Changes Warning', () => {
             (window as any).electronAPI.openFile = async () => []
         })
 
-        let confirmCalled = false
-        page.on('dialog', async () => {
-            confirmCalled = true
-        })
-
         await page.evaluate(() => (window as any).handleMenuOpenFile())
 
-        expect(confirmCalled).toBe(false)
+        // Verify NO modal appears
+        const modalVisible = await page.locator('.base-modal-overlay').isVisible()
+        expect(modalVisible).toBe(false)
 
         await electronApp.close()
     })
@@ -102,10 +99,9 @@ test.describe('Unsaved Changes Warning', () => {
         const page = await electronApp.firstWindow()
         await page.waitForFunction(() => (window as any).$store !== undefined, { timeout: 10000 })
 
-        // 1. Load a media file - this makes the store dirty but document.segments remains empty
+        // 1. Load a media file
         await page.evaluate(async () => {
             const store = (window as any).$store
-            // Mock a media file load
             store.loadMediaFile('media://path/to/video.mp4', '/path/to/video.mp4')
         })
 
@@ -117,16 +113,10 @@ test.describe('Unsaved Changes Warning', () => {
             }
         })
 
-        // Sanity check: it is dirty but has no segments
         expect(state.isDirty).toBe(true)
         expect(state.segmentCount).toBe(0)
 
-        // 2. Try to open a file - should NOT prompt because there are no segments to lose
-        let confirmCalled = false
-        page.on('dialog', async () => {
-            confirmCalled = true
-        })
-
+        // 2. Try to open a file - should NOT prompt
         // Mock openFile
         await page.evaluate(() => {
             (window as any).electronAPI.openFile = async () => []
@@ -134,9 +124,9 @@ test.describe('Unsaved Changes Warning', () => {
 
         await page.evaluate(() => (window as any).handleMenuOpenFile())
 
-        expect(confirmCalled).toBe(false)
+        const modalVisible = await page.locator('.base-modal-overlay').isVisible()
+        expect(modalVisible).toBe(false)
 
-        // Clean up: Disable dirty bit so we can close without beforeunload prompt
         await page.evaluate(() => (window as any).$store.setIsDirty(false))
         await electronApp.close()
     })

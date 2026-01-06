@@ -14,7 +14,7 @@ app.mount('#app')
 
 // Always expose store on window for tests and debugging
 const store = useVTTStore()
-;(window as any).$store = store
+  ; (window as any).$store = store
 
 if (import.meta.env && import.meta.env.DEV) {
   console.log('VTT Editor mounted - Store available at window.$store')
@@ -38,11 +38,21 @@ if (window.electronAPI?.onFileOpen) {
         console.log('File loaded successfully:', filePath)
       } catch (err) {
         console.error('Failed to parse VTT file:', err)
-        alert('Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error'))
+        if ((window as any).showAlert) {
+          (window as any).showAlert({
+            title: 'Load Failed',
+            message: 'Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error')
+          })
+        }
       }
     } else {
       console.error('Failed to read file:', result.error)
-      alert('Failed to read file: ' + (result.error || 'Unknown error'))
+      if ((window as any).showAlert) {
+        (window as any).showAlert({
+          title: 'Read Failed',
+          message: 'Failed to read file: ' + (result.error || 'Unknown error')
+        })
+      }
     }
   })
 }

@@ -15,6 +15,17 @@ test.describe('File Save - Save VTT files correctly', () => {
 
   test.afterEach(async () => {
     if (electronApp) {
+      // Best effort to clear dirty state if window is still open
+      try {
+        if (window && !window.isClosed()) {
+          await window.evaluate(() => {
+            const store = (window as any).$store
+            if (store) store.setIsDirty(false)
+          })
+        }
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
       await electronApp.close()
     }
   })
@@ -114,6 +125,6 @@ Test caption
 
     // Clean up
     await fs.unlink(tempVttPath)
-    await fs.rmdir(tempDir).catch(() => {}) // Ignore error if not empty
+    await fs.rmdir(tempDir).catch(() => { }) // Ignore error if not empty
   })
 })

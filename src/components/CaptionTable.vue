@@ -200,7 +200,12 @@ const columnDefs = ref<ColDef[]>([
 
         store.updateCue(params.data.id, { startTime: seconds })
       } catch (err) {
-        alert('Invalid start time: ' + (err instanceof Error ? err.message : 'Unknown error'))
+        if ((window as any).showAlert) {
+          (window as any).showAlert({
+            title: 'Invalid Start Time',
+            message: 'Invalid format: ' + (err instanceof Error ? err.message : 'Unknown error')
+          })
+        }
         params.node?.setDataValue('startTimeFormatted', formatTimestampSimple(params.data.startTime))
       }
     }
@@ -243,7 +248,12 @@ const columnDefs = ref<ColDef[]>([
 
         store.updateCue(params.data.id, { endTime: seconds })
       } catch (err) {
-        alert('Invalid end time: ' + (err instanceof Error ? err.message : 'Unknown error'))
+        if ((window as any).showAlert) {
+          (window as any).showAlert({
+            title: 'Invalid End Time',
+            message: 'Invalid format: ' + (err instanceof Error ? err.message : 'Unknown error')
+          })
+        }
         params.node?.setDataValue('endTimeFormatted', formatTimestampSimple(params.data.endTime))
       }
     }
@@ -407,7 +417,12 @@ function computeSpeakerSimilarity() {
 
   if (rowsWithoutEmbeddings.length > 0) {
     console.warn('Selected rows missing embeddings:', rowsWithoutEmbeddings)
-    alert(`Error: ${rowsWithoutEmbeddings.length} selected row(s) are missing speaker embeddings. Please select only rows with embeddings.`)
+    if ((window as any).showAlert) {
+      (window as any).showAlert({
+        title: 'Missing Embeddings',
+        message: `${rowsWithoutEmbeddings.length} selected row(s) are missing speaker embeddings. Please select only rows with embeddings.`
+      })
+    }
     return
   }
 

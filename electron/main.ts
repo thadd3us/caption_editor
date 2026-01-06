@@ -258,6 +258,21 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
   }
 
+  let isQuitting = false
+
+  mainWindow.on('close', (e) => {
+    if (!isQuitting) {
+      e.preventDefault()
+      mainWindow?.webContents.send('app-close')
+    }
+  })
+
+  // IPC handler to actually quit the app after confirmation
+  ipcMain.on('app:quit', () => {
+    isQuitting = true
+    app.quit()
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
@@ -698,7 +713,7 @@ async function runAsrTool(options: {
       tool,
       inputPath
     ]
-    cwd = process.cwd()
+    cwd = os.tmpdir()
 
     if (tool === 'transcribe' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
@@ -792,10 +807,25 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     chunkSize: options.chunkSize
   }) as any
 
-  return {
-    ...result,
-    vttPath: options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt')
+  if (result.success) {
+    const vttPath = options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt')
+    try {
+      const content = await fs.readFile(vttPath, 'utf-8')
+      return {
+        ...result,
+        vttPath,
+        content
+      }
+    } catch (err) {
+      console.error('[main] Failed to read generated VTT file:', err)
+      return {
+        success: false,
+        error: `Transcription succeeded but failed to read result file: ${err instanceof Error ? err.message : 'Unknown error'}`
+      }
+    }
   }
+
+  return result
 })
 
 /**
@@ -809,7 +839,24 @@ ipcMain.handle('asr:embed', async (_event, options: {
     tool: 'embed',
     inputPath: options.vttPath,
     model: options.model
-  })
+  }) as any
+
+  if (result.success) {
+    try {
+      const content = await fs.readFile(options.vttPath, 'utf-8')
+      return {
+        ...result,
+        content
+      }
+    } catch (err) {
+      console.error('[main] Failed to read VTT file after embedding:', err)
+      return {
+        success: false,
+        error: `Embedding succeeded but failed to read result file: ${err instanceof Error ? err.message : 'Unknown error'}`
+      }
+    }
+  }
+
   return result
 })
 

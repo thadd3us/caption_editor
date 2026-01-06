@@ -127,6 +127,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
    */
   updateAsrMenuEnabled: (options: boolean | { caption?: boolean; embed?: boolean }) => {
     ipcRenderer.send('menu:updateAsrEnabled', options)
+  },
+
+  /**
+   * Application quit/close handling
+   */
+  quitApp: () => ipcRenderer.send('app:quit'),
+  onAppClose: (callback: () => void) => {
+    ipcRenderer.on('app-close', () => callback())
   }
 })
 

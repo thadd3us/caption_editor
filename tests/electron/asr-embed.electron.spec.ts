@@ -137,6 +137,14 @@ test.describe('Speaker Embedding Integration', () => {
             expect(embeddingCount).toBe(segmentCount)
 
             // Close app
+            await page.evaluate(() => {
+                // FIXME: Why are there 2 ways of doing this?  Can we settle on one?
+                if ((window as any).$store) {
+                    (window as any).$store.setIsDirty(false)
+                } else if ((window as any).store) {
+                    (window as any).store.setIsDirty(false)
+                }
+            })
             await electronApp.close()
 
         } finally {

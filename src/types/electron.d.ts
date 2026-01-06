@@ -125,9 +125,15 @@ export interface ElectronAPI {
       success: boolean
       vttPath: string
       processId: string
+      content?: string
+      error?: string
+      canceled?: boolean
     }>
     embed: (options: { vttPath: string, model?: string }) => Promise<{
       success: boolean
+      content?: string
+      error?: string
+      canceled?: boolean
     }>
     cancel: (processId: string) => Promise<{
       success: boolean
@@ -141,6 +147,16 @@ export interface ElectronAPI {
    * Update ASR menu item enabled state
    */
   updateAsrMenuEnabled: (options: boolean | { caption?: boolean; embed?: boolean }) => void
+
+  /**
+   * Quit the application
+   */
+  quitApp: () => void
+
+  /**
+   * Listen for application close request
+   */
+  onAppClose: (callback: () => void) => void
 }
 
 declare global {
