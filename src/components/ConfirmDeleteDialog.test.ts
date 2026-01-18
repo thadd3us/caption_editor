@@ -11,8 +11,8 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    expect(wrapper.find('.dialog-overlay').exists()).toBe(true)
-    expect(wrapper.find('.dialog-box').exists()).toBe(true)
+    expect(wrapper.find('.base-modal-overlay').exists()).toBe(true)
+    expect(wrapper.find('.base-modal').exists()).toBe(true)
   })
 
   it('should not render dialog when closed', () => {
@@ -23,8 +23,8 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    expect(wrapper.find('.dialog-overlay').exists()).toBe(false)
-    expect(wrapper.find('.dialog-box').exists()).toBe(false)
+    expect(wrapper.find('.base-modal-overlay').exists()).toBe(false)
+    expect(wrapper.find('.base-modal').exists()).toBe(false)
   })
 
   it('should display correct title', () => {
@@ -46,8 +46,8 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    expect(wrapper.find('.warning-text').text()).toContain('1 row')
-    expect(wrapper.find('.warning-text').text()).not.toContain('rows')
+    expect(wrapper.find('.warning-box').text()).toContain('1 row')
+    expect(wrapper.find('.warning-box').text()).not.toContain('rows')
   })
 
   it('should display row count with plural form', () => {
@@ -58,7 +58,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    expect(wrapper.find('.warning-text').text()).toContain('5 rows')
+    expect(wrapper.find('.warning-box').text()).toContain('5 rows')
   })
 
   it('should display warning message', () => {
@@ -69,7 +69,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    const warningText = wrapper.find('.warning-text').text()
+    const warningText = wrapper.find('.warning-box').text()
     expect(warningText).toContain('Are you sure you want to delete')
     expect(warningText).toContain('This action cannot be undone')
   })
@@ -82,7 +82,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    const cancelButton = wrapper.find('.btn-cancel')
+    const cancelButton = wrapper.find('.dialog-button-secondary')
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.text()).toBe('Cancel')
   })
@@ -95,7 +95,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    const deleteButton = wrapper.find('.btn-delete')
+    const deleteButton = wrapper.find('.dialog-button-danger')
     expect(deleteButton.exists()).toBe(true)
     expect(deleteButton.text()).toBe('Delete')
   })
@@ -108,7 +108,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    await wrapper.find('.btn-cancel').trigger('click')
+    await wrapper.find('.dialog-button-secondary').trigger('click')
 
     expect(wrapper.emitted('close')).toBeTruthy()
     expect(wrapper.emitted('confirm')).toBeFalsy()
@@ -122,7 +122,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    await wrapper.find('.btn-delete').trigger('click')
+    await wrapper.find('.dialog-button-danger').trigger('click')
 
     expect(wrapper.emitted('confirm')).toBeTruthy()
     expect(wrapper.emitted('close')).toBeTruthy()
@@ -136,7 +136,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    await wrapper.find('.dialog-overlay').trigger('click')
+    await wrapper.find('.base-modal-overlay').trigger('click')
 
     expect(wrapper.emitted('close')).toBeTruthy()
   })
@@ -149,7 +149,7 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    await wrapper.find('.dialog-box').trigger('click')
+    await wrapper.find('.base-modal').trigger('click')
 
     expect(wrapper.emitted('close')).toBeFalsy()
   })
@@ -162,9 +162,9 @@ describe('ConfirmDeleteDialog', () => {
       }
     })
 
-    const warningText = wrapper.find('.warning-text')
+    const warningText = wrapper.find('.warning-box')
     expect(warningText.exists()).toBe(true)
     // Check that warning class is applied (for styling)
-    expect(warningText.classes()).toContain('warning-text')
+    expect(warningText.classes()).toContain('warning-box')
   })
 })

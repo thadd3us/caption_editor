@@ -40,7 +40,10 @@ async function triggerFileInput() {
   })
 
   if (filePaths && filePaths.length > 0) {
-    await store.processFilePaths(filePaths)
+    const { failures } = await store.processFilePaths(filePaths)
+    if (failures > 0) {
+      alert(`Failed to load ${failures} file(s). Check console for details.`)
+    }
   }
 }
 

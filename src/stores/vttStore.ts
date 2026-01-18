@@ -406,31 +406,44 @@ export const useVTTStore = defineStore('vtt', () => {
   /**
    * Processes an array of file paths (VTT or media) and loads them into the store.
    * @param filePaths Array of absolute file paths to process
+   * @returns Object containing counts of successes and failures
    */
-  async function processFilePaths(filePaths: string[]) {
+  async function processFilePaths(filePaths: string[]): Promise<{ successes: number; failures: number }> {
     const electronAPI = (window as any).electronAPI
     if (!electronAPI || !electronAPI.processDroppedFiles) {
       console.error('Electron processDroppedFiles API not available')
       throw new Error('File processing API not available')
     }
 
+    let successes = 0
+    let failures = 0
+
     try {
       const results = await electronAPI.processDroppedFiles(filePaths)
       console.log('[vttStore] Processed file results:', results)
 
       for (const result of results) {
-        if (result.type === 'vtt' && result.content) {
-          loadFromFile(result.content, result.filePath)
-          console.log('[vttStore] VTT file loaded successfully:', result.fileName)
-        } else if (result.type === 'media' && result.url) {
-          loadMediaFile(result.url, result.filePath)
-          console.log('[vttStore] Media file loaded successfully:', result.fileName)
+        try {
+          if (result.type === 'vtt' && result.content) {
+            loadFromFile(result.content, result.filePath)
+            console.log('[vttStore] VTT file loaded successfully:', result.fileName)
+            successes++
+          } else if (result.type === 'media' && result.url) {
+            loadMediaFile(result.url, result.filePath)
+            console.log('[vttStore] Media file loaded successfully:', result.fileName)
+            successes++
+          }
+        } catch (err) {
+          console.error(`[vttStore] Failed to load file ${result.fileName}:`, err)
+          failures++
         }
       }
     } catch (err) {
       console.error('[vttStore] Failed to process files:', err)
-      throw err
+      failures = filePaths.length
     }
+
+    return { successes, failures }
   }
 
   return {

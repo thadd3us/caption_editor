@@ -93,7 +93,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     const vm = wrapper.vm as any
 
     // Mock window.alert
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { })
 
     // Mock gridApi with necessary methods
     const mockApplyColumnState = vi.fn()
@@ -164,8 +164,9 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Get the component instance
     const vm = wrapper.vm as any
 
-    // Mock window.alert
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+    // Mock window.showAlert
+    const showAlertSpy = vi.fn()
+      ; (window as any).showAlert = showAlertSpy
 
     // Mock gridApi
     const mockGetSelectedRows = vi.fn().mockReturnValue([
@@ -182,15 +183,17 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Call computeSpeakerSimilarity
     vm.computeSpeakerSimilarity()
 
-    // Verify alert was called with error message
-    expect(alertSpy).toHaveBeenCalledWith(
-      expect.stringContaining('selected row(s) are missing speaker embeddings')
+    // Verify showAlert was called with error message
+    expect(showAlertSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('selected row(s) are missing speaker embeddings')
+      })
     )
 
     // Verify no similarity scores were computed
     expect(vm.speakerSimilarityScores.size).toBe(0)
 
-    alertSpy.mockRestore()
+    delete (window as any).showAlert
   })
 
   it('should show error when selecting multiple rows where some lack embeddings', () => {
@@ -213,8 +216,9 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Get the component instance
     const vm = wrapper.vm as any
 
-    // Mock window.alert
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+    // Mock window.showAlert
+    const showAlertSpy = vi.fn()
+      ; (window as any).showAlert = showAlertSpy
 
     // Mock gridApi - select one with embedding and one without
     const mockGetSelectedRows = vi.fn().mockReturnValue([
@@ -232,15 +236,17 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Call computeSpeakerSimilarity
     vm.computeSpeakerSimilarity()
 
-    // Verify alert was called (both rows have issues in this case)
-    expect(alertSpy).toHaveBeenCalledWith(
-      expect.stringContaining('selected row(s) are missing speaker embeddings')
+    // Verify showAlert was called (both rows have issues in this case)
+    expect(showAlertSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('selected row(s) are missing speaker embeddings')
+      })
     )
 
     // Verify no similarity scores were computed
     expect(vm.speakerSimilarityScores.size).toBe(0)
 
-    alertSpy.mockRestore()
+    delete (window as any).showAlert
   })
 
   it('should compute cosine similarity correctly', () => {

@@ -101,8 +101,8 @@ Fourth message`
         { id: cues[1].id, text: cues[1].text }
       ]
 
-      // Store selected rows for App.vue
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        // Store selected rows for App.vue
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       // Dispatch the delete confirmation event
       window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
@@ -113,7 +113,7 @@ Fourth message`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that row count is displayed correctly
@@ -124,7 +124,7 @@ Fourth message`
     // Click Delete button
     await window.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
-      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('btn-delete'))
+      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
 
@@ -186,7 +186,7 @@ Second`
         { id: cues[0].id, text: cues[0].text }
       ]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
         detail: { rowCount: selectedRows.length }
@@ -196,7 +196,7 @@ Second`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that row count shows "1 row" (singular)
@@ -205,7 +205,7 @@ Second`
     // Click Delete button
     await window.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
-      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('btn-delete'))
+      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
 
@@ -257,7 +257,7 @@ World`
         { id: cues[0].id, text: cues[0].text }
       ]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
         detail: { rowCount: selectedRows.length }
@@ -267,11 +267,11 @@ World`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Click Cancel button
-    const cancelButton = window.locator('button.btn-cancel')
+    const cancelButton = window.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     await window.waitForTimeout(100)
@@ -335,7 +335,7 @@ Second`
         { id: cues[0].id, text: cues[0].text }
       ]
 
-      ;(window as any).__captionTableSelectedRows = selectedRows
+        ; (window as any).__captionTableSelectedRows = selectedRows
 
       window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
         detail: { rowCount: selectedRows.length }
@@ -347,7 +347,7 @@ Second`
     // Confirm delete
     await window.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
-      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('btn-delete'))
+      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
 

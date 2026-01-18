@@ -782,7 +782,13 @@ onMounted(() => {
     (window as any).electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
       if (await confirmDiscardChanges()) {
         try {
-          await store.processFilePaths(filePaths)
+          const { failures } = await store.processFilePaths(filePaths)
+          if (failures > 0) {
+            await showAlert({
+              title: 'File Load Partial Failure',
+              message: `Failed to load ${failures} file(s). Check console for details.`
+            })
+          }
         } catch (err) {
           await showAlert({
             title: 'File Drop Failed',

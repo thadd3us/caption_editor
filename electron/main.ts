@@ -262,7 +262,9 @@ function createWindow() {
   let isQuitting = false
 
   mainWindow.on('close', (e) => {
-    if (!isQuitting) {
+    // In test environment, allow direct closing to avoid hanging E2E tests.
+    // In production/dev, we intercept to allow "unsaved changes" confirmation.
+    if (!isQuitting && process.env.NODE_ENV !== 'test') {
       e.preventDefault()
       mainWindow?.webContents.send('app-close')
     }

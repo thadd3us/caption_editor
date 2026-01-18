@@ -197,11 +197,11 @@ describe('FileDropZone', () => {
 
       // Simulate Electron drop with invalid VTT
       const mockFilePaths = ['/path/to/bad.vtt']
-      await store.processFilePaths(mockFilePaths)
+      const result = await store.processFilePaths(mockFilePaths)
 
-      // Verify error was logged and alert shown
+      // Verify error was logged and failure count is 1
+      expect(result.failures).toBe(1)
       expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(alertSpy).toHaveBeenCalled()
       expect(store.document.segments.length).toBe(0)
 
       // Cleanup
@@ -244,13 +244,11 @@ Second cue with same ID`
 
       // Simulate Electron drop with duplicate UUID VTT
       const mockFilePaths = ['/path/to/duplicates.vtt']
-      await store.processFilePaths(mockFilePaths)
+      const result = await store.processFilePaths(mockFilePaths)
 
-      // Verify error was shown with specific message about duplicates
-      expect(alertSpy).toHaveBeenCalled()
-      const alertMessage = alertSpy.mock.calls[0][0]
-      expect(alertMessage).toContain('duplicate cue ID')
-      expect(alertMessage).toContain('duplicate-id')
+      // Verify failure count is 1 and console error logged
+      expect(result.failures).toBe(1)
+      expect(consoleErrorSpy).toHaveBeenCalled()
 
       // Verify file was not loaded
       expect(store.document.segments.length).toBe(0)
