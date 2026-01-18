@@ -27,7 +27,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   workers: 1,
   maxFailures: process.env.CI ? 10 : undefined,
-  timeout: 60000, // 60 second timeout for Electron tests
+  timeout: 30000, // 30 second timeout for Electron tests
 
   // Use platform-agnostic snapshot paths (remove -darwin/-linux suffixes)
   snapshotPathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
@@ -43,7 +43,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10000, // 10 seconds for individual actions
+    actionTimeout: 3000, // 3 seconds for individual actions
   },
 
   // No projects/webServer needed - tests launch Electron directly using _electron.launch()
