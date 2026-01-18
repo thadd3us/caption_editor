@@ -62,6 +62,7 @@ if [ "$SKIP_ELECTRON" = false ]; then
   npm run build:electron
 
   echo "🧪 Running E2E tests in Electron..."
+  export HEADLESS=true
 
   # Platform-specific Electron test execution
   if [ "$PLATFORM" = "Darwin" ]; then
