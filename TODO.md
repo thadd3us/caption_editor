@@ -1,5 +1,7 @@
 * Get rid of inline imports.
 * Clean up CLAUDE.md
+* One thing I've noticed (to my chagrin) in this codebase is that sometimes running the tests modifies things in the code tree, especially in test_data.  This should only happen with the equivalent of --snapshot-update (and should never happen for test "inputs"), but I think the tests sometimes use the code tree copy of data as their "working copy". 
+
 
 
 Next up is to package the python script called transcribe/embed.py behind a menu item under "AI Annotations"

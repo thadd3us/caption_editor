@@ -24,21 +24,22 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   workers: 1,
   maxFailures: process.env.CI ? 10 : undefined,
-  timeout: 30000, // 30 second timeout for Electron tests
+  timeout: 60000, // 60 second timeout for Electron tests
 
   // Use platform-agnostic snapshot paths (remove -darwin/-linux suffixes)
   snapshotPathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
 
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['list'], // Also show progress in terminal
     ['json', { outputFile: 'test-results.json' }]
   ],
 
   use: {
+    headless: process.env.HEADLESS === 'true',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

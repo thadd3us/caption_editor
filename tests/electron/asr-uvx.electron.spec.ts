@@ -5,12 +5,14 @@ import * as os from 'os'
 import { fileURLToPath } from 'url'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { enableConsoleCapture } from '../helpers/console'
+import { launchElectron } from '../helpers/electron-launch'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('ASR uvx Integration', () => {
     test('should run ASR transcription via uvx (GitHub path)', async () => {
+        test.setTimeout(300000) // 5 minutes because it downloads and runs a model
         // Create a temporary directory for test files
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'asr-uvx-test-'))
         console.log('[Test] Created temp directory:', tmpDir)
@@ -31,11 +33,9 @@ test.describe('ASR uvx Integration', () => {
                 DISPLAY: process.env.DISPLAY || ':99'
             }
 
-            // Launch Electron app
-            const electronApp = await electron.launch({
-                args: [getElectronMainPath()],
-                env,
-                executablePath: process.env.ELECTRON_PATH,
+            // Launch Electron app using common helper
+            const electronApp = await launchElectron({
+                env
             })
 
             const page = await electronApp.firstWindow()

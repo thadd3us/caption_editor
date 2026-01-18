@@ -485,6 +485,18 @@ export const useVTTStore = defineStore('vtt', () => {
     startPlaylistPlayback,
     stopPlaylistPlayback,
     nextPlaylistSegment,
-    cancelPlaylistPlayback
+    cancelPlaylistPlayback,
+    reset() {
+      document.value = createEmptyDocument()
+      mediaPath.value = null
+      currentTime.value = 0
+      isPlaying.value = false
+      selectedCueId.value = null
+      playbackMode.value = PlaybackMode.STOPPED
+      playlist.value = []
+      playlistIndex.value = 0
+      playlistStartIndex.value = 0
+      isDirty.value = false
+    }
   }
 })
