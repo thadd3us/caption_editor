@@ -80,7 +80,7 @@ Another message from Alice`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Select "Alice" from dropdown
@@ -197,7 +197,7 @@ Another caption without speaker`
     await window.waitForTimeout(100)
 
     // Check dialog visibility
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     const isVisible = await dialog.isVisible()
     console.log(`Dialog visibility: ${isVisible} (expected: false)`)
 
@@ -232,11 +232,11 @@ Hello`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Click Cancel button
-    const cancelButton = window.locator('button.btn-cancel')
+    const cancelButton = window.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     await window.waitForTimeout(100)

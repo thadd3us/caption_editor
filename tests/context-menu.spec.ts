@@ -150,7 +150,7 @@ Test`
     await expect(bulkSetDialog).toBeVisible()
 
     // Close the dialog
-    const cancelButton = bulkSetDialog.locator('button.btn-cancel')
+    const cancelButton = bulkSetDialog.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     await window.waitForTimeout(100)
@@ -197,7 +197,7 @@ Test`
     await expect(deleteDialog).toBeVisible()
 
     // Close the dialog
-    const cancelButton = deleteDialog.locator('button.btn-cancel')
+    const cancelButton = deleteDialog.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     await window.waitForTimeout(100)
@@ -304,7 +304,7 @@ Second`
     // Confirm delete
     await window.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
-      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('btn-delete'))
+      const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
 

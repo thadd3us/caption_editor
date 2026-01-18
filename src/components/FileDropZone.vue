@@ -13,20 +13,17 @@
       <p class="drop-hint">You can drop both at the same time</p>
     </div>
   </div>
-  <div
-    v-else
-    class="file-input-zone"
-    @drop="handleDrop"
-    @dragenter.prevent="showDropZone = true"
-  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useVTTStore } from '../stores/vttStore'
 
 const store = useVTTStore()
 const showDropZone = ref(false)
+
+// Use a counter to handle dragenter/dragleave correctly for nested elements
+let dragCounter = 0
 
 async function triggerFileInput() {
   if (!window.electronAPI) {
@@ -42,27 +39,94 @@ async function triggerFileInput() {
   if (filePaths && filePaths.length > 0) {
     const { failures } = await store.processFilePaths(filePaths)
     if (failures > 0) {
-      alert(`Failed to load ${failures} file(s). Check console for details.`)
+      if ((window as any).showAlert) {
+        await (window as any).showAlert({
+          title: 'File Load Partial Failure',
+          message: `Failed to load ${failures} file(s). Check console for details.`
+        })
+      } else {
+        alert(`Failed to load ${failures} file(s). Check console for details.`)
+      }
     }
   }
 }
 
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
-  showDropZone.value = true
+  e.stopPropagation()
+  // Ensure dropEffect is set correctly
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'copy'
+  }
 }
 
 function handleDragLeave(e: DragEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  
+  // Only hide if we've actually left the overlay
   if (e.target === e.currentTarget) {
     showDropZone.value = false
+    dragCounter = 0
   }
 }
 
 async function handleDrop(e: DragEvent) {
   e.preventDefault()
+  e.stopPropagation()
   showDropZone.value = false
-  // Handled by preload script which emits files-dropped IPC event
+  dragCounter = 0
+  // Note: The actual drop logic is often handled by the main process 
+  // listening for 'files-dropped' but in browser mode or specific setups 
+  // you might want to handle it here. In our Electron app, we have a 
+  // listener in App.vue for 'files-dropped'.
 }
+
+/**
+ * Window-level event handlers to show drop zone
+ */
+function handleWindowDragEnter(e: DragEvent) {
+  e.preventDefault()
+  dragCounter++
+  if (dragCounter === 1) {
+    showDropZone.value = true
+  }
+}
+
+function handleWindowDragLeave(e: DragEvent) {
+  e.preventDefault()
+  dragCounter--
+  if (dragCounter <= 0) {
+    showDropZone.value = false
+    dragCounter = 0
+  }
+}
+
+function handleWindowDragOver(e: DragEvent) {
+  e.preventDefault()
+}
+
+function handleWindowDrop(e: DragEvent) {
+  // If we drop anywhere on the window, hide the overlay
+  // The overlay itself has its own handleDrop for when dropped specifically on it
+  e.preventDefault()
+  showDropZone.value = false
+  dragCounter = 0
+}
+
+onMounted(() => {
+  window.addEventListener('dragenter', handleWindowDragEnter)
+  window.addEventListener('dragleave', handleWindowDragLeave)
+  window.addEventListener('dragover', handleWindowDragOver)
+  window.addEventListener('drop', handleWindowDrop)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('dragenter', handleWindowDragEnter)
+  window.removeEventListener('dragleave', handleWindowDragLeave)
+  window.removeEventListener('dragover', handleWindowDragOver)
+  window.removeEventListener('drop', handleWindowDrop)
+})
 
 // Expose methods to parent component
 defineExpose({
@@ -83,6 +147,7 @@ defineExpose({
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+  pointer-events: auto; /* Ensure it catches clicks when visible */
 }
 
 .drop-zone-content {
@@ -91,6 +156,7 @@ defineExpose({
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  pointer-events: auto;
 }
 
 .drop-icon {
@@ -107,15 +173,5 @@ defineExpose({
 .drop-hint {
   font-size: 14px !important;
   color: #666 !important;
-}
-
-.file-input-zone {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: all;
-  z-index: 10;
 }
 </style>

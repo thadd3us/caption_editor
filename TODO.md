@@ -1,3 +1,7 @@
+* Get rid of inline imports.
+* Clean up CLAUDE.md
+
+
 Next up is to package the python script called transcribe/embed.py behind a menu item under "AI Annotations"
 
 * Drag-n-drop vtt and media files into app.

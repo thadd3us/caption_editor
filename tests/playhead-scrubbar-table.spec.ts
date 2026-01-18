@@ -84,12 +84,13 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     console.log('Initial state after reset:', JSON.stringify(initialState, null, 2))
 
     // Load the 10-second audio file
-    const audioPath = path.join(__dirname, 'fixtures', 'test-audio-10s.wav')
+    const audioPath = path.join(process.cwd(), 'test_data', 'test-audio-10s.wav')
     console.log('Loading audio from:', audioPath)
 
     await window.evaluate((filePath) => {
       // Simulate loading an audio file
-      const audioUrl = `file://${filePath}`
+      // Use media:// protocol which we implemented for reliable Electron media loading
+      const audioUrl = `media:///${filePath.replace(/\\/g, '/')}`
       console.log('[TEST] Loading media file:', audioUrl)
         // Use window.$store exposed by the app
         ; (window as any).$store.loadMediaFile(audioUrl)

@@ -25,7 +25,7 @@ test.describe('VTT Editor - Speaker Name Edit Focus and Commit', () => {
   })
 
   test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
+    if (electronApp) { await electronApp.close().catch(() => { }) }
   })
 
   test('should automatically focus input when starting to edit speaker name', async () => {
@@ -228,10 +228,13 @@ Third message`
     const input = window.locator('.speaker-name-editor')
     await expect(input).toBeVisible()
 
-    await input.fill('Alice')
+    await input.click()
+    await window.keyboard.press('Control+A')
+    await window.keyboard.press('Backspace')
+    await window.keyboard.type('Alice')
 
     // Press Enter to commit
-    await input.press('Enter')
+    await window.keyboard.press('Enter')
 
     await window.waitForTimeout(200)
 

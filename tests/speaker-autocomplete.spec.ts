@@ -79,7 +79,7 @@ Third message`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that datalist element exists

@@ -98,7 +98,7 @@ Third message`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that row count is displayed correctly
@@ -177,7 +177,7 @@ Hello`
     await window.waitForTimeout(100)
 
     // Dialog should not be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).not.toBeVisible()
   })
 
@@ -220,11 +220,11 @@ Hello`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Click Cancel button
-    const cancelButton = window.locator('button.btn-cancel')
+    const cancelButton = window.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     await window.waitForTimeout(100)
@@ -278,7 +278,7 @@ Second`
     await window.waitForTimeout(100)
 
     // Dialog should be visible
-    const dialog = window.locator('.dialog-overlay')
+    const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that row count shows "1 selected row" (singular)
