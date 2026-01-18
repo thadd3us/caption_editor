@@ -1,7 +1,11 @@
-* Get rid of inline imports.
-* Clean up CLAUDE.md
+* Bring all framework and library dependencies up to date, and get test suite running again.
+* The E2E tests are kind of slow -- are there redundancies there that could be removed?  Are there sleeps in there?  Could some coverage be moved to smaller tests?  Could the ASR test me marked as "manual only", so that it doesn't run as part of "run-all-tests.sh"?
+* Clean up CLAUDE.md.
+* Get rid of inline imports in python, and leave a note in CLAUDE.md to not do this.
 * One thing I've noticed (to my chagrin) in this codebase is that sometimes running the tests modifies things in the code tree, especially in test_data.  This should only happen with the equivalent of --snapshot-update (and should never happen for test "inputs"), but I think the tests sometimes use the code tree copy of data as their "working copy". 
-
+* There are lots of extraneous docs lying around, like TEST_TIMING_SUMMARY.txt and the TEST_TIMING_REPORT.md.
+* Debug:
+export HEADLESS=true && npx playwright test tests/speaker-name-edit-focus.spec.ts --reporter=list
 
 
 Next up is to package the python script called transcribe/embed.py behind a menu item under "AI Annotations"
