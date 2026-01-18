@@ -27,7 +27,7 @@ test.describe('File Drop', () => {
 
   test.afterEach(async () => {
     if (electronApp) {
-      await electronApp.close().catch(() => {})
+      await electronApp.close().catch(() => { })
     }
   })
 
@@ -81,7 +81,7 @@ test.describe('File Drop', () => {
     expect(result.length).toBe(1)
     expect(result[0].type).toBe('media')
     expect(result[0].filePath).toBe(wavFilePath)
-    expect(result[0].url).toContain('file://')
+    expect(result[0].url).toContain('media://')
 
     // Verify the media file gets loaded into the store
     const mediaPath = await window.evaluate((fileResult) => {

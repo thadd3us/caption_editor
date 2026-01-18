@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 import { enableConsoleCapture } from './helpers/console'
+import { launchElectron } from './helpers/electron-launch'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -13,12 +14,9 @@ test.describe('VTT Editor', () => {
   let window: Page
 
   test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+    // Launch Electron app using common helper
+    electronApp = await launchElectron({
       env: {
-        ...process.env,
-        NODE_ENV: 'test',
         DISPLAY: process.env.DISPLAY || ':99'
       }
     })
@@ -30,7 +28,7 @@ test.describe('VTT Editor', () => {
   })
 
   test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
+    if (electronApp) { await electronApp.close().catch(() => { }) }
   })
 
   test('should load the application', async () => {
@@ -62,7 +60,7 @@ test.describe('VTT Editor', () => {
       return dt
     }, vttPath)
 
-    await window.dispatchEvent('.file-input-zone', 'drop', { dataTransfer })
+    await window.dispatchEvent('body', 'drop', { dataTransfer })
 
     // Check that captions appear in the table
     await window.waitForTimeout(200)

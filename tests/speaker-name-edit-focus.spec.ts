@@ -2,30 +2,43 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import { enableConsoleCapture } from './helpers/console'
+import { launchElectron } from './helpers/electron-launch'
 
 test.describe('VTT Editor - Speaker Name Edit Focus and Commit', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
+  test.beforeAll(async () => {
+    // Launch Electron app using common helper once for all tests in this file
+    electronApp = await launchElectron({
       env: {
-        ...process.env,
-        NODE_ENV: 'test',
         DISPLAY: process.env.DISPLAY || ':99'
       }
     })
 
-    // Wait for the first window
-    window = await electronApp.firstWindow()
+    // Wait for the first window with a generous timeout
+    window = await electronApp.firstWindow({ timeout: 60000 })
     await window.waitForLoadState('domcontentloaded')
     enableConsoleCapture(window)
   })
 
-  test.afterEach(async () => {
+  test.afterAll(async () => {
     if (electronApp) { await electronApp.close().catch(() => { }) }
+  })
+
+  test.beforeEach(async () => {
+    // Reset the application state before each test
+    await window.evaluate(() => {
+      const vttStore = (window as any).$store
+      if (vttStore) {
+        vttStore.reset()
+      }
+      // Ensure no dangling UI elements
+      const overlay = document.querySelector('.base-modal-overlay')
+      if (overlay) overlay.remove()
+    })
+    // AG Grid might need a moment to settle after reset
+    await window.waitForTimeout(500)
   })
 
   test('should automatically focus input when starting to edit speaker name', async () => {
@@ -222,19 +235,16 @@ Third message`
       })
     })
 
-    await window.waitForTimeout(100)
+    await window.waitForTimeout(200)
 
-    // Type "A" and then select "Alice" by typing the full name
+    // Clear the input and type new name
     const input = window.locator('.speaker-name-editor')
     await expect(input).toBeVisible()
 
-    await input.click()
-    await window.keyboard.press('Control+A')
-    await window.keyboard.press('Backspace')
-    await window.keyboard.type('Alice')
+    await input.fill('Alice')
 
     // Press Enter to commit
-    await window.keyboard.press('Enter')
+    await input.press('Enter')
 
     await window.waitForTimeout(200)
 
@@ -271,10 +281,9 @@ First message`
     const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
     await speakerCell.dblclick()
 
-    await window.waitForTimeout(100)
-
-    // Check that input is visible and has focus
     const input = window.locator('.speaker-name-editor')
+    await expect(input).toBeFocused({ timeout: 5000 })
+    await expect(input).toHaveValue('Alice')
     await expect(input).toBeVisible()
 
     const hasInputFocus = await window.evaluate(() => {
@@ -313,17 +322,16 @@ First message`
     const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
     await speakerCell.dblclick()
 
-    // Small delay to allow editor to appear
-    await window.waitForTimeout(50)
+    const input = window.locator('.speaker-name-editor')
+    await expect(input).toBeFocused({ timeout: 5000 })
 
-    // Type immediately without manually clicking the input
-    // If focus is not automatic, this would fail or type into wrong element
-    await window.keyboard.type('Bob')
+    // Wait a bit for AG Grid internal events to settle before typing
+    await window.waitForTimeout(200)
+    await input.pressSequentially('Bob', { delay: 50 })
 
     await window.waitForTimeout(100)
 
     // Verify the input now contains what we typed
-    const input = window.locator('.speaker-name-editor')
     const inputValue = await input.inputValue()
 
     // If text was selected, typing "Bob" would replace "Alice" with "Bob"
