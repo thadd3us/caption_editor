@@ -1,119 +1,162 @@
-# Minimal Reproduction: Electron Headless Datalist Crash
+# Playwright `.fill()` Crashes Electron with Hidden Window + Datalist
 
-**STATUS: ✓ SUCCESSFULLY REPRODUCES THE CRASH**
+**STATUS: ✓ REPRODUCES**
 
-This minimal reproduction demonstrates an Electron crash that occurs when using Playwright's `.fill()` method on an `<input>` element with `<datalist>` in headless mode.
+Minimal reproduction demonstrating that Playwright's `.fill()` method crashes Electron when:
+1. BrowserWindow is created with `show: false` (hidden window)
+2. Input element has a `<datalist>` for autocomplete
+3. `.fill()` is called on that input
 
-## Bug Summary
-- **Root cause**: Playwright's `.fill()` method on datalist inputs triggers autocomplete UI rendering
-- **Environment**: Electron headless mode (where window is hidden)
-- **Result**: Electron process crashes with "Target page, context or browser has been closed"
-- **Workaround**: Use JavaScript `input.value =` instead of `.fill()`
-
-## Setup
+## Quick Reproduction
 
 ```bash
 npm install
+npm run test:hidden   # Crashes - 2 tests fail
+npm run test:visible  # Works - all 5 tests pass
 ```
 
-## Run Tests
+## Bug Description
 
-### Test in HEADED mode (with visible window):
+**Root Cause**: Playwright's `.fill()` method on datalist inputs triggers browser autocomplete UI rendering. When the Electron window is hidden (`show: false`), this UI rendering fails and crashes the Electron process.
+
+**Error**: `locator.fill: Target page, context or browser has been closed`
+
+**Workaround**: Use JavaScript `input.value = 'text'` instead of `.fill()`
+
+## Test Results
+
+### With Visible Window (`show: true`)
 ```bash
-npm run test:headed
+$ npm run test:visible
+
+✓ Window visibility verification
+✓ Regular input + .fill()
+✓ Datalist (non-empty) + .fill()  ← Works fine
+✓ Datalist (empty) + .fill()      ← Works fine
+✓ Datalist + JavaScript setValue
+
+5 passed
 ```
 
-Expected: All 5 tests pass ✓
-- Window is visible
-- `.fill()` works on datalist inputs
-
-### Test in HEADLESS mode (without visible window):
+### With Hidden Window (`show: false`)
 ```bash
-npm run test:headless
+$ npm run test:hidden
+
+✓ Window visibility verification
+✓ Regular input + .fill()
+✗ Datalist (non-empty) + .fill()  ← CRASHES
+✗ Datalist (empty) + .fill()      ← CRASHES
+✓ Datalist + JavaScript setValue  ← Works fine
+
+2 failed, 3 passed
 ```
 
-Expected: 2 tests crash, 3 tests pass
-- Window is NOT visible (confirmed by test 1)
-- ✓ Test 1: Headless mode verification
-- ✓ Test 2: Regular input + `.fill()` works
-- ✗ Test 3: Datalist (non-empty) + `.fill()` **CRASHES**
-- ✗ Test 4: Datalist (empty) + `.fill()` **CRASHES**
-- ✓ Test 5: Datalist + JavaScript `value =` works
+## How Window Visibility Works in Electron
 
-## Key Finding
-
-The crash is NOT about empty vs non-empty initial values. **ANY** use of Playwright's `.fill()` on a datalist input crashes Electron in headless mode.
-
-## How Headless Works
-
-In Electron, headless mode must be controlled in the app's `main.js`:
+In Electron, you control window visibility via the `show` option in `BrowserWindow`:
 
 ```javascript
 const win = new BrowserWindow({
-  show: process.env.HEADLESS !== 'true',  // Hide window when HEADLESS=true
+  show: false,  // Window exists but is not visible
   // ... other options
 })
 ```
 
-Playwright's `headless` launch option does NOT control Electron window visibility.
+**Note**: This is about Electron's `show` window option, **not** Playwright's `headless` browser option (which doesn't apply to Electron). The window process runs normally but without displaying UI.
 
-## Test Results
+## Reproduction Steps
 
-```bash
-$ HEADLESS=true npm test
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Running 5 tests using 1 worker
+2. **Run with visible window** (all tests pass)
+   ```bash
+   npm run test:visible
+   ```
+   - Window appears on screen
+   - All 5 tests pass ✓
+   - `.fill()` works on datalist inputs
 
-HEADLESS env var: true
-Window isVisible(): false
-✓ Confirmed: Running in HEADLESS mode
+3. **Run with hidden window** (crashes)
+   ```bash
+   npm run test:hidden
+   ```
+   - No window appears (but process runs)
+   - Tests 3 & 4 crash when calling `.fill()` on datalist input
+   - Test 5 passes (uses JavaScript instead of `.fill()`)
 
-  ✓  1 test.spec.js › verify headless mode is active
-  ✓  2 test.spec.js › regular input works in headless mode
-  ✗  3 test.spec.js › datalist with NON-EMPTY initial value
-  ✗  4 test.spec.js › datalist with EMPTY initial value
-  ✓  5 test.spec.js › datalist empty -> via JS
+## Files
 
-  2 failed
-  3 passed
-```
-
-## Crash Error
-
-```
-Error: locator.fill: Target page, context or browser has been closed
-```
+- **`main.js`** - Electron app that reads `HEADLESS` env var to control `show` option
+- **`index.html`** - Page with datalist inputs and regular input
+- **`test.spec.js`** - Playwright tests demonstrating crash
+- **`package.json`** - Dependencies and test scripts
 
 ## Workaround
 
+Don't use `.fill()` on datalist inputs when window is hidden:
+
 ```javascript
-// ✗ This crashes in headless:
+// ✗ This crashes when window is hidden:
 await input.fill('Alice')
 
 // ✓ This works:
-await window.evaluate(() => {
-  const input = document.querySelector('.test-datalist-empty')
+await page.evaluate(() => {
+  const input = document.querySelector('.my-input')
   input.value = 'Alice'
   input.dispatchEvent(new Event('input', { bubbles: true }))
 })
 ```
 
-## Report to Upstream
-
-This appears to be a bug in Playwright's Electron support. Consider reporting to:
-- https://github.com/microsoft/playwright/issues
-
 ## Environment
 
 **Tested and confirmed on:**
-- Electron: 40.0.0 (latest as of 2026-01-19)
-- Playwright: 1.57.0 (latest as of 2026-01-19)
-- Node: 22.20.0
-- Platform: macOS
+- **Electron**: 40.0.0 (latest as of 2026-01-19)
+- **Playwright**: 1.57.0 (latest as of 2026-01-19)
+- **Node**: 20.x / 22.x
+- **Platform**: macOS (likely affects all platforms)
 
-**Bug status**: Still present in latest versions
+## Key Finding
 
-## References
+The crash is **NOT** about:
+- ❌ Empty vs non-empty initial values
+- ❌ AG Grid or Vue (this is a vanilla HTML reproduction)
+- ❌ Specific datalist content
 
-- [Feature] Headless Electron · Issue #13288 · microsoft/playwright - https://github.com/microsoft/playwright/issues/13288
-- [Question] Is it possible to run playwright for Electron in headless mode ? · Issue #2609 · microsoft/playwright/issues/2609
+The crash **IS** about:
+- ✅ Playwright's `.fill()` method
+- ✅ Datalist inputs specifically
+- ✅ BrowserWindow with `show: false`
+
+## Additional Notes
+
+- Regular inputs (without datalist) work fine with `.fill()` when window is hidden
+- Datalist inputs work fine with `.fill()` when window is visible
+- Setting value via JavaScript works in all cases
+- The first test explicitly verifies window visibility to ensure reproduction is valid
+
+## Confirmed: This is a Playwright Bug
+
+We tested without Playwright using plain Electron + JavaScript:
+
+```bash
+npm run test:electron-only-hidden   # ✓ ALL TESTS PASS
+npm run test:electron-only-visible  # ✓ ALL TESTS PASS
+```
+
+Plain JavaScript manipulation of datalist inputs works **perfectly** in Electron with `show: false`. The crash only occurs when using Playwright's `.fill()` method.
+
+**Conclusion**: This is a bug in Playwright's `.fill()` implementation, not an Electron bug.
+
+## Report Upstream
+
+This should be reported to Playwright:
+- https://github.com/microsoft/playwright/issues
+
+Related issues (about Electron window visibility):
+- [Feature] Headless Electron · Issue #13288: https://github.com/microsoft/playwright/issues/13288
+- [Question] Is it possible to run playwright for Electron in headless mode? · Issue #2609: https://github.com/microsoft/playwright/issues/2609
+
+**Note**: These issues use the term "headless" but they're really about running Electron with `show: false` (hidden window), not browser headless mode.

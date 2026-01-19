@@ -1,12 +1,14 @@
 {
   "name": "electron-datalist-headless-crash-repro",
   "version": "1.0.0",
-  "description": "Minimal reproduction of Electron headless crash with datalist",
+  "description": "Minimal reproduction: Playwright .fill() crashes Electron when window has show=false and input has datalist",
   "main": "main.js",
   "scripts": {
     "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:headless": "HEADLESS=true playwright test"
+    "test:visible": "playwright test",
+    "test:hidden": "HEADLESS=true playwright test",
+    "test:electron-only-visible": "electron electron-only-test.js",
+    "test:electron-only-hidden": "HEADLESS=true electron electron-only-test.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

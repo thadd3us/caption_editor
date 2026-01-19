@@ -1,17 +1,17 @@
 const { test, expect, _electron: electron } = require('@playwright/test')
 
-test.describe('Datalist Headless Crash', () => {
+test.describe('Datalist Crash with Hidden Window (show=false)', () => {
   let electronApp
   let window
 
   test.beforeAll(async () => {
-    const isHeadless = process.env.HEADLESS === 'true'
+    const hideWindow = process.env.HEADLESS === 'true'
 
     electronApp = await electron.launch({
       args: ['main.js', '--no-sandbox'],
       env: {
         ...process.env,
-        HEADLESS: isHeadless ? 'true' : 'false'
+        HEADLESS: hideWindow ? 'true' : 'false'  // Controls BrowserWindow show option
       }
     })
 
@@ -23,27 +23,27 @@ test.describe('Datalist Headless Crash', () => {
     await electronApp.close()
   })
 
-  test('verify headless mode is active', async () => {
-    // Check if we're actually in headless mode
-    const isHeadless = process.env.HEADLESS === 'true'
+  test('verify window visibility (show option)', async () => {
+    // Check BrowserWindow visibility via the show option
+    const hideWindow = process.env.HEADLESS === 'true'
     console.log('HEADLESS env var:', process.env.HEADLESS)
-    console.log('Should be headless:', isHeadless)
+    console.log('Window should be hidden:', hideWindow)
 
-    // In headless mode, the window should not be visible
+    // Check actual window visibility
     const browserWindow = await electronApp.browserWindow(window)
     const isVisible = await browserWindow.evaluate((win) => win.isVisible())
     console.log('Window isVisible():', isVisible)
 
-    if (isHeadless) {
+    if (hideWindow) {
       expect(isVisible).toBe(false)
-      console.log('✓ Confirmed: Running in HEADLESS mode (window is not visible)')
+      console.log('✓ Confirmed: BrowserWindow created with show=false (not visible)')
     } else {
       expect(isVisible).toBe(true)
-      console.log('✓ Confirmed: Running in HEADED mode (window is visible)')
+      console.log('✓ Confirmed: BrowserWindow created with show=true (visible)')
     }
   })
 
-  test('regular input works in headless mode', async () => {
+  test('regular input works with hidden window', async () => {
     const input = window.locator('.test-regular-input')
     await expect(input).toBeVisible()
 
@@ -53,7 +53,7 @@ test.describe('Datalist Headless Crash', () => {
     expect(value).toBe('Test value')
   })
 
-  test('datalist with NON-EMPTY initial value works in headless', async () => {
+  test('datalist with NON-EMPTY initial value crashes with hidden window', async () => {
     const input = window.locator('.test-datalist-prefilled')
     await expect(input).toBeVisible()
 
@@ -61,7 +61,7 @@ test.describe('Datalist Headless Crash', () => {
     let value = await input.inputValue()
     expect(value).toBe('Alice')
 
-    // Change to another datalist value - this WORKS in headless
+    // Change to another datalist value - this CRASHES with hidden window
     await input.clear()
     await input.fill('Bob')
 
@@ -69,7 +69,7 @@ test.describe('Datalist Headless Crash', () => {
     expect(value).toBe('Bob')
   })
 
-  test('datalist with EMPTY initial value crashes in headless', async () => {
+  test('datalist with EMPTY initial value crashes with hidden window', async () => {
     const input = window.locator('.test-datalist-empty')
     await expect(input).toBeVisible()
 
@@ -82,23 +82,23 @@ test.describe('Datalist Headless Crash', () => {
     console.log('Input HTML:', html)
     expect(html).toContain('list="names-list"')
 
-    // This crashes Electron in headless mode when:
-    // 1. Initial value is empty
-    // 2. Setting to a value that exists in datalist
+    // This crashes Electron when window has show=false:
+    // 1. Input has datalist
+    // 2. Using Playwright's .fill() method
     await input.fill('Alice')
 
     value = await input.inputValue()
     expect(value).toBe('Alice')
   })
 
-  test('datalist empty -> datalist value via JS also crashes', async () => {
+  test('datalist with JavaScript setValue works (no crash)', async () => {
     const input = window.locator('.test-datalist-empty')
     await expect(input).toBeVisible()
 
     // Clear it first
     await input.clear()
 
-    // Even setting via JavaScript crashes in headless
+    // Setting via JavaScript works fine (no crash) even with hidden window
     await window.evaluate(() => {
       const input = document.querySelector('.test-datalist-empty')
       if (input) {
