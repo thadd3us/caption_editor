@@ -1,5 +1,7 @@
 # Claude Development Notes
 
+This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+
 ## Important Reminders
 
 **DO NOT create summary/readme files like CLUSTERING_README.md, IMPLEMENTATION_SUMMARY.md, etc.**
