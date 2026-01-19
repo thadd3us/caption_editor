@@ -13,31 +13,15 @@
  *
  * Full end-to-end testing requires manual verification - see DRAG_DROP_IMPLEMENTATION.md
  */
-import { test, expect, _electron as electron } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
-  test('should expose getPathForFile API (note: returns empty for synthetic File objects)', async () => {
-    // Launch Electron app
-    // Note: Requires Xvfb on Linux - run `start-xvfb.sh` first
-    const electronApp = await electron.launch({
-      args: [path.join(getElectronMainPath()), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: ':99', // Use Xvfb display
-      }
-    })
-
-    const window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-
+  test('should expose getPathForFile API (note: returns empty for synthetic File objects)', async ({ page }) => {
     // Wait for app to be ready
-    await window.waitForSelector('.app', { timeout: 10000 })
+    await page.waitForSelector('.app', { timeout: 10000 })
 
     // Create a test VTT file
     const testVttPath = path.join(getProjectRoot(), 'test_data/sample.vtt.copy')
@@ -51,7 +35,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
 
     try {
       // Simulate drag-and-drop by creating a DataTransfer with File objects
-      const result = await window.evaluate(async (filePath) => {
+      const result = await page.evaluate(async (filePath) => {
         // Check if electronAPI.getPathForFile is available
         const electronAPI = (window as any).electronAPI
         if (!electronAPI || !electronAPI.getPathForFile) {
@@ -102,61 +86,42 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
         fs.unlinkSync(testVttPath)
         console.log('[test] Cleaned up test file')
       }
-      await electronApp.close()
     }
   })
 
-  test('should handle multiple files dropped simultaneously', async () => {
-    // Note: Requires Xvfb on Linux - run `start-xvfb.sh` first
-    const electronApp = await electron.launch({
-      args: [path.join(getElectronMainPath()), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: ':99', // Use Xvfb display
+  test('should handle multiple files dropped simultaneously', async ({ page }) => {
+    await page.waitForSelector('.app', { timeout: 10000 })
+
+    // Test dropping multiple files
+    const result = await page.evaluate(async () => {
+      const electronAPI = (window as any).electronAPI
+      if (!electronAPI || !electronAPI.getPathForFile) {
+        return { success: false, error: 'electronAPI.getPathForFile not available' }
       }
-    })
 
-    const window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForSelector('.app', { timeout: 10000 })
+      // Simulate multiple File objects
+      const files = [
+        new File(['WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nTest 1'], 'test1.vtt', { type: 'text/vtt' }),
+        new File(['WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nTest 2'], 'test2.vtt', { type: 'text/vtt' })
+      ]
 
-    try {
-      // Test dropping multiple files
-      const result = await window.evaluate(async () => {
-        const electronAPI = (window as any).electronAPI
-        if (!electronAPI || !electronAPI.getPathForFile) {
-          return { success: false, error: 'electronAPI.getPathForFile not available' }
-        }
-
-        // Simulate multiple File objects
-        const files = [
-          new File(['WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nTest 1'], 'test1.vtt', { type: 'text/vtt' }),
-          new File(['WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nTest 2'], 'test2.vtt', { type: 'text/vtt' })
-        ]
-
-        const paths = files.map(file => {
-          try {
-            return electronAPI.getPathForFile(file)
-          } catch (err) {
-            console.error('[test] Error getting path:', err)
-            return null
-          }
-        })
-
-        return {
-          success: true,
-          paths,
-          filesProcessed: paths.filter(p => p !== null).length
+      const paths = files.map(file => {
+        try {
+          return electronAPI.getPathForFile(file)
+        } catch (err) {
+          console.error('[test] Error getting path:', err)
+          return null
         }
       })
 
-      console.log('[test] Multiple files result:', result)
-      expect(result.success).toBe(true)
+      return {
+        success: true,
+        paths,
+        filesProcessed: paths.filter(p => p !== null).length
+      }
+    })
 
-    } finally {
-      await electronApp.close()
-    }
+    console.log('[test] Multiple files result:', result)
+    expect(result.success).toBe(true)
   })
 })

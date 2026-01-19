@@ -1,10 +1,5 @@
 import { test, expect, _electron as electron, ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { fileURLToPath } from 'url'
 import { getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 test.describe('Drag-and-Drop IPC Integration', () => {
     let electronApp: ElectronApplication

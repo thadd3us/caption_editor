@@ -1,64 +1,36 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('Electron App', () => {
-  let electronApp: ElectronApplication
-  let window: Page
+  // Using shared Electron instance - no beforeEach/afterEach needed
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [getElectronMainPath(), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
-
-  test('should launch the application', async () => {
+  test('should launch the application', async ({ page }) => {
     // Check that window is visible
-    expect(await window.isVisible('body')).toBe(true)
+    expect(await page.isVisible('body')).toBe(true)
   })
 
-  test('should have the correct title', async () => {
-    const title = await window.title()
+  test('should have the correct title', async ({ page }) => {
+    const title = await page.title()
     expect(title).toBe('VTT Editor')
   })
 
-  test('should show the caption table header', async () => {
-    const tableHeader = await window.locator('.table-header h2')
+  test('should show the caption table header', async ({ page }) => {
+    const tableHeader = page.locator('.table-header h2')
     await expect(tableHeader).toBeVisible()
   })
 
-  test('should have electronAPI available', async () => {
+  test('should have electronAPI available', async ({ page }) => {
     // Check that the Electron API is exposed
-    const hasElectronAPI = await window.evaluate(() => {
+    const hasElectronAPI = await page.evaluate(() => {
       return !!window.electronAPI && window.electronAPI.isElectron
     })
     expect(hasElectronAPI).toBe(true)
   })
 
-  test('should be able to read API methods', async () => {
-    const apiMethods = await window.evaluate(() => {
+  test('should be able to read API methods', async ({ page }) => {
+    const apiMethods = await page.evaluate(() => {
       if (!window.electronAPI) return []
       return Object.keys(window.electronAPI)
     })
@@ -70,7 +42,7 @@ test.describe('Electron App', () => {
     expect(apiMethods).toContain('processDroppedFiles')
   })
 
-  test('should load and display VTT content', async () => {
+  test('should load and display VTT content', async ({ page }) => {
     // Create a temporary VTT file
     const testVTTPath = path.join(getProjectRoot(), 'test_data/test.vtt')
     const vttContent = `WEBVTT
@@ -87,7 +59,7 @@ Second caption
     await fs.writeFile(testVTTPath, vttContent)
 
     // Load VTT file programmatically
-    await window.evaluate(async (content) => {
+    await page.evaluate(async (content) => {
       const store = (window as any).vttStore
       if (store && store.loadFromFile) {
         store.loadFromFile(content, 'test.vtt')
@@ -95,17 +67,17 @@ Second caption
     }, vttContent)
 
     // Wait for the table to update
-    await window.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
     // Check that captions are displayed in the table
-    const captionTable = await window.locator('.ag-center-cols-container')
+    const captionTable = page.locator('.ag-center-cols-container')
     await expect(captionTable).toBeVisible()
 
     // Clean up
     await fs.unlink(testVTTPath).catch(() => {})
   })
 
-  test('should be able to export VTT', async () => {
+  test('should be able to export VTT', async ({ page }) => {
     // First load some content
     const vttContent = `WEBVTT
 
@@ -118,24 +90,24 @@ seg-1
 Test caption
 `
 
-    await window.evaluate(async (content) => {
+    await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store && store.loadFromFile) {
         store.loadFromFile(content, 'test-export.vtt')
       }
     }, vttContent)
 
-    await window.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
     // Verify content loaded
-    const segmentCount = await window.evaluate(() => {
+    const segmentCount = await page.evaluate(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length || 0
     })
     expect(segmentCount).toBe(1)
 
     // Test that exportToString() works correctly (this is what Save As uses)
-    const exportedContent = await window.evaluate(() => {
+    const exportedContent = await page.evaluate(() => {
       const store = (window as any).$store
       return store.exportToString()
     })
@@ -150,7 +122,7 @@ Test caption
     console.log('✓ Export functionality verified')
   })
 
-  test('should handle file drops', async () => {
+  test('should handle file drops', async ({ page }) => {
     // Create a test VTT file
     const testVTTPath = path.join(getProjectRoot(), 'test_data/drop-test.vtt')
     const vttContent = `WEBVTT
@@ -163,7 +135,7 @@ Dropped caption
     await fs.writeFile(testVTTPath, vttContent)
 
     // Simulate file drop via electronAPI
-    const result = await window.evaluate(async (filePath) => {
+    const result = await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return null
       return await window.electronAPI.processDroppedFiles([filePath])
     }, testVTTPath)
@@ -177,7 +149,7 @@ Dropped caption
     await fs.unlink(testVTTPath).catch(() => {})
   })
 
-  test('should respect user file selection permissions', async () => {
+  test('should respect user file selection permissions', async ({ electronApp, page }) => {
     // This test verifies that the app uses proper dialogs
     // and doesn't try to access files without permission
 
@@ -191,14 +163,14 @@ Dropped caption
 
     // Since we removed the Open Files button, just verify the app is functional
     // We can't easily test the menu trigger from the test without more setup
-    const tableHeader = await window.locator('.table-header h2')
+    const tableHeader = page.locator('.table-header h2')
     await expect(tableHeader).toBeVisible()
 
     // Wait for dialog to be processed
-    await window.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
     // Should not throw any errors or show permission warnings
-    const consoleErrors = await window.evaluate(() => {
+    const consoleErrors = await page.evaluate(() => {
       // Check if there are any console errors
       return (window as any).__consoleErrors || []
     })
@@ -206,13 +178,13 @@ Dropped caption
     expect(consoleErrors.length).toBe(0)
   })
 
-  test('should capture screenshot of app', async () => {
+  test('should capture screenshot of app', async ({ page }) => {
     // Wait for app to fully load
-    await window.waitForLoadState('networkidle')
-    await window.waitForTimeout(1000)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000)
 
     // Capture screenshot to verify app is rendering correctly
-    const screenshot = await window.screenshot({
+    const screenshot = await page.screenshot({
       path: 'tests/electron/screenshots/app-launch.png',
       fullPage: true
     })
@@ -222,15 +194,15 @@ Dropped caption
     expect(screenshot.length).toBeGreaterThan(0)
 
     // Check that the main UI elements are visible
-    const body = await window.locator('body')
+    const body = page.locator('body')
     await expect(body).toBeVisible()
 
     // Log viewport size for debugging
-    const viewportSize = window.viewportSize()
+    const viewportSize = page.viewportSize()
     console.log('Viewport size:', viewportSize)
 
     // Verify page is not blank by checking if there's actual content
-    const hasContent = await window.evaluate(() => {
+    const hasContent = await page.evaluate(() => {
       const body = document.body
       const bodyText = body.innerText || body.textContent || ''
       const hasElements = body.children.length > 1 // More than just #app

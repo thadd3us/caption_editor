@@ -1,19 +1,13 @@
-import { test, expect, _electron as electron } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
-import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('Sequential Playback', () => {
-  let electronApp: ElectronApplication
-  let window: Page
+  // Using shared Electron instance - no beforeEach/afterEach needed
 
   // Helper to load VTT file via IPC
-  async function loadVTTFile(filePath: string) {
+  async function loadVTTFile(electronApp: ElectronApplication, page: Page, filePath: string) {
     await electronApp.evaluate(async ({ webContents }, path) => {
       const windows = webContents.getAllWebContents()
       if (windows.length > 0) {
@@ -22,7 +16,7 @@ test.describe('Sequential Playback', () => {
     }, filePath)
 
     // Wait for file to load
-    await window.waitForFunction(
+    await page.waitForFunction(
       () => {
         const store = (window as any).$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
@@ -32,67 +26,44 @@ test.describe('Sequential Playback', () => {
   }
 
   // Helper to load media file
-  async function loadMediaFile(filePath: string) {
-    await window.evaluate((path) => {
+  async function loadMediaFile(page: Page, filePath: string) {
+    await page.evaluate((path) => {
       const store = (window as any).$store
       if (store && store.loadMediaFile) {
         store.loadMediaFile(path, path)
       }
     }, filePath)
-    await window.waitForTimeout(100)
+    await page.waitForTimeout(100)
   }
 
-  // Launch fresh Electron instance before each test
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(getElectronMainPath()), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  // Close Electron instance after each test
-  test.afterEach(async () => {
-    await electronApp.close()
-  })
-
-  test('should show sequential play button in table header', async () => {
+  test('should show sequential play button in table header', async ({ electronApp, page }) => {
     // Load a VTT file with multiple segments
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = window.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button:has-text("Play Segments")')
     await expect(sequentialBtn).toBeVisible()
   })
 
-  test('should start sequential playback from top when no row selected', async () => {
+  test('should start sequential playback from top when no row selected', async ({ electronApp, page }) => {
     console.log('[Test] Loading VTT file...')
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     console.log('[Test] Loading media file...')
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
+    await loadMediaFile(page, audioPath)
 
     console.log('[Test] Clicking Play Segments button...')
-    const sequentialBtn = window.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button:has-text("Play Segments")')
     await sequentialBtn.click()
 
     console.log('[Test] Verifying button changed to Pause Segments...')
-    await expect(window.locator('button:has-text("Pause Segments")')).toBeVisible()
+    await expect(page.locator('button:has-text("Pause Segments")')).toBeVisible()
 
     console.log('[Test] Checking playback state...')
-    const state = await window.evaluate(() => {
+    const state = await page.evaluate(() => {
       const store = (window as any).__vttStore
       return {
         playbackMode: store.playbackMode,
@@ -105,32 +76,32 @@ test.describe('Sequential Playback', () => {
 
     // First row should be selected (set by startPlaylistPlayback)
     console.log('[Test] Waiting for row selection...')
-    await window.waitForTimeout(200)
-    const selectedRows = await window.locator('.ag-row.ag-row-selected').count()
+    await page.waitForTimeout(200)
+    const selectedRows = await page.locator('.ag-row.ag-row-selected').count()
     console.log('[Test] Selected rows count:', selectedRows)
 
     if (selectedRows === 0) {
       // Debug: log all rows
-      const rowCount = await window.locator('.ag-row').count()
+      const rowCount = await page.locator('.ag-row').count()
       console.log('[Test] Total rows:', rowCount)
     }
 
     expect(selectedRows).toBeGreaterThan(0)
   })
 
-  test('should start sequential playback from selected row', async () => {
+  test('should start sequential playback from selected row', async ({ electronApp, page }) => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load a VTT file
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     // Load media file
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
+    await loadMediaFile(page, audioPath)
 
     // Wait for grid to be ready and have at least 3 rows
-    await window.waitForFunction(() => {
+    await page.waitForFunction(() => {
       const api = (window as any).__agGridApi
       if (!api) return false
       let count = 0
@@ -139,11 +110,11 @@ test.describe('Sequential Playback', () => {
     }, { timeout: 5000 })
 
     // Wait a bit for AG Grid to fully render cells
-    await window.waitForTimeout(200)
+    await page.waitForTimeout(200)
 
     // Click the third row (index 2) and get its text via evaluate
     // Filter out AG Grid ghost rows (known issue - see CLAUDE.md)
-    const result = await window.evaluate(() => {
+    const result = await page.evaluate(() => {
       const allRows = Array.from(document.querySelectorAll('.ag-row'))
 
       // Filter out ghost rows - rows that have no text content in their cells
@@ -177,52 +148,52 @@ test.describe('Sequential Playback', () => {
 
     const thirdRowText = result.text
 
-    await window.waitForTimeout(50)
+    await page.waitForTimeout(50)
 
     // Click sequential play button
-    const sequentialBtn = window.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button:has-text("Play Segments")')
     await sequentialBtn.click()
 
-    await window.waitForTimeout(100)
+    await page.waitForTimeout(100)
 
     // Third row should still be selected (started from there)
-    const selectedRowText = await window.locator('.ag-row-selected [col-id="text"]').first().textContent()
+    const selectedRowText = await page.locator('.ag-row-selected [col-id="text"]').first().textContent()
     expect(selectedRowText).toBe(thirdRowText)
   })
 
-  test('should stop sequential playback when pause button clicked', async () => {
+  test('should stop sequential playback when pause button clicked', async ({ electronApp, page }) => {
     // Load files
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
+    await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const playBtn = window.locator('button:has-text("Play Segments")')
+    const playBtn = page.locator('button:has-text("Play Segments")')
     await playBtn.click()
 
     // Button should change to pause
-    const pauseBtn = window.locator('button:has-text("Pause Segments")')
+    const pauseBtn = page.locator('button:has-text("Pause Segments")')
     await expect(pauseBtn).toBeVisible()
 
     // Click pause
     await pauseBtn.click()
 
     // Button should change back to play
-    await expect(window.locator('button:has-text("Play Segments")')).toBeVisible()
+    await expect(page.locator('button:has-text("Play Segments")')).toBeVisible()
   })
 
-  test('should play segments in table order respecting sort', async () => {
+  test('should play segments in table order respecting sort', async ({ electronApp, page }) => {
     // Load files
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
+    await loadMediaFile(page, audioPath)
 
     // Get the grid API and capture initial order
-    const initialOrder = await window.evaluate(() => {
+    const initialOrder = await page.evaluate(() => {
       const api = (window as any).__agGridApi
       const segmentIds: string[] = []
       api.forEachNodeAfterFilterAndSort((node: any) => {
@@ -234,12 +205,12 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Segments")').click()
+    await page.locator('button:has-text("Play Segments")').click()
 
-    await window.waitForTimeout(100)
+    await page.waitForTimeout(100)
 
     // Check that the playlist matches the initial order
-    const playlistOrder = await window.evaluate(() => {
+    const playlistOrder = await page.evaluate(() => {
       const store = (window as any).__vttStore
       return store.playlist
     })
@@ -250,32 +221,32 @@ test.describe('Sequential Playback', () => {
   // Note: Advancement logic is tested in unit tests (vttStore.sequential.test.ts)
   // This E2E test was removed because it tested store logic rather than E2E behavior
 
-  test('should preserve playlist order even if table is resorted', async () => {
+  test('should preserve playlist order even if table is resorted', async ({ electronApp, page }) => {
     // Load files
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
+    await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Segments")').click()
+    await page.locator('button:has-text("Play Segments")').click()
 
-    await window.waitForTimeout(50)
+    await page.waitForTimeout(50)
 
     // Get the playlist before sorting
-    const playlistBefore = await window.evaluate(() => {
+    const playlistBefore = await page.evaluate(() => {
       const store = (window as any).__vttStore
       return [...store.playlist]
     })
 
     // Sort the table by text column (click header)
-    await window.locator('.ag-header-cell:has-text("Caption")').click()
+    await page.locator('.ag-header-cell:has-text("Caption")').click()
 
-    await window.waitForTimeout(100)
+    await page.waitForTimeout(100)
 
     // Get the playlist after sorting
-    const playlistAfter = await window.evaluate(() => {
+    const playlistAfter = await page.evaluate(() => {
       const store = (window as any).__vttStore
       return store.playlist
     })
@@ -284,38 +255,38 @@ test.describe('Sequential Playback', () => {
     expect(playlistAfter).toEqual(playlistBefore)
   })
 
-  test('should disable sequential button when no media loaded', async () => {
+  test('should disable sequential button when no media loaded', async ({ electronApp, page }) => {
     // Load only VTT file without media reference
     const vttPath = path.join(getProjectRoot(), 'test_data', 'no-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     // Sequential play button should be disabled (no media path)
-    const sequentialBtn = window.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button:has-text("Play Segments")')
     await expect(sequentialBtn).toBeDisabled()
   })
 
-  test('should work with single segment playback', async () => {
+  test('should work with single segment playback', async ({ electronApp, page }) => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load files
     const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(vttPath)
+    await loadVTTFile(electronApp, page, vttPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-    await loadMediaFile(audioPath)
+    await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await window.locator('button:has-text("Play Segments")').click()
+    await page.locator('button:has-text("Play Segments")').click()
 
-    await window.waitForTimeout(50)
+    await page.waitForTimeout(50)
 
     // Stop sequential playback
-    await window.locator('button:has-text("Pause Segments")').click()
+    await page.locator('button:has-text("Pause Segments")').click()
 
-    await window.waitForTimeout(50)
+    await page.waitForTimeout(50)
 
     // Wait for grid to be ready with at least one row
-    await window.waitForFunction(() => {
+    await page.waitForFunction(() => {
       const api = (window as any).__agGridApi
       if (!api) return false
       let count = 0
@@ -325,13 +296,13 @@ test.describe('Sequential Playback', () => {
 
     // Click play button on first row (should use snippet mode)
     // Use a simple selector that finds the first visible play button
-    const playButton = window.locator('button[title="Play snippet"]').first()
+    const playButton = page.locator('button[title="Play snippet"]').first()
     await playButton.click()
 
-    await window.waitForTimeout(50)
+    await page.waitForTimeout(50)
 
     // Should be in SEGMENTS_PLAYING mode with single-item playlist
-    const mode = await window.evaluate(() => {
+    const mode = await page.evaluate(() => {
       const store = (window as any).__vttStore
       return {
         playbackMode: store.playbackMode,

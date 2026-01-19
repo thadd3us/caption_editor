@@ -1,40 +1,12 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('Electron VTT Media Auto-loading', () => {
-  let electronApp: ElectronApplication
-  let window: Page
+  // Using shared Electron instance - no beforeEach/afterEach needed
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(getElectronMainPath()), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
-
-  test('should auto-load media file when VTT has mediaFilePath metadata', async () => {
+  test('should auto-load media file when VTT has mediaFilePath metadata', async ({ page }) => {
     test.setTimeout(30000)
 
     // Use the actual test fixture files
@@ -46,7 +18,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
     await fs.access(mediaPath)
 
     // Process the VTT file through electronAPI (simulating a file drop)
-    const result = await window.evaluate(async (filePath) => {
+    const result = await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return null
       const results = await window.electronAPI.processDroppedFiles([filePath])
 
@@ -78,10 +50,10 @@ test.describe('Electron VTT Media Auto-loading', () => {
     expect(result!.metadata.mediaFilePath).toBe(mediaPath)
 
     // Wait for auto-load to happen (App.vue handles this via watch)
-    await window.waitForTimeout(1000)
+    await page.waitForTimeout(1000)
 
     // Verify media was auto-loaded
-    const finalState = await window.evaluate(() => {
+    const finalState = await page.evaluate(() => {
       const store = (window as any).$store
       return {
         mediaPath: store.mediaPath,
@@ -97,11 +69,11 @@ test.describe('Electron VTT Media Auto-loading', () => {
     expect(finalState.hasAudio).toBe(true)
   })
 
-  test('should handle missing media file gracefully', async () => {
+  test('should handle missing media file gracefully', async ({ page }) => {
     test.setTimeout(30000)
 
     // Clear any previous state by loading an empty document and clearing media
-    await window.evaluate(() => {
+    await page.evaluate(() => {
       const store = (window as any).$store
       if (store) {
         // Load empty VTT to reset state
@@ -110,7 +82,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
         store.mediaPath = null
       }
     })
-    await window.waitForTimeout(200)
+    await page.waitForTimeout(200)
 
     // Create a VTT with a non-existent media reference
     const testVTTPath = path.join(getProjectRoot(), 'test_data/missing-media-ref.vtt')
@@ -129,7 +101,7 @@ Test caption
     await fs.writeFile(testVTTPath, vttContent)
 
     // Load the VTT
-    await window.evaluate(async (filePath) => {
+    await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return
       const results = await window.electronAPI.processDroppedFiles([filePath])
 
@@ -142,10 +114,10 @@ Test caption
     }, testVTTPath)
 
     // Wait for auto-load attempt (App.vue handles this, should fail gracefully)
-    await window.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
     // Verify media was NOT loaded
-    const state = await window.evaluate(() => {
+    const state = await page.evaluate(() => {
       const store = (window as any).$store
       return {
         mediaPath: store.mediaPath,
@@ -162,13 +134,13 @@ Test caption
     await fs.unlink(testVTTPath).catch(() => {})
   })
 
-  test('should not auto-load if media is already loaded', async () => {
+  test('should not auto-load if media is already loaded', async ({ page }) => {
     test.setTimeout(30000)
 
     // First, manually load a media file
     const mediaPath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
-    await window.evaluate(async (filePath) => {
+    await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return
       const results = await window.electronAPI.processDroppedFiles([filePath])
 
@@ -180,9 +152,9 @@ Test caption
       }
     }, mediaPath)
 
-    await window.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
-    const initialMediaPath = await window.evaluate(() => {
+    const initialMediaPath = await page.evaluate(() => {
       const store = (window as any).$store
       return store.mediaPath
     })
@@ -193,7 +165,7 @@ Test caption
     // Now load VTT with media reference
     const vttPath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
 
-    await window.evaluate(async (filePath) => {
+    await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return
       const results = await window.electronAPI.processDroppedFiles([filePath])
 
@@ -206,10 +178,10 @@ Test caption
     }, vttPath)
 
     // Wait for any potential auto-load attempt (App.vue should skip since media is already loaded)
-    await window.waitForTimeout(500)
+    await page.waitForTimeout(500)
 
     // Verify media path hasn't changed
-    const finalMediaPath = await window.evaluate(() => {
+    const finalMediaPath = await page.evaluate(() => {
       const store = (window as any).$store
       return store.mediaPath
     })
