@@ -8,13 +8,6 @@ import pytest
 from syrupy import SnapshotAssertion
 
 
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "expensive: marks tests as expensive (deselect with '-m \"not expensive\"')"
-    )
-
-
 def pytest_collection_modifyitems(config, items):
     """Skip expensive tests when SKIP_EXPENSIVE_TESTS=true."""
     if os.environ.get("SKIP_EXPENSIVE_TESTS") == "true":
