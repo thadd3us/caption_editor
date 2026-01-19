@@ -5,7 +5,7 @@
       'end_time': 3.44,
       'id': '503e711c-e03b-908b-630c-ba160ed8bfde',
       'rating': None,
-      'speaker_name': None,
+      'speaker_name': 'Alice',
       'start_time': 0.24,
       'text': 'The birch canoe slid on the smooth planks.',
     }),
@@ -21,7 +21,7 @@
       'end_time': 9.92,
       'id': '9a39e34c-fc3d-8e0d-0991-464000c1114a',
       'rating': None,
-      'speaker_name': None,
+      'speaker_name': 'Bob',
       'start_time': 7.44,
       'text': 'It is easy to tell the depth of a well.',
     }),
@@ -132,7 +132,7 @@
   NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"787b709c-8f5d-e1c7-9782-0903af871f4d","mediaFilePath":"OSR_us_000_0010_8k.wav"}
   
   
-  NOTE CAPTION_EDITOR:TranscriptSegment {"id":"503e711c-e03b-908b-630c-ba160ed8bfde","startTime":0.24,"endTime":3.44,"text":"The birch canoe slid on the smooth planks.","words":[{"text":"The","startTime":0.24,"endTime":0.56},{"text":"birch","startTime":0.56,"endTime":1.12},{"text":"canoe","startTime":1.12,"endTime":1.6},{"text":"slid","startTime":1.6,"endTime":2.0},{"text":"on","startTime":2.0,"endTime":2.16},{"text":"the","startTime":2.16,"endTime":2.24},{"text":"smooth","startTime":2.24,"endTime":2.8000000000000003},{"text":"planks.","startTime":2.8000000000000003,"endTime":3.44}],"timestamp":"2026-01-01T11:33:43.265768-08:00"}
+  NOTE CAPTION_EDITOR:TranscriptSegment {"id":"503e711c-e03b-908b-630c-ba160ed8bfde","startTime":0.24,"endTime":3.44,"text":"The birch canoe slid on the smooth planks.","words":[{"text":"The","startTime":0.24,"endTime":0.56},{"text":"birch","startTime":0.56,"endTime":1.12},{"text":"canoe","startTime":1.12,"endTime":1.6},{"text":"slid","startTime":1.6,"endTime":2.0},{"text":"on","startTime":2.0,"endTime":2.16},{"text":"the","startTime":2.16,"endTime":2.24},{"text":"smooth","startTime":2.24,"endTime":2.8000000000000003},{"text":"planks.","startTime":2.8000000000000003,"endTime":3.44}],"speakerName":"Alice","timestamp":"2026-01-01T11:33:43.265768-08:00"}
   
   503e711c-e03b-908b-630c-ba160ed8bfde
   00:00:00.240 --> 00:00:03.440
@@ -146,7 +146,7 @@
   Glue the sheet to the dark blue background.
   
   
-  NOTE CAPTION_EDITOR:TranscriptSegment {"id":"9a39e34c-fc3d-8e0d-0991-464000c1114a","startTime":7.44,"endTime":9.92,"text":"It is easy to tell the depth of a well.","words":[{"text":"It","startTime":7.44,"endTime":7.76},{"text":"is","startTime":7.76,"endTime":7.92},{"text":"easy","startTime":7.92,"endTime":8.24},{"text":"to","startTime":8.24,"endTime":8.4},{"text":"tell","startTime":8.4,"endTime":8.64},{"text":"the","startTime":8.64,"endTime":8.8},{"text":"depth","startTime":8.8,"endTime":9.200000000000001},{"text":"of","startTime":9.200000000000001,"endTime":9.36},{"text":"a","startTime":9.36,"endTime":9.6},{"text":"well.","startTime":9.6,"endTime":9.92}],"timestamp":"2026-01-01T11:33:43.265768-08:00"}
+  NOTE CAPTION_EDITOR:TranscriptSegment {"id":"9a39e34c-fc3d-8e0d-0991-464000c1114a","startTime":7.44,"endTime":9.92,"text":"It is easy to tell the depth of a well.","words":[{"text":"It","startTime":7.44,"endTime":7.76},{"text":"is","startTime":7.76,"endTime":7.92},{"text":"easy","startTime":7.92,"endTime":8.24},{"text":"to","startTime":8.24,"endTime":8.4},{"text":"tell","startTime":8.4,"endTime":8.64},{"text":"the","startTime":8.64,"endTime":8.8},{"text":"depth","startTime":8.8,"endTime":9.200000000000001},{"text":"of","startTime":9.200000000000001,"endTime":9.36},{"text":"a","startTime":9.36,"endTime":9.6},{"text":"well.","startTime":9.6,"endTime":9.92}],"speakerName":"Bob","timestamp":"2026-01-01T11:33:43.265768-08:00"}
   
   9a39e34c-fc3d-8e0d-0991-464000c1114a
   00:00:07.440 --> 00:00:09.920
