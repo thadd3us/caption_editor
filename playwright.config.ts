@@ -20,6 +20,9 @@ import { checkXvfbAvailable } from './tests/helpers/xvfb-check'
 // Check Xvfb availability on Linux before running tests
 checkXvfbAvailable()
 
+// Skip expensive tests (ASR transcription/embedding) unless explicitly requested
+const skipExpensive = process.env.SKIP_EXPENSIVE_TESTS === 'true'
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
@@ -28,6 +31,10 @@ export default defineConfig({
   workers: 1,
   maxFailures: process.env.CI ? 10 : undefined,
   timeout: 30000, // 30 second timeout for Electron tests
+
+  // Skip expensive ASR tests when SKIP_EXPENSIVE_TESTS=true
+  // Uses negative lookahead to match tests that don't contain @expensive
+  grep: skipExpensive ? /^(?!.*@expensive)/ : undefined,
 
   // Use platform-agnostic snapshot paths (remove -darwin/-linux suffixes)
   snapshotPathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',

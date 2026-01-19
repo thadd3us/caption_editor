@@ -10,8 +10,10 @@ import { launchElectron } from '../helpers/electron-launch'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-test.describe('ASR uvx Integration', () => {
-    test('should run ASR transcription via uvx (GitHub path)', async () => {
+test.describe('ASR uvx Integration @expensive', () => {
+    // Expensive test - downloads from GitHub and runs ML models
+    // Skip with SKIP_EXPENSIVE_TESTS=true
+    test('should run ASR transcription via uvx (GitHub path) @expensive', async () => {
         test.setTimeout(300000) // 5 minutes because it downloads and runs a model
         // Create a temporary directory for test files
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'asr-uvx-test-'))

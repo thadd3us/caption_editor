@@ -7,8 +7,11 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-test.describe('ASR Menu Integration', () => {
-  test('should run ASR transcription from menu', async () => {
+test.describe('ASR Menu Integration @expensive', () => {
+  // Expensive test - requires downloading ML models and running transcription
+  // Skip with SKIP_EXPENSIVE_TESTS=true
+  test('should run ASR transcription from menu @expensive', async () => {
+    test.setTimeout(180000) // 3 minute timeout for model download + transcription
     // Create a temporary directory for test files
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'asr-test-'))
     console.log('[Test] Created temp directory:', tmpDir)

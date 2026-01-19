@@ -9,8 +9,11 @@ import { enableConsoleCapture } from '../helpers/console'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-test.describe('Speaker Embedding Integration', () => {
-    test('should compute speaker embeddings via menu item', async () => {
+test.describe('Speaker Embedding Integration @expensive', () => {
+    // Expensive test - requires downloading ML models and running inference
+    // Skip with SKIP_EXPENSIVE_TESTS=true
+    test('should compute speaker embeddings via menu item @expensive', async () => {
+        test.setTimeout(180000) // 3 minute timeout for model download + inference
         // Create a temporary directory for test files
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'asr-embed-test-'))
         console.log('[Test] Created temp directory:', tmpDir)

@@ -69,6 +69,7 @@ def test_convert_to_wav():
         assert int(stream["channels"]) == 1, "Incorrect channel count"
 
 
+@pytest.mark.expensive
 def test_embed_osr_audio(snapshot):
     """Test embedding computation with snapshot comparison.
 

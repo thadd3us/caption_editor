@@ -10,6 +10,7 @@ from transcribe import app
 import pytest
 
 
+@pytest.mark.expensive
 @pytest.mark.parametrize(
     "model_name",
     [
@@ -68,6 +69,7 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
     assert vtt_content == snapshot
 
 
+@pytest.mark.expensive
 def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
     """Test that –embed flag triggers embedding and updates VTT."""
     # Copy audio file to tmp_path

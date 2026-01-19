@@ -7,6 +7,7 @@ set -e  # Exit on error
 PLATFORM=$(uname)
 COVERAGE=false
 SKIP_ELECTRON=false
+SKIP_EXPENSIVE=true  # Default: skip expensive ASR tests
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -19,13 +20,18 @@ while [[ $# -gt 0 ]]; do
       SKIP_ELECTRON=true
       shift
       ;;
+    --run-expensive-tests)
+      SKIP_EXPENSIVE=false
+      shift
+      ;;
     --help)
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  --coverage        Run unit tests with coverage"
-      echo "  --skip-electron   Skip Electron tests"
-      echo "  --help            Show this help message"
+      echo "  --coverage             Run unit tests with coverage"
+      echo "  --skip-electron        Skip Electron tests"
+      echo "  --run-expensive-tests  Include expensive ASR tests (default: skipped)"
+      echo "  --help                 Show this help message"
       exit 0
       ;;
     *)
@@ -35,6 +41,12 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# Export for playwright and pytest
+if [ "$SKIP_EXPENSIVE" = true ]; then
+  export SKIP_EXPENSIVE_TESTS=true
+  echo "⏭️  Skipping expensive ASR tests (use --run-expensive-tests to include)"
+fi
 
 echo "🧪 Running complete test suite on $PLATFORM..."
 echo ""
