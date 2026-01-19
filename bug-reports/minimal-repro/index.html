@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Datalist Headless Crash Repro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .input-wrapper {
+      margin: 20px 0;
+    }
+    input {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Datalist Headless Crash Reproduction</h1>
+
+  <div class="input-wrapper">
+    <label for="test-input-empty">Datalist with EMPTY initial value:</label>
+    <input
+      id="test-input-empty"
+      class="test-datalist-empty"
+      type="text"
+      list="names-list"
+      placeholder="Start typing..."
+      value=""
+    />
+    <datalist id="names-list">
+      <option value="Alice">
+      <option value="Bob">
+      <option value="Charlie">
+    </datalist>
+  </div>
+
+  <div class="input-wrapper">
+    <label for="test-input-prefilled">Datalist with prefilled value:</label>
+    <input
+      id="test-input-prefilled"
+      class="test-datalist-prefilled"
+      type="text"
+      list="names-list-2"
+      placeholder="Start typing..."
+      value="Alice"
+    />
+    <datalist id="names-list-2">
+      <option value="Alice">
+      <option value="Bob">
+      <option value="Charlie">
+    </datalist>
+  </div>
+
+  <div class="input-wrapper">
+    <label for="regular-input">Regular input (no datalist):</label>
+    <input
+      id="regular-input"
+      class="test-regular-input"
+      type="text"
+      placeholder="Regular input works fine"
+    />
+  </div>
+
+  <script>
+    // Make elements easily accessible for testing
+    window.testInputEmpty = document.querySelector('.test-datalist-empty')
+    window.testInputPrefilled = document.querySelector('.test-datalist-prefilled')
+    window.regularInput = document.querySelector('.test-regular-input')
+  </script>
+</body>
+</html>

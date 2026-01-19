@@ -1,0 +1,15 @@
+{
+  "name": "electron-datalist-headless-crash-repro",
+  "version": "1.0.0",
+  "description": "Minimal reproduction of Electron headless crash with datalist",
+  "main": "main.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:headless": "HEADLESS=true playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "electron": "^40.0.0"
+  }
+}
