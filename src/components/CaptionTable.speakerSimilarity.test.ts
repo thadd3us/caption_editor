@@ -99,7 +99,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     const mockApplyColumnState = vi.fn()
     const mockGetColumn = vi.fn().mockReturnValue({ colId: 'speakerSimilarity' })
     const mockRefreshCells = vi.fn()
-    const mockSetColumnVisible = vi.fn()
+    const mockSetColumnsVisible = vi.fn()
     const mockGetSelectedRows = vi.fn().mockReturnValue([
       { id: 'cue-with-embedding-1' }
     ])
@@ -109,7 +109,7 @@ describe('CaptionTable - Speaker Similarity', () => {
       refreshCells: mockRefreshCells,
       applyColumnState: mockApplyColumnState,
       getColumn: mockGetColumn,
-      setColumnVisible: mockSetColumnVisible,
+      setColumnsVisible: mockSetColumnsVisible,
       ensureIndexVisible: vi.fn()
     }
 

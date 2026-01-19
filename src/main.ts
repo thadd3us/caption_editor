@@ -1,8 +1,12 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import App from './App.vue'
 import './style.css'
 import { useVTTStore } from './stores/vttStore'
+
+// Register AG Grid modules (required for v35+)
+ModuleRegistry.registerModules([AllCommunityModule])
 
 console.log('VTT Editor starting...')
 
