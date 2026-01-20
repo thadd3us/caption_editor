@@ -6,7 +6,6 @@ Converts media files to VTT format with segment-level transcription.
 
 import hashlib
 import json
-import subprocess
 import tempfile
 import uuid
 from datetime import datetime
@@ -14,11 +13,11 @@ from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
-import soundfile as sf
 import torch
 import typer
 from tqdm import tqdm
 
+from audio_utils import extract_audio_to_wav, load_audio_segment
 from asr_results_to_vtt import (
     asr_segments_to_vtt_cues,
     group_segments_by_gap,
@@ -57,7 +56,6 @@ app = typer.Typer()
 
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
     """Extract audio from media file using ffmpeg."""
-    from audio_utils import extract_audio_to_wav
     output_path = temp_dir / "audio.wav"
     try:
         return extract_audio_to_wav(media_file, output_path)
@@ -70,7 +68,6 @@ def load_audio_chunk(
     audio_path: Path, start_time: float, duration: float
 ) -> tuple[np.ndarray, int]:
     """Load a chunk of audio from a file."""
-    from audio_utils import load_audio_segment
     return load_audio_segment(audio_path, start_time, start_time + duration)
 
 
