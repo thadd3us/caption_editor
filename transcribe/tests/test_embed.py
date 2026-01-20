@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from embed import convert_to_wav
+from audio_utils import extract_audio_to_wav
 
 # Path to test files
 TEST_AUDIO = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
@@ -40,7 +40,7 @@ def test_convert_to_wav():
         assert test_flac.exists(), "Failed to create test FLAC file"
 
         # Convert to WAV
-        wav_path = convert_to_wav(test_flac, temp_path)
+        wav_path = extract_audio_to_wav(test_flac, temp_path / "audio.wav")
 
         # Verify conversion
         assert wav_path.exists(), "WAV file was not created"

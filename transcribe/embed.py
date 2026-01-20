@@ -1,25 +1,18 @@
 """Command-line interface for computing speaker embeddings from VTT files."""
 
 import os
-import re
-import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import numpy as np
-import soundfile as sf
 import torch
 import typer
 from pyannote.audio import Inference, Model
 from tqdm import tqdm
 
-from schema import (
-    CAPTION_EDITOR_SENTINEL,
-    SegmentSpeakerEmbedding,
-    TranscriptMetadata,
-    TranscriptSegment,
-)
+from audio_utils import extract_audio_to_wav, load_audio_segment
+from schema import SegmentSpeakerEmbedding
 from vtt_lib import parse_vtt_file, serialize_vtt
 
 app = typer.Typer(help="Compute speaker embeddings from VTT files")
@@ -28,73 +21,6 @@ app = typer.Typer(help="Compute speaker embeddings from VTT files")
 def get_hf_token() -> Optional[str]:
     """Get HuggingFace token from environment (optional for public models)."""
     return os.getenv("HF_TOKEN")
-
-
-def convert_to_wav(media_file: Path, temp_dir: Path) -> Path:
-    """Convert media file to WAV format using ffmpeg.
-
-    Args:
-        media_file: Path to the input media file
-        temp_dir: Temporary directory for output
-
-    Returns:
-        Path to the converted WAV file
-    """
-    output_path = temp_dir / "audio.wav"
-
-    cmd = [
-        "ffmpeg",
-        "-i",
-        str(media_file),
-        "-ar",
-        "16000",  # 16kHz sample rate
-        "-ac",
-        "1",  # Mono
-        "-f",
-        "wav",
-        "-y",  # Overwrite
-        str(output_path),
-    ]
-
-    try:
-        subprocess.run(cmd, check=True, capture_output=True)
-    except subprocess.CalledProcessError as e:
-        stderr = e.stderr.decode() if e.stderr else "Unknown error"
-        raise ValueError(f"Error converting audio: {stderr}")
-
-    return output_path
-
-
-def extract_audio_segment(
-    audio_path: Path, start_time: float, end_time: float
-) -> tuple[np.ndarray, int]:
-    """Extract a segment of audio from a file.
-
-    Args:
-        audio_path: Path to the audio file
-        start_time: Start time in seconds
-        end_time: End time in seconds
-
-    Returns:
-        Tuple of (audio_data, sample_rate)
-    """
-    info = sf.info(audio_path)
-    sample_rate = info.samplerate
-
-    start_frame = int(start_time * sample_rate)
-    end_frame = int(end_time * sample_rate)
-    num_frames = end_frame - start_frame
-
-    # Clamp to file bounds
-    if start_frame >= info.frames:
-        return np.array([]), sample_rate
-
-    num_frames = min(num_frames, info.frames - start_frame)
-
-    audio, sr = sf.read(
-        audio_path, start=start_frame, frames=num_frames, dtype="float32"
-    )
-    return audio, sr
 
 
 def compute_embedding(
@@ -192,7 +118,7 @@ def main(
         if media_path.suffix.lower() not in [".wav", ".wave"]:
             typer.echo(f"Converting {media_path.suffix} to WAV format...")
             try:
-                audio_path = convert_to_wav(media_path, temp_dir)
+                audio_path = extract_audio_to_wav(media_path, temp_dir / "audio.wav")
                 typer.echo(f"Conversion complete")
             except ValueError as e:
                 raise ValueError(f"Failed to convert audio file: {e}")
@@ -234,7 +160,7 @@ def main(
                 continue
 
             # Extract audio segment
-            audio, sample_rate = extract_audio_segment(
+            audio, sample_rate = load_audio_segment(
                 audio_path, segment.start_time, segment.end_time
             )
 
