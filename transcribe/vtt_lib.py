@@ -14,14 +14,7 @@ from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptM
 
 
 def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[TranscriptSegment]]:
-    """Parse VTT file and extract metadata and segments from NOTE comments.
-
-    Args:
-        vtt_path: Path to the VTT file
-
-    Returns:
-        Tuple of (metadata, segments)
-    """
+    """Parse VTT file and extract metadata and segments from NOTE comments."""
     content = vtt_path.read_text()
     lines = content.split("\n")
 
@@ -76,16 +69,8 @@ def serialize_vtt(
     vtt_path: Optional[Path] = None
 ) -> str:
     """Serialize metadata and segments to VTT format string.
-
-    Args:
-        metadata: Transcript metadata
-        segments: List of transcript segments
-        embeddings: Optional list of speaker embeddings
-        include_history: Whether to include history entries (not implemented yet)
-        vtt_path: Optional path to the VTT file (used to compute relative media path)
-
-    Returns:
-        VTT format string with NOTE comments
+    
+    If vtt_path is provided, media paths are converted to relative paths.
     """
     lines = ["WEBVTT\n"]
 
