@@ -202,7 +202,7 @@ def main(
         model_path = (
             Path.home() / f".cache/huggingface/hub/models--{model.replace('/', '--')}"
         )
-        snapshots = list[Path]((model_path / "snapshots").rglob("pytorch_model.bin"))
+        snapshots = list((model_path / "snapshots").rglob("pytorch_model.bin"))
         if len(snapshots) == 1:
             typer.echo(f"Loading model from {snapshots[0]=}")
             embedding_model = Model.from_pretrained(snapshots[0].parent)
@@ -213,7 +213,8 @@ def main(
                 embedding_model = Model.from_pretrained(model, use_auth_token=token)
             else:
                 embedding_model = Model.from_pretrained(model)
-        assert embedding_model, f"Failed to load."
+        if not embedding_model:
+            raise ValueError(f"Failed to load embedding model: {model}")
         inference = Inference(embedding_model, window="whole")
 
         # Process each segment
