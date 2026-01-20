@@ -26,16 +26,7 @@ def get_hf_token() -> Optional[str]:
 def compute_embedding(
     inference: Inference, audio: np.ndarray, sample_rate: int
 ) -> np.ndarray:
-    """Compute embedding for an audio segment.
-
-    Args:
-        inference: Pyannote Inference object
-        audio: Audio data as numpy array
-        sample_rate: Sample rate of the audio
-
-    Returns:
-        Embedding vector as numpy array
-    """
+    """Compute speaker embedding vector for an audio segment."""
     # Convert audio to torch tensor for in-memory processing
     # pyannote expects (channel, time) shape
     if audio.ndim == 1:
