@@ -57,45 +57,21 @@ app = typer.Typer()
 
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
     """Extract audio from media file using ffmpeg."""
+    from audio_utils import extract_audio_to_wav
     output_path = temp_dir / "audio.wav"
-
-    cmd = [
-        "ffmpeg",
-        *("-i", str(media_file)),
-        *("-ar", "16000"),  # 16kHz sample rate
-        *("-ac", "1"),  # Mono
-        *("-f", "wav"),
-        "-y",  # Overwrite
-        str(output_path),
-    ]
-
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
-    except subprocess.CalledProcessError as e:
-        typer.echo(f"Error extracting audio: {e.stderr.decode()}", err=True)
+        return extract_audio_to_wav(media_file, output_path)
+    except ValueError as e:
+        typer.echo(str(e), err=True)
         raise typer.Exit(1)
-
-    return output_path
 
 
 def load_audio_chunk(
     audio_path: Path, start_time: float, duration: float
 ) -> tuple[np.ndarray, int]:
     """Load a chunk of audio from a file."""
-    info = sf.info(audio_path)
-    sample_rate = info.samplerate
-    start_frame = int(start_time * sample_rate)
-    num_frames = int(duration * sample_rate)
-
-    if start_frame >= info.frames:
-        # todo:  just raise exception
-        return np.array([]), sample_rate
-
-    num_frames = min(num_frames, info.frames - start_frame)
-    audio, sr = sf.read(
-        audio_path, start=start_frame, frames=num_frames, dtype="float32"
-    )
-    return audio, sr
+    from audio_utils import load_audio_segment
+    return load_audio_segment(audio_path, start_time, start_time + duration)
 
 
 def transcribe_chunk(
