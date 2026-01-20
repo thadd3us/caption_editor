@@ -1,72 +1,35 @@
 [project]
-name = "transcribe"
+name = "caption-editor-transcribe"
 version = "0.1.0"
-description = "Media transcription and speaker diarization tool using NVIDIA Parakeet TDT and pyannote.audio"
-readme = "README.md"
-requires-python = ">=3.11,<3.13"
+description = "Transcription and speaker embedding tools for Caption Editor"
+requires-python = ">=3.10"
 dependencies = [
-    "librosa>=0.11.0",
-    "megatron-core>=0.10.0",
-    "nemo-toolkit[asr]>=2.5.0",
-    "numpy>=2.0",  # Try numpy 2.0 - may work with both nemo and pyannote v4
-    "pandas>=2.0.0",
-    "pydantic>=2.12.3",
-    "scikit-learn>=1.6.0",
-    "soundfile>=0.13.1",
-    "syrupy>=5.0.0",
-    "tqdm>=4.66.0",
-    "torch>=2.9.0",
-    "torchaudio>=2.9.0",
-    "transformers>=4.53.0,<4.54",
-    "typer>=0.20.0",
-    "webvtt-py>=0.5.1",
-    # Diarization dependencies
-    "pyannote-audio>=4.0.0",
-    "torchvision>=0.15.0",
-    "pybind11>=3.0.1",
-    "libsql-client>=0.3.0",
-#    "torchcodec",
+    "numpy",
+    "pydantic>=2.0",
+    "soundfile",
+    "torch",
+    "typer",
+    "tqdm",
 ]
+
+[project.optional-dependencies]
+nemo = ["nemo_toolkit[asr]"]
+transformers = ["transformers"]
+embed = ["pyannote.audio"]
+dev = ["pytest", "pytest-snapshot", "mypy"]
 
 [project.scripts]
 transcribe = "transcribe:app"
-diarize = "diarize:app"
 embed = "embed:app"
 
-[dependency-groups]
-dev = [
-    "pytest>=8.4.2",
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "expensive: marks tests as expensive/slow (deselect with '-m \"not expensive\"')",
 ]
-
-[tool.uv]
-# Override nemo-toolkit's numpy constraint to allow numpy 2.x
-# nemo-toolkit works with numpy 2.x despite the conservative <2.0 constraint
-# Override torchcodec to only install on platforms with available wheels
-# pyannote-audio 4.0+ made torchcodec optional and will fall back to torchaudio
-override-dependencies = [
-    "numpy>=2.0",
-    "torchcodec>=0.6.0; (sys_platform == 'darwin') or (sys_platform == 'win32') or (sys_platform == 'linux' and platform_machine == 'x86_64')"
-]
-
-[tool.uv.sources]
-# torchcodec is made optional via override-dependencies above
-# On platforms without torchcodec wheels (Linux aarch64), pyannote.audio will use torchaudio for audio loading
-# See diarization/cli.py which preloads audio using torchaudio to support both scenarios
-
-[tool.setuptools]
-# Use find_packages to discover Python modules, exclude test directories
-py-modules = [
-    "transcribe",
-    "embed",
-    "asr_results_to_vtt",
-    "capture_raw_asr_output",
-    "schema",
-    "vtt_lib",
-]
-
-[tool.setuptools.packages.find]
-exclude = ["tests*", "test_data*", "test_fixtures*"]
-
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
