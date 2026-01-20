@@ -6,6 +6,7 @@ Converts media files to VTT format with segment-level transcription.
 
 import hashlib
 import json
+import shutil
 import tempfile
 import uuid
 from datetime import datetime
@@ -396,8 +397,6 @@ def main(
         metadata = TranscriptMetadata(id=doc_id, media_file_path=str(media_file))
 
         # Copy media file to output directory to keep VTT and media together
-        import shutil
-
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
 
