@@ -8,7 +8,7 @@ dependencies = [
     "librosa>=0.11.0",
     "megatron-core>=0.10.0",
     "nemo-toolkit[asr]>=2.5.0",
-    "numpy>=2.0",  # Try numpy 2.0 - may work with both nemo and pyannote v4
+    "numpy>=2.0,<2.4",  # numba requires numpy < 2.4
     "pandas>=2.0.0",
     "pydantic>=2.12.3",
     "scikit-learn>=1.6.0",
@@ -44,7 +44,7 @@ dev = [
 # Override torchcodec to only install on platforms with available wheels
 # pyannote-audio 4.0+ made torchcodec optional and will fall back to torchaudio
 override-dependencies = [
-    "numpy>=2.0",
+    "numpy>=2.0,<2.4",
     "torchcodec>=0.6.0; (sys_platform == 'darwin') or (sys_platform == 'win32') or (sys_platform == 'linux' and platform_machine == 'x86_64')"
 ]
 

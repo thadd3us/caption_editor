@@ -17,17 +17,40 @@ test.describe('Electron VTT Media Auto-loading', () => {
     await fs.access(vttPath)
     await fs.access(mediaPath)
 
+    console.log('[DEBUG] Starting test - VTT path:', vttPath)
+    console.log('[DEBUG] Media path:', mediaPath)
+
+    // Clear any previous state
+    await page.evaluate(() => {
+      const store = (window as any).$store
+      if (store) {
+        console.log('[DEBUG] Clearing previous state, current mediaPath:', store.mediaPath)
+        store.loadFromFile('WEBVTT\n', null)
+        store.mediaPath = null
+      }
+    })
+    await page.waitForTimeout(200)
+
     // Process the VTT file through electronAPI (simulating a file drop)
     const result = await page.evaluate(async (filePath) => {
-      if (!window.electronAPI) return null
+      console.log('[DEBUG] Processing VTT file:', filePath)
+      if (!window.electronAPI) {
+        console.log('[DEBUG] No electronAPI!')
+        return null
+      }
       const results = await window.electronAPI.processDroppedFiles([filePath])
+      console.log('[DEBUG] processDroppedFiles results:', JSON.stringify(results))
 
       // Simulate the FileDropZone component processing the results
       const store = (window as any).$store
-      if (!store) return null
+      if (!store) {
+        console.log('[DEBUG] No store!')
+        return null
+      }
 
       for (const res of results) {
         if (res.type === 'vtt' && res.content) {
+          console.log('[DEBUG] Loading VTT content, length:', res.content.length)
           store.loadFromFile(res.content, res.filePath)
         }
       }
@@ -41,7 +64,7 @@ test.describe('Electron VTT Media Auto-loading', () => {
       }
     }, vttPath)
 
-    console.log('After VTT load:', result)
+    console.log('[DEBUG] After VTT load:', result)
 
     // Verify VTT was loaded
     expect(result).toBeTruthy()
@@ -50,19 +73,23 @@ test.describe('Electron VTT Media Auto-loading', () => {
     expect(result!.metadata.mediaFilePath).toBe(mediaPath)
 
     // Wait for auto-load to happen (App.vue handles this via watch)
-    await page.waitForTimeout(1000)
+    // Poll instead of fixed timeout to catch timing issues
+    let finalState: any = null
+    for (let i = 0; i < 20; i++) {
+      await page.waitForTimeout(100)
+      finalState = await page.evaluate(() => {
+        const store = (window as any).$store
+        return {
+          mediaPath: store.mediaPath,
+          mediaFilePath: store.mediaFilePath,
+          hasAudio: !!document.querySelector('audio')
+        }
+      })
+      console.log(`[DEBUG] Poll ${i + 1}: mediaPath=${finalState.mediaPath}, hasAudio=${finalState.hasAudio}`)
+      if (finalState.mediaPath) break
+    }
 
-    // Verify media was auto-loaded
-    const finalState = await page.evaluate(() => {
-      const store = (window as any).$store
-      return {
-        mediaPath: store.mediaPath,
-        mediaFilePath: store.mediaFilePath,
-        hasAudio: !!document.querySelector('audio')
-      }
-    })
-
-    console.log('Final state:', finalState)
+    console.log('[DEBUG] Final state:', finalState)
 
     expect(finalState.mediaPath).toBeTruthy()
     expect(finalState.mediaPath).toContain('OSR_us_000_0010_8k.wav')

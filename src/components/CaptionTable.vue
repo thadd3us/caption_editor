@@ -462,7 +462,7 @@ function computeSpeakerSimilarity() {
   speakerSimilarityScores.value = newScores
 
   // Show the speaker similarity column
-  gridApi.value.setColumnVisible('speakerSimilarity', true)
+  gridApi.value.setColumnsVisible(['speakerSimilarity'], true)
   console.log('Speaker similarity column is now visible')
 
   // Refresh the grid to show new values
