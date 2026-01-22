@@ -51,7 +51,10 @@ world`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Verify we have 2 segments initially
     const initialSegments = await window.evaluate(() => {
@@ -67,7 +70,10 @@ world`
       vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Verify we have 1 merged segment
     const mergedSegments = await window.evaluate(() => {
@@ -111,7 +117,10 @@ Three`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 3
+    })
 
     // Merge all three adjacent segments
     await window.evaluate(() => {
@@ -120,7 +129,10 @@ Three`
       vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id, segments[2].id])
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Verify we have 1 merged segment
     const mergedSegments = await window.evaluate(() => {
@@ -163,7 +175,10 @@ Three`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 3
+    })
 
     // Try to merge seg1 and seg3 (skipping seg2 - they are not adjacent)
     await window.evaluate(() => {
@@ -172,7 +187,11 @@ Three`
       vttStore.mergeAdjacentSegments([segments[0].id, segments[2].id])
     })
 
-    await window.waitForTimeout(200)
+    // Brief wait since merge should fail and not change state
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 3
+    })
 
     // Verify we still have 3 segments (merge should have failed)
     const segments = await window.evaluate(() => {
@@ -206,7 +225,10 @@ there`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Merge the segments
     await window.evaluate(() => {
@@ -215,7 +237,10 @@ there`
       vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Verify speaker name is preserved (first non-empty)
     const mergedSegments = await window.evaluate(() => {
@@ -256,7 +281,10 @@ Three`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 3
+    })
 
     // Test adjacency check for adjacent segments (seg1 and seg2)
     const isAdjacentTest1 = await window.evaluate(() => {
@@ -365,7 +393,10 @@ world`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Get initial history length
     const initialHistoryLength = await window.evaluate(() => {
@@ -380,7 +411,10 @@ world`
       vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Verify history entries were added (2 for the 2 merged segments)
     const finalHistory = await window.evaluate(() => {
