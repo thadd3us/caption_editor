@@ -57,7 +57,10 @@ Third message`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 3
+    })
 
     // Open bulk set speaker dialog
     await window.evaluate(() => {
@@ -75,8 +78,6 @@ Third message`
         detail: { rowCount: selectedRows.length }
       }))
     })
-
-    await window.waitForTimeout(100)
 
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
@@ -129,7 +130,10 @@ Third`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 3
+    })
 
     // Open dialog
     await window.evaluate(() => {
@@ -145,7 +149,7 @@ Third`
       }))
     })
 
-    await window.waitForTimeout(100)
+    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Datalist should contain ALL speakers regardless of input
     // The browser handles filtering based on user input automatically
@@ -178,7 +182,10 @@ First`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Open dialog
     await window.evaluate(() => {
@@ -194,7 +201,7 @@ First`
       }))
     })
 
-    await window.waitForTimeout(100)
+    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Type a completely new name
     const input = window.locator('#speaker-name-input')
@@ -207,7 +214,7 @@ First`
       if (setBtn) setBtn.click()
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForSelector('.base-modal-overlay', { state: 'hidden' })
 
     // Verify new speaker name was set
     const speakerNames = await window.evaluate(() => {
@@ -266,7 +273,10 @@ cue6
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 6
+    })
 
     // Open dialog
     await window.evaluate(() => {
@@ -282,7 +292,7 @@ cue6
       }))
     })
 
-    await window.waitForTimeout(100)
+    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Check that datalist options are sorted by frequency
     const options = await window.evaluate(() => {
@@ -320,8 +330,6 @@ Second`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
-
     // Wait for grid to render
     const captionCount = window.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('2', { timeout: 2000 })
@@ -342,7 +350,8 @@ Second`
       })
     })
 
-    await window.waitForTimeout(100)
+    // Wait for editing cell
+    await window.waitForSelector('.ag-cell-inline-editing', { state: 'visible' })
 
     // Debug: Check what's actually in the editing cell
     const cellEditorHTML = await window.evaluate(() => {

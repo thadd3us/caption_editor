@@ -67,7 +67,10 @@ Second`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Simulate context menu by directly setting the state
     await window.evaluate(() => {
@@ -126,7 +129,10 @@ Test`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Trigger bulk set speaker dialog via event (simulating context menu selection)
     await window.evaluate(() => {
@@ -143,8 +149,6 @@ Test`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Verify bulk set speaker dialog opened
     const bulkSetDialog = window.locator('.base-modal').filter({ hasText: 'Bulk Set Speaker' })
     await expect(bulkSetDialog).toBeVisible()
@@ -153,7 +157,7 @@ Test`
     const cancelButton = bulkSetDialog.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
-    await window.waitForTimeout(100)
+    await expect(bulkSetDialog).not.toBeVisible()
   })
 
   test('should open delete confirmation dialog when context menu option is triggered', async () => {
@@ -173,7 +177,10 @@ Test`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Trigger delete confirmation dialog via event (simulating context menu selection)
     await window.evaluate(() => {
@@ -190,8 +197,6 @@ Test`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Verify delete confirmation dialog opened
     const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
@@ -200,7 +205,7 @@ Test`
     const cancelButton = deleteDialog.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
-    await window.waitForTimeout(100)
+    await expect(deleteDialog).not.toBeVisible()
   })
 
   test('should handle both context menu actions in sequence', async () => {
@@ -226,7 +231,10 @@ Second`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // First action: Bulk set speaker
     await window.evaluate(() => {
@@ -246,8 +254,6 @@ Second`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Verify bulk set speaker dialog opened
     const bulkSetDialog = window.locator('.base-modal').filter({ hasText: 'Bulk Set Speaker' })
     await expect(bulkSetDialog).toBeVisible()
@@ -262,8 +268,6 @@ Second`
       const setBtn = buttons.find(b => b.textContent?.includes('Set Speaker'))
       if (setBtn) setBtn.click()
     })
-
-    await window.waitForTimeout(200)
 
     // Verify dialog closed
     await expect(bulkSetDialog).not.toBeVisible()
@@ -295,8 +299,6 @@ Second`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Verify delete confirmation dialog opened
     const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
@@ -308,7 +310,10 @@ Second`
       if (deleteBtn) deleteBtn.click()
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Verify only one row remains
     const remainingCues = await window.evaluate(() => {

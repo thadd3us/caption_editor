@@ -41,7 +41,8 @@ test.describe('Media Element Seek Test', () => {
       ;(window as any).$store.loadMediaFile(audioUrl)
     }, audioPath)
 
-    await window.waitForTimeout(200)
+    // Wait for audio element to exist
+    await window.waitForSelector('audio', { timeout: 5000 })
 
     // Verify audio element exists
     const hasAudio = await window.evaluate(() => {
@@ -58,7 +59,11 @@ test.describe('Media Element Seek Test', () => {
       }
     })
 
-    await window.waitForTimeout(100)
+    // Wait for time to be set
+    await window.waitForFunction(() => {
+      const audio = document.querySelector('audio') as HTMLAudioElement
+      return audio && Math.abs(audio.currentTime - 3) < 0.5
+    })
 
     // Verify audio currentTime was set
     const audioTime = await window.evaluate(() => {

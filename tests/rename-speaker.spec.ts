@@ -66,8 +66,6 @@ Another message from Alice`
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(3)
 
-    await window.waitForTimeout(200)
-
     // Wait for caption count to update
     const captionCount = window.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('3', { timeout: 2000 })
@@ -76,8 +74,6 @@ Another message from Alice`
     await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
-
-    await window.waitForTimeout(100)
 
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
@@ -97,8 +93,6 @@ Another message from Alice`
       const renameBtn = buttons.find(b => b.textContent?.includes('Rename') && !b.textContent?.includes('Speaker'))
       if (renameBtn) renameBtn.click()
     })
-
-    await window.waitForTimeout(200)
 
     // Verify dialog closed
     await expect(dialog).not.toBeVisible()
@@ -126,7 +120,7 @@ Another message from Alice`
       // Reset to empty document
       store.loadFromFile('WEBVTT\n', '/test/empty.vtt')
     })
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => { const store = (window as any).$store; return store?.document !== undefined })
 
     // Check initial state before loading
     const beforeState = await window.evaluate(() => {
@@ -141,30 +135,24 @@ Another message from Alice`
     })
     console.log('State after reset (should be empty):', JSON.stringify(beforeState, null, 2))
 
-    // Load VTT without speakers
-    const vttContent = `WEBVTT
+    // Load VTT without speakers using store directly
+    console.log('Loading VTT without speakers')
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      const vttContent = `WEBVTT
 
 00:00:01.000 --> 00:00:04.000
 Caption without speaker
 
 00:00:05.000 --> 00:00:08.000
 Another caption without speaker`
+      store.loadFromFile(vttContent, '/test/no-speakers.vtt')
+    })
 
-    console.log('Loading VTT without speakers')
-    await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
-    }, vttContent)
-
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Check state after loading
     const afterState = await window.evaluate(() => {
@@ -194,8 +182,6 @@ Another caption without speaker`
     })
     console.log('Dialog open result:', dialogOpenResult)
 
-    await window.waitForTimeout(100)
-
     // Check dialog visibility
     const dialog = window.locator('.base-modal-overlay')
     const isVisible = await dialog.isVisible()
@@ -222,14 +208,15 @@ Hello`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Open rename dialog
     await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
-
-    await window.waitForTimeout(100)
 
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
@@ -238,8 +225,6 @@ Hello`
     // Click Cancel button
     const cancelButton = window.locator('button.dialog-button-secondary')
     await cancelButton.click()
-
-    await window.waitForTimeout(100)
 
     // Dialog should be closed
     await expect(dialog).not.toBeVisible()
@@ -268,14 +253,18 @@ Message 2`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Open rename dialog
     await window.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
-    await window.waitForTimeout(100)
+    // Wait for dialog
+    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Select John and rename to Jonathan
     const dropdown = window.locator('#speaker-select')
@@ -290,7 +279,8 @@ Message 2`
       if (renameBtn) renameBtn.click()
     })
 
-    await window.waitForTimeout(200)
+    // Wait for dialog to close
+    await window.waitForSelector('.base-modal-overlay', { state: 'hidden' })
 
     // Check that history entries were created
     const historyCount = await window.evaluate(() => {

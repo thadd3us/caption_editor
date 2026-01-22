@@ -83,8 +83,6 @@ Fourth message`
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(4)
 
-    await window.waitForTimeout(200)
-
     // Wait for caption count to update
     const captionCount = window.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('4', { timeout: 2000 })
@@ -110,8 +108,6 @@ Fourth message`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
@@ -127,8 +123,6 @@ Fourth message`
       const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
-
-    await window.waitForTimeout(200)
 
     // Verify dialog closed
     await expect(dialog).not.toBeVisible()
@@ -174,7 +168,10 @@ Second`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Select only one row
     await window.evaluate(() => {
@@ -193,8 +190,6 @@ Second`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
@@ -209,7 +204,10 @@ Second`
       if (deleteBtn) deleteBtn.click()
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Verify only one row remains
     const remainingCues = await window.evaluate(() => {
@@ -245,7 +243,10 @@ World`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Select a row and open delete dialog
     await window.evaluate(() => {
@@ -264,8 +265,6 @@ World`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
@@ -273,8 +272,6 @@ World`
     // Click Cancel button
     const cancelButton = window.locator('button.dialog-button-secondary')
     await cancelButton.click()
-
-    await window.waitForTimeout(100)
 
     // Dialog should be closed
     await expect(dialog).not.toBeVisible()
@@ -315,7 +312,10 @@ Second`
       vttStore.selectCue('cue1')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.selectedCueId === 'cue1'
+    })
 
     // Verify cue is selected
     const selectedBefore = await window.evaluate(() => {
@@ -342,7 +342,8 @@ Second`
       }))
     })
 
-    await window.waitForTimeout(100)
+    // Wait for dialog
+    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Confirm delete
     await window.evaluate(() => {
@@ -351,7 +352,10 @@ Second`
       if (deleteBtn) deleteBtn.click()
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.selectedCueId === null
+    })
 
     // Verify selectedCueId was cleared
     const selectedAfter = await window.evaluate(() => {

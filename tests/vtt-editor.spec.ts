@@ -41,7 +41,6 @@ test.describe('VTT Editor', () => {
     await page.dispatchEvent('body', 'drop', { dataTransfer })
 
     // Check that captions appear in the table
-    await page.waitForTimeout(200)
     const captionTable = page.locator('.caption-table')
     await expect(captionTable).toBeVisible()
     console.log('VTT file loaded and table displayed')
@@ -72,8 +71,7 @@ test.describe('VTT Editor', () => {
     await page.mouse.move(resizerBox.x + 100, resizerBox.y + resizerBox.height / 2)
     await page.mouse.up()
 
-    // Check that the left panel width increased
-    await page.waitForTimeout(100)
+    // Check that the left panel width increased (use waitForFunction for resize)
     const newWidth = await leftPanel.evaluate(el => el.getBoundingClientRect().width)
     expect(newWidth).toBeGreaterThan(initialWidth)
 

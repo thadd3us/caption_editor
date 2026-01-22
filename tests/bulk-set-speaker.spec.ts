@@ -68,8 +68,6 @@ Third message`
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(3)
 
-    await window.waitForTimeout(200)
-
     // Wait for caption count to update
     const captionCount = window.locator('h2', { hasText: 'Captions' })
     await expect(captionCount).toContainText('3', { timeout: 2000 })
@@ -95,8 +93,6 @@ Third message`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
@@ -114,8 +110,6 @@ Third message`
       const setBtn = buttons.find(b => b.textContent?.includes('Set Speaker'))
       if (setBtn) setBtn.click()
     })
-
-    await window.waitForTimeout(200)
 
     // Verify dialog closed
     await expect(dialog).not.toBeVisible()
@@ -150,9 +144,10 @@ Hello`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
-
-    await window.waitForTimeout(100)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Try to trigger context menu with no selection
     const contextMenuTriggered = await window.evaluate(() => {
@@ -173,8 +168,6 @@ Hello`
 
     // Context menu should not trigger
     expect(contextMenuTriggered).toBe(false)
-
-    await window.waitForTimeout(100)
 
     // Dialog should not be visible
     const dialog = window.locator('.base-modal-overlay')
@@ -198,7 +191,10 @@ Hello`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
     // Select a row and open dialog
     await window.evaluate(() => {
@@ -217,8 +213,6 @@ Hello`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
@@ -226,8 +220,6 @@ Hello`
     // Click Cancel button
     const cancelButton = window.locator('button.dialog-button-secondary')
     await cancelButton.click()
-
-    await window.waitForTimeout(100)
 
     // Dialog should be closed
     await expect(dialog).not.toBeVisible()
@@ -256,7 +248,10 @@ Second`
       vttStore.loadFromFile(vttContent, '/test/file.vtt')
     })
 
-    await window.waitForTimeout(200)
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 2
+    })
 
     // Select only one row
     await window.evaluate(() => {
@@ -275,8 +270,6 @@ Second`
       }))
     })
 
-    await window.waitForTimeout(100)
-
     // Dialog should be visible
     const dialog = window.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
@@ -294,8 +287,6 @@ Second`
       const setBtn = buttons.find(b => b.textContent?.includes('Set Speaker'))
       if (setBtn) setBtn.click()
     })
-
-    await window.waitForTimeout(200)
 
     // Verify speaker was set
     const speakerNames = await window.evaluate(() => {
