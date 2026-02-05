@@ -29,9 +29,9 @@ dependencies = [
 ]
 
 [project.scripts]
-transcribe = "transcribe:app"
+transcribe = "transcribe_cli:app"
 diarize = "diarize:app"
-embed = "embed:app"
+embed = "embed_cli:app"
 
 [dependency-groups]
 dev = [
@@ -56,8 +56,8 @@ override-dependencies = [
 [tool.setuptools]
 # Use find_packages to discover Python modules, exclude test directories
 py-modules = [
-    "transcribe",
-    "embed",
+    "transcribe_cli",
+    "embed_cli",
     "asr_results_to_vtt",
     "capture_raw_asr_output",
     "schema",

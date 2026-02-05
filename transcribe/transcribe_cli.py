@@ -36,6 +36,7 @@ from schema import (
     TranscriptMetadata,
     TranscriptSegment,
 )
+from constants import MODEL_PARAKEET, MODEL_VOXCELEB
 from vtt_lib import serialize_vtt
 from embed_cli import main as embed_main
 
@@ -224,7 +225,7 @@ def main(
         5, "--overlap", "-v", help="Overlap interval in seconds"
     ),
     model_name: str = typer.Option(
-        "nvidia/parakeet-tdt-0.6b-v3",
+        MODEL_PARAKEET,
         "--model",
         "-m",
         help="Hugging Face model name",
@@ -250,7 +251,7 @@ def main(
         help="Whether to automatically run speaker embedding on the output VTT",
     ),
     embed_model: str = typer.Option(
-        "pyannote/wespeaker-voxceleb-resnet34-LM",
+        MODEL_VOXCELEB,
         "--embed-model",
         help="Model to use for speaker embedding",
     ),
@@ -265,8 +266,6 @@ def main(
 
     Supports long media files by processing in chunks with overlap to avoid
     cutting off words at boundaries.
-
-    TODO: Add speaker identification to segments.
     """
     # Determine output path
     if output is None:

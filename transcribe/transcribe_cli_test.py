@@ -5,11 +5,15 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-from transcribe import main as transcribe_main
+from constants import MODEL_PARAKEET, MODEL_WHISPER_TINY
+from transcribe_cli import main as transcribe_main
 from typer.testing import CliRunner
-from transcribe import app
+from transcribe_cli import app
 
 import pytest
+
+assert MODEL_PARAKEET
+assert MODEL_WHISPER_TINY
 
 
 @pytest.mark.expensive
@@ -30,7 +34,7 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
     output_path = tmp_path / "output.vtt"
 
     # Path to transcribe script
-    transcribe_script = repo_root / "transcribe" / "transcribe.py"
+    transcribe_script = repo_root / "transcribe" / "transcribe_cli.py"
 
     # Use tighter gap threshold for Whisper to split on sentence boundaries
     gap_threshold = "0.2" if "whisper" in model_name.lower() else "2.0"
@@ -53,7 +57,9 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
             gap_threshold,
             "--deterministic-ids",
         ],
-        capture_output=True,
+        # capture_output=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         text=True,
         check=True,
     )
@@ -80,7 +86,7 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
     test_audio.write_bytes(source_audio.read_bytes())
 
     output_path = tmp_path / "output.vtt"
-    transcribe_script = repo_root / "transcribe" / "transcribe.py"
+    # transcribe_script = repo_root / "transcribe" / "transcribe.py"
 
     # We want to mock the embedding model to avoid downloading it and slow tests
     # We can mock the Inference class in embed_cli.py or the compute_embedding function
@@ -105,7 +111,7 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
                 "--overlap",
                 "5",
                 "--model",
-                "openai/whisper-tiny",
+                MODEL_PARAKEET,
                 "--deterministic-ids",
                 "--embed",
                 "--min-segment-duration",
