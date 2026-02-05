@@ -341,9 +341,8 @@ def split_long_segments(
 
         # Split into multiple sub-segments
         current_words = []
-        segment_start_time = segment.start
 
-        for i, word in enumerate(segment.words):
+        for word in segment.words:
             # Check if adding this word would exceed max duration
             if current_words:
                 potential_duration = word.end - current_words[0].start
@@ -365,7 +364,6 @@ def split_long_segments(
 
                     # Start new segment with current word
                     current_words = [word]
-                    segment_start_time = word.start
                 else:
                     current_words.append(word)
             else:

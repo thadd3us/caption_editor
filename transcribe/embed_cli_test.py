@@ -1,7 +1,6 @@
 """Tests for speaker embedding."""
 
 import json
-import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -33,10 +32,8 @@ def test_convert_to_wav():
         subprocess.run(
             [
                 "ffmpeg",
-                *("-f",
-                "lavfi"),
-                *("-i",
-                "sine=frequency=440:duration=1"),
+                *("-f", "lavfi"),
+                *("-i", "sine=frequency=440:duration=1"),
                 "-y",
                 str(test_flac),
             ],
@@ -96,7 +93,6 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
     test_vtt.write_text(TEST_VTT.read_text())
     test_audio.write_bytes(TEST_AUDIO.read_bytes())
 
-
     # # Pass HF_TOKEN if available (not needed for default model)
     # env = dict(os.environ)
     # if "HF_TOKEN" in os.environ:
@@ -106,7 +102,7 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
         app,
         [
             str(test_vtt),
-        ]
+        ],
     )
     assert result.exit_code == 0
     # Parse the updated VTT file to extract embeddings
