@@ -5,8 +5,11 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+
+from typer.testing import CliRunner
 from repo_root import REPO_ROOT
 from vtt_lib import parse_vtt_file
+from embed_cli import app
 
 import numpy as np
 import pytest
@@ -30,10 +33,10 @@ def test_convert_to_wav():
         subprocess.run(
             [
                 "ffmpeg",
-                "-f",
-                "lavfi",
-                "-i",
-                "sine=frequency=440:duration=1",
+                *("-f",
+                "lavfi"),
+                *("-i",
+                "sine=frequency=440:duration=1"),
                 "-y",
                 str(test_flac),
             ],
@@ -78,7 +81,7 @@ def test_convert_to_wav():
 
 
 @pytest.mark.expensive
-def test_embed_osr_audio(repo_root: Path, snapshot):
+def test_embed_osr_audio(snapshot, tmp_path: Path):
     """Test embedding computation with snapshot comparison.
 
     Note: Uses default wespeaker model which doesn't require HF_TOKEN.
@@ -86,64 +89,56 @@ def test_embed_osr_audio(repo_root: Path, snapshot):
     assert TEST_VTT.exists(), f"Test VTT file not found: {TEST_VTT}"
     assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = Path(temp_dir)
+    # Copy VTT and audio to temp directory
+    test_vtt = tmp_path / "test.vtt"
+    test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
 
-        # Copy VTT and audio to temp directory
-        test_vtt = temp_path / "test.vtt"
-        test_audio = temp_path / "OSR_us_000_0010_8k.wav"
+    test_vtt.write_text(TEST_VTT.read_text())
+    test_audio.write_bytes(TEST_AUDIO.read_bytes())
 
-        test_vtt.write_text(TEST_VTT.read_text())
-        test_audio.write_bytes(TEST_AUDIO.read_bytes())
 
-        # Run embed.py as subprocess
-        embed_script = Path(__file__).parent / "embed_cli.py"
-        # Pass HF_TOKEN if available (not needed for default model)
-        env = dict(os.environ)
-        if "HF_TOKEN" in os.environ:
-            env["HF_TOKEN"] = os.environ["HF_TOKEN"]
-        result = subprocess.run(
-            [
-                "python",
-                str(embed_script),
-                str(test_vtt),
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-            env=env,
-        )
+    # # Pass HF_TOKEN if available (not needed for default model)
+    # env = dict(os.environ)
+    # if "HF_TOKEN" in os.environ:
+    #     env["HF_TOKEN"] = os.environ["HF_TOKEN"]
 
-        # Parse the updated VTT file to extract embeddings
-        metadata, segments = parse_vtt_file(test_vtt)
+    result = CliRunner().invoke(
+        app,
+        [
+            str(test_vtt),
+        ]
+    )
+    assert result.exit_code == 0
+    # Parse the updated VTT file to extract embeddings
+    metadata, segments = parse_vtt_file(test_vtt)
 
-        # Read the VTT file to extract embeddings from NOTE comments
-        vtt_content = test_vtt.read_text()
+    # Read the VTT file to extract embeddings from NOTE comments
+    vtt_content = test_vtt.read_text()
 
-        embeddings = []
-        for line in vtt_content.split("\n"):
-            if "SegmentSpeakerEmbedding" in line:
-                # Extract JSON from the NOTE comment
-                import re
+    embeddings = []
+    for line in vtt_content.split("\n"):
+        if "SegmentSpeakerEmbedding" in line:
+            # Extract JSON from the NOTE comment
+            import re
 
-                match = re.search(r"SegmentSpeakerEmbedding (.+)$", line)
-                if match:
-                    embedding_data = json.loads(match.group(1))
-                    # Use camelCase field name as it appears in the JSON
-                    embedding_array = np.array(embedding_data["speakerEmbedding"])
-                    # Round to 2 decimal places for snapshot stability across environments
-                    rounded = np.round(embedding_array, 2).tolist()
-                    embeddings.append(
-                        {
-                            "segment_id": embedding_data["segmentId"],
-                            "embedding": rounded[
-                                :10
-                            ],  # First 10 values for compact snapshot
-                            "shape": len(embedding_array),
-                        }
-                    )
+            match = re.search(r"SegmentSpeakerEmbedding (.+)$", line)
+            if match:
+                embedding_data = json.loads(match.group(1))
+                # Use camelCase field name as it appears in the JSON
+                embedding_array = np.array(embedding_data["speakerEmbedding"])
+                # Round to 2 decimal places for snapshot stability across environments
+                rounded = np.round(embedding_array, 2).tolist()
+                embeddings.append(
+                    {
+                        "segment_id": embedding_data["segmentId"],
+                        "embedding": rounded[
+                            :10
+                        ],  # First 10 values for compact snapshot
+                        "shape": len(embedding_array),
+                    }
+                )
 
-        # Sort by segment_id for consistent comparison
-        embeddings.sort(key=lambda x: x["segment_id"])
+    # Sort by segment_id for consistent comparison
+    embeddings.sort(key=lambda x: x["segment_id"])
 
-        assert embeddings == snapshot
+    assert embeddings == snapshot
