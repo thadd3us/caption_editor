@@ -32,9 +32,6 @@ def test_transcribe_osr_audio(
 
     output_path = tmp_path / "output.vtt"
 
-    # Path to transcribe script
-    transcribe_script = repo_root / "transcribe" / "transcribe_cli.py"
-
     # Use tighter gap threshold for Whisper to split on sentence boundaries
     gap_threshold = "0.2" if "whisper" in model_name.lower() else "2.0"
 
@@ -43,14 +40,10 @@ def test_transcribe_osr_audio(
         [
             str(test_audio),
             *("--output", str(output_path)),
-            "--chunk-size",
-            "10",
-            "--overlap",
-            "5",
-            "--model",
-            model_name,
-            "--max-intra-segment-gap-seconds",
-            gap_threshold,
+            *("--chunk-size", "10"),
+            *("--overlap", "5"),
+            *("--model", model_name),
+            *("--max-intra-segment-gap-seconds", gap_threshold),
             "--deterministic-ids",
         ],
     )
@@ -85,27 +78,23 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
         patch("embed_cli.Model.from_pretrained") as mock_model,
         patch("embed_cli.Inference") as mock_inference,
     ):
+        del mock_model
         # Mock inference to return a dummy embedding
         dummy_embedding = [0.1] * 192  # Typical embedding size
         mock_inference.return_value.side_effect = lambda x: dummy_embedding
 
-        # Run transcription with --embed
+        # Run transcription with --embed.
         result = CliRunner().invoke(
             app,
             [
                 str(test_audio),
-                "--output",
-                str(output_path),
-                "--chunk-size",
-                "10",
-                "--overlap",
-                "5",
-                "--model",
-                MODEL_PARAKEET,
+                *("--output", str(output_path)),
+                *("--chunk-size", "10"),
+                *("--overlap", "5"),
+                *("--model", MODEL_PARAKEET),
                 "--deterministic-ids",
                 "--embed",
-                "--min-segment-duration",
-                "0.0",
+                *("--min-segment-duration", "0.0"),
             ],
         )
 
