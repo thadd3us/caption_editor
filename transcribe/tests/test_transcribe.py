@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+from transcribe import main as transcribe_main
+from typer.testing import CliRunner
 from transcribe import app
 
 import pytest
@@ -81,16 +83,14 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
     transcribe_script = repo_root / "transcribe" / "transcribe.py"
 
     # We want to mock the embedding model to avoid downloading it and slow tests
-    # We can mock the Inference class in embed.py or the compute_embedding function
-    with patch("embed.Model.from_pretrained") as mock_model, patch(
-        "embed.Inference"
+    # We can mock the Inference class in embed_cli.py or the compute_embedding function
+    with patch("embed_cli.Model.from_pretrained") as mock_model, patch(
+        "embed_cli.Inference"
     ) as mock_inference:
         # Mock inference to return a dummy embedding
         dummy_embedding = [0.1] * 192  # Typical embedding size
         mock_inference.return_value.side_effect = lambda x: dummy_embedding
 
-        from transcribe import main as transcribe_main
-        from typer.testing import CliRunner
         runner = CliRunner()
         
         # Run transcription with --embed

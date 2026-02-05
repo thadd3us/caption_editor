@@ -6,6 +6,8 @@ This script uses the actual production code from transcribe.py to process audio
 and captures the raw ASR output for use in unit tests.
 
 Supports both Whisper (transformers) and Parakeet (NeMo) models.
+
+TODO: Add sample usage commands.
 """
 
 import json

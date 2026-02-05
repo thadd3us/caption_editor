@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 from syrupy import SnapshotAssertion
 
+from repo_root import REPO_ROOT
+
 
 def pytest_collection_modifyitems(config, items):
     """Skip expensive tests when SKIP_EXPENSIVE_TESTS=true."""
@@ -20,7 +22,7 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture
 def repo_root() -> Path:
     """Return the root directory of the repository."""
-    return Path(__file__).parent.parent
+    return REPO_ROOT
 
 
 @pytest.fixture

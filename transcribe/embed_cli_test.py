@@ -5,6 +5,8 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+from repo_root import REPO_ROOT
+from vtt_lib import parse_vtt_file
 
 import numpy as np
 import pytest
@@ -12,8 +14,8 @@ import pytest
 from audio_utils import extract_audio_to_wav
 
 # Path to test files
-TEST_AUDIO = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.wav"
-TEST_VTT = Path(__file__).parent.parent.parent / "test_data" / "OSR_us_000_0010_8k.vtt"
+TEST_AUDIO = REPO_ROOT / "test_data" / "OSR_us_000_0010_8k.wav"
+TEST_VTT = REPO_ROOT / "test_data" / "OSR_us_000_0010_8k.vtt"
 
 
 def test_convert_to_wav():
@@ -70,7 +72,7 @@ def test_convert_to_wav():
 
 
 @pytest.mark.expensive
-def test_embed_osr_audio(snapshot):
+def test_embed_osr_audio(repo_root: Path, snapshot):
     """Test embedding computation with snapshot comparison.
 
     Note: Uses default wespeaker model which doesn't require HF_TOKEN.
@@ -89,7 +91,7 @@ def test_embed_osr_audio(snapshot):
         test_audio.write_bytes(TEST_AUDIO.read_bytes())
 
         # Run embed.py as subprocess
-        embed_script = Path(__file__).parent.parent / "embed.py"
+        embed_script = Path(__file__).parent / "embed_cli.py"
         # Pass HF_TOKEN if available (not needed for default model)
         env = dict(os.environ)
         if "HF_TOKEN" in os.environ:
@@ -106,8 +108,6 @@ def test_embed_osr_audio(snapshot):
         )
 
         # Parse the updated VTT file to extract embeddings
-        from vtt_lib import parse_vtt_file
-
         metadata, segments = parse_vtt_file(test_vtt)
 
         # Read the VTT file to extract embeddings from NOTE comments

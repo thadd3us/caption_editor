@@ -12,6 +12,8 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
+import soundfile as sf
+
 
 import numpy as np
 import torch
@@ -35,7 +37,7 @@ from schema import (
     TranscriptSegment,
 )
 from vtt_lib import serialize_vtt
-from embed import main as embed_main
+from embed_cli import main as embed_main
 
 
 try:
