@@ -17,8 +17,8 @@ assert MODEL_WHISPER_TINY
 @pytest.mark.parametrize(
     "model_name",
     [
-        "openai/whisper-tiny",
-        "nvidia/parakeet-tdt-0.6b-v3",
+        MODEL_WHISPER_TINY,
+        MODEL_PARAKEET,
     ],
 )
 def test_transcribe_osr_audio(

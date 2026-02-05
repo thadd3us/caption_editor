@@ -55,7 +55,7 @@ def load_and_parse_fixture(
     Returns:
         List of ASRSegment objects
     """
-    fixture_path = Path(__file__).parent.parent / "test_fixtures" / fixture_name
+    fixture_path = Path(__file__).parent / "test_fixtures" / fixture_name
     chunks_data = json.load(open(fixture_path))
 
     all_segments = []
