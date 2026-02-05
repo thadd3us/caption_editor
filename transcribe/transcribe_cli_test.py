@@ -1,12 +1,9 @@
 """Tests for transcription tool."""
 
-import subprocess
-import sys
 from pathlib import Path
 from unittest.mock import patch
 
 from constants import MODEL_PARAKEET, MODEL_WHISPER_TINY
-from transcribe_cli import main as transcribe_main
 from typer.testing import CliRunner
 from transcribe_cli import app
 

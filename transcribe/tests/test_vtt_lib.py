@@ -1,7 +1,6 @@
 """Tests for VTT library parsing and serialization."""
 
 from pathlib import Path
-import pytest
 from vtt_lib import parse_vtt_file, serialize_vtt
 
 

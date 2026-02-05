@@ -110,7 +110,7 @@ def main(
             typer.echo(f"Converting {media_path.suffix} to WAV format...")
             try:
                 audio_path = extract_audio_to_wav(media_path, temp_dir / "audio.wav")
-                typer.echo(f"Conversion complete")
+                typer.echo("Conversion complete")
             except ValueError as e:
                 raise ValueError(f"Failed to convert audio file: {e}")
 
@@ -135,7 +135,7 @@ def main(
         inference = Inference(embedding_model, window="whole")
 
         # Process each segment
-        typer.echo(f"Computing embeddings...")
+        typer.echo("Computing embeddings...")
         # Map from segment ID to embedding
         segment_id_to_embedding = {}
         skipped_count = 0

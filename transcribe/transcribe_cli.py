@@ -5,8 +5,6 @@ Converts media files to VTT format with segment-level transcription.
 """
 
 import hashlib
-import json
-import shutil
 import tempfile
 import uuid
 from datetime import datetime
@@ -31,8 +29,6 @@ from asr_results_to_vtt import (
     split_segments_by_word_gap,
 )
 from schema import (
-    CAPTION_EDITOR_SENTINEL,
-    SegmentHistoryEntry,
     TranscriptMetadata,
     TranscriptSegment,
 )
