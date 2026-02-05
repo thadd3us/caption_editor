@@ -10,10 +10,17 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from schema import CAPTION_EDITOR_SENTINEL, SegmentSpeakerEmbedding, TranscriptMetadata, TranscriptSegment
+from schema import (
+    CAPTION_EDITOR_SENTINEL,
+    SegmentSpeakerEmbedding,
+    TranscriptMetadata,
+    TranscriptSegment,
+)
 
 
-def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[TranscriptSegment]]:
+def parse_vtt_file(
+    vtt_path: Path,
+) -> tuple[TranscriptMetadata, list[TranscriptSegment]]:
     """Parse VTT file and extract metadata and segments from NOTE comments."""
     content = vtt_path.read_text()
     lines = content.split("\n")
@@ -22,9 +29,7 @@ def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[TranscriptS
     segments = []
 
     # Pattern to match NOTE CAPTION_EDITOR: lines
-    pattern = re.compile(
-        rf"^NOTE {CAPTION_EDITOR_SENTINEL}:(\w+)\s+(.+)$"
-    )
+    pattern = re.compile(rf"^NOTE {CAPTION_EDITOR_SENTINEL}:(\w+)\s+(.+)$")
 
     for line in lines:
         match = pattern.match(line.strip())
@@ -43,9 +48,7 @@ def parse_vtt_file(vtt_path: Path) -> tuple[TranscriptMetadata, list[TranscriptS
                 segments.append(segment)
 
     if metadata is None:
-        raise ValueError(
-            f"No TranscriptMetadata found in VTT file: {vtt_path}"
-        )
+        raise ValueError(f"No TranscriptMetadata found in VTT file: {vtt_path}")
 
     if not segments:
         raise ValueError(f"No TranscriptSegment entries found in VTT file: {vtt_path}")
@@ -66,10 +69,10 @@ def serialize_vtt(
     segments: list[TranscriptSegment],
     embeddings: Optional[list[SegmentSpeakerEmbedding]] = None,
     include_history: bool = False,
-    vtt_path: Optional[Path] = None
+    vtt_path: Optional[Path] = None,
 ) -> str:
     """Serialize metadata and segments to VTT format string.
-    
+
     If vtt_path is provided, media paths are converted to relative paths.
     """
     lines = ["WEBVTT\n"]
@@ -90,12 +93,16 @@ def serialize_vtt(
 
     # Add TranscriptMetadata at the top with CAPTION_EDITOR sentinel
     metadata_json = metadata_copy.model_dump(by_alias=True, exclude_none=True)
-    lines.append(f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json, separators=(',', ':'))}\n")
+    lines.append(
+        f"NOTE {CAPTION_EDITOR_SENTINEL}:TranscriptMetadata {json.dumps(metadata_json, separators=(',', ':'))}\n"
+    )
 
     for segment in segments:
         # Add NOTE with entire segment using CAPTION_EDITOR sentinel
         segment_json = segment.model_dump(by_alias=True, exclude_none=True)
-        lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:TranscriptSegment {json.dumps(segment_json, separators=(',', ':'))}\n")
+        lines.append(
+            f"\nNOTE {CAPTION_EDITOR_SENTINEL}:TranscriptSegment {json.dumps(segment_json, separators=(',', ':'))}\n"
+        )
 
         # Format timestamps
         start = format_timestamp(segment.start_time)
@@ -109,6 +116,8 @@ def serialize_vtt(
     if embeddings:
         for embedding in embeddings:
             embedding_json = embedding.model_dump(by_alias=True, exclude_none=True)
-            lines.append(f"\nNOTE {CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding {json.dumps(embedding_json, separators=(',', ':'))}")
+            lines.append(
+                f"\nNOTE {CAPTION_EDITOR_SENTINEL}:SegmentSpeakerEmbedding {json.dumps(embedding_json, separators=(',', ':'))}"
+            )
 
     return "\n".join(lines)

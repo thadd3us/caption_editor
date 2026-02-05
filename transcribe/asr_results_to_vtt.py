@@ -17,6 +17,7 @@ class WordTimestamp:
 
     This format is compatible with both NeMo and Transformers ASR outputs.
     """
+
     word: str
     start: float
     end: float
@@ -29,6 +30,7 @@ class ASRSegment:
     Represents a segment of transcribed text with timing information
     for the entire segment and for each word within it.
     """
+
     text: str
     start: float
     end: float
@@ -45,20 +47,22 @@ def parse_nemo_segment(segment_data: dict, word_data: List[dict]) -> ASRSegment:
     Returns:
         ASRSegment with word-level timestamps
     """
-    segment_text = segment_data['segment']
-    segment_start = segment_data['start']
-    segment_end = segment_data['end']
+    segment_text = segment_data["segment"]
+    segment_start = segment_data["start"]
+    segment_end = segment_data["end"]
 
     # Find words that belong to this segment based on time overlap
     segment_words = []
     for word in word_data:
         # Word belongs to segment if it overlaps with segment time range
-        if word['start'] >= segment_start and word['end'] <= segment_end:
-            segment_words.append(WordTimestamp(
-                word=word['word'],
-                start=word['start'],
-                end=word['end'],
-            ))
+        if word["start"] >= segment_start and word["end"] <= segment_end:
+            segment_words.append(
+                WordTimestamp(
+                    word=word["word"],
+                    start=word["start"],
+                    end=word["end"],
+                )
+            )
 
     return ASRSegment(
         text=segment_text,
@@ -68,7 +72,9 @@ def parse_nemo_segment(segment_data: dict, word_data: List[dict]) -> ASRSegment:
     )
 
 
-def parse_transformers_segment(chunk_data: dict, all_chunks: List[dict]) -> Optional[ASRSegment]:
+def parse_transformers_segment(
+    chunk_data: dict, all_chunks: List[dict]
+) -> Optional[ASRSegment]:
     """Parse Transformers ASR output into ASRSegment format.
 
     When using return_timestamps="word", Transformers returns individual word chunks.
@@ -82,7 +88,7 @@ def parse_transformers_segment(chunk_data: dict, all_chunks: List[dict]) -> Opti
         ASRSegment or None if this chunk should be skipped
     """
     # Check if this is word-level (tuple timestamp) or segment-level (already grouped)
-    timestamp = chunk_data.get('timestamp')
+    timestamp = chunk_data.get("timestamp")
 
     if timestamp is None:
         return None
@@ -94,14 +100,16 @@ def parse_transformers_segment(chunk_data: dict, all_chunks: List[dict]) -> Opti
             return None
 
         return ASRSegment(
-            text=chunk_data['text'],
+            text=chunk_data["text"],
             start=start,
             end=end,
-            words=[WordTimestamp(
-                word=chunk_data['text'],
-                start=start,
-                end=end,
-            )],
+            words=[
+                WordTimestamp(
+                    word=chunk_data["text"],
+                    start=start,
+                    end=end,
+                )
+            ],
         )
 
     return None
@@ -129,7 +137,7 @@ def group_whisper_words_into_segments(chunks: List[dict]) -> List[ASRSegment]:
     segments = []
 
     for chunk in chunks:
-        timestamp = chunk.get('timestamp')
+        timestamp = chunk.get("timestamp")
         if timestamp is None or not isinstance(timestamp, tuple):
             continue
 
@@ -138,18 +146,20 @@ def group_whisper_words_into_segments(chunks: List[dict]) -> List[ASRSegment]:
             continue
 
         word_obj = WordTimestamp(
-            word=chunk['text'],
+            word=chunk["text"],
             start=start,
             end=end,
         )
 
         # Create a segment for each individual word
-        segments.append(ASRSegment(
-            text=chunk['text'].strip(),
-            start=start,
-            end=end,
-            words=[word_obj],
-        ))
+        segments.append(
+            ASRSegment(
+                text=chunk["text"].strip(),
+                start=start,
+                end=end,
+                words=[word_obj],
+            )
+        )
 
     return segments
 
@@ -197,13 +207,15 @@ def group_segments_by_gap(
                 for seg in current_group_segs:
                     all_words.extend(seg.words)
 
-                text = ' '.join(w.word for w in all_words).strip()
-                result.append(ASRSegment(
-                    text=text,
-                    start=current_group_segs[0].start,
-                    end=current_group_segs[-1].end,
-                    words=all_words,
-                ))
+                text = " ".join(w.word for w in all_words).strip()
+                result.append(
+                    ASRSegment(
+                        text=text,
+                        start=current_group_segs[0].start,
+                        end=current_group_segs[-1].end,
+                        words=all_words,
+                    )
+                )
 
             current_group_segs = [curr_seg]
 
@@ -213,13 +225,15 @@ def group_segments_by_gap(
         for seg in current_group_segs:
             all_words.extend(seg.words)
 
-        text = ' '.join(w.word for w in all_words).strip()
-        result.append(ASRSegment(
-            text=text,
-            start=current_group_segs[0].start,
-            end=current_group_segs[-1].end,
-            words=all_words,
-        ))
+        text = " ".join(w.word for w in all_words).strip()
+        result.append(
+            ASRSegment(
+                text=text,
+                start=current_group_segs[0].start,
+                end=current_group_segs[-1].end,
+                words=all_words,
+            )
+        )
 
     return result
 
@@ -277,16 +291,18 @@ def split_segments_by_word_gap(
                 continue
 
             # Create new segment for this split
-            sub_text = ' '.join(w.word for w in sub_words).strip()
+            sub_text = " ".join(w.word for w in sub_words).strip()
             sub_start = sub_words[0].start
             sub_end = sub_words[-1].end
 
-            result.append(ASRSegment(
-                text=sub_text,
-                start=sub_start,
-                end=sub_end,
-                words=sub_words,
-            ))
+            result.append(
+                ASRSegment(
+                    text=sub_text,
+                    start=sub_start,
+                    end=sub_end,
+                    words=sub_words,
+                )
+            )
 
     return result
 
@@ -334,16 +350,18 @@ def split_long_segments(
 
                 if potential_duration > max_duration_seconds:
                     # Time to split - create segment from accumulated words
-                    sub_text = ' '.join(w.word for w in current_words).strip()
+                    sub_text = " ".join(w.word for w in current_words).strip()
                     sub_start = current_words[0].start
                     sub_end = current_words[-1].end
 
-                    result.append(ASRSegment(
-                        text=sub_text,
-                        start=sub_start,
-                        end=sub_end,
-                        words=current_words,
-                    ))
+                    result.append(
+                        ASRSegment(
+                            text=sub_text,
+                            start=sub_start,
+                            end=sub_end,
+                            words=current_words,
+                        )
+                    )
 
                     # Start new segment with current word
                     current_words = [word]
@@ -355,16 +373,18 @@ def split_long_segments(
 
         # Add remaining words as final segment
         if current_words:
-            sub_text = ' '.join(w.word for w in current_words).strip()
+            sub_text = " ".join(w.word for w in current_words).strip()
             sub_start = current_words[0].start
             sub_end = current_words[-1].end
 
-            result.append(ASRSegment(
-                text=sub_text,
-                start=sub_start,
-                end=sub_end,
-                words=current_words,
-            ))
+            result.append(
+                ASRSegment(
+                    text=sub_text,
+                    start=sub_start,
+                    end=sub_end,
+                    words=current_words,
+                )
+            )
 
     return result
 
@@ -450,22 +470,28 @@ def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[TranscriptSegme
             continue
 
         # Convert WordTimestamp to TranscriptWord
-        words = [
-            TranscriptWord(
-                text=w.word,
-                start_time=w.start,
-                end_time=w.end,
-            )
-            for w in segment.words
-        ] if segment.words else None
+        words = (
+            [
+                TranscriptWord(
+                    text=w.word,
+                    start_time=w.start,
+                    end_time=w.end,
+                )
+                for w in segment.words
+            ]
+            if segment.words
+            else None
+        )
 
-        segments_result.append(TranscriptSegment(
-            id="",  # Will be set later with hash
-            start_time=segment.start,
-            end_time=segment.end,
-            text=segment.text.strip(),
-            words=words,
-        ))
+        segments_result.append(
+            TranscriptSegment(
+                id="",  # Will be set later with hash
+                start_time=segment.start,
+                end_time=segment.end,
+                text=segment.text.strip(),
+                words=words,
+            )
+        )
 
     return segments_result
 
@@ -491,33 +517,33 @@ def parse_nemo_result_with_words(
     output = result[0]
 
     # Check if we have timestamps with word-level data
-    if not hasattr(output, 'timestamp'):
+    if not hasattr(output, "timestamp"):
         return segments
 
-    if 'segment' not in output.timestamp or 'word' not in output.timestamp:
+    if "segment" not in output.timestamp or "word" not in output.timestamp:
         return segments
 
     # Get all words
-    all_words = output.timestamp['word']
+    all_words = output.timestamp["word"]
 
     # Parse each segment
-    for segment_data in output.timestamp['segment']:
-        if not segment_data['segment'].strip():
+    for segment_data in output.timestamp["segment"]:
+        if not segment_data["segment"].strip():
             continue
 
         # Adjust times by chunk_start
         adjusted_segment = {
-            'segment': segment_data['segment'],
-            'start': chunk_start + segment_data['start'],
-            'end': chunk_start + segment_data['end'],
+            "segment": segment_data["segment"],
+            "start": chunk_start + segment_data["start"],
+            "end": chunk_start + segment_data["end"],
         }
 
         # Adjust word times
         adjusted_words = [
             {
-                'word': w['word'],
-                'start': chunk_start + w['start'],
-                'end': chunk_start + w['end'],
+                "word": w["word"],
+                "start": chunk_start + w["start"],
+                "end": chunk_start + w["end"],
             }
             for w in all_words
         ]
@@ -543,19 +569,25 @@ def parse_transformers_result_with_words(
     """
     segments = []
 
-    if not isinstance(result, dict) or 'chunks' not in result:
+    if not isinstance(result, dict) or "chunks" not in result:
         return segments
 
     # Adjust times by chunk_start
     adjusted_chunks = [
         {
-            'text': chunk['text'],
-            'timestamp': (
-                chunk_start + chunk['timestamp'][0] if chunk['timestamp'][0] is not None else None,
-                chunk_start + chunk['timestamp'][1] if chunk['timestamp'][1] is not None else None,
-            ) if isinstance(chunk.get('timestamp'), (tuple, list)) else None,
+            "text": chunk["text"],
+            "timestamp": (
+                chunk_start + chunk["timestamp"][0]
+                if chunk["timestamp"][0] is not None
+                else None,
+                chunk_start + chunk["timestamp"][1]
+                if chunk["timestamp"][1] is not None
+                else None,
+            )
+            if isinstance(chunk.get("timestamp"), (tuple, list))
+            else None,
         }
-        for chunk in result['chunks']
+        for chunk in result["chunks"]
     ]
 
     # Group words into segments
@@ -564,7 +596,9 @@ def parse_transformers_result_with_words(
     return segments
 
 
-def parse_whisper_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List[ASRSegment]:
+def parse_whisper_raw_chunk(
+    chunk_data: dict, chunk_start: float = 0.0
+) -> List[ASRSegment]:
     """Parse raw Whisper JSON output chunk into ASRSegment list.
 
     Whisper's raw output has 'segments' (word-level) and 'words' (also word-level, same data).
@@ -583,15 +617,15 @@ def parse_whisper_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List[
         return segments
 
     # Whisper segments are actually word-level
-    word_segments = chunk_data.get('segments', [])
+    word_segments = chunk_data.get("segments", [])
 
     for word_data in word_segments:
         if not isinstance(word_data, dict):
             continue
 
-        text = word_data.get('text', '').strip()
-        start = word_data.get('start')
-        end = word_data.get('end')
+        text = word_data.get("text", "").strip()
+        start = word_data.get("start")
+        end = word_data.get("end")
 
         if text and start is not None and end is not None:
             word_obj = WordTimestamp(
@@ -600,17 +634,21 @@ def parse_whisper_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List[
                 end=chunk_start + end,
             )
 
-            segments.append(ASRSegment(
-                text=text,
-                start=chunk_start + start,
-                end=chunk_start + end,
-                words=[word_obj],
-            ))
+            segments.append(
+                ASRSegment(
+                    text=text,
+                    start=chunk_start + start,
+                    end=chunk_start + end,
+                    words=[word_obj],
+                )
+            )
 
     return segments
 
 
-def parse_parakeet_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List[ASRSegment]:
+def parse_parakeet_raw_chunk(
+    chunk_data: dict, chunk_start: float = 0.0
+) -> List[ASRSegment]:
     """Parse raw Parakeet (NeMo) JSON output chunk into ASRSegment list.
 
     Parakeet's raw output has 'segments' (sentence-level) and 'words' (word-level).
@@ -628,8 +666,8 @@ def parse_parakeet_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List
     if not isinstance(chunk_data, dict):
         return segments
 
-    sentence_segments = chunk_data.get('segments', [])
-    all_words = chunk_data.get('words', [])
+    sentence_segments = chunk_data.get("segments", [])
+    all_words = chunk_data.get("words", [])
 
     # If no segments, return empty list
     if not sentence_segments:
@@ -640,9 +678,9 @@ def parse_parakeet_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List
         if not isinstance(segment_data, dict):
             continue
 
-        text = segment_data.get('text', '').strip()
-        seg_start = segment_data.get('start')
-        seg_end = segment_data.get('end')
+        text = segment_data.get("text", "").strip()
+        seg_start = segment_data.get("start")
+        seg_end = segment_data.get("end")
 
         if not text or seg_start is None or seg_end is None:
             continue
@@ -653,26 +691,30 @@ def parse_parakeet_raw_chunk(chunk_data: dict, chunk_start: float = 0.0) -> List
             if not isinstance(word_data, dict):
                 continue
 
-            word_text = word_data.get('word', '').strip()
-            word_start = word_data.get('start')
-            word_end = word_data.get('end')
+            word_text = word_data.get("word", "").strip()
+            word_start = word_data.get("start")
+            word_end = word_data.get("end")
 
             if word_text and word_start is not None and word_end is not None:
                 # Word belongs to segment if it overlaps with segment time range
                 # Use a small tolerance for floating point comparison
                 if word_start >= seg_start - 0.01 and word_end <= seg_end + 0.01:
-                    segment_words.append(WordTimestamp(
-                        word=word_text,
-                        start=chunk_start + word_start,
-                        end=chunk_start + word_end,
-                    ))
+                    segment_words.append(
+                        WordTimestamp(
+                            word=word_text,
+                            start=chunk_start + word_start,
+                            end=chunk_start + word_end,
+                        )
+                    )
 
-        segments.append(ASRSegment(
-            text=text,
-            start=chunk_start + seg_start,
-            end=chunk_start + seg_end,
-            words=segment_words,
-        ))
+        segments.append(
+            ASRSegment(
+                text=text,
+                start=chunk_start + seg_start,
+                end=chunk_start + seg_end,
+                words=segment_words,
+            )
+        )
 
     return segments
 

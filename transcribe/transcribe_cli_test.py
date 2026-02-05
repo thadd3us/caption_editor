@@ -24,7 +24,9 @@ assert MODEL_WHISPER_TINY
         "nvidia/parakeet-tdt-0.6b-v3",
     ],
 )
-def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_name: str):
+def test_transcribe_osr_audio(
+    repo_root: Path, tmp_path: Path, snapshot, model_name: str
+):
     """Test transcribing the OSR audio file with 10s chunks and 5s overlap."""
     # Copy audio file to tmp_path to avoid absolute path in snapshots
     source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
@@ -43,8 +45,7 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
         app,
         [
             str(test_audio),
-            *("--output",
-            str(output_path)),
+            *("--output", str(output_path)),
             "--chunk-size",
             "10",
             "--overlap",
@@ -54,7 +55,8 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
             "--max-intra-segment-gap-seconds",
             gap_threshold,
             "--deterministic-ids",
-        ])
+        ],
+    )
 
     # Check that command succeeded
     assert result.exit_code == 0, f"Transcription failed: {result.stderr}"
@@ -82,8 +84,10 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
 
     # We want to mock the embedding model to avoid downloading it and slow tests
     # We can mock the Inference class in embed_cli.py or the compute_embedding function
-    with (patch("embed_cli.Model.from_pretrained") as mock_model, 
-        patch("embed_cli.Inference") as mock_inference):
+    with (
+        patch("embed_cli.Model.from_pretrained") as mock_model,
+        patch("embed_cli.Inference") as mock_inference,
+    ):
         # Mock inference to return a dummy embedding
         dummy_embedding = [0.1] * 192  # Typical embedding size
         mock_inference.return_value.side_effect = lambda x: dummy_embedding

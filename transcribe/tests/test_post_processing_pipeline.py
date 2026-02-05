@@ -110,7 +110,9 @@ def test_asr_post_processing_pipeline(model: str, chunk_size: int, snapshot):
         snapshot: Syrupy snapshot fixture
     """
     # Select parser based on model
-    parser_func = parse_whisper_raw_chunk if model == "whisper" else parse_parakeet_raw_chunk
+    parser_func = (
+        parse_whisper_raw_chunk if model == "whisper" else parse_parakeet_raw_chunk
+    )
 
     # Load and parse fixture
     fixture_name = f"{model}_chunked_{chunk_size}s_raw_output.json"
@@ -126,7 +128,9 @@ def test_asr_post_processing_pipeline(model: str, chunk_size: int, snapshot):
         segments=segments,
         chunk_size=float(chunk_size),
         overlap=5.0,
-        gap_threshold=0.2 if model == "whisper" else 2.0,  # Whisper groups at 200ms, Parakeet splits at 2s
+        gap_threshold=0.2
+        if model == "whisper"
+        else 2.0,  # Whisper groups at 200ms, Parakeet splits at 2s
         max_duration=10.0,  # Max 10s per segment
         is_whisper=(model == "whisper"),
     )

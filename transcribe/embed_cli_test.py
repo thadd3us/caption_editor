@@ -30,8 +30,10 @@ def test_convert_to_wav():
         subprocess.run(
             [
                 "ffmpeg",
-                "-f", "lavfi",
-                "-i", "sine=frequency=440:duration=1",
+                "-f",
+                "lavfi",
+                "-i",
+                "sine=frequency=440:duration=1",
                 "-y",
                 str(test_flac),
             ],
@@ -52,10 +54,14 @@ def test_convert_to_wav():
         result = subprocess.run(
             [
                 "ffprobe",
-                "-v", "error",
-                "-select_streams", "a:0",
-                "-show_entries", "stream=codec_name,sample_rate,channels",
-                "-of", "json",
+                "-v",
+                "error",
+                "-select_streams",
+                "a:0",
+                "-show_entries",
+                "stream=codec_name,sample_rate,channels",
+                "-of",
+                "json",
                 str(wav_path),
             ],
             capture_output=True,
@@ -98,7 +104,8 @@ def test_embed_osr_audio(repo_root: Path, snapshot):
             env["HF_TOKEN"] = os.environ["HF_TOKEN"]
         result = subprocess.run(
             [
-                "python", str(embed_script),
+                "python",
+                str(embed_script),
                 str(test_vtt),
             ],
             capture_output=True,
@@ -114,24 +121,29 @@ def test_embed_osr_audio(repo_root: Path, snapshot):
         vtt_content = test_vtt.read_text()
 
         embeddings = []
-        for line in vtt_content.split('\n'):
-            if 'SegmentSpeakerEmbedding' in line:
+        for line in vtt_content.split("\n"):
+            if "SegmentSpeakerEmbedding" in line:
                 # Extract JSON from the NOTE comment
                 import re
-                match = re.search(r'SegmentSpeakerEmbedding (.+)$', line)
+
+                match = re.search(r"SegmentSpeakerEmbedding (.+)$", line)
                 if match:
                     embedding_data = json.loads(match.group(1))
                     # Use camelCase field name as it appears in the JSON
-                    embedding_array = np.array(embedding_data['speakerEmbedding'])
+                    embedding_array = np.array(embedding_data["speakerEmbedding"])
                     # Round to 2 decimal places for snapshot stability across environments
                     rounded = np.round(embedding_array, 2).tolist()
-                    embeddings.append({
-                        "segment_id": embedding_data['segmentId'],
-                        "embedding": rounded[:10],  # First 10 values for compact snapshot
-                        "shape": len(embedding_array),
-                    })
+                    embeddings.append(
+                        {
+                            "segment_id": embedding_data["segmentId"],
+                            "embedding": rounded[
+                                :10
+                            ],  # First 10 values for compact snapshot
+                            "shape": len(embedding_array),
+                        }
+                    )
 
         # Sort by segment_id for consistent comparison
-        embeddings.sort(key=lambda x: x['segment_id'])
+        embeddings.sort(key=lambda x: x["segment_id"])
 
         assert embeddings == snapshot

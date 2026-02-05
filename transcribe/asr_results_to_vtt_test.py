@@ -196,10 +196,7 @@ def test_split_long_segments_with_split():
 def test_split_long_segments_multiple_splits():
     """Test that very long segments can be split multiple times."""
     # Create a segment with words every 3 seconds for 30 seconds
-    words = [
-        WordTimestamp(f"word{i}", i * 3.0, (i + 1) * 3.0 - 0.5)
-        for i in range(10)
-    ]
+    words = [WordTimestamp(f"word{i}", i * 3.0, (i + 1) * 3.0 - 0.5) for i in range(10)]
 
     segments = [
         ASRSegment(
@@ -358,7 +355,11 @@ def test_asr_segments_to_vtt_cues_empty_text():
             text="More valid text",
             start=2.0,
             end=3.0,
-            words=[WordTimestamp("More", 2.0, 2.3), WordTimestamp("valid", 2.3, 2.6), WordTimestamp("text", 2.6, 3.0)],
+            words=[
+                WordTimestamp("More", 2.0, 2.3),
+                WordTimestamp("valid", 2.3, 2.6),
+                WordTimestamp("text", 2.6, 3.0),
+            ],
         ),
     ]
 
