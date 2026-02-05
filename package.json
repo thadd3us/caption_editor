@@ -30,8 +30,8 @@
     "test:all:complete": "./scripts/run-all-tests.sh"
   },
   "dependencies": {
-    "ag-grid-community": "^35.0.0",
-    "ag-grid-vue3": "^35.0.0",
+    "ag-grid-community": "^35.0.1",
+    "ag-grid-vue3": "^35.0.1",
     "ansi-to-html": "^0.7.2",
     "pinia": "^3.0.4",
     "uuid": "^13.0.0",
