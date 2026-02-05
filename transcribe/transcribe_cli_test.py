@@ -39,14 +39,12 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
     # Use tighter gap threshold for Whisper to split on sentence boundaries
     gap_threshold = "0.2" if "whisper" in model_name.lower() else "2.0"
 
-    # Run transcription using the current Python interpreter
-    result = subprocess.run(
+    result = CliRunner().invoke(
+        app,
         [
-            sys.executable,
-            str(transcribe_script),
             str(test_audio),
-            "--output",
-            str(output_path),
+            *("--output",
+            str(output_path)),
             "--chunk-size",
             "10",
             "--overlap",
@@ -56,16 +54,10 @@ def test_transcribe_osr_audio(repo_root: Path, tmp_path: Path, snapshot, model_n
             "--max-intra-segment-gap-seconds",
             gap_threshold,
             "--deterministic-ids",
-        ],
-        # capture_output=True,
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        text=True,
-        check=True,
-    )
+        ])
 
     # Check that command succeeded
-    assert result.returncode == 0, f"Transcription failed: {result.stderr}"
+    assert result.exit_code == 0, f"Transcription failed: {result.stderr}"
 
     # Check that output file was created
     assert output_path.exists(), "Output VTT file was not created"
@@ -90,17 +82,14 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
 
     # We want to mock the embedding model to avoid downloading it and slow tests
     # We can mock the Inference class in embed_cli.py or the compute_embedding function
-    with patch("embed_cli.Model.from_pretrained") as mock_model, patch(
-        "embed_cli.Inference"
-    ) as mock_inference:
+    with (patch("embed_cli.Model.from_pretrained") as mock_model, 
+        patch("embed_cli.Inference") as mock_inference):
         # Mock inference to return a dummy embedding
         dummy_embedding = [0.1] * 192  # Typical embedding size
         mock_inference.return_value.side_effect = lambda x: dummy_embedding
 
-        runner = CliRunner()
-        
         # Run transcription with --embed
-        result = runner.invoke(
+        result = CliRunner().invoke(
             app,
             [
                 str(test_audio),

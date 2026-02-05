@@ -8,7 +8,7 @@ dependencies = [
     "librosa>=0.11.0",
     "megatron-core>=0.10.0",
     "nemo-toolkit[asr]>=2.5.0",
-    "numpy>=2.0,<2.4",  # numba requires numpy < 2.4
+    "numpy>=2.0,<2.4", # numba requires numpy < 2.4
     "pandas>=2.0.0",
     "pydantic>=2.12.3",
     "scikit-learn>=1.6.0",
@@ -25,7 +25,9 @@ dependencies = [
     "torchvision>=0.15.0",
     "pybind11>=3.0.1",
     "libsql-client>=0.3.0",
-#    "torchcodec",
+    #    "torchcodec",
+    "ruff>=0.15.0",
+    "pyright>=1.1.408",
 ]
 
 [project.scripts]
