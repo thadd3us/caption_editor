@@ -922,6 +922,17 @@ onUnmounted(() => {
   border-right: 1px solid #dde2eb;
 }
 
+/* Reset flex styles for filter popups */
+:deep(.ag-filter) {
+  display: block !important;
+}
+
+:deep(.ag-filter *) {
+  display: revert;
+  align-items: revert;
+  justify-content: revert;
+}
+
 :deep(.ag-header-cell) {
   border-right: 1px solid #babfc7;
 }
