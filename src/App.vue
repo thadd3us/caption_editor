@@ -808,6 +808,19 @@ onMounted(() => {
   padding: 0;
 }
 
+/* Restore ag-grid filter popup default styles */
+.ag-popup .ag-filter {
+  padding: 6px;
+}
+.ag-popup .ag-filter-body-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ag-popup .ag-picker-field-wrapper {
+  min-height: 24px;
+}
+
 html, body, #app {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
