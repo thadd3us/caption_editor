@@ -197,7 +197,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
-    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' },
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -245,7 +245,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
-    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' },
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
