@@ -31,9 +31,9 @@ dependencies = [
 ]
 
 [project.scripts]
-transcribe = "transcribe_cli:app"
+transcribe_cli = "transcribe_cli:app"
 diarize = "diarize:app"
-embed = "embed_cli:app"
+embed_cli = "embed_cli:app"
 
 [dependency-groups]
 dev = [

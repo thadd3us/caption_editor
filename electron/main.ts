@@ -663,7 +663,7 @@ async function ensureUvBinaries(onLog?: (msg: string) => void): Promise<{ uv: st
  */
 interface AsrResult {
   success: boolean
-  tool?: 'transcribe' | 'embed'
+  script?: string
   processId?: string
   error?: string
   canceled?: boolean
@@ -719,8 +719,7 @@ async function runAsrTool(options: {
     const { uvx } = await ensureUvBinaries((msg) => sendOutput('stdout', msg))
     pythonCommand = uvx
 
-    // uvx uses the pyproject.toml entry point names (without _cli.py suffix)
-    const entryPoint = script === 'transcribe_cli.py' ? 'transcribe' : 'embed'
+    const entryPoint = script.replace('.py', '')
     const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
     pythonArgs = [
       '--from', `${ASR_GITHUB_REPO}@${ASR_COMMIT_HASH}#subdirectory=transcribe`,
@@ -785,13 +784,13 @@ async function runAsrTool(options: {
     proc.on('close', (code) => {
       activeProcesses.delete(processId)
       if (code === 0) {
-        resolve({ success: true, tool, processId })
+        resolve({ success: true, script, processId })
       } else if (canceled || code === 143) {
-        console.log(`[main] ASR ${tool} process ${processId} canceled or terminated with code ${code}`)
+        console.log(`[main] ASR ${script} process ${processId} canceled or terminated with code ${code}`)
         resolve({ success: false, error: 'Canceled', canceled: true })
       } else {
         const errorMsg = `Process exited with code ${code}`
-        console.error(`[main] ASR ${tool} ${errorMsg}`)
+        console.error(`[main] ASR ${script} ${errorMsg}`)
         reject(new Error(errorMsg))
       }
     })
