@@ -197,7 +197,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
-    cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -245,7 +245,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
-    cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -292,7 +292,7 @@ const defaultColDef = ref<ColDef>({
   sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
   resizable: true,
-  cellStyle: { display: 'flex', alignItems: 'center' }
+  cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }
 })
 
 // Row selection: multiRow mode with click selection enabled for shift-click range selection
