@@ -31,12 +31,6 @@
     </div>
 
     <div class="controls">
-      <div class="caption-controls">
-        <button @click="addCaptionAtCurrentTime" class="add-caption-btn" :disabled="!hasMedia">
-          ➕ Add Caption at Current Position
-        </button>
-      </div>
-
       <div class="playback-controls">
         <button @click="togglePlayPause" class="control-btn" :disabled="!hasMedia">
           {{ store.isPlaying ? '⏸️' : '▶️' }}
@@ -285,12 +279,6 @@ function onScrub(event: Event) {
   }, 100)
 }
 
-function addCaptionAtCurrentTime() {
-  console.log('Adding caption at current time:', store.currentTime)
-  const cueId = store.addCue(store.currentTime, 5)
-  store.selectCue(cueId)
-}
-
 function formatTime(seconds: number): string {
   // Use simple seconds format (ssss.000)
   return seconds.toFixed(3)
@@ -498,26 +486,5 @@ video, audio {
 .caption-controls {
   display: flex;
   gap: 12px;
-}
-
-.add-caption-btn {
-  padding: 12px 20px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.add-caption-btn:hover:not(:disabled) {
-  background: #229954;
-}
-
-.add-caption-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
 }
 </style>

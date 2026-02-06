@@ -12,11 +12,19 @@
           :disabled="!store.mediaPath || store.document.segments.length === 0"
           :title="sequentialPlayButtonTooltip"
         >
-          {{ sequentialPlayButtonLabel }}
+          {{ sequentialPlayButtonIcon }}
         </button>
-        <label class="checkbox-label">
+        <button
+          @click="addCaptionAtCurrentTime"
+          class="add-caption-btn"
+          :disabled="!store.mediaPath"
+          title="Add caption at current position"
+        >
+          ➕
+        </button>
+        <label class="checkbox-label" title="Autoplays selected row">
           <input type="checkbox" v-model="autoplayEnabled" />
-          Autoplay (selected row)
+          Autoplay
         </label>
         <label class="checkbox-label">
           <input type="checkbox" v-model="autoScrollEnabled" />
@@ -333,9 +341,9 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   }
 }
 
-// Sequential playback button label and tooltip
-const sequentialPlayButtonLabel = computed(() => {
-  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸ Pause Segments' : '▶️ Play Segments'
+// Sequential playback button icon and tooltip
+const sequentialPlayButtonIcon = computed(() => {
+  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸' : '▶️'
 })
 
 const sequentialPlayButtonTooltip = computed(() => {
@@ -344,6 +352,15 @@ const sequentialPlayButtonTooltip = computed(() => {
   }
   return 'Play segments in table order, skipping silence'
 })
+
+/**
+ * Add a new caption at the current playhead position
+ */
+function addCaptionAtCurrentTime() {
+  console.log('Adding caption at current time:', store.currentTime)
+  const cueId = store.addCue(store.currentTime, 5)
+  store.selectCue(cueId)
+}
 
 /**
  * Toggle sequential playback mode
@@ -802,6 +819,26 @@ onUnmounted(() => {
 }
 
 .sequential-play-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.add-caption-btn {
+  padding: 8px 12px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.add-caption-btn:hover:not(:disabled) {
+  background: #229954;
+}
+
+.add-caption-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
