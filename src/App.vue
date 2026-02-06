@@ -832,8 +832,10 @@ html, body, #app {
 
 .left-panel {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
   background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
 }
 
 .resizer {

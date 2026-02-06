@@ -38,7 +38,7 @@
       @cell-context-menu="onCellContextMenu"
       @cell-editing-started="onCellEditingStarted"
       :domLayout="'normal'"
-      :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
+      style="flex: 1; min-height: 0;"
     />
     <ContextMenu
       :is-visible="isContextMenuVisible"
@@ -824,6 +824,8 @@ onUnmounted(() => {
 
 .ag-theme-alpine {
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Column lines */
@@ -835,15 +837,26 @@ onUnmounted(() => {
   border-right: 1px solid #babfc7;
 }
 
-/* Taller header to accommodate wrapping */
-:deep(.ag-header-row) {
+/* Taller header to accommodate wrapping.
+   AG Grid defaults .ag-header to 26px with overflow:hidden, which clips our 48px header row.
+   Must override all three properties to prevent clipping. */
+:deep(.ag-header) {
+  min-height: 48px !important;
   height: auto !important;
+  overflow: visible !important;
+}
+
+:deep(.ag-header-viewport),
+:deep(.ag-header-container) {
   min-height: 48px;
 }
 
+:deep(.ag-header-row) {
+  height: 48px !important;
+}
+
 :deep(.ag-header-cell) {
-  height: auto !important;
-  min-height: 48px;
+  height: 48px !important;
   padding-top: 6px;
   padding-bottom: 6px;
 }
