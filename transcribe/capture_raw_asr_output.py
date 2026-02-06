@@ -18,7 +18,7 @@ import soundfile as sf
 import typer
 
 # Import production code
-from transcribe import (
+from transcribe_cli import (
     load_audio_chunk,
     transcribe_chunk,
     NEMO_AVAILABLE,
@@ -78,7 +78,7 @@ def load_asr_model(model_name: str):
 
         typer.echo(f"Loading NeMo model: {model_name}")
         asr_model = nemo_asr.models.ASRModel.from_pretrained(model_name)
-        asr_model.eval()
+        asr_model.eval()  # type: ignore[union-attr]
         return asr_model, True
     else:
         if not TRANSFORMERS_AVAILABLE:
@@ -88,7 +88,7 @@ def load_asr_model(model_name: str):
             )
             raise typer.Exit(1)
 
-        from transformers import pipeline
+        from transformers.pipelines import pipeline
 
         typer.echo(f"Loading Transformers model: {model_name}")
         asr_pipeline = pipeline(

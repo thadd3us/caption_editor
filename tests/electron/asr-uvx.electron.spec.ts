@@ -1,9 +1,9 @@
-import { test, expect, _electron as electron } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import { fileURLToPath } from 'url'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
+import { getProjectRoot } from '../helpers/project-root'
 import { enableConsoleCapture } from '../helpers/console'
 import { launchElectron } from '../helpers/electron-launch'
 

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, readFileSync, createReadStream, mkdirSync } from 'fs'
+import { existsSync, mkdirSync } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -440,7 +440,7 @@ ipcMain.handle('file:read', async (_event, filePath: string) => {
   try {
     // On macOS, start accessing the security-scoped resource
     if (process.platform === 'darwin' && fileBookmarks.has(filePath)) {
-      const bookmark = fileBookmarks.get(filePath)!
+      const _bookmark = fileBookmarks.get(filePath)!
       // In a real implementation, you'd use app.startAccessingSecurityScopedResource
       // For now, we rely on the dialog.showOpenDialog providing temporary access
     }
@@ -501,7 +501,7 @@ ipcMain.handle('file:saveExisting', async (_event, options: {
   try {
     // On macOS, start accessing the security-scoped resource
     if (process.platform === 'darwin' && fileBookmarks.has(options.filePath)) {
-      const bookmark = fileBookmarks.get(options.filePath)!
+      const _bookmark = fileBookmarks.get(options.filePath)!
       // In a real implementation, you'd use app.startAccessingSecurityScopedResource
     }
 
@@ -661,12 +661,24 @@ async function ensureUvBinaries(onLog?: (msg: string) => void): Promise<{ uv: st
 /**
  * Common helper to run ASR tools (transcribe, embed, etc.)
  */
+interface AsrResult {
+  success: boolean
+  tool?: 'transcribe' | 'embed'
+  processId?: string
+  error?: string
+  canceled?: boolean
+}
+
+interface ActiveProcess {
+  cancel: () => void
+}
+
 async function runAsrTool(options: {
   tool: 'transcribe' | 'embed',
   inputPath: string,
   model?: string,
   chunkSize?: number
-}) {
+}): Promise<AsrResult> {
   const { tool, inputPath, model, chunkSize } = options
 
   // Store process for cancellation
@@ -759,7 +771,7 @@ async function runAsrTool(options: {
           try {
             // Kill the entire process group
             process.kill(-proc.pid!, 'SIGTERM')
-          } catch (e) {
+          } catch {
             // Fallback if PGID killing fails
             proc.kill('SIGTERM')
           }
@@ -808,7 +820,7 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     inputPath: options.mediaFilePath,
     model: options.model,
     chunkSize: options.chunkSize
-  }) as any
+  })
 
   if (result.success) {
     const vttPath = options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt')
@@ -842,7 +854,7 @@ ipcMain.handle('asr:embed', async (_event, options: {
     tool: 'embed',
     inputPath: options.vttPath,
     model: options.model
-  }) as any
+  })
 
   if (result.success) {
     try {
@@ -880,7 +892,7 @@ ipcMain.handle('asr:cancel', async (_event, processId: string) => {
 })
 
 // Store active ASR processes
-const activeProcesses = new Map<string, any>()
+const activeProcesses = new Map<string, ActiveProcess>()
 
 // Handle file drops from system
 ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) => {

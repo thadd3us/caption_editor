@@ -139,7 +139,7 @@ Caption to keep`
             dataTransfer: dt
           }))
         }
-      } catch (e) {
+      } catch {
         // Expected to fail
       }
     }, invalidContent)

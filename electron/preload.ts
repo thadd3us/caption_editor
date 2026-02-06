@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import { readFileSync } from 'fs'
 import * as path from 'path'
 import { APP_VERSION } from './constants'
 
@@ -96,10 +95,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * IPC renderer for menu events
    */
   ipcRenderer: {
-    on: (channel: string, callback: (...args: any[]) => void) => {
+    on: (channel: string, callback: (...args: unknown[]) => void) => {
       ipcRenderer.on(channel, (_event, ...args) => callback(...args))
     },
-    send: (channel: string, ...args: any[]) => {
+    send: (channel: string, ...args: unknown[]) => {
       ipcRenderer.send(channel, ...args)
     }
   },

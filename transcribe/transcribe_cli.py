@@ -42,13 +42,15 @@ try:
 
     NEMO_AVAILABLE = True
 except ImportError:
+    nemo_asr = None  # type: ignore[assignment]
     NEMO_AVAILABLE = False
 
 try:
-    from transformers import pipeline
+    from transformers.pipelines import pipeline
 
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
+    pipeline = None  # type: ignore[assignment]
     TRANSFORMERS_AVAILABLE = False
 
 app = typer.Typer()
@@ -305,13 +307,14 @@ def main(
                 raise typer.Exit(1)
 
             typer.echo("Using NeMo ASR model...")
+            assert nemo_asr is not None  # Checked via NEMO_AVAILABLE above
             asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(
                 model_name=model_name
             )
 
             # Move to appropriate device
             if device == "cuda":
-                asr_pipeline = asr_pipeline.to(device)
+                asr_pipeline = asr_pipeline.to(device)  # type: ignore[union-attr]
         else:
             if not TRANSFORMERS_AVAILABLE:
                 typer.echo(
@@ -321,6 +324,7 @@ def main(
                 raise typer.Exit(1)
 
             typer.echo("Using Hugging Face Transformers model...")
+            assert pipeline is not None  # Checked via TRANSFORMERS_AVAILABLE above
             asr_pipeline = pipeline(
                 "automatic-speech-recognition",
                 model=model_name,
@@ -391,7 +395,7 @@ def main(
 
         # Generate document metadata
         doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
-        metadata = TranscriptMetadata(id=doc_id, media_file_path=str(media_file))
+        metadata = TranscriptMetadata(id=doc_id, mediaFilePath=str(media_file))
 
         # Copy media file to output directory to keep VTT and media together
         output_dir = output.resolve().parent

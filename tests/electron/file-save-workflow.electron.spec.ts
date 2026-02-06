@@ -264,7 +264,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     expect(savedAsContent).toContain('This is a sample caption file.')
 
     // Snapshot the save-as content (normalized)
-    const normalizedSaveAsContent = normalizeVTTForSnapshot(savedAsContent)
+    const _normalizedSaveAsContent = normalizeVTTForSnapshot(savedAsContent)
 
     // Verify both files exist
     const originalExists = await fs.access(testVttPath).then(() => true).catch(() => false)

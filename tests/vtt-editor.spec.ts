@@ -27,7 +27,7 @@ test.describe('VTT Editor', () => {
     const vttPath = path.join(__dirname, 'fixtures', 'sample.vtt')
 
     // Simulate file drop
-    const dataTransfer = await page.evaluateHandle((filePath) => {
+    const dataTransfer = await page.evaluateHandle((_filePath) => {
       const dt = new DataTransfer()
       const file = new File(
         ['WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nTest caption'],

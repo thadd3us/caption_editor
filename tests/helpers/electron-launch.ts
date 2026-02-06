@@ -1,5 +1,4 @@
 import { _electron as electron, ElectronApplication } from '@playwright/test'
-import path from 'path'
 import { getElectronMainPath } from './project-root'
 
 /**

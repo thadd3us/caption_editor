@@ -194,7 +194,8 @@ describe('StarRatingCell', () => {
 
     // Step 2: Click third star to rate it 3
     await stars[2].trigger('click')
-    await wrapper.setProps({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper.setProps as any)({
       data: {
         id: cueId,
         rating: 3
@@ -211,7 +212,8 @@ describe('StarRatingCell', () => {
 
     // Step 3: Click fifth star to change rating to 5
     await stars[4].trigger('click')
-    await wrapper.setProps({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper.setProps as any)({
       data: {
         id: cueId,
         rating: 5
@@ -227,7 +229,8 @@ describe('StarRatingCell', () => {
 
     // Step 4: Click fifth star again to clear rating
     await stars[4].trigger('click')
-    await wrapper.setProps({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper.setProps as any)({
       data: {
         id: cueId,
         rating: undefined

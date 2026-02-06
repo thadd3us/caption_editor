@@ -177,7 +177,7 @@ def main(
             embedding_list = embedding.tolist()
             embeddings.append(
                 SegmentSpeakerEmbedding(
-                    segment_id=segment_id, speaker_embedding=embedding_list
+                    segmentId=segment_id, speakerEmbedding=embedding_list
                 )
             )
 

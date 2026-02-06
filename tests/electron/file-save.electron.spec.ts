@@ -23,7 +23,7 @@ test.describe('File Save - Save VTT files correctly', () => {
             if (store) store.setIsDirty(false)
           })
         }
-      } catch (e) {
+      } catch {
         // Ignore errors during cleanup
       }
       await electronApp.close()

@@ -237,9 +237,9 @@ Unique cue`
       expect(result.error).toContain('dup-2')
     })
 
-    it('should load test file with duplicate UUIDs and reject it', () => {
-      const fs = require('fs')
-      const path = require('path')
+    it('should load test file with duplicate UUIDs and reject it', async () => {
+      const fs = await import('fs')
+      const path = await import('path')
       const vttPath = path.join(process.cwd(), 'test_data', 'duplicate-uuids.vtt')
       const content = fs.readFileSync(vttPath, 'utf-8')
 

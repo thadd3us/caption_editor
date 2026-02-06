@@ -472,8 +472,8 @@ def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[TranscriptSegme
             [
                 TranscriptWord(
                     text=w.word,
-                    start_time=w.start,
-                    end_time=w.end,
+                    startTime=w.start,
+                    endTime=w.end,
                 )
                 for w in segment.words
             ]
@@ -484,10 +484,13 @@ def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[TranscriptSegme
         segments_result.append(
             TranscriptSegment(
                 id="",  # Will be set later with hash
-                start_time=segment.start,
-                end_time=segment.end,
+                startTime=segment.start,
+                endTime=segment.end,
                 text=segment.text.strip(),
                 words=words,
+                speakerName=None,
+                rating=None,
+                timestamp=None,
             )
         )
 

@@ -37,7 +37,7 @@ test.describe('VTT Editor - Context Menu', () => {
             if (store) store.setIsDirty(false)
           })
         }
-      } catch (e) {
+      } catch {
         // Ignore errors during cleanup
       }
       await electronApp.close().catch(() => { })

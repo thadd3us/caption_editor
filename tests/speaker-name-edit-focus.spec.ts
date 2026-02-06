@@ -1,6 +1,5 @@
-import { test, expect, _electron as electron } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
 import { enableConsoleCapture } from './helpers/console'
 import { launchElectron } from './helpers/electron-launch'
 
