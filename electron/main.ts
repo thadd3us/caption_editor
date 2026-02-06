@@ -696,42 +696,41 @@ async function runAsrTool(options: {
   let pythonArgs: string[]
   let cwd: string
 
-  const scriptName = script
-  const tool = script === 'transcribe_cli.py' ? 'transcribe' : 'embed'
-
   if (isDev) {
     const codeTreeRoot = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
       ? (process.env.CAPTION_EDITOR_CODE_TREE_ROOT || path.join(__dirname, '..'))
       : path.join(__dirname, '..')
 
     pythonCommand = 'uv'
-    pythonArgs = ['run', 'python', scriptName, inputPath]
+    pythonArgs = ['run', 'python', script, inputPath]
     cwd = path.join(codeTreeRoot, 'transcribe')
 
-    if (tool === 'transcribe' && chunkSize !== undefined) {
+    if (script === 'transcribe_cli.py' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
 
-    const scriptPath = path.join(cwd, scriptName)
+    const scriptPath = path.join(cwd, script)
     if (!existsSync(scriptPath)) {
-      throw new Error(`${scriptName} not found at ${scriptPath}`)
+      throw new Error(`${script} not found at ${scriptPath}`)
     }
   } else {
     // Production mode: use downloaded uvx
     const { uvx } = await ensureUvBinaries((msg) => sendOutput('stdout', msg))
     pythonCommand = uvx
 
+    // uvx uses the pyproject.toml entry point names (without _cli.py suffix)
+    const entryPoint = script === 'transcribe_cli.py' ? 'transcribe' : 'embed'
     const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
     pythonArgs = [
       '--from', `${ASR_GITHUB_REPO}@${ASR_COMMIT_HASH}#subdirectory=transcribe`,
       '--overrides', overridesPath,
-      tool,
+      entryPoint,
       inputPath
     ]
     cwd = os.tmpdir()
 
-    if (tool === 'transcribe' && chunkSize !== undefined) {
+    if (script === 'transcribe_cli.py' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
