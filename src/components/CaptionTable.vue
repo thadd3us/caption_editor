@@ -881,6 +881,12 @@ onUnmounted(() => {
   min-height: 48px !important;
   height: auto !important;
   overflow: visible !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+:deep(.ag-header-cell-text) {
+  color: white;
+  font-weight: 600;
 }
 
 :deep(.ag-header-viewport),
