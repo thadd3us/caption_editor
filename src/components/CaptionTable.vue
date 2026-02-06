@@ -291,11 +291,12 @@ const defaultColDef = ref<ColDef>({
   resizable: true
 })
 
-// Row selection: multiRow mode with enableClickSelection: false so clicking to edit doesn't clear selection
-// Selection only via checkboxes, shift-click, or ctrl-click
+// Row selection: multiRow mode with click selection enabled for shift-click range selection
 const rowSelectionConfig = {
   mode: 'multiRow' as const,
-  enableClickSelection: false
+  enableClickSelection: true,
+  checkboxes: false,
+  headerCheckbox: false
 }
 
 function getRowId(params: { data: { id: string } }) {
@@ -328,13 +329,32 @@ function onRowClicked(event: RowClickedEvent) {
   }
 }
 
+// Track whether we're programmatically syncing selection to avoid loops
+let isSyncingSelection = false
+
 function onSelectionChanged(event: SelectionChangedEvent) {
+  // Skip if this change was triggered by our own sync
+  if (isSyncingSelection) {
+    console.log('[onSelectionChanged] Skipping - isSyncingSelection=true')
+    return
+  }
+  
   const selectedRows = event.api.getSelectedRows()
+  console.log('[onSelectionChanged] selectedRows.length:', selectedRows.length, 'source:', event.source)
+  
   if (selectedRows.length > 0) {
-    const row = selectedRows[0]
+    // For multi-select, use the last selected row as the "active" cue
+    const row = selectedRows[selectedRows.length - 1]
     const cueId = row.id
-    console.log('Selected cue:', cueId, 'isAutoScrolling:', isAutoScrolling)
-    store.selectCue(cueId)
+    console.log('[onSelectionChanged] Selected cue:', cueId, 'total selected:', selectedRows.length, 'isAutoScrolling:', isAutoScrolling)
+    
+    // Only update store if single selection (to avoid breaking multi-select)
+    if (selectedRows.length === 1) {
+      console.log('[onSelectionChanged] Single selection - calling store.selectCue')
+      store.selectCue(cueId)
+    } else {
+      console.log('[onSelectionChanged] Multi-selection - NOT calling store.selectCue')
+    }
 
     // If autoplay is enabled AND we're not auto-scrolling, play the segment
     // (During auto-scroll, we don't want to trigger autoplay)
@@ -544,11 +564,16 @@ watch(() => store.selectedCueId, (cueId) => {
 
   const rowNode = gridApi.value.getRowNode(cueId)
   if (rowNode) {
+    // Check if this row is already selected - if so, don't disturb multi-selection
+    if (rowNode.isSelected()) return
+    
     // Always deselect all and select this node, even if AG Grid thinks it's already selected
     // This ensures the selection is correct in the UI
     console.log('[CaptionTable] Syncing store selection to AG Grid:', cueId)
+    isSyncingSelection = true
     gridApi.value.deselectAll()
     rowNode.setSelected(true)
+    isSyncingSelection = false
     // Optionally ensure visible (but don't scroll if already visible)
     gridApi.value.ensureNodeVisible(rowNode, null)
   }
@@ -566,11 +591,22 @@ watch(() => store.currentTime, (currentTime) => {
   if (cue) {
     const rowNode = gridApi.value.getRowNode(cue.id)
     if (rowNode) {
+      // If this row is already selected, just ensure visible - don't change selection
+      // This preserves multi-selection when shift-clicking
+      if (rowNode.isSelected()) {
+        gridApi.value.ensureNodeVisible(rowNode, null)
+        console.log('Auto-scroll: cue already selected, just ensuring visible:', cue.id)
+        return
+      }
+      
       isAutoScrolling = true
+      isSyncingSelection = true
 
       // Select the row (highlights it blue)
       gridApi.value.deselectAll()
       rowNode.setSelected(true)
+      
+      isSyncingSelection = false
 
       // Scroll just enough to ensure the row is visible (don't force it to top)
       // This reduces UI jumping when the row is already visible
