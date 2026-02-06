@@ -115,6 +115,7 @@ const columnDefs = ref<ColDef[]>([
     width: 50,
     pinned: 'left',
     cellRenderer: ActionButtonsCell,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     filter: false,
     sortable: false,
     resizable: false
@@ -145,6 +146,7 @@ const columnDefs = ref<ColDef[]>([
     width: 150,
     editable: true,
     sortable: true,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
@@ -185,6 +187,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Rating',
     width: 120,
     cellRenderer: StarRatingCell,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     sortable: true,
   },
   {
@@ -288,7 +291,8 @@ const columnDefs = ref<ColDef[]>([
 const defaultColDef = ref<ColDef>({
   sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
-  resizable: true
+  resizable: true,
+  cellStyle: { display: 'flex', alignItems: 'center' }
 })
 
 // Row selection: multiRow mode with click selection enabled for shift-click range selection
