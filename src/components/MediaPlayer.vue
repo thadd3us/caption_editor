@@ -4,7 +4,7 @@
       <button 
         class="show-in-finder-btn" 
         @click="showMediaInFinder" 
-        title="Reveal media file in Finder"
+        data-tooltip="Reveal media file in Finder"
       >📁</button>
       <span class="media-filename">{{ mediaFileName }}</span>
     </div>
@@ -379,10 +379,27 @@ watch(() => store.currentTime, (time) => {
   font-size: 14px;
   opacity: 0.7;
   transition: opacity 0.2s;
+  position: relative;
 }
 
 .show-in-finder-btn:hover {
   opacity: 1;
+}
+
+.show-in-finder-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: #333;
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 100;
 }
 
 .media-duration {

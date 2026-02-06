@@ -4,7 +4,7 @@
       <button 
         class="show-in-finder-btn" 
         @click="showVttInFinder" 
-        title="Reveal caption file in Finder"
+        data-tooltip="Reveal caption file in Finder"
       >📁</button>
       <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
@@ -13,25 +13,25 @@
       <div class="header-controls">
         <button
           @click="toggleSequentialPlayback"
-          class="sequential-play-btn"
+          class="sequential-play-btn tooltip-btn"
           :disabled="!store.mediaPath || store.document.segments.length === 0"
-          :title="sequentialPlayButtonTooltip"
+          :data-tooltip="sequentialPlayButtonTooltip"
         >
           {{ sequentialPlayButtonIcon }}
         </button>
         <button
           @click="addCaptionAtCurrentTime"
-          class="add-caption-btn"
+          class="add-caption-btn tooltip-btn"
           :disabled="!store.mediaPath"
-          title="Add caption at current position"
+          data-tooltip="Add caption at current position"
         >
           ➕
         </button>
-        <label class="checkbox-label" title="Autoplays selected row">
+        <label class="checkbox-label tooltip-btn" data-tooltip="Autoplays selected row">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay
         </label>
-        <label class="checkbox-label">
+        <label class="checkbox-label tooltip-btn" data-tooltip="Scroll to current caption during playback">
           <input type="checkbox" v-model="autoScrollEnabled" />
           Auto-scroll
         </label>
@@ -804,10 +804,53 @@ onUnmounted(() => {
   font-size: 14px;
   opacity: 0.7;
   transition: opacity 0.2s;
+  position: relative;
 }
 
 .show-in-finder-btn:hover {
   opacity: 1;
+}
+
+.show-in-finder-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: #333;
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+/*
+ * CSS Tooltips: Add class="tooltip-btn" and data-tooltip="Text" to any element.
+ * The tooltip appears below on hover. Parent containers need overflow:visible
+ * (see .left-panel in App.vue) for tooltips to extend beyond boundaries.
+ */
+.tooltip-btn {
+  position: relative;
+}
+
+.tooltip-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: #333;
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 10000;
+  pointer-events: none;
 }
 
 .table-header {
@@ -829,7 +872,8 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.sequential-play-btn {
+.sequential-play-btn,
+.add-caption-btn {
   padding: 8px 16px;
   background: #3498db;
   color: white;
@@ -842,31 +886,12 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.sequential-play-btn:hover:not(:disabled) {
+.sequential-play-btn:hover:not(:disabled),
+.add-caption-btn:hover:not(:disabled) {
   background: #2980b9;
 }
 
-.sequential-play-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.add-caption-btn {
-  padding: 10px 20px;
-  background: #3a7afe;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.add-caption-btn:hover:not(:disabled) {
-  background: #4d8dfa;
-}
-
+.sequential-play-btn:disabled,
 .add-caption-btn:disabled {
   background: #ccc;
   cursor: not-allowed;

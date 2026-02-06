@@ -832,7 +832,7 @@ html, body, #app {
 
 .left-panel {
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   background: #f5f5f5;
   display: flex;
   flex-direction: column;
