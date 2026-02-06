@@ -674,12 +674,12 @@ interface ActiveProcess {
 }
 
 async function runAsrTool(options: {
-  tool: 'transcribe' | 'embed',
+  script: 'transcribe_cli.py' | 'embed_cli.py',
   inputPath: string,
   model?: string,
   chunkSize?: number
 }): Promise<AsrResult> {
-  const { tool, inputPath, model, chunkSize } = options
+  const { script, inputPath, model, chunkSize } = options
 
   // Store process for cancellation
   const processId = Date.now().toString()
@@ -696,7 +696,8 @@ async function runAsrTool(options: {
   let pythonArgs: string[]
   let cwd: string
 
-  const scriptName = `${tool}.py`
+  const scriptName = script
+  const tool = script === 'transcribe_cli.py' ? 'transcribe' : 'embed'
 
   if (isDev) {
     const codeTreeRoot = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
@@ -816,7 +817,7 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   chunkSize?: number
 }) => {
   const result = await runAsrTool({
-    tool: 'transcribe',
+    script: 'transcribe_cli.py',
     inputPath: options.mediaFilePath,
     model: options.model,
     chunkSize: options.chunkSize
@@ -851,7 +852,7 @@ ipcMain.handle('asr:embed', async (_event, options: {
   model?: string
 }) => {
   const result = await runAsrTool({
-    tool: 'embed',
+    script: 'embed_cli.py',
     inputPath: options.vttPath,
     model: options.model
   })
