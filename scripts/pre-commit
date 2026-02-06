@@ -9,6 +9,12 @@ set -e
 
 echo "🔍 Running pre-commit checks..."
 
+# Auto-install dependencies if missing
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing npm dependencies..."
+    npm install
+fi
+
 # TypeScript/JavaScript checks
 echo "📦 Checking TypeScript..."
 npx tsc --noEmit
