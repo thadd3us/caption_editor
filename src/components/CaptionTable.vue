@@ -922,16 +922,27 @@ onUnmounted(() => {
   border-right: 1px solid #dde2eb;
 }
 
-/* Reset flex styles for filter popups */
-:deep(.ag-filter) {
-  display: block !important;
+/* Fix ag-grid filter popup styling */
+:deep(.ag-popup) {
+  .ag-filter {
+    display: block;
+  }
+  .ag-picker-field-wrapper,
+  .ag-picker-field-display,
+  .ag-input-field,
+  .ag-text-field-input {
+    display: flex;
+    align-items: center;
+  }
+  .ag-filter-body-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
 }
 
-:deep(.ag-filter *) {
-  display: revert;
-  align-items: revert;
-  justify-content: revert;
-}
+
 
 :deep(.ag-header-cell) {
   border-right: 1px solid #babfc7;
