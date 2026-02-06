@@ -56,6 +56,14 @@ export interface ElectronAPI {
   }>
 
   /**
+   * Show file in Finder/Explorer
+   */
+  showInFolder: (filePath: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  /**
    * Convert file path to URL for media loading
    */
   fileToURL: (filePath: string) => Promise<{

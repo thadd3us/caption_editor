@@ -44,6 +44,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   statFile: (filePath: string) => ipcRenderer.invoke('file:stat', filePath),
 
   /**
+   * Show file in Finder/Explorer
+   */
+  showInFolder: (filePath: string) => ipcRenderer.invoke('file:showInFolder', filePath),
+
+  /**
    * Convert file path to URL for media loading
    */
   fileToURL: (filePath: string) => ipcRenderer.invoke('file:toURL', filePath),

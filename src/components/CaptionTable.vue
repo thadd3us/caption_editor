@@ -1,7 +1,12 @@
 <template>
   <div class="caption-table">
     <div v-if="store.document.filePath" class="file-path-display">
-      <span class="file-path-value">📄 {{ store.document.filePath }}</span>
+      <button 
+        class="show-in-finder-btn" 
+        @click="showVttInFinder" 
+        title="Show in Finder"
+      >📁</button>
+      <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
@@ -352,6 +357,15 @@ const sequentialPlayButtonTooltip = computed(() => {
   }
   return 'Play segments in table order, skipping silence'
 })
+
+/**
+ * Show VTT file in Finder
+ */
+function showVttInFinder() {
+  if (store.document.filePath) {
+    window.electronAPI?.showInFolder(store.document.filePath)
+  }
+}
 
 /**
  * Add a new caption at the current playhead position
@@ -774,12 +788,26 @@ onUnmounted(() => {
 }
 
 .file-path-value {
-  font-family: 'Courier New', monospace;
   color: #212529;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  font-size: 13px;
+}
+
+.show-in-finder-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.show-in-finder-btn:hover {
+  opacity: 1;
 }
 
 .table-header {

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
@@ -538,6 +538,21 @@ ipcMain.handle('file:stat', async (_event, filePath: string) => {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error checking file'
+    }
+  }
+})
+
+/**
+ * Show file in Finder/Explorer
+ */
+ipcMain.handle('file:showInFolder', async (_event, filePath: string) => {
+  try {
+    shell.showItemInFolder(filePath)
+    return { success: true }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }
   }
 })

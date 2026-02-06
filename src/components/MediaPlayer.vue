@@ -1,7 +1,12 @@
 <template>
   <div class="media-player">
     <div v-if="hasMedia && mediaFileName" class="media-info">
-      <span class="media-filename">📁 {{ mediaFileName }}</span>
+      <button 
+        class="show-in-finder-btn" 
+        @click="showMediaInFinder" 
+        title="Show in Finder"
+      >📁</button>
+      <span class="media-filename">{{ mediaFileName }}</span>
     </div>
     <div class="video-container">
       <video
@@ -279,6 +284,14 @@ function onScrub(event: Event) {
   }, 100)
 }
 
+function showMediaInFinder() {
+  if (store.mediaPath) {
+    // Convert file:// URL back to path
+    const path = store.mediaPath.replace('file://', '')
+    window.electronAPI?.showInFolder(decodeURIComponent(path))
+  }
+}
+
 function formatTime(seconds: number): string {
   // Use simple seconds format (ssss.000)
   return seconds.toFixed(3)
@@ -357,6 +370,21 @@ watch(() => store.currentTime, (time) => {
   white-space: nowrap;
   flex: 1;
   margin-right: 16px;
+  font-size: 13px;
+}
+
+.show-in-finder-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.show-in-finder-btn:hover {
+  opacity: 1;
 }
 
 .media-duration {
