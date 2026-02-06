@@ -962,8 +962,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  direction: rtl !important;
-  text-align: right !important;
+  justify-content: flex-end !important;
 }
 
 /* When editing, switch back to LTR for proper input */
