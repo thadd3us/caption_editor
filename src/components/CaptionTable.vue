@@ -852,18 +852,19 @@ onUnmounted(() => {
 }
 
 .add-caption-btn {
-  padding: 8px 12px;
-  background: #27ae60;
+  padding: 10px 20px;
+  background: #3a7afe;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background 0.2s;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .add-caption-btn:hover:not(:disabled) {
-  background: #229954;
+  background: #4d8dfa;
 }
 
 .add-caption-btn:disabled {
