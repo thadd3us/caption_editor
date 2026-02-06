@@ -28,6 +28,7 @@ dependencies = [
     #    "torchcodec",
     "ruff>=0.15.0",
     "pyright>=1.1.408",
+    "pytz>=2025.2",
 ]
 
 [project.scripts]

@@ -28,6 +28,10 @@ test.describe('Electron VTT Media Auto-loading', () => {
         store.loadFromFile('WEBVTT\n', null)
         store.mediaPath = null
       }
+      // Reset the auto-load tracking so it will attempt again
+      if ((window as any).$resetAutoLoad) {
+        (window as any).$resetAutoLoad()
+      }
     })
     await page.waitForTimeout(200)
 

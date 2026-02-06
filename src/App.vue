@@ -166,6 +166,13 @@ async function showAlert(options: {
 // Track if we've already attempted auto-load for the current document
 const attemptedAutoLoad = ref<string | null>(null)
 
+// Expose for testing - allows resetting auto-load state
+if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+  ;(window as any).$resetAutoLoad = () => {
+    attemptedAutoLoad.value = null
+  }
+}
+
 function openRenameSpeakerDialog() {
   // Check if there are any speakers in the document
   const hasSpeakers = store.document.segments.some(
