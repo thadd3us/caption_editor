@@ -4,7 +4,7 @@
       <button 
         class="show-in-finder-btn" 
         @click="showVttInFinder" 
-        title="Show in Finder"
+        title="Reveal caption file in Finder"
       >📁</button>
       <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>

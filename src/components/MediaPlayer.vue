@@ -4,7 +4,7 @@
       <button 
         class="show-in-finder-btn" 
         @click="showMediaInFinder" 
-        title="Show in Finder"
+        title="Reveal media file in Finder"
       >📁</button>
       <span class="media-filename">{{ mediaFileName }}</span>
     </div>
@@ -285,10 +285,8 @@ function onScrub(event: Event) {
 }
 
 function showMediaInFinder() {
-  if (store.mediaPath) {
-    // Convert file:// URL back to path
-    const path = store.mediaPath.replace('file://', '')
-    window.electronAPI?.showInFolder(decodeURIComponent(path))
+  if (store.mediaFilePath) {
+    window.electronAPI?.showInFolder(store.mediaFilePath)
   }
 }
 
@@ -347,7 +345,7 @@ watch(() => store.currentTime, (time) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
 .media-info {
@@ -358,8 +356,8 @@ watch(() => store.currentTime, (time) => {
   background: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 6px;
-  margin-bottom: 12px;
-  font-size: 14px;
+  margin-bottom: 8px;
+  font-size: 13px;
 }
 
 .media-filename {
