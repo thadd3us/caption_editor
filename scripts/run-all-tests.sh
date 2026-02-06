@@ -107,7 +107,7 @@ fi
 # 5. Python tests
 echo "🐍 Running Python tests..."
 cd transcribe
-uv run pytest tests/ -v
+uv run pytest . -sv
 cd ..
 echo ""
 
