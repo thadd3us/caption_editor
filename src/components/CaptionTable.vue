@@ -30,6 +30,7 @@
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
       :rowSelection="rowSelectionConfig"
+      
       :getRowId="getRowId"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
@@ -77,6 +78,8 @@ const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
 const selectedRowsForContextMenu = ref<any[]>([])
 
+
+
 const rowData = computed(() => {
   // Cues are always kept sorted in the document model
   return store.document.segments.map(cue => ({
@@ -93,15 +96,6 @@ const rowData = computed(() => {
 })
 
 const columnDefs = ref<ColDef[]>([
-  {
-    headerCheckboxSelection: true,
-    checkboxSelection: true,
-    width: 50,
-    pinned: 'left',
-    sortable: false,
-    filter: false,
-    resizable: false
-  },
   {
     field: 'actions',
     headerName: '▶️',
@@ -141,24 +135,25 @@ const columnDefs = ref<ColDef[]>([
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
-      const editedId = params.data.id
       const newSpeaker = params.newValue
+      const editedNode = params.node
       
-      // If multiple rows are selected and the edited row is among them,
-      // apply the change to all selected rows
+      // Get all selected rows
       const selectedNodes = gridApi.value?.getSelectedNodes() || []
-      const selectedIds = selectedNodes.map(n => n.data?.id)
       
-      if (selectedIds.length > 1 && selectedIds.includes(editedId)) {
-        console.log('Applying speaker to all selected rows:', selectedIds)
-        selectedIds.forEach(id => {
-          if (id) {
-            store.updateCue(id, { speakerName: newSpeaker })
+      // If multiple rows selected, apply to all of them
+      if (selectedNodes.length > 1) {
+        console.log('Applying speaker to all selected rows')
+        selectedNodes.forEach(node => {
+          if (node !== editedNode && node.data?.id) {
+            // Update other selected rows via AG Grid (triggers store update)
+            node.setDataValue('speakerName', newSpeaker)
           }
         })
-      } else {
-        store.updateCue(editedId, { speakerName: newSpeaker })
       }
+      
+      // Always update the edited row in store
+      store.updateCue(params.data.id, { speakerName: newSpeaker })
     }
   },
   {
@@ -283,10 +278,11 @@ const defaultColDef = ref<ColDef>({
   resizable: true
 })
 
-// Row selection config with shift-click range selection enabled
+// Row selection: multiRow mode with enableClickSelection: false so clicking to edit doesn't clear selection
+// Selection only via checkboxes, shift-click, or ctrl-click
 const rowSelectionConfig = {
   mode: 'multiRow' as const,
-  enableClickSelection: true
+  enableClickSelection: false
 }
 
 function getRowId(params: { data: { id: string } }) {
@@ -840,6 +836,11 @@ onUnmounted(() => {
 }
 
 /* Taller header to accommodate wrapping */
+:deep(.ag-header-row) {
+  height: auto !important;
+  min-height: 48px;
+}
+
 :deep(.ag-header-cell) {
   height: auto !important;
   min-height: 48px;
