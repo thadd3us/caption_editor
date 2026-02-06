@@ -29,7 +29,7 @@
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
-      :rowSelection="'multiple'"
+      :rowSelection="rowSelectionConfig"
       :getRowId="getRowId"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
@@ -141,7 +141,24 @@ const columnDefs = ref<ColDef[]>([
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
-      store.updateCue(params.data.id, { speakerName: params.newValue })
+      const editedId = params.data.id
+      const newSpeaker = params.newValue
+      
+      // If multiple rows are selected and the edited row is among them,
+      // apply the change to all selected rows
+      const selectedNodes = gridApi.value?.getSelectedNodes() || []
+      const selectedIds = selectedNodes.map(n => n.data?.id)
+      
+      if (selectedIds.length > 1 && selectedIds.includes(editedId)) {
+        console.log('Applying speaker to all selected rows:', selectedIds)
+        selectedIds.forEach(id => {
+          if (id) {
+            store.updateCue(id, { speakerName: newSpeaker })
+          }
+        })
+      } else {
+        store.updateCue(editedId, { speakerName: newSpeaker })
+      }
     }
   },
   {
@@ -265,6 +282,12 @@ const defaultColDef = ref<ColDef>({
   filter: true,
   resizable: true
 })
+
+// Row selection config with shift-click range selection enabled
+const rowSelectionConfig = {
+  mode: 'multiRow' as const,
+  enableClickSelection: true
+}
 
 function getRowId(params: { data: { id: string } }) {
   return params.data.id
@@ -805,6 +828,23 @@ onUnmounted(() => {
 
 .ag-theme-alpine {
   width: 100%;
+}
+
+/* Column lines */
+:deep(.ag-cell) {
+  border-right: 1px solid #dde2eb;
+}
+
+:deep(.ag-header-cell) {
+  border-right: 1px solid #babfc7;
+}
+
+/* Taller header to accommodate wrapping */
+:deep(.ag-header-cell) {
+  height: auto !important;
+  min-height: 48px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 /* Override AG Grid's default ellipsis behavior for time columns */
