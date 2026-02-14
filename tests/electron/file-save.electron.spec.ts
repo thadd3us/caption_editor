@@ -1,36 +1,10 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('File Save - Save VTT files correctly', () => {
-  let electronApp: ElectronApplication
-  let window: Page
-
-  test.afterEach(async () => {
-    if (electronApp) {
-      // Best effort to clear dirty state if window is still open
-      try {
-        if (window && !window.isClosed()) {
-          await window.evaluate(() => {
-            const store = (window as any).$store
-            if (store) store.setIsDirty(false)
-          })
-        }
-      } catch {
-        // Ignore errors during cleanup
-      }
-      await electronApp.close()
-    }
-  })
-
-  test('should include mediaFilePath in saved VTT metadata', async () => {
+  test('should include mediaFilePath in saved VTT metadata', async ({ page }) => {
     // Create a temporary VTT file
     const tempDir = path.join(getProjectRoot(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
@@ -50,27 +24,14 @@ Test caption
 `
     await fs.writeFile(tempVttPath, initialVtt, 'utf-8')
 
-    // Launch Electron with the VTT file
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        tempVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
+    // Load the VTT into the shared renderer store (sets document.filePath)
+    await page.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: initialVtt, filePath: tempVttPath })
 
     // Load a media file
-    await window.evaluate(async (audioPath) => {
+    await page.evaluate(async (audioPath) => {
       const store = (window as any).$store
       const electronAPI = (window as any).electronAPI
 
@@ -81,10 +42,13 @@ Test caption
       }
     }, audioFilePath)
 
-    await window.waitForTimeout(1000)
+    await page.waitForFunction(() => {
+      const store = (window as any).$store
+      return !!store?.mediaPath && !!store?.mediaFilePath
+    }, { timeout: 5000 })
 
     // Verify media was loaded in the store
-    const mediaState = await window.evaluate(() => {
+    const mediaState = await page.evaluate(() => {
       const store = (window as any).$store
       return {
         mediaPath: store?.mediaPath,
@@ -96,7 +60,7 @@ Test caption
     expect(mediaState.mediaFilePath).toBe(audioFilePath)
 
     // Export the VTT content to see what would be saved
-    const exportedContent = await window.evaluate(() => {
+    const exportedContent = await page.evaluate(() => {
       const store = (window as any).$store
       return store.exportToString()
     })

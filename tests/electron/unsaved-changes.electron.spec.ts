@@ -1,24 +1,7 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import * as path from 'path'
-import { fileURLToPath } from 'url'
-import { getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 
 test.describe('Unsaved Changes Warning', () => {
-    test('should warn on unsaved changes when opening another file', async () => {
-        const electronApp = await electron.launch({
-            args: [getElectronMainPath(), '--no-sandbox'],
-            env: {
-                ...process.env,
-                NODE_ENV: 'test'
-            }
-        })
-
-        const page = await electronApp.firstWindow()
-        await page.waitForFunction(() => (window as any).$store !== undefined, { timeout: 10000 })
-
+    test('should warn on unsaved changes when opening another file', async ({ page }) => {
         // 1. Initially NOT dirty
         const initialDirty = await page.evaluate(() => (window as any).$store.isDirty)
         expect(initialDirty).toBe(false)
@@ -55,24 +38,9 @@ test.describe('Unsaved Changes Warning', () => {
         // Discard changes
         await modal.locator('button:has-text("Discard changes")').click()
         await modal.waitFor({ state: 'hidden', timeout: 5000 })
-
-        // Clean up
-        await page.evaluate(() => (window as any).$store.setIsDirty(false))
-        await electronApp.close()
     })
 
-    test('should NOT warn if NO unsaved changes when opening another file', async () => {
-        const electronApp = await electron.launch({
-            args: [getElectronMainPath(), '--no-sandbox'],
-            env: {
-                ...process.env,
-                NODE_ENV: 'test'
-            }
-        })
-
-        const page = await electronApp.firstWindow()
-        await page.waitForFunction(() => (window as any).$store !== undefined, { timeout: 10000 })
-
+    test('should NOT warn if NO unsaved changes when opening another file', async ({ page }) => {
         // Mock openFile
         await page.evaluate(() => {
             (window as any).electronAPI.openFile = async () => []
@@ -83,22 +51,9 @@ test.describe('Unsaved Changes Warning', () => {
         // Verify NO modal appears
         const modalVisible = await page.locator('.base-modal-overlay').isVisible()
         expect(modalVisible).toBe(false)
-
-        await electronApp.close()
     })
 
-    test('should NOT warn if dirty but NO segments (media only)', async () => {
-        const electronApp = await electron.launch({
-            args: [getElectronMainPath(), '--no-sandbox'],
-            env: {
-                ...process.env,
-                NODE_ENV: 'test'
-            }
-        })
-
-        const page = await electronApp.firstWindow()
-        await page.waitForFunction(() => (window as any).$store !== undefined, { timeout: 10000 })
-
+    test('should NOT warn if dirty but NO segments (media only)', async ({ page }) => {
         // 1. Load a media file
         await page.evaluate(async () => {
             const store = (window as any).$store
@@ -126,8 +81,5 @@ test.describe('Unsaved Changes Warning', () => {
 
         const modalVisible = await page.locator('.base-modal-overlay').isVisible()
         expect(modalVisible).toBe(false)
-
-        await page.evaluate(() => (window as any).$store.setIsDirty(false))
-        await electronApp.close()
     })
 })

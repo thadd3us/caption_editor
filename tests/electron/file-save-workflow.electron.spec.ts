@@ -1,10 +1,9 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
+import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
+import { getProjectRoot } from '../helpers/project-root'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -39,7 +38,6 @@ function normalizeVTTForSnapshot(vttContent: string): string {
 }
 
 test.describe('File Save Workflow - Complete save and save-as cycle', () => {
-  let electronApp: ElectronApplication
   let window: Page
   let tempDir: string
   let testVttPath: string
@@ -60,10 +58,6 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   })
 
   test.afterEach(async () => {
-    if (electronApp) {
-      await electronApp.close()
-    }
-
     // Clean up temp directory
     try {
       await fs.rm(tempDir, { recursive: true, force: true })
@@ -72,27 +66,22 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     }
   })
 
-  test('should open, edit, and save VTT file', async () => {
-    // Step 1: Launch Electron with the test VTT file
-    console.log('Step 1: Launching Electron with VTT file:', testVttPath)
+  test('should open, edit, and save VTT file', async ({ page }) => {
+    window = page
 
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        testVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
+    // Step 1: Load the test VTT file into the shared renderer store
+    console.log('Step 1: Loading VTT into store:', testVttPath)
+    const initialVtt = await fs.readFile(testVttPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: initialVtt, filePath: testVttPath })
 
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
+    await window.waitForFunction(
+      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      testVttPath,
+      { timeout: 5000 }
+    )
 
     // Step 2: Verify the file path is displayed in the UI
     console.log('Step 2: Verifying file path display in UI')
@@ -184,36 +173,24 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('✓ Saved VTT file content verified')
   })
 
-  test('should save-as VTT file to new location and update UI', async () => {
+  test('should save-as VTT file to new location and update UI', async ({ page }) => {
+    window = page
     // Setup: Copy the original sample file
     console.log('Setup: Creating initial VTT file for save-as test')
     const sourceVtt = path.join(getProjectRoot(), 'test_data/sample.vtt')
     await fs.copyFile(sourceVtt, testVttPath)
 
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        testVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
+    const initialVtt = await fs.readFile(testVttPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: initialVtt, filePath: testVttPath })
 
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
-
-    // Verify window loaded successfully
-    const isWindowClosed = window.isClosed()
-    console.log('Window closed after launch?', isWindowClosed)
-    if (isWindowClosed) {
-      throw new Error('Window closed unexpectedly after launch')
-    }
+    await window.waitForFunction(
+      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      testVttPath,
+      { timeout: 5000 }
+    )
 
     // Step 6: Test updateFilePath functionality and verify file save
     console.log('Step 6: Testing Save As functionality')
@@ -277,7 +254,8 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('✅ Save As test completed successfully!')
   })
 
-  test('should load, modify, and save speaker_name field via table UI', async () => {
+  test('should load, modify, and save speaker_name field via table UI', async ({ page }) => {
+    window = page
     // Step 1: Copy the OSR test file which has speaker names to temp directory
     console.log('Step 1: Setting up test with OSR file containing speaker names')
     const osrSourceVtt = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.vtt')
@@ -292,28 +270,31 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
       await fs.copyFile(osrMediaPath, tempOsrMediaPath) // Copy media file to temp
     }
 
-    // Step 2: Launch Electron with the OSR test file
-    console.log('Step 2: Launching Electron with OSR file:', osrVttPath)
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        osrVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
+    // Step 2: Load the OSR test file into the shared renderer store
+    console.log('Step 2: Loading OSR file into store:', osrVttPath)
+    const osrVttContent = await fs.readFile(osrVttPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: osrVttContent, filePath: osrVttPath })
 
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
+    await window.waitForFunction(
+      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      osrVttPath,
+      { timeout: 5000 }
+    )
 
     // Step 2.5: Verify media actually loaded
     console.log('Step 2.5: Verifying media loaded and has non-zero duration')
+    await window.waitForFunction(
+      () => {
+        const video = document.querySelector('video')
+        const audio = document.querySelector('audio')
+        const media = (video || audio) as HTMLMediaElement | null
+        return !!media && Number.isFinite(media.duration) && media.duration > 0
+      },
+      { timeout: 15000 }
+    )
     const mediaStatus = await window.evaluate(() => {
       const video = document.querySelector('video')
       const audio = document.querySelector('audio')

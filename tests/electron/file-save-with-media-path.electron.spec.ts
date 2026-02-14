@@ -1,16 +1,10 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
+import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('File Save with Media Path - Relative path updates', () => {
-  let electronApp: ElectronApplication
   let window: Page
   let tempDir: string
   let testVttPath: string
@@ -61,10 +55,6 @@ Second caption
   })
 
   test.afterEach(async () => {
-    if (electronApp) {
-      await electronApp.close()
-    }
-
     // Clean up temp directory
     try {
       await fs.rm(tempDir, { recursive: true, force: true })
@@ -73,7 +63,8 @@ Second caption
     }
   })
 
-  test('should update media file relative path when saving to subdirectory', async () => {
+  test('should update media file relative path when saving to subdirectory', async ({ page }) => {
+    window = page
     console.log('Test setup:')
     console.log('  VTT file:', testVttPath)
     console.log('  Media file:', mediaFilePath)
@@ -81,32 +72,12 @@ Second caption
     console.log('  Original mediaFilePath in VTT:', 'audio.wav')
     console.log('  Expected mediaFilePath after save-as:', '../audio.wav')
 
-    // Step 1: Launch Electron with the VTT file
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        testVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-
-    // Wait for the VTT file to be loaded (check that document.filePath is set)
-    await window.waitForFunction(
-      () => {
-        const store = (window as any).$store
-        return store?.document?.filePath !== undefined
-      },
-      { timeout: 5000 }
-    )
+    // Step 1: Load the VTT file into the store with filePath set (so paths resolve)
+    const initialVtt = await fs.readFile(testVttPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: initialVtt, filePath: testVttPath })
 
     // Step 2: Verify the VTT file loaded with media reference
     const initialState = await window.evaluate(() => {
