@@ -1,36 +1,11 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-import { enableConsoleCapture } from './helpers/console'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 
 test.describe('VTT Editor - User Interactions', () => {
-  let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
+  test.beforeEach(async ({ page }) => {
+    window = page
   })
 
   test('should add a caption through UI interaction', async () => {

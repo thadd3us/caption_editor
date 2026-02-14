@@ -1,39 +1,13 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import path from 'path'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import { enableConsoleCapture } from './helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 test.describe('Timestamp Editing with +/- Keys', () => {
-  let electronApp: ElectronApplication
-  let window: Page
-
-  test.beforeEach(async () => {
-    // Launch Electron app (fresh instance for each test)
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    await electronApp.close()
-  })
-
-  test('should increment start time by 0.1s when pressing + key during edit', async () => {
+  test('should increment start time by 0.1s when pressing + key during edit', async ({ page }) => {
+    const window = page
     // Load a VTT file directly using store
     const vttContent = `WEBVTT
 
@@ -73,7 +47,8 @@ Test caption`
     await expect(startTimeCell).toContainText('1.100')
   })
 
-  test('should decrement start time by 0.1s when pressing - key during edit', async () => {
+  test('should decrement start time by 0.1s when pressing - key during edit', async ({ page }) => {
+    const window = page
     // Load a VTT file
     const vttContent = `WEBVTT
 
@@ -112,7 +87,8 @@ Test caption`
     await expect(startTimeCell).toContainText('2.400')
   })
 
-  test('should increment end time by 0.1s when pressing + key during edit', async () => {
+  test('should increment end time by 0.1s when pressing + key during edit', async ({ page }) => {
+    const window = page
     // Load a VTT file
     const vttContent = `WEBVTT
 
@@ -151,7 +127,8 @@ Test caption`
     await expect(endTimeCell).toContainText('3.100')
   })
 
-  test('should not allow decrementing below 0', async () => {
+  test('should not allow decrementing below 0', async ({ page }) => {
+    const window = page
     // Load a VTT file with start time close to 0
     const vttContent = `WEBVTT
 
@@ -188,7 +165,8 @@ Test caption`
     await expect(input).toHaveValue('0.000')
   })
 
-  test('should support multiple +/- presses in sequence', async () => {
+  test('should support multiple +/- presses in sequence', async ({ page }) => {
+    const window = page
     // Load a VTT file
     const vttContent = `WEBVTT
 
@@ -237,7 +215,8 @@ Test caption`
     await expect(startTimeCell).toContainText('5.200')
   })
 
-  test('should display times in simple seconds format (ssss.000)', async () => {
+  test('should display times in simple seconds format (ssss.000)', async ({ page }) => {
+    const window = page
     // Load a VTT file with times that would be shown differently in HH:MM:SS format
     const vttContent = `WEBVTT
 

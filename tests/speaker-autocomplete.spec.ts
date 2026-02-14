@@ -1,34 +1,8 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 
 test.describe('VTT Editor - Speaker Name Autocomplete', () => {
-  let electronApp: ElectronApplication
-  let window: Page
-
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
-
-  test('should show autocomplete datalist in bulk set speaker dialog', async () => {
+  test('should show autocomplete datalist in bulk set speaker dialog', async ({ page }) => {
+    const window = page
     // Load VTT with cues that have speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
@@ -101,7 +75,8 @@ Third message`
     expect(options[0]).toBe('Alice')
   })
 
-  test('should provide all speakers in datalist for browser filtering', async () => {
+  test('should provide all speakers in datalist for browser filtering', async ({ page }) => {
+    const window = page
     // Load VTT with various speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
@@ -165,7 +140,8 @@ Third`
     expect(options.length).toBe(3)
   })
 
-  test('should allow typing new speaker name not in autocomplete', async () => {
+  test('should allow typing new speaker name not in autocomplete', async ({ page }) => {
+    const window = page
     // Load VTT with existing speakers
     await window.evaluate(() => {
       const vttStore = (window as any).$store
@@ -226,7 +202,8 @@ First`
     expect(speakerNames[0]).toBe('Charlie')
   })
 
-  test('should sort speakers by frequency (most common first)', async () => {
+  test('should sort speakers by frequency (most common first)', async ({ page }) => {
+    const window = page
     // Load VTT with speakers of varying frequencies
     await window.evaluate(() => {
       const vttStore = (window as any).$store
@@ -307,7 +284,8 @@ cue6
     expect(options[2]).toBe('Charlie')
   })
 
-  test('should autocomplete in AG Grid cell editor', async () => {
+  test('should autocomplete in AG Grid cell editor', async ({ page }) => {
+    const window = page
     // Load VTT with speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store

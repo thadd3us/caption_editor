@@ -1,47 +1,13 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 
 test.describe('VTT Editor - Context Menu', () => {
-  let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-
+  test.beforeEach(async ({ page }) => {
+    window = page
     // Wait for AG Grid to be ready (more reliable than waiting for store)
     await window.waitForSelector('.ag-root', { timeout: 10000 })
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) {
-      // Best effort to clear dirty state if window is still open
-      try {
-        if (window && !window.isClosed()) {
-          await window.evaluate(() => {
-            const store = (window as any).$store
-            if (store) store.setIsDirty(false)
-          })
-        }
-      } catch {
-        // Ignore errors during cleanup
-      }
-      await electronApp.close().catch(() => { })
-    }
   })
 
   test('should show context menu with both options when rows are selected', async () => {

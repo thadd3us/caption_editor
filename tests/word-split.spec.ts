@@ -1,27 +1,11 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 
 test.describe('VTT Editor - Word-Level Split', () => {
-  let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
+  test.beforeEach(async ({ page }) => {
+    window = page
   })
 
   test.afterEach(async () => {
@@ -32,8 +16,6 @@ test.describe('VTT Editor - Word-Level Split', () => {
         if (overlay) (overlay as HTMLElement).click()
       }).catch(() => {}) // Ignore errors if window is already closed
     }
-    
-    if (electronApp) { await electronApp.close().catch(() => {}) }
   })
 
   test('should render words as spans when segment has word-level timestamps', async () => {

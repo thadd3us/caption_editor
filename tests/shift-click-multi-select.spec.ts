@@ -1,37 +1,8 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 
 test.describe('VTT Editor - Shift-Click Multi-Select', () => {
-  let electronApp: ElectronApplication
-  let window: Page
-
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-
-    // Wait for AG Grid to be ready
-    await window.waitForSelector('.ag-root', { timeout: 10000 })
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
-
-  test('should select range of rows with shift-click and bulk set speaker', async () => {
+  test('should select range of rows with shift-click and bulk set speaker', async ({ page }) => {
+    const window = page
     // Load VTT with multiple cues
     const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store
@@ -168,7 +139,8 @@ Fifth message`
     expect(speakerNames.find((s: any) => s.id === 'cue5').speakerName).toBeFalsy()
   })
 
-  test('should edit speaker for multi-selected rows via keyboard', async () => {
+  test('should edit speaker for multi-selected rows via keyboard', async ({ page }) => {
+    const window = page
     // Load VTT with multiple cues
     await window.evaluate(() => {
       const vttStore = (window as any).$store
