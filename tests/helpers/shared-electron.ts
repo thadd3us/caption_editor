@@ -28,6 +28,9 @@ let sharedPage: Page | null = null
  */
 async function resetAppState(page: Page): Promise<void> {
     await page.evaluate(() => {
+        // Reset App-level state that isn't in the Pinia store
+        ;(window as any).__resetAttemptedAutoLoad?.()
+
         const store = (window as any).$store || (window as any).store
         if (store) {
             // Reset document to empty
@@ -46,6 +49,13 @@ async function resetAppState(page: Page): Promise<void> {
             // Reset current time
             store.currentTime = 0
             store.selectedCueId = null
+
+            // Reset playback state (shared Electron instance can leak state across tests)
+            store.isPlaying = false
+            store.playbackMode = 'STOPPED'
+            store.playlist = []
+            store.playlistIndex = 0
+            store.playlistStartIndex = 0
         }
     })
     

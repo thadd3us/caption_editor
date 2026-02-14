@@ -39,6 +39,7 @@
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
+      :theme="gridTheme"
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
@@ -65,9 +66,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
+import { themeAlpine } from 'ag-grid-community'
 import { useVTTStore, PlaybackMode } from '../stores/vttStore'
 import { formatTimestampSimple } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
@@ -81,6 +81,9 @@ const gridApi = ref<GridApi | null>(null)
 const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(true)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
+
+// AG Grid v33+ Theming API (do not import legacy CSS themes)
+const gridTheme = themeAlpine
 
 // Speaker similarity scores (not persisted, UI-only)
 const speakerSimilarityScores = ref<Map<string, number>>(new Map())

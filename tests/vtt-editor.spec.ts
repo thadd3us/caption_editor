@@ -48,7 +48,7 @@ test.describe('VTT Editor', () => {
 
   test('should add a new caption', async ({ page }) => {
     // Add a caption (this requires media, so we'll just test the button exists)
-    const addButton = page.locator('button', { hasText: 'Add Caption' })
+    const addButton = page.locator('button.add-caption-btn')
     await expect(addButton).toBeVisible()
     console.log('Add caption button is visible')
   })

@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename)
  * Pipeline stages:
  * - Stage 1: Transcribe audio with transcribe.py -> produces 1_after_transcribe.vtt
  * - Stage 2: Add speaker embeddings with embed.py -> produces 2_after_embed.vtt
- * - Stage 3: Load in UI, modify rating and speaker -> produces 3_after_ui_edit.vtt
+ * - Stage 3: Load in UI, modify rating and speaker -> saves a working file (not checked in)
  *
  * Each stage's output is checked in, allowing fast iteration on later stages.
  */
@@ -188,10 +188,7 @@ test.describe('Full E2E Pipeline', () => {
       await window.waitForTimeout(500)
       console.log('✓ Saved file')
 
-      // Copy the saved working file to stage 3 output
-      const stage3Output = path.join(PIPELINE_DIR, '3_after_ui_edit.vtt')
-      fs.copyFileSync(stage3Working, stage3Output)
-      console.log(`✓ Stage 3 complete: ${stage3Output}`)
+      console.log(`✓ Stage 3 complete (working file): ${stage3Working}`)
 
       // Close the app
       await electronApp.close()
@@ -201,7 +198,7 @@ test.describe('Full E2E Pipeline', () => {
       // ============================================================
       console.log('\n=== VERIFICATION ===')
 
-      const stage3Content = fs.readFileSync(stage3Output, 'utf-8')
+      const stage3Content = fs.readFileSync(stage3Working, 'utf-8')
 
       // 1. Verify speaker embeddings are preserved (if they exist in stage 2)
       if (hasEmbeddings) {

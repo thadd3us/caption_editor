@@ -33,7 +33,14 @@ test.describe('Sequential Playback', () => {
         store.loadMediaFile(path, path)
       }
     }, filePath)
-    await page.waitForTimeout(100)
+    await page.waitForFunction(
+      (p) => {
+        const store = (window as any).$store
+        return store && store.mediaPath === p
+      },
+      filePath,
+      { timeout: 2000 }
+    )
   }
 
   test('should show sequential play button in table header', async ({ electronApp, page }) => {
@@ -42,7 +49,7 @@ test.describe('Sequential Playback', () => {
     await loadVTTFile(electronApp, page, vttPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await expect(sequentialBtn).toBeVisible()
   })
 
@@ -56,11 +63,11 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     console.log('[Test] Clicking Play Segments button...')
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await sequentialBtn.click()
 
-    console.log('[Test] Verifying button changed to Pause Segments...')
-    await expect(page.locator('button:has-text("Pause Segments")')).toBeVisible()
+    console.log('[Test] Verifying button changed to Pause icon...')
+    await expect(sequentialBtn).toHaveText(/⏸/)
 
     console.log('[Test] Checking playback state...')
     const state = await page.evaluate(() => {
@@ -151,7 +158,7 @@ test.describe('Sequential Playback', () => {
     await page.waitForTimeout(50)
 
     // Click sequential play button
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await sequentialBtn.click()
 
     await page.waitForTimeout(100)
@@ -170,18 +177,17 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const playBtn = page.locator('button:has-text("Play Segments")')
+    const playBtn = page.locator('button.sequential-play-btn')
     await playBtn.click()
 
-    // Button should change to pause
-    const pauseBtn = page.locator('button:has-text("Pause Segments")')
-    await expect(pauseBtn).toBeVisible()
+    // Button should change to pause icon
+    await expect(playBtn).toHaveText(/⏸/)
 
     // Click pause
-    await pauseBtn.click()
+    await playBtn.click()
 
     // Button should change back to play
-    await expect(page.locator('button:has-text("Play Segments")')).toBeVisible()
+    await expect(playBtn).toHaveText(/▶️/)
   })
 
   test('should play segments in table order respecting sort', async ({ electronApp, page }) => {
@@ -205,7 +211,7 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await page.locator('button:has-text("Play Segments")').click()
+    await page.locator('button.sequential-play-btn').click()
 
     await page.waitForTimeout(100)
 
@@ -230,7 +236,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await page.locator('button:has-text("Play Segments")').click()
+    await page.locator('button.sequential-play-btn').click()
 
     await page.waitForTimeout(50)
 
@@ -261,7 +267,7 @@ test.describe('Sequential Playback', () => {
     await loadVTTFile(electronApp, page, vttPath)
 
     // Sequential play button should be disabled (no media path)
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await expect(sequentialBtn).toBeDisabled()
   })
 
@@ -276,12 +282,14 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await page.locator('button:has-text("Play Segments")').click()
+    const sequentialBtn = page.locator('button.sequential-play-btn')
+    await sequentialBtn.click()
 
     await page.waitForTimeout(50)
 
     // Stop sequential playback
-    await page.locator('button:has-text("Pause Segments")').click()
+    await expect(sequentialBtn).toHaveText(/⏸/)
+    await sequentialBtn.click()
 
     await page.waitForTimeout(50)
 

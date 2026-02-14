@@ -166,6 +166,12 @@ async function showAlert(options: {
 // Track if we've already attempted auto-load for the current document
 const attemptedAutoLoad = ref<string | null>(null)
 
+// Test helper: shared Electron E2E tests reset the store between tests, but
+// App-level refs like this one can otherwise leak across tests.
+;(window as any).__resetAttemptedAutoLoad = () => {
+  attemptedAutoLoad.value = null
+}
+
 function openRenameSpeakerDialog() {
   // Check if there are any speakers in the document
   const hasSpeakers = store.document.segments.some(
