@@ -6,7 +6,20 @@ test.describe('VTT Editor - User Interactions', () => {
 
   test.beforeEach(async ({ page }) => {
     window = page
+    await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
+
+  async function loadVttAndWaitForSegments(vttContent: string, expectedSegmentCount: number): Promise<void> {
+    await window.evaluate((content) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, '/test/file.vtt')
+    }, vttContent)
+
+    await window.waitForFunction((expected) => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === expected
+    }, expectedSegmentCount, { timeout: 2000 })
+  }
 
   test('should add a caption through UI interaction', async () => {
     // Load a VTT file first
@@ -15,23 +28,7 @@ test.describe('VTT Editor - User Interactions', () => {
 00:00:01.000 --> 00:00:04.000
 First caption`
 
-    await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        const event = new DragEvent('drop', {
-          bubbles: true,
-          cancelable: true,
-          dataTransfer: dt
-        })
-        dropZone.dispatchEvent(event)
-      }
-    }, vttContent)
-
-    await window.waitForTimeout(200)
+    await loadVttAndWaitForSegments(vttContent, 1)
 
     // Check initial caption count
     const grid = window.locator('.ag-theme-alpine')
@@ -45,20 +42,7 @@ First caption`
 00:00:01.000 --> 00:00:04.000
 Original text`
 
-    await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
-    }, vttContent)
-
-    await window.waitForTimeout(200)
+    await loadVttAndWaitForSegments(vttContent, 1)
 
     // Grid should be visible
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
@@ -73,20 +57,7 @@ Caption to delete
 00:00:05.000 --> 00:00:08.000
 Caption to keep`
 
-    await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
-    }, vttContent)
-
-    await window.waitForTimeout(200)
+    await loadVttAndWaitForSegments(vttContent, 2)
 
     // Grid should show 2 captions
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
@@ -95,31 +66,20 @@ Caption to keep`
   test('should handle invalid VTT file gracefully', async () => {
     const invalidContent = 'This is not a VTT file'
 
-    // Suppress console errors for this test
-    window.on('console', msg => {
-      if (msg.type() === 'error') {
-        // Expected error
-      }
-    })
-
     await window.evaluate((content) => {
+      const store = (window as any).$store
       try {
-        const file = new File([content], 'invalid.vtt', { type: 'text/vtt' })
-        const dt = new DataTransfer()
-        dt.items.add(file)
-        const dropZone = document.querySelector('.file-input-zone')
-        if (dropZone) {
-          dropZone.dispatchEvent(new DragEvent('drop', {
-            bubbles: true,
-            dataTransfer: dt
-          }))
-        }
+        store.loadFromFile(content, '/test/file.vtt')
       } catch {
-        // Expected to fail
+        // Expected parse error
       }
     }, invalidContent)
 
-    await window.waitForTimeout(100)
+    // App should remain usable even after parse error.
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 0
+    }, { timeout: 2000 })
 
     // Application should still be functional - check that the table header is visible
     const tableHeader = window.locator('.table-header h2')
@@ -132,20 +92,7 @@ Caption to keep`
 00:00:01.000 --> 00:00:04.000
 Caption with timing`
 
-    await window.evaluate((content) => {
-      const file = new File([content], 'test.vtt', { type: 'text/vtt' })
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      const dropZone = document.querySelector('.file-input-zone')
-      if (dropZone) {
-        dropZone.dispatchEvent(new DragEvent('drop', {
-          bubbles: true,
-          dataTransfer: dt
-        }))
-      }
-    }, vttContent)
-
-    await window.waitForTimeout(200)
+    await loadVttAndWaitForSegments(vttContent, 1)
 
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
   })
