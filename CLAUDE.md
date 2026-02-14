@@ -1,7 +1,5 @@
 # Claude Development Notes
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
-
 ## Important Reminders
 
 **DO NOT create summary/readme files like CLUSTERING_README.md, IMPLEMENTATION_SUMMARY.md, etc.**
@@ -50,8 +48,6 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 ```
 
 ### Test Status
-
-**All 282/282 tests passing** (187 TypeScript unit + 71 E2E + 24 Python)
 
 ### Platform Notes
 
