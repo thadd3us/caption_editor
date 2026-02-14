@@ -5,7 +5,18 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["dist/**", "dist-electron/**", "node_modules/**", "*.cjs", "bug-reports/**", "prototypes/**", "**/.venv/**", "playwright-report/**", "test-results/**"],
+    ignores: [
+      "dist/**",
+      "dist-electron/**",
+      "node_modules/**",
+      "*.cjs",
+      "bug-reports/**",
+      "prototypes/**",
+      "hack/**",
+      "**/.venv/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
   },
   {
     rules: {

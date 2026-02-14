@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+<!--
+  Why is this file at the repo root?
+  - Vite uses the root `index.html` as the renderer entrypoint (it loads `/src/main.ts`).
+  - In Electron dev, the main process loads the Vite dev server which serves this HTML.
+  - In packaged builds, Vite outputs `dist/index.html`, and Electron loads that file.
+
+  What we use Vite for:
+  - Dev server + fast HMR for the Vue/TS renderer
+  - Bundling/optimization for production builds (`vite build` -> `dist/`)
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8">
