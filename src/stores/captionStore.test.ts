@@ -35,7 +35,7 @@ describe('captionStore', () => {
       expect(store.mediaPath).toBeNull()
       expect(store.currentTime).toBe(0)
       expect(store.isPlaying).toBe(false)
-      expect(store.selectedCueId).toBeNull()
+      expect(store.selectedSegmentId).toBeNull()
     })
   })
 
@@ -87,106 +87,106 @@ describe('captionStore', () => {
     })
   })
 
-  describe('addCue', () => {
-    it('should add a new cue at specified time', () => {
+  describe('addSegment', () => {
+    it('should add a new segment at specified time', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10, 5)
+      const segmentId = store.addSegment(10, 5)
 
       expect(store.document.segments).toHaveLength(1)
       expect(store.document.segments[0].startTime).toBe(10)
       expect(store.document.segments[0].endTime).toBe(15)
       expect(store.document.segments[0].text).toBe('New caption')
-      expect(store.document.segments[0].id).toBe(cueId)
+      expect(store.document.segments[0].id).toBe(segmentId)
     })
 
     it('should use default duration if not specified', () => {
       const store = useCaptionStore()
-      store.addCue(10)
+      store.addSegment(10)
 
       expect(store.document.segments[0].endTime).toBe(15)
     })
   })
 
-  describe('updateCue', () => {
-    it('should update cue text', () => {
+  describe('updateSegment', () => {
+    it('should update segment text', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10)
+      const segmentId = store.addSegment(10)
 
-      store.updateCue(cueId, { text: 'Updated text' })
+      store.updateSegment(segmentId, { text: 'Updated text' })
       expect(store.document.segments[0].text).toBe('Updated text')
     })
 
-    it('should update cue timing', () => {
+    it('should update segment timing', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10)
+      const segmentId = store.addSegment(10)
 
-      store.updateCue(cueId, { startTime: 12, endTime: 18 })
+      store.updateSegment(segmentId, { startTime: 12, endTime: 18 })
       expect(store.document.segments[0].startTime).toBe(12)
       expect(store.document.segments[0].endTime).toBe(18)
     })
 
-    it('should update cue rating', () => {
+    it('should update segment rating', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10)
+      const segmentId = store.addSegment(10)
 
-      store.updateCue(cueId, { rating: 5 })
+      store.updateSegment(segmentId, { rating: 5 })
       expect(store.document.segments[0].rating).toBe(5)
     })
 
     it('should throw error if endTime <= startTime', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10)
+      const segmentId = store.addSegment(10)
 
       expect(() => {
-        store.updateCue(cueId, { startTime: 20, endTime: 15 })
+        store.updateSegment(segmentId, { startTime: 20, endTime: 15 })
       }).toThrow('End time must be greater than start time')
     })
 
     it('should throw error if startTime >= existing endTime', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10, 5) // endTime = 15
+      const segmentId = store.addSegment(10, 5) // endTime = 15
 
       expect(() => {
-        store.updateCue(cueId, { startTime: 16 })
+        store.updateSegment(segmentId, { startTime: 16 })
       }).toThrow('Start time must be less than end time')
     })
 
     it('should throw error if endTime <= existing startTime', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10, 5) // startTime = 10
+      const segmentId = store.addSegment(10, 5) // startTime = 10
 
       expect(() => {
-        store.updateCue(cueId, { endTime: 9 })
+        store.updateSegment(segmentId, { endTime: 9 })
       }).toThrow('End time must be greater than start time')
     })
   })
 
-  describe('deleteCue', () => {
-    it('should delete a cue', () => {
+  describe('deleteSegment', () => {
+    it('should delete a segment', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10)
+      const segmentId = store.addSegment(10)
 
-      store.deleteCue(cueId)
+      store.deleteSegment(segmentId)
       expect(store.document.segments).toHaveLength(0)
     })
 
-    it('should clear selectedCueId if deleting selected cue', () => {
+    it('should clear selectedSegmentId if deleting selected segment', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10)
-      store.selectCue(cueId)
+      const segmentId = store.addSegment(10)
+      store.selectSegment(segmentId)
 
-      store.deleteCue(cueId)
-      expect(store.selectedCueId).toBeNull()
+      store.deleteSegment(segmentId)
+      expect(store.selectedSegmentId).toBeNull()
     })
 
-    it('should not clear selectedCueId if deleting different cue', () => {
+    it('should not clear selectedSegmentId if deleting different segment', () => {
       const store = useCaptionStore()
-      const cueId1 = store.addCue(10)
-      const cueId2 = store.addCue(20)
-      store.selectCue(cueId1)
+      const segmentId1 = store.addSegment(10)
+      const segmentId2 = store.addSegment(20)
+      store.selectSegment(segmentId1)
 
-      store.deleteCue(cueId2)
-      expect(store.selectedCueId).toBe(cueId1)
+      store.deleteSegment(segmentId2)
+      expect(store.selectedSegmentId).toBe(segmentId1)
     })
   })
 
@@ -198,20 +198,20 @@ describe('captionStore', () => {
       expect(store.currentTime).toBe(42.5)
     })
 
-    it('should auto-select current cue', () => {
+    it('should auto-select current segment', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10, 10) // 10-20s
+      const segmentId = store.addSegment(10, 10) // 10-20s
 
       store.setCurrentTime(15)
-      expect(store.selectedCueId).toBe(cueId)
+      expect(store.selectedSegmentId).toBe(segmentId)
     })
 
-    it('should not select if no cue at current time', () => {
+    it('should not select if no segment at current time', () => {
       const store = useCaptionStore()
-      store.addCue(10, 10) // 10-20s
+      store.addSegment(10, 10) // 10-20s
 
       store.setCurrentTime(5)
-      expect(store.selectedCueId).toBeNull()
+      expect(store.selectedSegmentId).toBeNull()
     })
   })
 
@@ -226,72 +226,72 @@ describe('captionStore', () => {
     })
   })
 
-  describe('selectCue', () => {
-    it('should set selected cue ID', () => {
+  describe('selectSegment', () => {
+    it('should set selected segment ID', () => {
       const store = useCaptionStore()
-      store.selectCue('test-id')
-      expect(store.selectedCueId).toBe('test-id')
+      store.selectSegment('test-id')
+      expect(store.selectedSegmentId).toBe('test-id')
     })
 
     it('should allow null to deselect', () => {
       const store = useCaptionStore()
-      store.selectCue('test-id')
-      store.selectCue(null)
-      expect(store.selectedCueId).toBeNull()
+      store.selectSegment('test-id')
+      store.selectSegment(null)
+      expect(store.selectedSegmentId).toBeNull()
     })
   })
 
   describe('document.segments (always sorted)', () => {
-    it('should keep cues sorted by start time', () => {
+    it('should keep segments sorted by start time', () => {
       const store = useCaptionStore()
-      store.addCue(20)
-      store.addCue(10)
-      store.addCue(30)
+      store.addSegment(20)
+      store.addSegment(10)
+      store.addSegment(30)
 
-      const cues = store.document.segments
-      expect(cues[0].startTime).toBe(10)
-      expect(cues[1].startTime).toBe(20)
-      expect(cues[2].startTime).toBe(30)
+      const segments = store.document.segments
+      expect(segments[0].startTime).toBe(10)
+      expect(segments[1].startTime).toBe(20)
+      expect(segments[2].startTime).toBe(30)
     })
 
     it('should sort by end time when start times are equal', () => {
       const store = useCaptionStore()
-      const id1 = store.addCue(10, 10) // 10-20
-      store.updateCue(id1, { endTime: 20 })
+      const id1 = store.addSegment(10, 10) // 10-20
+      store.updateSegment(id1, { endTime: 20 })
 
-      const id2 = store.addCue(10, 5) // 10-15
-      store.updateCue(id2, { startTime: 10, endTime: 15 })
+      const id2 = store.addSegment(10, 5) // 10-15
+      store.updateSegment(id2, { startTime: 10, endTime: 15 })
 
-      const cues = store.document.segments
-      expect(cues[0].endTime).toBe(15)
-      expect(cues[1].endTime).toBe(20)
+      const segments = store.document.segments
+      expect(segments[0].endTime).toBe(15)
+      expect(segments[1].endTime).toBe(20)
     })
   })
 
-  describe('currentCue', () => {
-    it('should return cue at current time', () => {
+  describe('currentSegment', () => {
+    it('should return segment at current time', () => {
       const store = useCaptionStore()
-      const cueId = store.addCue(10, 10) // 10-20s
+      const segmentId = store.addSegment(10, 10) // 10-20s
 
       store.setCurrentTime(15)
-      expect(store.currentCue?.id).toBe(cueId)
+      expect(store.currentSegment?.id).toBe(segmentId)
     })
 
-    it('should return undefined if no cue at current time', () => {
+    it('should return undefined if no segment at current time', () => {
       const store = useCaptionStore()
-      store.addCue(10, 10) // 10-20s
+      store.addSegment(10, 10) // 10-20s
 
       store.setCurrentTime(5)
-      expect(store.currentCue).toBeUndefined()
+      expect(store.currentSegment).toBeUndefined()
     })
 
-    it('should return first matching cue if multiple overlap', () => {
+    it('should return first matching segment if multiple overlap', () => {
       const store = useCaptionStore()
-      const cueId1 = store.addCue(10, 20) // 10-30s
-      store.addCue(15, 10) // 15-25s
+      const segmentId1 = store.addSegment(10, 20) // 10-30s
+      store.addSegment(15, 10) // 15-25s
 
       store.setCurrentTime(20)
-      expect(store.currentCue?.id).toBe(cueId1)
+      expect(store.currentSegment?.id).toBe(segmentId1)
     })
   })
 

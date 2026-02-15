@@ -60,9 +60,9 @@
           class="caption-text"
           @contextmenu="onCaptionContextMenu"
         >
-          <template v-if="currentCue && currentCue.words && currentCue.words.length > 0">
+          <template v-if="currentSegment && currentSegment.words && currentSegment.words.length > 0">
             <span
-              v-for="(word, index) in currentCue.words"
+              v-for="(word, index) in currentSegment.words"
               :key="index"
               class="word-span"
               :data-word-index="index"
@@ -104,7 +104,7 @@ const isManualScrub = ref(false)  // Track if user is manually scrubbing
 const isContextMenuVisible = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
-const currentCue = computed(() => store.currentCue)
+const currentSegment = computed(() => store.currentSegment)
 
 const mediaElement = computed(() => videoElement.value || audioElement.value)
 const hasMedia = computed(() => !!store.mediaPath)
@@ -127,15 +127,15 @@ const mediaFileName = computed(() => {
 })
 
 const currentCaptionText = computed(() => {
-  const cues = store.document.segments
+  const segments = store.document.segments
   const time = store.currentTime
 
-  // Find the cue that contains the current time (startTime <= time < endTime)
-  const cue = cues.find(cue =>
-    cue.startTime <= time && time < cue.endTime
+  // Find the segment that contains the current time (startTime <= time < endTime)
+  const seg = segments.find(seg =>
+    seg.startTime <= time && time < seg.endTime
   )
 
-  return cue ? cue.text : 'No caption at current time'
+  return seg ? seg.text : 'No caption at current time'
 })
 
 function onCaptionContextMenu(event: MouseEvent) {
@@ -151,9 +151,9 @@ function onCaptionContextMenu(event: MouseEvent) {
     if (!wordIndexStr) return
 
     const wordIndex = parseInt(wordIndexStr, 10)
-    const cue = currentCue.value
+    const segment = currentSegment.value
 
-    if (!cue) return
+    if (!segment) return
 
     // Build context menu items
     const items: ContextMenuItem[] = []
@@ -163,8 +163,8 @@ function onCaptionContextMenu(event: MouseEvent) {
       items.push({
         label: 'Split segment starting here',
         action: () => {
-          console.log('Splitting segment', cue.id, 'at word index', wordIndex)
-          store.splitSegmentAtWordIndex(cue.id, wordIndex)
+          console.log('Splitting segment', segment.id, 'at word index', wordIndex)
+          store.splitSegmentAtWordIndex(segment.id, wordIndex)
         }
       })
     } else {

@@ -19,22 +19,22 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return { success: false, error: 'No store on window' }
+      const store = (window as any).$store
+      if (!store) return { success: false, error: 'No store on window' }
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'bulk-delete-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
-          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 },
-          { id: 'cue4', startTime: 13, endTime: 16, text: 'Fourth message', rating: 2 }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 },
+          { id: 'seg4', startTime: 13, endTime: 16, text: 'Fourth message', rating: 2 }
         ]
       }, null, 2)
 
       try {
-        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
-        return { success: true, segmentCount: vttStore.document.segments.length }
+        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
       }
@@ -49,14 +49,14 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Select first two rows and trigger delete confirmation dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) throw new Error('Store not available')
+      const store = (window as any).$store
+      if (!store) throw new Error('Store not available')
 
-      // Get the first two cue IDs
-      const cues = vttStore.document.segments
+      // Get the first two segment IDs
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text },
-        { id: cues[1].id, text: cues[1].text }
+        { id: segments[0].id, text: segments[0].text },
+        { id: segments[1].id, text: segments[1].text }
       ]
 
         // Store selected rows for App.vue
@@ -88,18 +88,18 @@ test.describe('Caption Editor - Bulk Delete', () => {
     await expect(dialog).not.toBeVisible()
 
     // Verify rows were deleted in the store
-    const remainingCues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => ({
-        id: cue.id,
-        text: cue.text
+    const remainingSegments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => ({
+        id: segment.id,
+        text: segment.text
       }))
     })
 
-    expect(remainingCues).toHaveLength(2)
-    expect(remainingCues[0].text).toBe('Third message')
-    expect(remainingCues[1].text).toBe('Fourth message')
+    expect(remainingSegments).toHaveLength(2)
+    expect(remainingSegments[0].text).toBe('Third message')
+    expect(remainingSegments[1].text).toBe('Fourth message')
 
     // Verify caption count updated
     await expect(captionCount).toContainText('2', { timeout: 2000 })
@@ -108,18 +108,18 @@ test.describe('Caption Editor - Bulk Delete', () => {
   test('should delete single row after confirmation', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'single-delete-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -129,12 +129,12 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Select only one row
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -164,31 +164,31 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     // Verify only one row remains
-    const remainingCues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments
+    const remainingSegments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments
     })
 
-    expect(remainingCues).toHaveLength(1)
-    expect(remainingCues[0].text).toBe('Second')
+    expect(remainingSegments).toHaveLength(1)
+    expect(remainingSegments[0].text).toBe('Second')
   })
 
   test('should cancel delete when clicking Cancel button', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'cancel-delete-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'Hello' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'World' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'Hello' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'World' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -198,12 +198,12 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Select a row and open delete dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -225,56 +225,56 @@ test.describe('Caption Editor - Bulk Delete', () => {
     await expect(dialog).not.toBeVisible()
 
     // Verify nothing was deleted
-    const cues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments
+    const segments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments
     })
 
-    expect(cues).toHaveLength(2)
+    expect(segments).toHaveLength(2)
   })
 
-  test('should clear selectedCueId if deleted cue was selected', async () => {
+  test('should clear selectedSegmentId if deleted segment was selected', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'selected-delete-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
 
-      // Select the first cue
-      vttStore.selectCue('cue1')
+      // Select the first segment
+      store.selectSegment('seg1')
     })
 
     await window.waitForFunction(() => {
       const store = (window as any).$store
-      return store?.selectedCueId === 'cue1'
+      return store?.selectedSegmentId === 'seg1'
     })
 
-    // Verify cue is selected
+    // Verify segment is selected
     const selectedBefore = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore ? vttStore.selectedCueId : null
+      const store = (window as any).$store
+      return store ? store.selectedSegmentId : null
     })
 
-    expect(selectedBefore).toBe('cue1')
+    expect(selectedBefore).toBe('seg1')
 
-    // Delete the selected cue
+    // Delete the selected segment
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -296,13 +296,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     await window.waitForFunction(() => {
       const store = (window as any).$store
-      return store?.selectedCueId === null
+      return store?.selectedSegmentId === null
     })
 
-    // Verify selectedCueId was cleared
+    // Verify selectedSegmentId was cleared
     const selectedAfter = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore ? vttStore.selectedCueId : null
+      const store = (window as any).$store
+      return store ? store.selectedSegmentId : null
     })
 
     expect(selectedAfter).toBeNull()

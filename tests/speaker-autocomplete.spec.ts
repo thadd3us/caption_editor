@@ -5,19 +5,19 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     const window = page
     // Load captions JSON with segments that have speaker names
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'speaker-autocomplete-1' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Alice' },
-          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Bob' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Alice' },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Bob' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -27,12 +27,12 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
 
     // Open bulk set speaker dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName }
+        { id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName }
       ]
 
       ;(window as any).__captionTableSelectedRows = selectedRows
@@ -68,19 +68,19 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     const window = page
     // Load captions JSON with various speaker names
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'speaker-autocomplete-2' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second', speakerName: 'Anna' },
-          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third', speakerName: 'Bob' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second', speakerName: 'Anna' },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Third', speakerName: 'Bob' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -90,11 +90,11 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
 
     // Open dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName }]
 
       ;(window as any).__captionTableSelectedRows = selectedRows
       window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
@@ -122,15 +122,15 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     const window = page
     // Load captions JSON with existing speakers
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'speaker-autocomplete-3' },
-        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' }]
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -140,11 +140,11 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
 
     // Open dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName }]
 
       ;(window as any).__captionTableSelectedRows = selectedRows
       window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
@@ -169,9 +169,9 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
 
     // Verify new speaker name was set
     const speakerNames = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => cue.speakerName)
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => segment.speakerName)
     })
 
     expect(speakerNames[0]).toBe('Charlie')
@@ -181,22 +181,22 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     const window = page
     // Load captions JSON with speakers of varying frequencies
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'speaker-autocomplete-4' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 2, text: '1', speakerName: 'Alice' },
-          { id: 'cue2', startTime: 2, endTime: 3, text: '2', speakerName: 'Alice' },
-          { id: 'cue3', startTime: 3, endTime: 4, text: '3', speakerName: 'Alice' },
-          { id: 'cue4', startTime: 4, endTime: 5, text: '4', speakerName: 'Bob' },
-          { id: 'cue5', startTime: 5, endTime: 6, text: '5', speakerName: 'Bob' },
-          { id: 'cue6', startTime: 6, endTime: 7, text: '6', speakerName: 'Charlie' }
+          { id: 'seg1', startTime: 1, endTime: 2, text: '1', speakerName: 'Alice' },
+          { id: 'seg2', startTime: 2, endTime: 3, text: '2', speakerName: 'Alice' },
+          { id: 'seg3', startTime: 3, endTime: 4, text: '3', speakerName: 'Alice' },
+          { id: 'seg4', startTime: 4, endTime: 5, text: '4', speakerName: 'Bob' },
+          { id: 'seg5', startTime: 5, endTime: 6, text: '5', speakerName: 'Bob' },
+          { id: 'seg6', startTime: 6, endTime: 7, text: '6', speakerName: 'Charlie' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -206,11 +206,11 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
 
     // Open dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName }]
 
       ;(window as any).__captionTableSelectedRows = selectedRows
       window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
@@ -237,18 +237,18 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     const window = page
     // Load captions JSON with speaker names
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'speaker-autocomplete-grid' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second', speakerName: 'Bob' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second', speakerName: 'Bob' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     // Wait for grid to render

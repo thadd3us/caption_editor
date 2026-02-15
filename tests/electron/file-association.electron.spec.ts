@@ -1,6 +1,7 @@
 import { test, expect, _electron as electron } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
+import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
@@ -13,9 +14,28 @@ test.describe('File Association - Open captions files from OS', () => {
   let window: Page
 
   test('should open captions file passed as command line argument and auto-load media', async () => {
-    // Path to the test captions file with media reference
-    const captionsFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.captions.json')
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
+    const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association')
+    await fs.mkdir(tempDir, { recursive: true })
+    const captionsFilePath = path.join(tempDir, 'with-media-reference.captions.json')
+
+    // Create a dedicated captions fixture for this test (do not depend on shared test_data files)
+    await fs.writeFile(
+      captionsFilePath,
+      JSON.stringify(
+        {
+          metadata: { id: 'file-association-doc', mediaFilePath: audioFilePath },
+          segments: [
+            { id: 'seg1', startTime: 0, endTime: 4, text: 'The birch canoe slid on the smooth planks.' },
+            { id: 'seg2', startTime: 4, endTime: 8, text: 'Glue the sheet to the dark blue background.' },
+            { id: 'seg3', startTime: 8, endTime: 12, text: 'It is easy to tell the depth of a well.' }
+          ]
+        },
+        null,
+        2
+      ),
+      'utf-8'
+    )
 
     // Launch Electron with the captions file as an argument (simulates double-clicking the file)
     electronApp = await electron.launch({
@@ -121,7 +141,7 @@ test.describe('File Association - Open captions files from OS', () => {
     expect(audioSrc).toBeTruthy()
     console.log('Audio src:', audioSrc)
 
-    // Verify we can see the cues in the table
+    // Verify we can see the segments in the table
     const captionTable = await window.locator('.ag-center-cols-container')
     await expect(captionTable).toBeVisible()
 
@@ -134,10 +154,31 @@ test.describe('File Association - Open captions files from OS', () => {
 
     // Clean up
     await electronApp.close()
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   })
 
   test('should handle open-file event on macOS', async () => {
-    const captionsFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.captions.json')
+    const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
+    const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association')
+    await fs.mkdir(tempDir, { recursive: true })
+    const captionsFilePath = path.join(tempDir, 'with-media-reference-macos.captions.json')
+
+    await fs.writeFile(
+      captionsFilePath,
+      JSON.stringify(
+        {
+          metadata: { id: 'file-association-doc-macos', mediaFilePath: audioFilePath },
+          segments: [
+            { id: 'seg1', startTime: 0, endTime: 4, text: 'The birch canoe slid on the smooth planks.' },
+            { id: 'seg2', startTime: 4, endTime: 8, text: 'Glue the sheet to the dark blue background.' },
+            { id: 'seg3', startTime: 8, endTime: 12, text: 'It is easy to tell the depth of a well.' }
+          ]
+        },
+        null,
+        2
+      ),
+      'utf-8'
+    )
 
     // Launch Electron without file argument first
     electronApp = await electron.launch({
@@ -183,6 +224,7 @@ test.describe('File Association - Open captions files from OS', () => {
     expect(storeState.filePath).toBe(captionsFilePath)
 
     await electronApp.close()
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   })
 
   test('should have onFileOpen API exposed', async () => {

@@ -91,10 +91,10 @@ const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
 const isBulkSetSpeakerDialogOpen = ref(false)
 const bulkSetRowCount = ref(0)
-const selectedCueIdsForBulkSet = ref<string[]>([])
+const selectedSegmentIdsForBulkSet = ref<string[]>([])
 const isDeleteConfirmDialogOpen = ref(false)
 const deleteRowCount = ref(0)
-const selectedCueIdsForDelete = ref<string[]>([])
+const selectedSegmentIdsForDelete = ref<string[]>([])
 let isResizing = false
 
 // ASR state
@@ -197,23 +197,29 @@ function openBulkSetSpeakerDialog(event: Event) {
   const { rowCount } = customEvent.detail
 
   // Get the currently selected rows from CaptionTable
-  // We need to get the cue IDs from the grid
+  // We need to get the segment IDs from the grid
   const selectedRows = (window as any).__captionTableSelectedRows || []
 
   bulkSetRowCount.value = rowCount
-  selectedCueIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
+  selectedSegmentIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
   isBulkSetSpeakerDialogOpen.value = true
 }
 
 function closeBulkSetSpeakerDialog() {
   isBulkSetSpeakerDialogOpen.value = false
-  selectedCueIdsForBulkSet.value = []
+  selectedSegmentIdsForBulkSet.value = []
   bulkSetRowCount.value = 0
 }
 
 function handleBulkSetSpeaker({ speakerName }: { speakerName: string }) {
-  console.log('Bulk setting speaker to:', speakerName, 'for', selectedCueIdsForBulkSet.value.length, 'cues')
-  store.bulkSetSpeaker(selectedCueIdsForBulkSet.value, speakerName)
+  console.log(
+    'Bulk setting speaker to:',
+    speakerName,
+    'for',
+    selectedSegmentIdsForBulkSet.value.length,
+    'segments'
+  )
+  store.bulkSetSpeaker(selectedSegmentIdsForBulkSet.value, speakerName)
 }
 
 function openDeleteConfirmDialog(event: Event) {
@@ -224,19 +230,19 @@ function openDeleteConfirmDialog(event: Event) {
   const selectedRows = (window as any).__captionTableSelectedRows || []
 
   deleteRowCount.value = rowCount
-  selectedCueIdsForDelete.value = selectedRows.map((row: any) => row.id)
+  selectedSegmentIdsForDelete.value = selectedRows.map((row: any) => row.id)
   isDeleteConfirmDialogOpen.value = true
 }
 
 function closeDeleteConfirmDialog() {
   isDeleteConfirmDialogOpen.value = false
-  selectedCueIdsForDelete.value = []
+  selectedSegmentIdsForDelete.value = []
   deleteRowCount.value = 0
 }
 
 function handleConfirmDelete() {
-  console.log('Deleting', selectedCueIdsForDelete.value.length, 'cues')
-  store.bulkDeleteCues(selectedCueIdsForDelete.value)
+  console.log('Deleting', selectedSegmentIdsForDelete.value.length, 'segments')
+  store.bulkDeleteSegments(selectedSegmentIdsForDelete.value)
 }
 
 function startResize(e: MouseEvent) {

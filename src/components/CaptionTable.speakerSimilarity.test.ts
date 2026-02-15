@@ -8,16 +8,16 @@ function getPartialEmbeddingsCaptionsJson(): string {
   return JSON.stringify({
     metadata: { id: 'doc1' },
     segments: [
-      { id: 'cue-with-embedding-1', startTime: 0, endTime: 1, text: 'A' },
-      { id: 'cue-without-embedding-1', startTime: 1, endTime: 2, text: 'B' },
-      { id: 'cue-with-embedding-2', startTime: 2, endTime: 3, text: 'C' },
-      { id: 'cue-without-embedding-2', startTime: 3, endTime: 4, text: 'D' },
-      { id: 'cue-with-embedding-3', startTime: 4, endTime: 5, text: 'E' }
+      { id: 'segment-with-embedding-1', startTime: 0, endTime: 1, text: 'A' },
+      { id: 'segment-without-embedding-1', startTime: 1, endTime: 2, text: 'B' },
+      { id: 'segment-with-embedding-2', startTime: 2, endTime: 3, text: 'C' },
+      { id: 'segment-without-embedding-2', startTime: 3, endTime: 4, text: 'D' },
+      { id: 'segment-with-embedding-3', startTime: 4, endTime: 5, text: 'E' }
     ],
     embeddings: [
-      { segmentId: 'cue-with-embedding-1', speakerEmbedding: [1, 0, 0] },
-      { segmentId: 'cue-with-embedding-2', speakerEmbedding: [0.9, 0.1, 0] },
-      { segmentId: 'cue-with-embedding-3', speakerEmbedding: [0.8, 0.2, 0] }
+      { segmentId: 'segment-with-embedding-1', speakerEmbedding: [1, 0, 0] },
+      { segmentId: 'segment-with-embedding-2', speakerEmbedding: [0.9, 0.1, 0] },
+      { segmentId: 'segment-with-embedding-3', speakerEmbedding: [0.8, 0.2, 0] }
     ]
   })
 }
@@ -62,26 +62,26 @@ describe('CaptionTable - Speaker Similarity', () => {
     expect(store.document.segments.length).toBe(5)
     expect(store.document.embeddings?.length).toBe(3)
 
-    // Check which cues have embeddings
-    const cuesWithEmbeddings = store.document.segments.filter(cue =>
-      store.document.embeddings?.some(e => e.segmentId === cue.id)
+    // Check which segments have embeddings
+    const segmentsWithEmbeddings = store.document.segments.filter(segment =>
+      store.document.embeddings?.some(e => e.segmentId === segment.id)
     )
-    const cuesWithoutEmbeddings = store.document.segments.filter(cue =>
-      !store.document.embeddings?.some(e => e.segmentId === cue.id)
+    const segmentsWithoutEmbeddings = store.document.segments.filter(segment =>
+      !store.document.embeddings?.some(e => e.segmentId === segment.id)
     )
 
-    expect(cuesWithEmbeddings.length).toBe(3)
-    expect(cuesWithoutEmbeddings.length).toBe(2)
+    expect(segmentsWithEmbeddings.length).toBe(3)
+    expect(segmentsWithoutEmbeddings.length).toBe(2)
 
-    // Verify specific cues
-    expect(cuesWithEmbeddings.map(c => c.id)).toEqual([
-      'cue-with-embedding-1',
-      'cue-with-embedding-2',
-      'cue-with-embedding-3'
+    // Verify specific segments
+    expect(segmentsWithEmbeddings.map(s => s.id)).toEqual([
+      'segment-with-embedding-1',
+      'segment-with-embedding-2',
+      'segment-with-embedding-3'
     ])
-    expect(cuesWithoutEmbeddings.map(c => c.id)).toEqual([
-      'cue-without-embedding-1',
-      'cue-without-embedding-2'
+    expect(segmentsWithoutEmbeddings.map(s => s.id)).toEqual([
+      'segment-without-embedding-1',
+      'segment-without-embedding-2'
     ])
   })
 
@@ -111,7 +111,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     const mockRefreshCells = vi.fn()
     const mockSetColumnsVisible = vi.fn()
     const mockGetSelectedRows = vi.fn().mockReturnValue([
-      { id: 'cue-with-embedding-1' }
+      { id: 'segment-with-embedding-1' }
     ])
 
     vm.gridApi = {
@@ -129,21 +129,21 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Check that similarity scores were computed
     expect(vm.speakerSimilarityScores.size).toBe(5)
 
-    // Cues with embeddings should have similarity scores
-    const cue1Score = vm.speakerSimilarityScores.get('cue-with-embedding-1')
-    const cue2Score = vm.speakerSimilarityScores.get('cue-with-embedding-2')
-    const cue3Score = vm.speakerSimilarityScores.get('cue-with-embedding-3')
+    // Segments with embeddings should have similarity scores
+    const seg1Score = vm.speakerSimilarityScores.get('segment-with-embedding-1')
+    const seg2Score = vm.speakerSimilarityScores.get('segment-with-embedding-2')
+    const seg3Score = vm.speakerSimilarityScores.get('segment-with-embedding-3')
 
-    expect(cue1Score).toBeGreaterThan(0)
-    expect(cue2Score).toBeGreaterThan(0)
-    expect(cue3Score).toBeGreaterThan(0)
+    expect(seg1Score).toBeGreaterThan(0)
+    expect(seg2Score).toBeGreaterThan(0)
+    expect(seg3Score).toBeGreaterThan(0)
 
-    // Cues without embeddings should have 0 similarity
-    const cueNoEmbed1 = vm.speakerSimilarityScores.get('cue-without-embedding-1')
-    const cueNoEmbed2 = vm.speakerSimilarityScores.get('cue-without-embedding-2')
+    // Segments without embeddings should have 0 similarity
+    const segNoEmbed1 = vm.speakerSimilarityScores.get('segment-without-embedding-1')
+    const segNoEmbed2 = vm.speakerSimilarityScores.get('segment-without-embedding-2')
 
-    expect(cueNoEmbed1).toBe(0)
-    expect(cueNoEmbed2).toBe(0)
+    expect(segNoEmbed1).toBe(0)
+    expect(segNoEmbed2).toBe(0)
 
     // Verify auto-sort was called
     expect(mockApplyColumnState).toHaveBeenCalledWith({
@@ -177,7 +177,7 @@ describe('CaptionTable - Speaker Similarity', () => {
 
     // Mock gridApi
     const mockGetSelectedRows = vi.fn().mockReturnValue([
-      { id: 'cue-without-embedding-1' }  // This row has no embedding
+      { id: 'segment-without-embedding-1' }  // This row has no embedding
     ])
 
     vm.gridApi = {
@@ -226,8 +226,8 @@ describe('CaptionTable - Speaker Similarity', () => {
 
     // Mock gridApi - select one with embedding and one without
     const mockGetSelectedRows = vi.fn().mockReturnValue([
-      { id: 'cue-with-embedding-1' },
-      { id: 'cue-without-embedding-1' }
+      { id: 'segment-with-embedding-1' },
+      { id: 'segment-without-embedding-1' }
     ])
 
     vm.gridApi = {
@@ -286,40 +286,40 @@ describe('CaptionTable - Speaker Similarity', () => {
     expect(result4).toBeCloseTo(1.0, 5)  // Same direction, different magnitude
   })
 
-  it('should find correct cue by time regardless of table sort order', () => {
+  it('should find correct segment by time regardless of table sort order', () => {
     const pinia = createPinia()
     setActivePinia(pinia)
 
     const store = useCaptionStore()
 
-    // Create cues with specific time ranges
+    // Create segments with specific time ranges
     // Add in reverse chronological order to test that it doesn't matter
-    const cue3Id = store.addCue(20, 10)  // 20-30s
-    const cue2Id = store.addCue(10, 10)  // 10-20s
-    const cue1Id = store.addCue(0, 10)   // 0-10s
+    const seg3Id = store.addSegment(20, 10)  // 20-30s
+    const seg2Id = store.addSegment(10, 10)  // 10-20s
+    const seg1Id = store.addSegment(0, 10)   // 0-10s
 
-    // Update cues with distinct text for verification
-    store.updateCue(cue1Id, { text: 'First cue (0-10s)' })
-    store.updateCue(cue2Id, { text: 'Second cue (10-20s)' })
-    store.updateCue(cue3Id, { text: 'Third cue (20-30s)' })
+    // Update segments with distinct text for verification
+    store.updateSegment(seg1Id, { text: 'First segment (0-10s)' })
+    store.updateSegment(seg2Id, { text: 'Second segment (10-20s)' })
+    store.updateSegment(seg3Id, { text: 'Third segment (20-30s)' })
 
-    // Verify cues are sorted by time in the document model (regardless of insertion order)
-    expect(store.document.segments[0].id).toBe(cue1Id)
-    expect(store.document.segments[1].id).toBe(cue2Id)
-    expect(store.document.segments[2].id).toBe(cue3Id)
+    // Verify segments are sorted by time in the document model (regardless of insertion order)
+    expect(store.document.segments[0].id).toBe(seg1Id)
+    expect(store.document.segments[1].id).toBe(seg2Id)
+    expect(store.document.segments[2].id).toBe(seg3Id)
 
     // Test seeking to different positions
-    store.setCurrentTime(5)  // Should find first cue
-    expect(store.currentCue?.id).toBe(cue1Id)
-    expect(store.currentCue?.text).toBe('First cue (0-10s)')
+    store.setCurrentTime(5)  // Should find first segment
+    expect(store.currentSegment?.id).toBe(seg1Id)
+    expect(store.currentSegment?.text).toBe('First segment (0-10s)')
 
-    store.setCurrentTime(15)  // Should find second cue
-    expect(store.currentCue?.id).toBe(cue2Id)
-    expect(store.currentCue?.text).toBe('Second cue (10-20s)')
+    store.setCurrentTime(15)  // Should find second segment
+    expect(store.currentSegment?.id).toBe(seg2Id)
+    expect(store.currentSegment?.text).toBe('Second segment (10-20s)')
 
-    store.setCurrentTime(25)  // Should find third cue
-    expect(store.currentCue?.id).toBe(cue3Id)
-    expect(store.currentCue?.text).toBe('Third cue (20-30s)')
+    store.setCurrentTime(25)  // Should find third segment
+    expect(store.currentSegment?.id).toBe(seg3Id)
+    expect(store.currentSegment?.text).toBe('Third segment (20-30s)')
 
     // Mount component to test that rowData is also sorted correctly
     const wrapper = mount(CaptionTable, {
@@ -332,32 +332,32 @@ describe('CaptionTable - Speaker Similarity', () => {
 
     // Verify rowData (displayed in grid) is sorted by time
     expect(vm.rowData.length).toBe(3)
-    expect(vm.rowData[0].id).toBe(cue1Id)
-    expect(vm.rowData[1].id).toBe(cue2Id)
-    expect(vm.rowData[2].id).toBe(cue3Id)
+    expect(vm.rowData[0].id).toBe(seg1Id)
+    expect(vm.rowData[1].id).toBe(seg2Id)
+    expect(vm.rowData[2].id).toBe(seg3Id)
 
     // Simulate sorting the grid by a different column (e.g., text in reverse)
     // AG Grid would handle the visual sorting, but the underlying data remains time-sorted
-    // The key point: currentCue lookup still works correctly because it uses document.segments
+    // The key point: currentSegment lookup still works correctly because it uses document.segments
 
     // Test that seeking still works after "sorting" (which only affects display, not data)
-    store.setCurrentTime(2)  // Should still find first cue
-    expect(store.currentCue?.id).toBe(cue1Id)
+    store.setCurrentTime(2)  // Should still find first segment
+    expect(store.currentSegment?.id).toBe(seg1Id)
 
-    store.setCurrentTime(12)  // Should still find second cue
-    expect(store.currentCue?.id).toBe(cue2Id)
+    store.setCurrentTime(12)  // Should still find second segment
+    expect(store.currentSegment?.id).toBe(seg2Id)
 
-    store.setCurrentTime(28)  // Should still find third cue
-    expect(store.currentCue?.id).toBe(cue3Id)
+    store.setCurrentTime(28)  // Should still find third segment
+    expect(store.currentSegment?.id).toBe(seg3Id)
 
     // Test edge cases
     store.setCurrentTime(0)  // Exactly at start
-    expect(store.currentCue?.id).toBe(cue1Id)
+    expect(store.currentSegment?.id).toBe(seg1Id)
 
-    store.setCurrentTime(10)  // Exactly at boundary (should find second cue)
-    expect(store.currentCue?.id).toBe(cue2Id)
+    store.setCurrentTime(10)  // Exactly at boundary (should find second segment)
+    expect(store.currentSegment?.id).toBe(seg2Id)
 
-    store.setCurrentTime(35)  // Beyond all cues
-    expect(store.currentCue).toBeUndefined()
+    store.setCurrentTime(35)  // Beyond all segments
+    expect(store.currentSegment).toBeUndefined()
   })
 })

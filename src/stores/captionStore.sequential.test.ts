@@ -39,7 +39,7 @@ describe('Playlist Playback Store', () => {
     expect(store.playlistStartIndex).toBe(0)
     expect(store.isPlaying).toBe(true)
     expect(store.currentTime).toBe(0) // First segment start time
-    expect(store.selectedCueId).toBe('seg1')
+    expect(store.selectedSegmentId).toBe('seg1')
   })
 
   it('should start playlist playback from a specific index', () => {
@@ -61,7 +61,7 @@ describe('Playlist Playback Store', () => {
     expect(store.playlistIndex).toBe(1)
     expect(store.playlistStartIndex).toBe(1)
     expect(store.currentTime).toBe(3) // Second segment start time
-    expect(store.selectedCueId).toBe('seg2')
+    expect(store.selectedSegmentId).toBe('seg2')
   })
 
   it('should get current playlist segment correctly', () => {
@@ -103,7 +103,7 @@ describe('Playlist Playback Store', () => {
     expect(hasNext).toBe(true)
     expect(store.playlistIndex).toBe(1)
     expect(store.currentTime).toBe(3) // Second segment start time
-    expect(store.selectedCueId).toBe('seg2')
+    expect(store.selectedSegmentId).toBe('seg2')
     expect(store.currentPlaylistSegment?.id).toBe('seg2')
   })
 
@@ -131,7 +131,7 @@ describe('Playlist Playback Store', () => {
     expect(store.isPlaying).toBe(false) // Should stop playing
     // Should have returned to start (seg1)
     expect(store.currentTime).toBe(0)
-    expect(store.selectedCueId).toBe('seg1')
+    expect(store.selectedSegmentId).toBe('seg1')
   })
 
   it('should stop playlist playback without returning to start', () => {
@@ -194,7 +194,7 @@ describe('Playlist Playback Store', () => {
     expect(store.currentPlaylistSegment?.id).toBe('seg3')
 
     // Simulate a document change (e.g., add a new segment)
-    store.addCue(10, 2)
+    store.addSegment(10, 2)
 
     // Playlist should remain unchanged
     expect(store.playlist).toEqual(['seg3', 'seg1', 'seg2'])

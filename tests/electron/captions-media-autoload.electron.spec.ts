@@ -10,7 +10,9 @@ test.describe('Electron Media Auto-loading', () => {
     test.setTimeout(30000)
 
     // Use the actual media fixture and a generated captions fixture
-    const captionsPath = path.join(getProjectRoot(), 'test_data/with-media-reference.captions.json')
+    const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-media-autoload')
+    await fs.mkdir(tempDir, { recursive: true })
+    const captionsPath = path.join(tempDir, 'with-media-reference.captions.json')
     const mediaPath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     // Verify both files exist
@@ -18,7 +20,7 @@ test.describe('Electron Media Auto-loading', () => {
     await fs.writeFile(
       captionsPath,
       JSON.stringify({
-        metadata: { id: 'with-media-ref', mediaFilePath: 'OSR_us_000_0010_8k.wav' },
+        metadata: { id: 'with-media-ref', mediaFilePath: '../OSR_us_000_0010_8k.wav' },
         segments: [
           { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
           { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
@@ -107,7 +109,7 @@ test.describe('Electron Media Auto-loading', () => {
     expect(finalState.hasAudio).toBe(true)
 
     // Clean up generated fixture
-    await fs.unlink(captionsPath).catch(() => {})
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   })
 
   test('should handle missing media file gracefully', async ({ page }) => {
@@ -198,11 +200,13 @@ test.describe('Electron Media Auto-loading', () => {
     expect(initialMediaPath).toBeTruthy()
 
     // Now load captions file with media reference
-    const captionsPath = path.join(getProjectRoot(), 'test_data/with-media-reference.captions.json')
+    const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-media-autoload')
+    await fs.mkdir(tempDir, { recursive: true })
+    const captionsPath = path.join(tempDir, 'with-media-reference-2.captions.json')
     await fs.writeFile(
       captionsPath,
       JSON.stringify({
-        metadata: { id: 'with-media-ref-2', mediaFilePath: 'OSR_us_000_0010_8k.wav' },
+        metadata: { id: 'with-media-ref-2', mediaFilePath: '../OSR_us_000_0010_8k.wav' },
         segments: [{ id: 'cue1', startTime: 0, endTime: 1, text: 'One' }]
       }, null, 2),
       'utf-8'
@@ -233,6 +237,6 @@ test.describe('Electron Media Auto-loading', () => {
     expect(finalMediaPath).toBe(initialMediaPath)
 
     // Clean up generated fixture
-    await fs.unlink(captionsPath).catch(() => {})
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   })
 })

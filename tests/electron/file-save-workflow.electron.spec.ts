@@ -20,9 +20,9 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     const initialDoc = {
       metadata: { id: 'sample-doc' },
       segments: [
-        { id: 'cue-1', startTime: 0, endTime: 5, text: 'Welcome to the Caption Editor!' },
-        { id: 'cue-2', startTime: 5, endTime: 10, text: 'This is a sample caption file.' },
-        { id: 'cue-3', startTime: 10, endTime: 15, text: 'Edit captions and save changes.' }
+        { id: 'segment-1', startTime: 0, endTime: 5, text: 'Welcome to the Caption Editor!' },
+        { id: 'segment-2', startTime: 5, endTime: 10, text: 'This is a sample caption file.' },
+        { id: 'segment-3', startTime: 10, endTime: 15, text: 'Edit captions and save changes.' }
       ]
     }
     await fs.writeFile(testCaptionsPath, JSON.stringify(initialDoc, null, 2), 'utf-8')
@@ -72,29 +72,29 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     expect(storeFilePath).toBe(testCaptionsPath)
     console.log('✓ Store file path is correct:', storeFilePath)
 
-    // Step 3: Add a new cue segment and edit it multiple times to create history
-    console.log('Step 3: Adding new cue segment and editing it')
+    // Step 3: Add a new segment and edit it multiple times to create history
+    console.log('Step 3: Adding new segment and editing it')
 
-    // Set current time to 20 seconds and add a cue
-    const newCueId = await window.evaluate(() => {
+    // Set current time to 20 seconds and add a segment
+    const newSegmentId = await window.evaluate(() => {
       const store = (window as any).$store
       store.setCurrentTime(20)
-      const cueId = store.addCue(20, 5) // Add cue from 20s to 25s
-      store.updateCue(cueId, { text: 'First version of caption' })
-      store.updateCue(cueId, { text: 'Second version of caption' })
-      store.updateCue(cueId, { text: 'This is a new test caption added by the E2E test!' })
-      return cueId
+      const segmentId = store.addSegment(20, 5) // Add segment from 20s to 25s
+      store.updateSegment(segmentId, { text: 'First version of caption' })
+      store.updateSegment(segmentId, { text: 'Second version of caption' })
+      store.updateSegment(segmentId, { text: 'This is a new test caption added by the E2E test!' })
+      return segmentId
     })
 
-    console.log('✓ Added new cue with ID:', newCueId, 'and edited it 3 times')
+    console.log('✓ Added new segment with ID:', newSegmentId, 'and edited it 3 times')
 
-    // Verify the cue was added
-    const cueCount = await window.evaluate(() => {
+    // Verify the segment was added
+    const segmentCount = await window.evaluate(() => {
       const store = (window as any).$store
       return store.document.segments.length
     })
-    expect(cueCount).toBe(4) // Original 3 cues + 1 new cue
-    console.log('✓ Cue count is now:', cueCount)
+    expect(segmentCount).toBe(4) // Original 3 segments + 1 new segment
+    console.log('✓ Segment count is now:', segmentCount)
 
     // Step 4: Save the file (overwrite original)
     console.log('Step 4: Saving file (overwrite)')
@@ -129,14 +129,14 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     const savedDoc = JSON.parse(savedContent)
     console.log('Saved captions JSON preview:', JSON.stringify(savedDoc, null, 2).substring(0, 500))
 
-    // Verify the saved content has the new cue
+    // Verify the saved content has the new segment
     expect(JSON.stringify(savedDoc)).toContain('This is a new test caption added by the E2E test!')
-    const newCue = savedDoc.segments.find((s: any) => s.text?.includes('This is a new test caption'))
-    expect(newCue).toBeTruthy()
-    expect(newCue.startTime).toBe(20)
-    expect(newCue.endTime).toBe(25)
+    const newSegment = savedDoc.segments.find((s: any) => s.text?.includes('This is a new test caption'))
+    expect(newSegment).toBeTruthy()
+    expect(newSegment.startTime).toBe(20)
+    expect(newSegment.endTime).toBe(25)
 
-    // Verify it still has original cues
+    // Verify it still has original segments
     expect(JSON.stringify(savedDoc)).toContain('Welcome to the Caption Editor!')
     expect(JSON.stringify(savedDoc)).toContain('This is a sample caption file.')
 
@@ -290,63 +290,63 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const speakerData = await window.evaluate(() => {
       const store = (window as any).$store
-      const cues = store.document.segments
-      return cues.map((cue: any) => ({
-        id: cue.id,
-        text: cue.text.substring(0, 30),
-        speakerName: cue.speakerName
+      const segments = store.document.segments
+      return segments.map((segment: any) => ({
+        id: segment.id,
+        text: segment.text.substring(0, 30),
+        speakerName: segment.speakerName
       }))
     })
 
-    console.log('Loaded cues with speaker data:', speakerData)
+    console.log('Loaded segments with speaker data:', speakerData)
 
-    // First cue should have Alice
+    // First segment should have Alice
     expect(speakerData[0].speakerName).toBe('Alice')
-    console.log('✓ First cue has speaker "Alice"')
+    console.log('✓ First segment has speaker "Alice"')
 
-    // Second cue should have no speaker
+    // Second segment should have no speaker
     expect(speakerData[1].speakerName).toBeUndefined()
-    console.log('✓ Second cue has no speaker (as expected)')
+    console.log('✓ Second segment has no speaker (as expected)')
 
-    // Third cue should have Bob
+    // Third segment should have Bob
     expect(speakerData[2].speakerName).toBe('Bob')
-    console.log('✓ Third cue has speaker "Bob"')
+    console.log('✓ Third segment has speaker "Bob"')
 
     // Step 4: Modify the first speaker name from "Alice" to "Charlie" via the table
     console.log('Step 4: Modifying first speaker name from Alice to Charlie')
 
-    const firstCueId = speakerData[0].id
-    await window.evaluate((cueId) => {
+    const firstSegmentId = speakerData[0].id
+    await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      store.updateCue(cueId, { speakerName: 'Charlie' })
-    }, firstCueId)
+      store.updateSegment(segmentId, { speakerName: 'Charlie' })
+    }, firstSegmentId)
 
     // Verify the update
-    const updatedFirstSpeaker = await window.evaluate((cueId) => {
+    const updatedFirstSpeaker = await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      const cue = store.document.segments.find((c: any) => c.id === cueId)
-      return cue?.speakerName
-    }, firstCueId)
+      const segment = store.document.segments.find((s: any) => s.id === segmentId)
+      return segment?.speakerName
+    }, firstSegmentId)
     expect(updatedFirstSpeaker).toBe('Charlie')
     console.log('✓ First speaker updated to "Charlie"')
 
-    // Step 5: Add speaker name "Diana" to second cue that didn't have one
-    console.log('Step 5: Adding speaker name "Diana" to second cue')
+    // Step 5: Add speaker name "Diana" to second segment that didn't have one
+    console.log('Step 5: Adding speaker name "Diana" to second segment')
 
-    const secondCueId = speakerData[1].id
-    await window.evaluate((cueId) => {
+    const secondSegmentId = speakerData[1].id
+    await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      store.updateCue(cueId, { speakerName: 'Diana' })
-    }, secondCueId)
+      store.updateSegment(segmentId, { speakerName: 'Diana' })
+    }, secondSegmentId)
 
     // Verify the addition
-    const newSecondSpeaker = await window.evaluate((cueId) => {
+    const newSecondSpeaker = await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      const cue = store.document.segments.find((c: any) => c.id === cueId)
-      return cue?.speakerName
-    }, secondCueId)
+      const segment = store.document.segments.find((s: any) => s.id === segmentId)
+      return segment?.speakerName
+    }, secondSegmentId)
     expect(newSecondSpeaker).toBe('Diana')
-    console.log('✓ Second cue now has speaker "Diana"')
+    console.log('✓ Second segment now has speaker "Diana"')
 
     // Step 6: Save the file
     console.log('Step 6: Saving file with updated speaker names')

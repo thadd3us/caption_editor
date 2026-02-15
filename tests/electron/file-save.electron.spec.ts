@@ -13,7 +13,7 @@ test.describe('File Save - Save captions files correctly', () => {
 
     const initialCaptions = JSON.stringify({
       metadata: { id: 'test-id-123' },
-      segments: [{ id: 'test-cue-id', startTime: 0.0, endTime: 3.0, text: 'Test caption' }]
+      segments: [{ id: 'test-segment-id', startTime: 0.0, endTime: 3.0, text: 'Test caption' }]
     })
     await fs.writeFile(tempCaptionsPath, initialCaptions, 'utf-8')
 

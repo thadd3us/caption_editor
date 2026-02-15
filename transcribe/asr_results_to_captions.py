@@ -1,8 +1,9 @@
 """
-Library for transforming ASR results into VTT cues.
+Library for transforming ASR results into caption segments.
 
 This module provides functions to convert ASR output (with word-level timestamps)
-into VTTCue objects, including segment splitting logic based on gaps and duration.
+into `TranscriptSegment` objects, including segment splitting logic based on gaps
+and duration.
 """
 
 from dataclasses import dataclass
@@ -450,7 +451,9 @@ def resolve_overlap_conflicts(
     return result
 
 
-def asr_segments_to_vtt_cues(segments: List[ASRSegment]) -> List[TranscriptSegment]:
+def asr_segments_to_transcript_segments(
+    segments: List[ASRSegment],
+) -> List[TranscriptSegment]:
     """Convert ASRSegment list to TranscriptSegment list.
 
     IDs and timestamps will be set later by the calling code.
@@ -730,7 +733,7 @@ def post_process_asr_segments(
 ) -> List[TranscriptSegment]:
     """Apply the complete post-processing pipeline to ASR segments.
 
-    This is the production pipeline used by transcribe.py. It performs:
+    This is the production pipeline used by transcribe_cli.py. It performs:
     1. Resolve overlaps from chunked processing
     2. Group/split by gap (model-specific: Whisper groups, Parakeet splits)
     3. Split long segments
@@ -762,4 +765,4 @@ def post_process_asr_segments(
     segments = split_long_segments(segments, max_duration_seconds=max_duration)
 
     # Step 4: Convert to TranscriptSegments
-    return asr_segments_to_vtt_cues(segments)
+    return asr_segments_to_transcript_segments(segments)

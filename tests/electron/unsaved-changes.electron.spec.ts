@@ -6,8 +6,8 @@ test.describe('Unsaved Changes Warning', () => {
         const initialDirty = await page.evaluate(() => (window as any).$store.isDirty)
         expect(initialDirty).toBe(false)
 
-        // 2. Make an edit (add a cue)
-        await page.evaluate(() => (window as any).$store.addCue(0, 5))
+        // 2. Make an edit (add a segment)
+        await page.evaluate(() => (window as any).$store.addSegment(0, 5))
 
         // 3. Now it SHOULD be dirty and have segments
         const state = await page.evaluate(() => {

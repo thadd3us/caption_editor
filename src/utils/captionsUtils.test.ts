@@ -3,9 +3,9 @@ import {
   formatTimestamp,
   validateTimestamp,
   createEmptyDocument,
-  addCue,
-  updateCue,
-  deleteCue
+  addSegment,
+  updateSegment,
+  deleteSegment
 } from './captionsUtils'
 import type { CaptionsDocument, TranscriptSegment } from '../types/schema'
 
@@ -43,7 +43,7 @@ describe('captionsUtils', () => {
     })
   })
 
-  describe('addCue / updateCue / deleteCue', () => {
+  describe('addSegment / updateSegment / deleteSegment', () => {
     function createTestDoc(segments: TranscriptSegment[] = []): CaptionsDocument {
       return {
         metadata: { id: 'doc' },
@@ -51,23 +51,23 @@ describe('captionsUtils', () => {
       }
     }
 
-    it('adds a cue and keeps segments sorted', () => {
+    it('adds a segment and keeps segments sorted', () => {
       let doc = createTestDoc()
-      doc = addCue(doc, { id: 'b', startTime: 5, endTime: 6, text: 'B' })
-      doc = addCue(doc, { id: 'a', startTime: 1, endTime: 2, text: 'A' })
+      doc = addSegment(doc, { id: 'b', startTime: 5, endTime: 6, text: 'B' })
+      doc = addSegment(doc, { id: 'a', startTime: 1, endTime: 2, text: 'A' })
       expect(doc.segments.map(s => s.id)).toEqual(['a', 'b'])
     })
 
-    it('updates a cue and records history', () => {
+    it('updates a segment and records history', () => {
       const doc = createTestDoc([{ id: 'a', startTime: 1, endTime: 2, text: 'A' }])
-      const updated = updateCue(doc, 'a', { text: 'A2' })
+      const updated = updateSegment(doc, 'a', { text: 'A2' })
       expect(updated.segments[0].text).toBe('A2')
       expect(updated.history?.length).toBe(1)
     })
 
-    it('deletes a cue and records history', () => {
+    it('deletes a segment and records history', () => {
       const doc = createTestDoc([{ id: 'a', startTime: 1, endTime: 2, text: 'A' }])
-      const updated = deleteCue(doc, 'a')
+      const updated = deleteSegment(doc, 'a')
       expect(updated.segments).toHaveLength(0)
       expect(updated.history?.length).toBe(1)
     })

@@ -8,6 +8,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('ASR Cancellation Reproduction', () => {
+    // Skipped by default since it depends on local Python tooling (`uv`).
+    test.skip(process.env.RUN_PY_E2E !== 'true', 'Set RUN_PY_E2E=true to enable Python-dependent Electron E2E tests')
     test('should remain responsive after cancelling ASR transcription', async () => {
         // Create a temporary directory for test files
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'asr-cancel-reproduction-'))

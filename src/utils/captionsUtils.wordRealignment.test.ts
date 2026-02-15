@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { updateCue, createEmptyDocument, addCue } from './captionsUtils'
+import { updateSegment, createEmptyDocument, addSegment } from './captionsUtils'
 import type { TranscriptSegment, CaptionsDocument } from '../types/schema'
 
-describe('updateCue - word realignment (captionsUtils)', () => {
+describe('updateSegment - word realignment (captionsUtils)', () => {
   it('should realign words when text is edited', () => {
     // Create a document with a segment that has word-level timestamps
     let doc: CaptionsDocument = createEmptyDocument()
@@ -31,10 +31,10 @@ describe('updateCue - word realignment (captionsUtils)', () => {
       timestamp: '2025-11-23T02:35:30.342-08:00'
     }
 
-    doc = addCue(doc, segment)
+    doc = addSegment(doc, segment)
 
     // Edit the text - change "fair little king" to "Theoden King" (removing 2 words, adding 1)
-    const updatedDoc = updateCue(doc, 'test-1', {
+    const updatedDoc = updateSegment(doc, 'test-1', {
       text: 'the courtesy of your home is somewhat listened of late Theoden King'
     })
 
@@ -77,10 +77,10 @@ describe('updateCue - word realignment (captionsUtils)', () => {
       timestamp: '2025-11-23T02:35:30.342-08:00'
     }
 
-    doc = addCue(doc, segment)
+    doc = addSegment(doc, segment)
 
     // Edit the text
-    const updatedDoc = updateCue(doc, 'test-1', { text: 'new edited text' })
+    const updatedDoc = updateSegment(doc, 'test-1', { text: 'new edited text' })
 
     const updatedSegment = updatedDoc.segments[0]
 
@@ -106,10 +106,10 @@ describe('updateCue - word realignment (captionsUtils)', () => {
       timestamp: '2025-11-23T02:35:30.342-08:00'
     }
 
-    doc = addCue(doc, segment)
+    doc = addSegment(doc, segment)
 
     // Update only speaker name (not text)
-    const updatedDoc = updateCue(doc, 'test-1', { speakerName: 'Alice' })
+    const updatedDoc = updateSegment(doc, 'test-1', { speakerName: 'Alice' })
 
     const updatedSegment = updatedDoc.segments[0]
 

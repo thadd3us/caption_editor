@@ -20,19 +20,29 @@ fi
 echo "✓ Build successful"
 echo ""
 
-# Create a test VTT file
-TEST_FILE="test_data/drag-drop-test.vtt"
-echo "Step 2: Creating test VTT file..."
+# Create a test captions JSON file
+TEST_FILE="test_data/drag-drop-test.captions.json"
+echo "Step 2: Creating test captions JSON file..."
 cat > "$TEST_FILE" << 'EOF'
-WEBVTT
-
-1
-00:00:01.000 --> 00:00:02.000
-This is a test caption for drag-and-drop
-
-2
-00:00:03.000 --> 00:00:04.000
-If you can see this, the file loaded correctly!
+{
+  "metadata": {
+    "id": "drag-drop-test"
+  },
+  "segments": [
+    {
+      "id": "seg1",
+      "startTime": 1.0,
+      "endTime": 2.0,
+      "text": "This is a test caption for drag-and-drop"
+    },
+    {
+      "id": "seg2",
+      "startTime": 3.0,
+      "endTime": 4.0,
+      "text": "If you can see this, the file loaded correctly!"
+    }
+  ]
+}
 EOF
 
 if [ $? -ne 0 ]; then

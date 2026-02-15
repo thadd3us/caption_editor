@@ -12,7 +12,12 @@ const __dirname = path.dirname(__filename)
 
 test.describe('ASR uvx Integration @expensive', () => {
     // Expensive test - downloads from GitHub and runs ML models
-    // Skip with SKIP_EXPENSIVE_TESTS=true
+    // This currently depends on the remote uvx-packaged Python artifacts.
+    // Run only when explicitly enabled.
+    test.skip(
+        process.env.RUN_UVX_E2E !== 'true' && process.env.RUN_PY_E2E !== 'true',
+        'Set RUN_UVX_E2E=true (or RUN_PY_E2E=true) to enable this expensive uvx integration test'
+    )
     test('should run ASR transcription via uvx (GitHub path) @expensive', async () => {
         test.setTimeout(300000) // 5 minutes because it downloads and runs a model
         // Create a temporary directory for test files
@@ -112,7 +117,16 @@ test.describe('ASR uvx Integration @expensive', () => {
             expect(finalModalVisible).toBe(false)
             console.log('[Test] ASR completed successfully')
 
-            // Verify segments were loaded into the store
+            // Wait for segments to be loaded into the store.
+            // The modal can close slightly before the renderer finishes applying results.
+            await page.waitForFunction(
+                () => {
+                    const store = (window as any).$store
+                    return (store?.document?.segments?.length || 0) > 0
+                },
+                { timeout: 60000 }
+            )
+
             const segments = await page.evaluate(() => {
                 const store = (window as any).$store
                 return store.document.segments

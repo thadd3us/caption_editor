@@ -31,7 +31,7 @@ export interface TranscriptWord {
 }
 
 /**
- * Transcript segment (formerly VTTCue) with UUID, timestamps, rating, and text
+ * Transcript segment with UUID, timestamps, rating, and text
  */
 export interface TranscriptSegment {
   readonly id: string // UUID - segment identifier
@@ -47,8 +47,6 @@ export interface TranscriptSegment {
 /**
  * @deprecated Use TranscriptSegment instead. Legacy alias for backwards compatibility.
  */
-export type VTTCue = TranscriptSegment
-
 /**
  * Metadata for the transcript document
  */

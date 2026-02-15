@@ -68,9 +68,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -85,9 +85,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -109,7 +109,7 @@ test.describe('Sequential Playback', () => {
       return {
         playbackMode: store.playbackMode,
         isPlaying: store.isPlaying,
-        selectedCueId: store.selectedCueId,
+        selectedSegmentId: store.selectedSegmentId,
         currentTime: store.currentTime
       }
     })
@@ -137,9 +137,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -214,9 +214,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -243,9 +243,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -287,9 +287,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -328,8 +328,8 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('no-media-reference.captions.json', {
       metadata: { id: 'seq-no-media' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)
@@ -346,9 +346,9 @@ test.describe('Sequential Playback', () => {
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
-        { id: 'cue1', startTime: 0, endTime: 1, text: 'One' },
-        { id: 'cue2', startTime: 1, endTime: 2, text: 'Two' },
-        { id: 'cue3', startTime: 2, endTime: 3, text: 'Three' }
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
       ]
     })
     await loadCaptionsFile(electronApp, page, captionsPath)

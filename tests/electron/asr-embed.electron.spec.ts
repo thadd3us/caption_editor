@@ -11,7 +11,8 @@ const __dirname = path.dirname(__filename)
 
 test.describe('Speaker Embedding Integration @expensive', () => {
     // Expensive test - requires downloading ML models and running inference
-    // Skip with SKIP_EXPENSIVE_TESTS=true
+    // Skipped by default since it depends on local Python tooling (`uv`).
+    test.skip(process.env.RUN_PY_E2E !== 'true', 'Set RUN_PY_E2E=true to enable Python-dependent Electron E2E tests')
     test('should compute speaker embeddings via menu item @expensive', async () => {
         test.setTimeout(180000) // 3 minute timeout for model download + inference
         // Create a temporary directory for test files

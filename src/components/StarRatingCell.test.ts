@@ -30,11 +30,11 @@ describe('StarRatingCell', () => {
     localStorageMock.clear()
   })
 
-  it('should render 5 stars for unrated cue', () => {
+  it('should render 5 stars for unrated segment', () => {
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-1',
+          id: 'test-segment-1',
           rating: undefined
         }
       }
@@ -50,11 +50,11 @@ describe('StarRatingCell', () => {
     })
   })
 
-  it('should render correct number of filled stars for rated cue', () => {
+  it('should render correct number of filled stars for rated segment', () => {
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-2',
+          id: 'test-segment-2',
           rating: 3
         }
       }
@@ -80,7 +80,7 @@ describe('StarRatingCell', () => {
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-3',
+          id: 'test-segment-3',
           rating: 4
         }
       }
@@ -94,7 +94,7 @@ describe('StarRatingCell', () => {
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-4',
+          id: 'test-segment-4',
           rating: 2
         }
       }
@@ -108,12 +108,12 @@ describe('StarRatingCell', () => {
 
   it('should update rating when clicking on an empty star', async () => {
     const store = useCaptionStore()
-    const updateCueSpy = vi.spyOn(store, 'updateCue')
+    const updateSegmentSpy = vi.spyOn(store, 'updateSegment')
 
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-5',
+          id: 'test-segment-5',
           rating: undefined
         }
       }
@@ -123,17 +123,17 @@ describe('StarRatingCell', () => {
     const stars = wrapper.findAll('.star')
     await stars[2].trigger('click')
 
-    expect(updateCueSpy).toHaveBeenCalledWith('test-cue-5', { rating: 3 })
+    expect(updateSegmentSpy).toHaveBeenCalledWith('test-segment-5', { rating: 3 })
   })
 
   it('should update rating when clicking on a different star', async () => {
     const store = useCaptionStore()
-    const updateCueSpy = vi.spyOn(store, 'updateCue')
+    const updateSegmentSpy = vi.spyOn(store, 'updateSegment')
 
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-6',
+          id: 'test-segment-6',
           rating: 3
         }
       }
@@ -143,17 +143,17 @@ describe('StarRatingCell', () => {
     const stars = wrapper.findAll('.star')
     await stars[4].trigger('click')
 
-    expect(updateCueSpy).toHaveBeenCalledWith('test-cue-6', { rating: 5 })
+    expect(updateSegmentSpy).toHaveBeenCalledWith('test-segment-6', { rating: 5 })
   })
 
   it('should clear rating when clicking on the current rating', async () => {
     const store = useCaptionStore()
-    const updateCueSpy = vi.spyOn(store, 'updateCue')
+    const updateSegmentSpy = vi.spyOn(store, 'updateSegment')
 
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-7',
+          id: 'test-segment-7',
           rating: 4
         }
       }
@@ -163,21 +163,21 @@ describe('StarRatingCell', () => {
     const stars = wrapper.findAll('.star')
     await stars[3].trigger('click')
 
-    expect(updateCueSpy).toHaveBeenCalledWith('test-cue-7', { rating: undefined })
+    expect(updateSegmentSpy).toHaveBeenCalledWith('test-segment-7', { rating: undefined })
   })
 
   it('should handle full rating flow: unrated -> rated -> different rating -> cleared', async () => {
     const store = useCaptionStore()
 
-    // Add a cue to the store
-    store.addCue(1.0, 3.0)
-    const cueId = store.document.segments[0].id
+    // Add a segment to the store
+    store.addSegment(1.0, 3.0)
+    const segmentId = store.document.segments[0].id
 
-    // Mount component with unrated cue
+    // Mount component with unrated segment
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: cueId,
+          id: segmentId,
           rating: undefined
         }
       }
@@ -197,7 +197,7 @@ describe('StarRatingCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (wrapper.setProps as any)({
       data: {
-        id: cueId,
+        id: segmentId,
         rating: 3
       }
     })
@@ -215,7 +215,7 @@ describe('StarRatingCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (wrapper.setProps as any)({
       data: {
-        id: cueId,
+        id: segmentId,
         rating: 5
       }
     })
@@ -232,7 +232,7 @@ describe('StarRatingCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (wrapper.setProps as any)({
       data: {
-        id: cueId,
+        id: segmentId,
         rating: undefined
       }
     })
@@ -250,7 +250,7 @@ describe('StarRatingCell', () => {
       const wrapper = mount(StarRatingCell, {
         props: {
           data: {
-            id: `test-cue-${rating}`,
+            id: `test-segment-${rating}`,
             rating
           }
         }
@@ -278,7 +278,7 @@ describe('StarRatingCell', () => {
     const wrapper = mount(StarRatingCell, {
       props: {
         data: {
-          id: 'test-cue-zero',
+          id: 'test-segment-zero',
           rating: 0
         }
       }
@@ -325,7 +325,7 @@ describe('StarRatingCell', () => {
 
   it('should handle clicks with AG Grid params format', async () => {
     const store = useCaptionStore()
-    const updateCueSpy = vi.spyOn(store, 'updateCue')
+    const updateSegmentSpy = vi.spyOn(store, 'updateSegment')
 
     const wrapper = mount(StarRatingCell, {
       props: {
@@ -342,6 +342,6 @@ describe('StarRatingCell', () => {
     const stars = wrapper.findAll('.star')
     await stars[4].trigger('click')
 
-    expect(updateCueSpy).toHaveBeenCalledWith('test-ag-grid-click', { rating: 5 })
+    expect(updateSegmentSpy).toHaveBeenCalledWith('test-ag-grid-click', { rating: 5 })
   })
 })

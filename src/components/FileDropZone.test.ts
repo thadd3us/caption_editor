@@ -224,8 +224,8 @@ describe('FileDropZone', () => {
       const captionsWithDuplicates = JSON.stringify({
         metadata: { id: 'doc_1' },
         segments: [
-          { id: 'duplicate-id', startTime: 0, endTime: 2, text: 'First cue' },
-          { id: 'duplicate-id', startTime: 2, endTime: 4, text: 'Second cue with same ID' }
+          { id: 'duplicate-id', startTime: 0, endTime: 2, text: 'First segment' },
+          { id: 'duplicate-id', startTime: 2, endTime: 4, text: 'Second segment with same ID' }
         ]
       })
 

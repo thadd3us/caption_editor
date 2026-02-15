@@ -60,7 +60,7 @@ override-dependencies = [
 py-modules = [
     "transcribe_cli",
     "embed_cli",
-    "asr_results_to_vtt",
+    "asr_results_to_captions",
     "capture_raw_asr_output",
     "schema",
 ]

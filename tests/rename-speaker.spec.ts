@@ -8,24 +8,24 @@ test.describe('Caption Editor - Rename Speaker', () => {
     window = page
   })
 
-  test('should rename speaker across multiple cues', async () => {
+  test('should rename speaker across multiple segments', async () => {
     // Load captions JSON with multiple speakers using direct store manipulation
     const loadResult = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return { success: false, error: 'No store on window' }
+      const store = (window as any).$store
+      if (!store) return { success: false, error: 'No store on window' }
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'Hello from Alice', speakerName: 'Alice', rating: 5 },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Hello from Bob', speakerName: 'Bob', rating: 4 },
-          { id: 'cue3', startTime: 9, endTime: 12, text: 'Another message from Alice', speakerName: 'Alice', rating: 3 }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'Hello from Alice', speakerName: 'Alice', rating: 5 },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Hello from Bob', speakerName: 'Bob', rating: 4 },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Another message from Alice', speakerName: 'Alice', rating: 3 }
         ]
       })
 
       try {
-        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
-        return { success: true, segmentCount: vttStore.document.segments.length }
+        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
       }
@@ -67,9 +67,9 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Verify speaker was renamed in the store
     const speakerNames = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => cue.speakerName)
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => segment.speakerName)
     })
 
     // Check that Alice was renamed to Alice Smith
@@ -161,15 +161,15 @@ test.describe('Caption Editor - Rename Speaker', () => {
   test('should close dialog when clicking Cancel', async () => {
     // Load captions JSON with speaker
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
-        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Hello', speakerName: 'Alice' }]
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello', speakerName: 'Alice' }]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -194,21 +194,21 @@ test.describe('Caption Editor - Rename Speaker', () => {
     await expect(dialog).not.toBeVisible()
   })
 
-  test('should record history entries for renamed cues', async () => {
+  test('should record history entries for renamed segments', async () => {
     // Load captions JSON with speakers
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'Message 1', speakerName: 'John' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Message 2', speakerName: 'John' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'Message 1', speakerName: 'John' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Message 2', speakerName: 'John' }
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -242,15 +242,15 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Check that history entries were created
     const historyCount = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return 0
+      const store = (window as any).$store
+      if (!store) return 0
 
-      const history = vttStore.document.history || []
+      const history = store.document.history || []
       const speakerRenamedEntries = history.filter((entry: any) => entry.action === 'speakerRenamed')
       return speakerRenamedEntries.length
     })
 
-    // Should have 2 history entries (one for each renamed cue)
+    // Should have 2 history entries (one for each renamed segment)
     expect(historyCount).toBe(2)
   })
 })

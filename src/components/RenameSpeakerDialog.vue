@@ -69,12 +69,12 @@ const store = useCaptionStore()
 const selectedSpeaker = ref('')
 const newName = ref('')
 
-// Compute unique non-empty speaker names from all cues
+// Compute unique non-empty speaker names from all segments
 const uniqueSpeakers = computed(() => {
   const speakers = new Set<string>()
-  for (const cue of store.document.segments) {
-    if (cue.speakerName && cue.speakerName.trim() !== '') {
-      speakers.add(cue.speakerName)
+  for (const segment of store.document.segments) {
+    if (segment.speakerName && segment.speakerName.trim() !== '') {
+      speakers.add(segment.speakerName)
     }
   }
   return Array.from(speakers).sort()

@@ -1,7 +1,8 @@
 # serializer version: 1
 # name: test_asr_post_processing_pipeline[whisper-60]
   dict({
-    'cues': list([
+    'num_segments': 8,
+    'segments': list([
       dict({
         'duration': 4.02,
         'end_time': 4.02,
@@ -51,6 +52,5 @@
         'text': 'sell.',
       }),
     ]),
-    'num_cues': 8,
   })
 # ---

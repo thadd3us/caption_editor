@@ -2,7 +2,7 @@
 """
 Capture raw ASR output in JSON format for test fixtures.
 
-This script uses the actual production code from transcribe.py to process audio
+This script uses the actual production code from transcribe_cli.py to process audio
 and captures the raw ASR output for use in unit tests.
 
 Supports both Whisper (transformers) and Parakeet (NeMo) models.

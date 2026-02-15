@@ -101,7 +101,7 @@ class SegmentHistoryEntry(BaseModel):
     )
     segment: TranscriptSegment = Field(
         description="The segment's state before the change (preserves the original timestamp)",
-        validation_alias=AliasChoices("segment", "cue"),
+        validation_alias=AliasChoices("segment"),
         serialization_alias="segment",
     )
 

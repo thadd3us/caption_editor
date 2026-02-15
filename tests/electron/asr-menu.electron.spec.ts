@@ -9,7 +9,8 @@ const __dirname = path.dirname(__filename)
 
 test.describe('ASR Menu Integration @expensive', () => {
   // Expensive test - requires downloading ML models and running transcription
-  // Skip with SKIP_EXPENSIVE_TESTS=true
+  // Skipped by default since it depends on local Python tooling (`uv`).
+  test.skip(process.env.RUN_PY_E2E !== 'true', 'Set RUN_PY_E2E=true to enable Python-dependent Electron E2E tests')
   test('should run ASR transcription from menu @expensive', async () => {
     test.setTimeout(180000) // 3 minute timeout for model download + transcription
     // Create a temporary directory for test files
@@ -187,11 +188,11 @@ test.describe('ASR Menu Integration @expensive', () => {
     await page.evaluate(() => {
       const store = (window as any).$store
       store.loadMediaFile('file:///fake/path.wav', '/fake/path.wav')
-      store.addCue(0, 1)  // Add a 1-second cue starting at 0
+      store.addSegment(0, 1)  // Add a 1-second segment starting at 0
       // Update the text
       if (store.document.segments.length > 0) {
-        const cue = store.document.segments[0]
-        store.updateCue(cue.id, { text: 'Test segment' })
+        const segment = store.document.segments[0]
+        store.updateSegment(segment.id, { text: 'Test segment' })
       }
     })
 

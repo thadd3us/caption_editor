@@ -13,7 +13,7 @@
 export HEADLESS=true && npx playwright test tests/speaker-name-edit-focus.spec.ts --reporter=list
 
 
-Next up is to package the python script called transcribe/embed.py behind a menu item under "AI Annotations"
+Next up is to package the python script called transcribe/embed_cli.py behind a menu item under "AI Annotations"
 
 * Drag-n-drop vtt and media files into app.
 * Loading a large video seemed to block Apple-Q to exit the app?
@@ -88,6 +88,6 @@ In either playback mode, or even when playback is not happening, if "Auto-scroll
 * Delete the time adjustment buttons.
 * electron packaging
 * When text wraps inside a table column, make it have less line spacing in between lines.
-* Delete with-media-reference.vtt since the main 33s file now has a media reference.
+* Delete with-media-reference.vtt since the main 33s file now has a media reference. (done)
 * simplify asr setup
 * speaker id

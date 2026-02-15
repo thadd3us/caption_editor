@@ -97,17 +97,17 @@ const selectedRowsForContextMenu = ref<any[]>([])
 
 
 const rowData = computed(() => {
-  // Cues are always kept sorted in the document model
-  return store.document.segments.map(cue => ({
-    id: cue.id,
-    startTime: cue.startTime,
-    endTime: cue.endTime,
-    startTimeFormatted: formatTimestampSimple(cue.startTime),
-    endTimeFormatted: formatTimestampSimple(cue.endTime),
-    text: cue.text,
-    speakerName: cue.speakerName,
-    rating: cue.rating,
-    speakerSimilarity: speakerSimilarityScores.value.get(cue.id)
+  // Segments are always kept sorted in the document model
+  return store.document.segments.map(segment => ({
+    id: segment.id,
+    startTime: segment.startTime,
+    endTime: segment.endTime,
+    startTimeFormatted: formatTimestampSimple(segment.startTime),
+    endTimeFormatted: formatTimestampSimple(segment.endTime),
+    text: segment.text,
+    speakerName: segment.speakerName,
+    rating: segment.rating,
+    speakerSimilarity: speakerSimilarityScores.value.get(segment.id)
   }))
 })
 
@@ -140,7 +140,7 @@ const columnDefs = ref<ColDef[]>([
     sortable: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
-      store.updateCue(params.data.id, { text: params.newValue })
+      store.updateSegment(params.data.id, { text: params.newValue })
     }
   },
   {
@@ -171,7 +171,7 @@ const columnDefs = ref<ColDef[]>([
       }
       
       // Always update the edited row in store
-      store.updateCue(params.data.id, { speakerName: newSpeaker })
+      store.updateSegment(params.data.id, { speakerName: newSpeaker })
     }
   },
   {
@@ -229,7 +229,7 @@ const columnDefs = ref<ColDef[]>([
           throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
         }
 
-        store.updateCue(params.data.id, { startTime: seconds })
+        store.updateSegment(params.data.id, { startTime: seconds })
       } catch (err) {
         if ((window as any).showAlert) {
           (window as any).showAlert({
@@ -277,7 +277,7 @@ const columnDefs = ref<ColDef[]>([
           throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
         }
 
-        store.updateCue(params.data.id, { endTime: seconds })
+        store.updateSegment(params.data.id, { endTime: seconds })
       } catch (err) {
         if ((window as any).showAlert) {
           (window as any).showAlert({
@@ -321,10 +321,10 @@ function onGridReady(params: GridReadyEvent) {
 function onRowClicked(event: RowClickedEvent) {
   if (!event.data) return
   
-  const { id: cueId, startTime } = event.data
-  console.log('Row clicked:', cueId, 'startTime:', startTime)
+  const { id: segmentId, startTime } = event.data
+  console.log('Row clicked:', segmentId, 'startTime:', startTime)
   
-  // Move playhead to the start of the clicked cue
+  // Move playhead to the start of the clicked segment
   store.setCurrentTime(startTime)
   const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
   if (mediaElement) mediaElement.currentTime = startTime
@@ -343,7 +343,7 @@ function onSelectionChanged(event: SelectionChangedEvent) {
   
   // Only sync single selection to store (multi-select is grid-only)
   if (selectedRows.length === 1) {
-    store.selectCue(lastRow.id)
+    store.selectSegment(lastRow.id)
   }
 
   // Autoplay on selection (but not during auto-scroll)
@@ -378,8 +378,8 @@ function showCaptionsInFinder() {
  */
 function addCaptionAtCurrentTime() {
   console.log('Adding caption at current time:', store.currentTime)
-  const cueId = store.addCue(store.currentTime, 5)
-  store.selectCue(cueId)
+  const segmentId = store.addSegment(store.currentTime, 5)
+  store.selectSegment(segmentId)
 }
 
 /**
@@ -496,11 +496,11 @@ function computeSpeakerSimilarity() {
   // Compute similarity scores for all rows
   const newScores = new Map<string, number>()
 
-  for (const cue of store.document.segments) {
-    const embedding = store.document.embeddings?.find(e => e.segmentId === cue.id)
+  for (const segment of store.document.segments) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === segment.id)
     if (!embedding || embedding.speakerEmbedding.length === 0) {
       // No embedding for this row - assign 0 similarity
-      newScores.set(cue.id, 0)
+      newScores.set(segment.id, 0)
       continue
     }
 
@@ -511,7 +511,7 @@ function computeSpeakerSimilarity() {
       maxSimilarity = Math.max(maxSimilarity, similarity)
     }
 
-    newScores.set(cue.id, maxSimilarity)
+    newScores.set(segment.id, maxSimilarity)
   }
 
   console.log('Computed similarity scores for', newScores.size, 'rows')
@@ -553,10 +553,10 @@ function selectRowIfNeeded(rowNode: any) {
   return true
 }
 
-// Sync store.selectedCueId → AG Grid (for programmatic selection, e.g., playlist playback)
-watch(() => store.selectedCueId, (cueId) => {
-  if (!gridApi.value || !cueId) return
-  const rowNode = gridApi.value.getRowNode(cueId)
+// Sync store.selectedSegmentId → AG Grid (for programmatic selection, e.g., playlist playback)
+watch(() => store.selectedSegmentId, (segmentId) => {
+  if (!gridApi.value || !segmentId) return
+  const rowNode = gridApi.value.getRowNode(segmentId)
   if (rowNode) {
     selectRowIfNeeded(rowNode)
     gridApi.value.ensureNodeVisible(rowNode, null)
@@ -567,12 +567,12 @@ watch(() => store.selectedCueId, (cueId) => {
 watch(() => store.currentTime, (currentTime) => {
   if (!autoScrollEnabled.value || !gridApi.value) return
 
-  const cue = store.document.segments.find(c =>
-    c.startTime <= currentTime && currentTime < c.endTime
+  const segment = store.document.segments.find(s =>
+    s.startTime <= currentTime && currentTime < s.endTime
   )
-  if (!cue) return
+  if (!segment) return
 
-  const rowNode = gridApi.value.getRowNode(cue.id)
+  const rowNode = gridApi.value.getRowNode(segment.id)
   if (!rowNode) return
 
   // If row already selected, just ensure visible (preserves multi-selection)

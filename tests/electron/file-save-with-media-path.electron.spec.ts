@@ -38,8 +38,8 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     const initialCaptions = {
       metadata: { id: 'test-doc-123', mediaFilePath: 'audio.wav' },
       segments: [
-        { id: 'cue-1', startTime: 1.0, endTime: 4.0, text: 'First caption' },
-        { id: 'cue-2', startTime: 5.0, endTime: 8.0, text: 'Second caption' }
+        { id: 'segment-1', startTime: 1.0, endTime: 4.0, text: 'First caption' },
+        { id: 'segment-2', startTime: 5.0, endTime: 8.0, text: 'Second caption' }
       ]
     }
     await fs.writeFile(testCaptionsPath, JSON.stringify(initialCaptions, null, 2), 'utf-8')
@@ -124,8 +124,8 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     const savedCaptionsDir = path.dirname(saveAsPath)
     const computedAbsolutePath = path.resolve(savedCaptionsDir, '../audio.wav')
     console.log('\nVerification:')
-    console.log('  Saved VTT directory:', savedVttDir)
-    console.log('  Relative path in VTT:', '../audio.wav')
+    console.log('  Saved captions directory:', savedCaptionsDir)
+    console.log('  Relative path in captions JSON:', '../audio.wav')
     console.log('  Computed absolute path:', computedAbsolutePath)
     console.log('  Expected absolute path:', mediaFilePath)
 

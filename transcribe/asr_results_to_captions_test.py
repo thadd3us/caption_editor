@@ -1,9 +1,9 @@
 """Tests for ASR result processing and caption-segment splitting."""
 
-from asr_results_to_vtt import (
+from asr_results_to_captions import (
     ASRSegment,
     WordTimestamp,
-    asr_segments_to_vtt_cues,
+    asr_segments_to_transcript_segments,
     split_long_segments,
     split_segments_by_word_gap,
 )
@@ -295,7 +295,7 @@ def test_combined_splitting_pipeline():
     assert len(final) >= 3
 
 
-def test_asr_segments_to_vtt_cues():
+def test_asr_segments_to_transcript_segments():
     """Test conversion from ASRSegment to caption segments (TranscriptSegment)."""
     segments = [
         ASRSegment(
@@ -321,22 +321,22 @@ def test_asr_segments_to_vtt_cues():
         ),
     ]
 
-    cues = asr_segments_to_vtt_cues(segments)
+    transcript_segments = asr_segments_to_transcript_segments(segments)
 
-    assert len(cues) == 2
+    assert len(transcript_segments) == 2
 
-    assert cues[0].text == "The birch canoe slid"
-    assert cues[0].start_time == 0.24
-    assert cues[0].end_time == 3.44
-    assert cues[0].id == ""  # Not set yet
+    assert transcript_segments[0].text == "The birch canoe slid"
+    assert transcript_segments[0].start_time == 0.24
+    assert transcript_segments[0].end_time == 3.44
+    assert transcript_segments[0].id == ""  # Not set yet
 
-    assert cues[1].text == "Glue the sheet"
-    assert cues[1].start_time == 4.0
-    assert cues[1].end_time == 7.12
-    assert cues[1].id == ""  # Not set yet
+    assert transcript_segments[1].text == "Glue the sheet"
+    assert transcript_segments[1].start_time == 4.0
+    assert transcript_segments[1].end_time == 7.12
+    assert transcript_segments[1].id == ""  # Not set yet
 
 
-def test_asr_segments_to_vtt_cues_empty_text():
+def test_asr_segments_to_transcript_segments_empty_text():
     """Test that segments with empty text are skipped."""
     segments = [
         ASRSegment(
@@ -366,8 +366,8 @@ def test_asr_segments_to_vtt_cues_empty_text():
         ),
     ]
 
-    cues = asr_segments_to_vtt_cues(segments)
+    transcript_segments = asr_segments_to_transcript_segments(segments)
 
-    assert len(cues) == 2
-    assert cues[0].text == "Valid text"
-    assert cues[1].text == "More valid text"
+    assert len(transcript_segments) == 2
+    assert transcript_segments[0].text == "Valid text"
+    assert transcript_segments[1].text == "More valid text"

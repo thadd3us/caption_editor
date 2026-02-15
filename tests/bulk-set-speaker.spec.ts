@@ -13,21 +13,21 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
   test('should set speaker name for multiple selected rows via context menu', async () => {
     // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return { success: false, error: 'No store on window' }
+      const store = (window as any).$store
+      if (!store) return { success: false, error: 'No store on window' }
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'bulk-set-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
-          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 }
         ]
       }, null, 2)
 
       try {
-        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
-        return { success: true, segmentCount: vttStore.document.segments.length }
+        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
       }
@@ -42,14 +42,14 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
 
     // Select first two rows and open dialog programmatically
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) throw new Error('Store not available')
+      const store = (window as any).$store
+      if (!store) throw new Error('Store not available')
 
-      // Get the first two cue IDs
-      const cues = vttStore.document.segments
+      // Get the first two segment IDs
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName },
-        { id: cues[1].id, text: cues[1].text, speakerName: cues[1].speakerName }
+        { id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName },
+        { id: segments[1].id, text: segments[1].text, speakerName: segments[1].speakerName }
       ]
 
       // Store selected rows for App.vue
@@ -84,29 +84,29 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
 
     // Verify speaker was set in the store
     const speakerNames = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => cue.speakerName)
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => segment.speakerName)
     })
 
-    // Check that first two cues have speaker set to Alice
+    // Check that first two segments have speaker set to Alice
     expect(speakerNames[0]).toBe('Alice')
     expect(speakerNames[1]).toBe('Alice')
-    expect(speakerNames[2]).toBeUndefined() // Third cue should remain unchanged
+    expect(speakerNames[2]).toBeUndefined() // Third segment should remain unchanged
   })
 
   test('should not show context menu when no rows are selected', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'no-context-menu-doc' },
-        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Hello' }]
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -142,15 +142,15 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
   test('should close dialog when clicking Cancel', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'cancel-bulk-set-doc' },
-        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Hello' }]
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -160,12 +160,12 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
 
     // Select a row and open dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName }
+        { id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName }
       ]
 
       ;(window as any).__captionTableSelectedRows = selectedRows
@@ -197,9 +197,9 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
       const captionsContent = JSON.stringify({
         metadata: { id: 'inline-bulk-edit-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Speaker1' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Speaker2' },
-          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Speaker3' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Speaker1' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Speaker2' },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Speaker3' }
         ]
       }, null, 2)
       vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
@@ -211,8 +211,8 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
     // Select rows 1 and 2 via API
     await window.evaluate(() => {
       const gridApi = (window as any).__agGridApi
-      const node1 = gridApi.getRowNode('cue1')
-      const node2 = gridApi.getRowNode('cue2')
+      const node1 = gridApi.getRowNode('seg1')
+      const node2 = gridApi.getRowNode('seg2')
       node1?.setSelected(true, false)
       node2?.setSelected(true, false)
     })
@@ -224,8 +224,8 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
     })
     console.log('Selected before edit:', selectedBefore)
 
-    // Double-click speaker cell of cue1 to edit
-    await window.locator('.ag-center-cols-container .ag-row[row-id="cue1"] .ag-cell[col-id="speakerName"]').dblclick()
+    // Double-click speaker cell of seg1 to edit
+    await window.locator('.ag-center-cols-container .ag-row[row-id="seg1"] .ag-cell[col-id="speakerName"]').dblclick()
 
     // Verify selection is still intact after double-click
     const selectedDuringEdit = await window.evaluate(() => {
@@ -243,7 +243,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
 
     // Verify results
     const speakerNames = await window.evaluate(() => {
-      return (window as any).$store.document.segments.map((cue: any) => cue.speakerName)
+      return (window as any).$store.document.segments.map((segment: any) => segment.speakerName)
     })
 
     expect(speakerNames[0]).toBe('BulkSpeaker')
@@ -254,18 +254,18 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
   test('should handle bulk set with single row selected', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'single-bulk-set-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -275,12 +275,12 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
 
     // Select only one row
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text, speakerName: cues[0].speakerName }
+        { id: segments[0].id, text: segments[0].text, speakerName: segments[0].speakerName }
       ]
 
       ;(window as any).__captionTableSelectedRows = selectedRows
@@ -310,12 +310,12 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
 
     // Verify speaker was set
     const speakerNames = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => cue.speakerName)
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => segment.speakerName)
     })
 
-    // Only first cue should have speaker set
+    // Only first segment should have speaker set
     expect(speakerNames[0]).toBe('Bob')
     expect(speakerNames[1]).toBeUndefined()
   })

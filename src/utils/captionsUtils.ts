@@ -178,7 +178,10 @@ function addHistoryEntry(
 /**
  * Add a new segment to the document (returns new document with sorted segments).
  */
-export function addCue(document: CaptionsDocument, segment: TranscriptSegment): CaptionsDocument {
+export function addSegment(
+  document: CaptionsDocument,
+  segment: TranscriptSegment
+): CaptionsDocument {
   return {
     ...document,
     segments: sortSegments([...document.segments, segment])
@@ -186,76 +189,83 @@ export function addCue(document: CaptionsDocument, segment: TranscriptSegment): 
 }
 
 /**
- * Update an existing cue (returns new document with sorted cues).
- * Records the previous state in history and sets timestamp on updated cue.
+ * Update an existing segment (returns new document with sorted segments).
+ * Records the previous state in history and sets timestamp on updated segment.
  */
-export function updateCue(
+export function updateSegment(
   document: CaptionsDocument,
-  cueId: string,
+  segmentId: string,
   updates: Partial<Omit<TranscriptSegment, 'id'>>
 ): CaptionsDocument {
-  // Find the original cue to save to history
-  const originalCue = document.segments.find(cue => cue.id === cueId)
-  if (!originalCue) {
+  // Find the original segment to save to history
+  const originalSegment = document.segments.find(seg => seg.id === segmentId)
+  if (!originalSegment) {
     return document
   }
 
-  // If text is being updated and the cue has words, realign the words
+  // If text is being updated and the segment has words, realign the words
   let finalUpdates = updates
-  if (updates.text !== undefined && originalCue.words && originalCue.words.length > 0) {
-    const realignedWords = realignWords(originalCue.words, updates.text)
+  if (
+    updates.text !== undefined &&
+    originalSegment.words &&
+    originalSegment.words.length > 0
+  ) {
+    const realignedWords = realignWords(originalSegment.words, updates.text)
     finalUpdates = {
       ...updates,
       words: realignedWords.length > 0 ? realignedWords : undefined
     }
   }
 
-  // Update the cues with new timestamp
+  // Update the segments with new timestamp
   const currentTimestamp = getCurrentTimestamp()
-  const updatedCues = document.segments.map(cue =>
-    cue.id === cueId
-      ? { ...cue, ...finalUpdates, timestamp: currentTimestamp }
-      : cue
+  const updatedSegments = document.segments.map(seg =>
+    seg.id === segmentId
+      ? { ...seg, ...finalUpdates, timestamp: currentTimestamp }
+      : seg
   )
 
-  // Create document with updated cues
+  // Create document with updated segments
   let newDocument: CaptionsDocument = {
     ...document,
-    segments: sortSegments(updatedCues)
+    segments: sortSegments(updatedSegments)
   }
 
-  // Add history entry (with the original cue before modification)
-  newDocument = addHistoryEntry(newDocument, originalCue, HistoryAction.Modified)
+  // Add history entry (with the original segment before modification)
+  newDocument = addHistoryEntry(newDocument, originalSegment, HistoryAction.Modified)
 
   return newDocument
 }
 
 /**
- * Delete a cue (returns new document).
- * Records the deleted cue in history.
+ * Delete a segment (returns new document).
+ * Records the deleted segment in history.
  */
-export function deleteCue(document: CaptionsDocument, cueId: string): CaptionsDocument {
-  // Find the cue to save to history before deleting
-  const deletedCue = document.segments.find(cue => cue.id === cueId)
-  if (!deletedCue) {
+export function deleteSegment(
+  document: CaptionsDocument,
+  segmentId: string
+): CaptionsDocument {
+  // Find the segment to save to history before deleting
+  const deletedSegment = document.segments.find(seg => seg.id === segmentId)
+  if (!deletedSegment) {
     return document
   }
 
-  // Create document with cue removed
+  // Create document with segment removed
   let newDocument: CaptionsDocument = {
     ...document,
-    segments: Object.freeze(document.segments.filter(cue => cue.id !== cueId))
+    segments: Object.freeze(document.segments.filter(seg => seg.id !== segmentId))
   }
 
   // Add history entry
-  newDocument = addHistoryEntry(newDocument, deletedCue, HistoryAction.Deleted)
+  newDocument = addHistoryEntry(newDocument, deletedSegment, HistoryAction.Deleted)
 
   return newDocument
 }
 
 /**
  * Rename all occurrences of a speaker name (returns new document).
- * Records all modified cues in history.
+ * Records all modified segments in history.
  */
 export function renameSpeaker(
   document: CaptionsDocument,
@@ -265,23 +275,23 @@ export function renameSpeaker(
   const currentTimestamp = getCurrentTimestamp()
   let newDocument = document
 
-  // Find all cues with the old speaker name and add history entries
-  for (const cue of document.segments) {
-    if (cue.speakerName === oldName) {
-      newDocument = addHistoryEntry(newDocument, cue, HistoryAction.SpeakerRenamed)
+  // Find all segments with the old speaker name and add history entries
+  for (const seg of document.segments) {
+    if (seg.speakerName === oldName) {
+      newDocument = addHistoryEntry(newDocument, seg, HistoryAction.SpeakerRenamed)
     }
   }
 
-  // Update all cues with the new speaker name
-  const updatedCues = newDocument.segments.map(cue =>
-    cue.speakerName === oldName
-      ? { ...cue, speakerName: newName, timestamp: currentTimestamp }
-      : cue
+  // Update all segments with the new speaker name
+  const updatedSegments = newDocument.segments.map(seg =>
+    seg.speakerName === oldName
+      ? { ...seg, speakerName: newName, timestamp: currentTimestamp }
+      : seg
   )
 
   return {
     ...newDocument,
-    segments: Object.freeze(updatedCues)
+    segments: Object.freeze(updatedSegments)
   }
 }
 

@@ -13,18 +13,18 @@ test.describe('Caption Editor - Context Menu', () => {
   test('should show context menu with both options when rows are selected', async () => {
     // Load captions JSON with multiple segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'context-menu-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -34,12 +34,12 @@ test.describe('Caption Editor - Context Menu', () => {
 
     // Simulate context menu by directly setting the state
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         // Store selected rows
@@ -75,15 +75,15 @@ test.describe('Caption Editor - Context Menu', () => {
   test('should open bulk set speaker dialog when context menu option is triggered', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'bulk-set-dialog-doc' },
-        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test' }]
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Test' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -93,11 +93,11 @@ test.describe('Caption Editor - Context Menu', () => {
 
     // Trigger bulk set speaker dialog via event (simulating context menu selection)
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
 
@@ -120,15 +120,15 @@ test.describe('Caption Editor - Context Menu', () => {
   test('should open delete confirmation dialog when context menu option is triggered', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'delete-dialog-doc' },
-        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test' }]
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Test' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -138,11 +138,11 @@ test.describe('Caption Editor - Context Menu', () => {
 
     // Trigger delete confirmation dialog via event (simulating context menu selection)
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
 
@@ -165,18 +165,18 @@ test.describe('Caption Editor - Context Menu', () => {
   test('should handle both context menu actions in sequence', async () => {
     // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'context-menu-seq-doc' },
         segments: [
-          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
-          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -186,13 +186,13 @@ test.describe('Caption Editor - Context Menu', () => {
 
     // First action: Bulk set speaker
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text },
-        { id: cues[1].id, text: cues[1].text }
+        { id: segments[0].id, text: segments[0].text },
+        { id: segments[1].id, text: segments[1].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -222,9 +222,9 @@ test.describe('Caption Editor - Context Menu', () => {
 
     // Verify speaker was set
     const speakerNames = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => cue.speakerName)
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => segment.speakerName)
     })
 
     expect(speakerNames[0]).toBe('Alice')
@@ -232,12 +232,12 @@ test.describe('Caption Editor - Context Menu', () => {
 
     // Second action: Delete one of the rows
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -264,14 +264,14 @@ test.describe('Caption Editor - Context Menu', () => {
     })
 
     // Verify only one row remains
-    const remainingCues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments
+    const remainingSegments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments
     })
 
-    expect(remainingCues).toHaveLength(1)
-    expect(remainingCues[0].text).toBe('Second')
-    expect(remainingCues[0].speakerName).toBe('Alice')
+    expect(remainingSegments).toHaveLength(1)
+    expect(remainingSegments[0].text).toBe('Second')
+    expect(remainingSegments[0].speakerName).toBe('Alice')
   })
 })

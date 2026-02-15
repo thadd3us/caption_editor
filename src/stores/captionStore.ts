@@ -4,9 +4,9 @@ import { v4 as uuidv4 } from 'uuid'
 import type { CaptionsDocument, TranscriptSegment } from '../types/schema'
 import {
   createEmptyDocument,
-  addCue as addCueToDoc,
-  updateCue as updateCueInDoc,
-  deleteCue as deleteCueFromDoc,
+  addSegment as addSegmentToDoc,
+  updateSegment as updateSegmentInDoc,
+  deleteSegment as deleteSegmentFromDoc,
   renameSpeaker as renameSpeakerInDoc,
   splitSegment as splitSegmentInDoc,
   mergeAdjacentSegments as mergeAdjacentSegmentsInDoc,
@@ -37,7 +37,7 @@ export const useCaptionStore = defineStore('captions', () => {
 
   const currentTime = ref(0)
   const isPlaying = ref(false)  // Kept for compatibility with media element events
-  const selectedCueId = ref<string | null>(null)
+  const selectedSegmentId = ref<string | null>(null)
 
   // Playback mode state - single source of truth for playback status
   const playbackMode = ref<PlaybackMode>(PlaybackMode.STOPPED)
@@ -49,7 +49,7 @@ export const useCaptionStore = defineStore('captions', () => {
   const isDirty = ref(false) // Track unsaved changes
 
   // Computed
-  const currentCue = computed(() => {
+  const currentSegment = computed(() => {
     const time = currentTime.value
     // document.segments is always kept sorted
     return document.value.segments.find(
@@ -211,9 +211,9 @@ export const useCaptionStore = defineStore('captions', () => {
     }
   }
 
-  function addCue(startTime: number, duration: number = 5) {
-    console.log('Adding new cue at', startTime, 'with duration', duration)
-    const newCue: TranscriptSegment = {
+  function addSegment(startTime: number, duration: number = 5) {
+    console.log('Adding new segment at', startTime, 'with duration', duration)
+    const newSegment: TranscriptSegment = {
       id: uuidv4(),
       startTime,
       endTime: startTime + duration,
@@ -222,13 +222,13 @@ export const useCaptionStore = defineStore('captions', () => {
       timestamp: getCurrentTimestamp()
     }
 
-    document.value = addCueToDoc(document.value, newCue)
+    document.value = addSegmentToDoc(document.value, newSegment)
     isDirty.value = true
-    return newCue.id
+    return newSegment.id
   }
 
-  function updateCue(cueId: string, updates: Partial<Omit<TranscriptSegment, 'id'>>) {
-    console.log('Updating segment:', cueId, updates)
+  function updateSegment(segmentId: string, updates: Partial<Omit<TranscriptSegment, 'id'>>) {
+    console.log('Updating segment:', segmentId, updates)
 
     // Validate timestamps if provided
     if (updates.startTime !== undefined && updates.endTime !== undefined) {
@@ -236,27 +236,27 @@ export const useCaptionStore = defineStore('captions', () => {
         throw new Error('End time must be greater than start time')
       }
     } else if (updates.startTime !== undefined) {
-      const segment = document.value.segments.find(c => c.id === cueId)
+      const segment = document.value.segments.find(c => c.id === segmentId)
       if (segment && updates.startTime >= segment.endTime) {
         throw new Error('Start time must be less than end time')
       }
     } else if (updates.endTime !== undefined) {
-      const segment = document.value.segments.find(c => c.id === cueId)
+      const segment = document.value.segments.find(c => c.id === segmentId)
       if (segment && updates.endTime <= segment.startTime) {
         throw new Error('End time must be greater than start time')
       }
     }
 
-    document.value = updateCueInDoc(document.value, cueId, updates)
+    document.value = updateSegmentInDoc(document.value, segmentId, updates)
     isDirty.value = true
   }
 
-  function deleteCue(cueId: string) {
-    console.log('Deleting segment:', cueId)
-    document.value = deleteCueFromDoc(document.value, cueId)
+  function deleteSegment(segmentId: string) {
+    console.log('Deleting segment:', segmentId)
+    document.value = deleteSegmentFromDoc(document.value, segmentId)
     isDirty.value = true
-    if (selectedCueId.value === cueId) {
-      selectedCueId.value = null
+    if (selectedSegmentId.value === segmentId) {
+      selectedSegmentId.value = null
     }
   }
 
@@ -266,34 +266,34 @@ export const useCaptionStore = defineStore('captions', () => {
     isDirty.value = true
   }
 
-  function bulkSetSpeaker(cueIds: string[], speakerName: string) {
-    console.log('Bulk setting speaker for', cueIds.length, 'cues to:', speakerName)
+  function bulkSetSpeaker(segmentIds: string[], speakerName: string) {
+    console.log('Bulk setting speaker for', segmentIds.length, 'segments to:', speakerName)
 
-    // Update each cue with the new speaker name
+    // Update each segment with the new speaker name
     let updatedDoc = document.value
-    for (const cueId of cueIds) {
-      updatedDoc = updateCueInDoc(updatedDoc, cueId, { speakerName })
+    for (const segmentId of segmentIds) {
+      updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { speakerName })
     }
 
     document.value = updatedDoc
     isDirty.value = true
   }
 
-  function bulkDeleteCues(cueIds: string[]) {
-    console.log('Bulk deleting', cueIds.length, 'cues')
+  function bulkDeleteSegments(segmentIds: string[]) {
+    console.log('Bulk deleting', segmentIds.length, 'segments')
 
-    // Delete each cue
+    // Delete each segment
     let updatedDoc = document.value
-    for (const cueId of cueIds) {
-      updatedDoc = deleteCueFromDoc(updatedDoc, cueId)
+    for (const segmentId of segmentIds) {
+      updatedDoc = deleteSegmentFromDoc(updatedDoc, segmentId)
     }
 
     document.value = updatedDoc
     isDirty.value = true
 
-    // Clear selectedCueId if it was deleted
-    if (selectedCueId.value && cueIds.includes(selectedCueId.value)) {
-      selectedCueId.value = null
+    // Clear selectedSegmentId if it was deleted
+    if (selectedSegmentId.value && segmentIds.includes(selectedSegmentId.value)) {
+      selectedSegmentId.value = null
     }
   }
 
@@ -312,10 +312,10 @@ export const useCaptionStore = defineStore('captions', () => {
   function setCurrentTime(time: number) {
     currentTime.value = time
 
-    // Auto-select current cue
-    const cue = currentCue.value
-    if (cue) {
-      selectedCueId.value = cue.id
+    // Auto-select current segment
+    const segment = currentSegment.value
+    if (segment) {
+      selectedSegmentId.value = segment.id
     }
   }
 
@@ -323,8 +323,8 @@ export const useCaptionStore = defineStore('captions', () => {
     isPlaying.value = playing
   }
 
-  function selectCue(cueId: string | null) {
-    selectedCueId.value = cueId
+  function selectSegment(segmentId: string | null) {
+    selectedSegmentId.value = segmentId
   }
 
   /**
@@ -345,7 +345,7 @@ export const useCaptionStore = defineStore('captions', () => {
       console.log('Playing first segment in playlist:', segment.id)
       setCurrentTime(segment.startTime)
       setPlaying(true)
-      selectCue(segment.id)
+      selectSegment(segment.id)
     }
   }
 
@@ -363,7 +363,7 @@ export const useCaptionStore = defineStore('captions', () => {
       if (firstSegment) {
         console.log('Returning to start of playlist:', firstSegmentId)
         setCurrentTime(firstSegment.startTime)
-        selectCue(firstSegmentId)
+        selectSegment(firstSegmentId)
       }
     }
 
@@ -396,7 +396,7 @@ export const useCaptionStore = defineStore('captions', () => {
     if (segment) {
       console.log('Playing next segment:', segment.id)
       setCurrentTime(segment.startTime)
-      selectCue(segment.id)
+      selectSegment(segment.id)
       return true
     }
 
@@ -473,7 +473,7 @@ export const useCaptionStore = defineStore('captions', () => {
     mediaFilePath,
     currentTime,
     isPlaying,
-    selectedCueId,
+    selectedSegmentId,
     playbackMode,
     playlist,
     playlistIndex,
@@ -481,7 +481,7 @@ export const useCaptionStore = defineStore('captions', () => {
     isDirty,
 
     // Computed
-    currentCue,
+    currentSegment,
     currentPlaylistSegment,
 
     // Actions
@@ -491,17 +491,17 @@ export const useCaptionStore = defineStore('captions', () => {
     updateFilePath,
     setIsDirty,
     processFilePaths,
-    addCue,
-    updateCue,
-    deleteCue,
+    addSegment,
+    updateSegment,
+    deleteSegment,
     renameSpeaker,
     bulkSetSpeaker,
-    bulkDeleteCues,
+    bulkDeleteSegments,
     splitSegmentAtWordIndex,
     mergeAdjacentSegments,
     setCurrentTime,
     setPlaying,
-    selectCue,
+    selectSegment,
     startPlaylistPlayback,
     stopPlaylistPlayback,
     nextPlaylistSegment,
@@ -511,7 +511,7 @@ export const useCaptionStore = defineStore('captions', () => {
       mediaPath.value = null
       currentTime.value = 0
       isPlaying.value = false
-      selectedCueId.value = null
+      selectedSegmentId.value = null
       playbackMode.value = PlaybackMode.STOPPED
       playlist.value = []
       playlistIndex.value = 0

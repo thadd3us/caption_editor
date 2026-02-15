@@ -19,8 +19,8 @@ import typer
 from tqdm import tqdm
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
-from asr_results_to_vtt import (
-    asr_segments_to_vtt_cues,
+from asr_results_to_captions import (
+    asr_segments_to_transcript_segments,
     group_segments_by_gap,
     parse_nemo_result_with_words,
     parse_transformers_result_with_words,
@@ -122,7 +122,7 @@ def generate_cue_id(
 
     Args:
         audio_hash: Hash of the audio file
-        start_time: Start time of the cue
+        start_time: Start time of the segment
         deterministic_index: If provided, generates simple incremental ID like 'id_00000'
     """
     if deterministic_index is not None:
@@ -386,7 +386,7 @@ def main(
 
         # Convert ASRSegments to TranscriptSegments
         typer.echo("Converting segments to transcript segments...")
-        final_segments_list = asr_segments_to_vtt_cues(final_segments)
+        final_segments_list = asr_segments_to_transcript_segments(final_segments)
 
         # Assign IDs and timestamps to segments
         typer.echo("Assigning IDs and timestamps...")

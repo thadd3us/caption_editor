@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from syrupy.extensions.amber import AmberSnapshotExtension
 
-from asr_results_to_vtt import (
+from asr_results_to_captions import (
     parse_parakeet_raw_chunk,
     parse_whisper_raw_chunk,
     post_process_asr_segments,
@@ -69,18 +69,18 @@ def load_and_parse_fixture(
     return all_segments
 
 
-def format_result(cues: list) -> dict:
+def format_result(segments: list) -> dict:
     """Format resulting caption segments for snapshot comparison."""
     return {
-        "num_cues": len(cues),
-        "cues": [
+        "num_segments": len(segments),
+        "segments": [
             {
-                "start_time": cue.start_time,
-                "end_time": cue.end_time,
-                "duration": cue.end_time - cue.start_time,
-                "text": cue.text,
+                "start_time": segment.start_time,
+                "end_time": segment.end_time,
+                "duration": segment.end_time - segment.start_time,
+                "text": segment.text,
             }
-            for cue in cues
+            for segment in segments
         ],
     }
 
@@ -124,7 +124,7 @@ def test_asr_post_processing_pipeline(model: str, chunk_size: int, snapshot):
     )
 
     # Run production post-processing pipeline (same as transcribe_cli.py)
-    cues = post_process_asr_segments(
+    processed_segments = post_process_asr_segments(
         segments=segments,
         chunk_size=float(chunk_size),
         overlap=5.0,
@@ -136,4 +136,4 @@ def test_asr_post_processing_pipeline(model: str, chunk_size: int, snapshot):
     )
 
     # Compare with snapshot
-    assert format_result(cues) == snapshot
+    assert format_result(processed_segments) == snapshot
