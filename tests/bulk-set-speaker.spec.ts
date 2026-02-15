@@ -187,13 +187,12 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
     await expect(dialog).not.toBeVisible()
   })
 
-  test.skip('should bulk-update speaker when editing inline with multiple rows selected', async () => {
-    // SKIPPED: AG Grid v35 clears multi-row selection when double-clicking to edit a cell,
-    // even with enableClickSelection: false. The bulk edit feature works if selection is
-    // maintained, but we cannot automate this test reliably via UI interactions.
+  test('should bulk-update speaker when editing inline with multiple rows selected', async () => {
+    // NOTE: AG Grid v35 clears multi-row selection when double-clicking to edit.
+    // To keep selection intact, we use the grid API to enter edit mode.
     // Load captions JSON with multiple segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
+      const store = (window as any).$store
       const captionsContent = JSON.stringify({
         metadata: { id: 'inline-bulk-edit-doc' },
         segments: [
@@ -202,7 +201,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
           { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Speaker3' }
         ]
       }, null, 2)
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     // Wait for rows
@@ -223,21 +222,33 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
       return gridApi?.getSelectedNodes().map((n: any) => n.data?.id)
     })
     console.log('Selected before edit:', selectedBefore)
+    expect(selectedBefore).toEqual(['seg1', 'seg2'])
 
-    // Double-click speaker cell of seg1 to edit
-    await window.locator('.ag-center-cols-container .ag-row[row-id="seg1"] .ag-cell[col-id="speakerName"]').dblclick()
+    // Enter edit mode via API (avoids losing multi-select)
+    await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi) throw new Error('Grid API not available')
+      gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
+    })
 
-    // Verify selection is still intact after double-click
+    // Verify selection is still intact after entering edit mode
     const selectedDuringEdit = await window.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       return gridApi?.getSelectedNodes().map((n: any) => n.data?.id)
     })
     console.log('Selected during edit:', selectedDuringEdit)
+    expect(selectedDuringEdit).toEqual(['seg1', 'seg2'])
 
     // Type new name and commit
     const editorInput = window.locator('.speaker-name-editor')
     await editorInput.waitFor({ state: 'visible', timeout: 2000 })
-    await editorInput.fill('BulkSpeaker')
+    // Avoid Playwright+Electron input flake: set value via JS and dispatch input.
+    await window.evaluate(() => {
+      const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
+      if (!input) throw new Error('speaker-name-editor input not found')
+      input.value = 'BulkSpeaker'
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
     await editorInput.press('Enter')
     await window.waitForTimeout(100)
 

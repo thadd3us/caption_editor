@@ -864,6 +864,8 @@ html, body, #app {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: var(--app-bg);
+  color: var(--text-1);
 }
 
 .main-content {
@@ -879,25 +881,25 @@ html, body, #app {
 .left-panel {
   height: 100%;
   overflow: visible;
-  background: #f5f5f5;
+  background: var(--surface-1);
   display: flex;
   flex-direction: column;
 }
 
 .resizer {
   width: 4px;
-  background: #ddd;
+  background: var(--border-1);
   cursor: col-resize;
   flex-shrink: 0;
 }
 
 .resizer:hover {
-  background: #999;
+  background: var(--border-2);
 }
 
 .right-panel {
   height: 100%;
   overflow: auto;
-  background: #fff;
+  background: var(--surface-2);
 }
 </style>

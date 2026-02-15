@@ -3,7 +3,7 @@
  */
 
 // App Information
-export const APP_VERSION = '1.3.16'
+export const APP_VERSION = '1.3.17'
 
 // AI Transcription (uvx / transcribe)
 export const UV_VERSION = '0.7.12'

@@ -5,10 +5,36 @@ import App from './App.vue'
 import './style.css'
 import { useCaptionStore } from './stores/captionStore'
 
+function applyThemeMode(mode: 'light' | 'dark') {
+  document.documentElement.dataset.theme = mode
+
+  // AG Grid v33+ theme modes (works with built-in themes using colorSchemeVariable).
+  // See: https://ag-grid.com/javascript-data-grid/theming-colors/#theme-modes
+  document.documentElement.setAttribute('data-ag-theme-mode', mode)
+}
+
+function setupSystemThemeSync() {
+  // Default to light if matchMedia is unavailable (e.g. some test DOMs).
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    applyThemeMode('light')
+    return
+  }
+
+  const mq = window.matchMedia('(prefers-color-scheme: dark)')
+  applyThemeMode(mq.matches ? 'dark' : 'light')
+
+  mq.addEventListener('change', (e) => {
+    applyThemeMode(e.matches ? 'dark' : 'light')
+  })
+}
+
 // Register AG Grid modules (required for v35+)
 ModuleRegistry.registerModules([AllCommunityModule])
 
 console.log('Caption Editor starting...')
+
+// Sync UI theme with macOS/system theme before mounting.
+setupSystemThemeSync()
 
 const app = createApp(App)
 const pinia = createPinia()

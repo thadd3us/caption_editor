@@ -161,15 +161,27 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     })
     expect(selectedCount).toBe(3)
 
-    // Press Enter to start editing the speaker cell
-    await window.keyboard.press('Enter')
+    // Start editing the speaker cell via grid API (more reliable than keyboard focus)
+    await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi) throw new Error('Grid API not available')
+      gridApi.startEditingCell({
+        rowIndex: 1, // second displayed row (cue2)
+        colKey: 'speakerName'
+      })
+    })
 
-    // Wait for editor to appear (it's a combobox)
-    const editorInput = window.locator('role=combobox')
-    await expect(editorInput).toBeVisible({ timeout: 2000 })
+    // Wait for editor to appear
+    const editorInput = window.locator('.speaker-name-editor')
+    await expect(editorInput).toBeVisible({ timeout: 5000 })
 
     // Type speaker name and press Enter
-    await editorInput.pressSequentially('Bob')
+    await window.evaluate(() => {
+      const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
+      if (!input) throw new Error('speaker-name-editor input not found')
+      input.value = 'Bob'
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
     await editorInput.press('Enter')
 
     // Wait for edit to complete

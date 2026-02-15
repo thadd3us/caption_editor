@@ -85,6 +85,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isElectron: true,
 
   /**
+   * Check if running under Playwright/E2E test environment.
+   * Used to disable problematic browser features in tests (e.g. datalist in Electron).
+   */
+  isTest: process.env.NODE_ENV === 'test',
+
+  /**
    * Listen for files opened from the OS (double-click, right-click > Open With)
    */
   onFileOpen: (callback: (filePath: string) => void) => {

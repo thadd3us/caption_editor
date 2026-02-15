@@ -84,11 +84,11 @@ function handleSetSpeaker() {
 
 <style scoped>
 .info-box {
-  background: #2a3e4a;
-  border-left: 4px solid #3498db;
+  background: var(--info-bg);
+  border-left: 4px solid var(--info-border);
   padding: 12px 16px;
   border-radius: 4px;
-  color: #b3e5fc;
+  color: var(--info-text);
   font-size: 14px;
   margin-bottom: 20px;
 }
@@ -101,7 +101,7 @@ label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #bbb;
+  color: var(--text-2);
   font-size: 14px;
 }
 

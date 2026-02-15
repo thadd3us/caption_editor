@@ -61,8 +61,8 @@ function handleItemClick(item: ContextMenuItem) {
 
 .context-menu {
   position: fixed;
-  background: white;
-  border: 1px solid #ccc;
+  background: var(--surface-popover);
+  border: 1px solid var(--border-1);
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   min-width: 180px;
@@ -74,16 +74,16 @@ function handleItemClick(item: ContextMenuItem) {
   padding: 8px 16px;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: var(--text-1);
   user-select: none;
 }
 
 .context-menu-item:hover:not(.disabled) {
-  background: #f0f0f0;
+  background: var(--surface-hover);
 }
 
 .context-menu-item.disabled {
-  color: #999;
+  color: var(--text-3);
   cursor: not-allowed;
 }
 </style>

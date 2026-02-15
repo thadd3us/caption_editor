@@ -6,13 +6,29 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
   test.beforeEach(async ({ page }) => {
     window = page
+    // Ensure grid is mounted before asserting UI reactions.
+    await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
+
+  async function getDisplayedRowData(): Promise<any[]> {
+    return await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi?.getDisplayedRowCount) return []
+      const rows: any[] = []
+      const n = gridApi.getDisplayedRowCount()
+      for (let i = 0; i < n; i++) {
+        const row = gridApi.getDisplayedRowAtIndex(i)
+        if (row?.data) rows.push(row.data)
+      }
+      return rows
+    })
+  }
 
   test('should merge two adjacent segments', async () => {
     // Load captions JSON with two adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
@@ -22,7 +38,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -30,18 +46,21 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
       return store?.document?.segments?.length === 2
     })
 
-    // Verify we have 2 segments initially
-    const initialSegments = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore.document.segments
+    // Verify UI shows 2 rows initially
+    await window.waitForFunction(() => {
+      const gridApi = (window as any).__agGridApi
+      return gridApi?.getDisplayedRowCount?.() === 2
     })
-    expect(initialSegments).toHaveLength(2)
+    const beforeRows = await getDisplayedRowData()
+    expect(beforeRows).toHaveLength(2)
+    expect(beforeRows[0].text).toBe('Hello')
+    expect(beforeRows[1].text).toBe('world')
 
     // Merge the adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      const segments = vttStore.document.segments
-      vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
+      const store = (window as any).$store
+      const segments = store.document.segments
+      store.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
     await window.waitForFunction(() => {
@@ -49,24 +68,32 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
       return store?.document?.segments?.length === 1
     })
 
-    // Verify we have 1 merged segment
-    const mergedSegments = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore.document.segments
+    // Verify UI reacts (grid rows + caption display)
+    await window.waitForFunction(() => {
+      const gridApi = (window as any).__agGridApi
+      return gridApi?.getDisplayedRowCount?.() === 1
     })
+    const mergedSegments = await getDisplayedRowData()
 
     expect(mergedSegments).toHaveLength(1)
     expect(mergedSegments[0].text).toBe('Hello world')
     expect(mergedSegments[0].startTime).toBe(0)
     expect(mergedSegments[0].endTime).toBe(10)
     expect(mergedSegments[0].rating).toBe(5) // highest rating
+
+    // Ensure MediaPlayer renders the merged caption at an in-range time.
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      store.setCurrentTime(1.0)
+    })
+    await expect(window.locator('.caption-text')).toContainText('Hello world')
   })
 
   test('should merge three adjacent segments', async () => {
     // Load captions JSON with three adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
@@ -77,7 +104,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -87,9 +114,9 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
     // Merge all three adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      const segments = vttStore.document.segments
-      vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id, segments[2].id])
+      const store = (window as any).$store
+      const segments = store.document.segments
+      store.mergeAdjacentSegments([segments[0].id, segments[1].id, segments[2].id])
     })
 
     await window.waitForFunction(() => {
@@ -97,16 +124,22 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
       return store?.document?.segments?.length === 1
     })
 
-    // Verify we have 1 merged segment
-    const mergedSegments = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore.document.segments
+    await window.waitForFunction(() => {
+      const gridApi = (window as any).__agGridApi
+      return gridApi?.getDisplayedRowCount?.() === 1
     })
+    const mergedSegments = await getDisplayedRowData()
 
     expect(mergedSegments).toHaveLength(1)
     expect(mergedSegments[0].text).toBe('One Two Three')
     expect(mergedSegments[0].startTime).toBe(0)
     expect(mergedSegments[0].endTime).toBe(15)
+
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      store.setCurrentTime(6.0)
+    })
+    await expect(window.locator('.caption-text')).toContainText('One Two Three')
   })
 
   test('should not merge non-adjacent segments', async () => {

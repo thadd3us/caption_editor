@@ -69,7 +69,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -78,43 +78,43 @@ onUnmounted(() => {
 }
 
 .base-modal {
-  background: #2d2d2d;
+  background: var(--surface-popover);
   border-radius: 12px;
   width: 90%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border: 1px solid #444;
+  border: 1px solid var(--border-1);
   overflow: hidden;
 }
 
 .base-modal-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--border-1);
 }
 
 .base-modal-header h2 {
   margin: 0;
-  color: #fff;
+  color: var(--text-1);
   font-size: 18px;
   font-weight: 600;
 }
 
 .base-modal-content {
   padding: 24px;
-  color: #ddd;
+  color: var(--text-1);
   line-height: 1.5;
   overflow-y: auto;
 }
 
 .base-modal-footer {
   padding: 16px 24px;
-  border-top: 1px solid #444;
+  border-top: 1px solid var(--border-1);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  background: #252525;
+  background: var(--surface-1);
 }
 
 /* Transitions */

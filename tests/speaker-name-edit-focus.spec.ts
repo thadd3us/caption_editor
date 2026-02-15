@@ -267,21 +267,61 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     expect(inputValue).toBe('Bob')
   })
 
-  test.skip('should commit speaker name when selecting from autocomplete', async () => {
-    // SKIPPED: This test cannot run reliably due to a severe Playwright+Electron bug
-    // with datalist elements. The bug causes Electron to crash when:
-    // - Input has a datalist attribute
-    // - The datalist contains options (speaker names)
-    // - The input is interacted with (via .fill(), .type(), or even JavaScript value setting)
-    // - Even showing the window doesn't prevent the crash in all cases
-    //
-    // See: https://github.com/microsoft/playwright/issues/38854
-    //
-    // The autocomplete functionality is tested indirectly by other tests that verify:
-    // - Speaker names can be edited and saved
-    // - The datalist component renders correctly (tested manually)
-    // - The SpeakerNameCellEditor component works in isolation
-    //
-    // Manual testing confirms the autocomplete works correctly in the actual app.
+  test('should commit speaker name when selecting from autocomplete', async () => {
+    // NOTE: Playwright+Electron has a known crash bug with <datalist> (see playwright#38854).
+    // In E2E tests, the app disables datalist rendering, but we can still validate the
+    // "choose an existing speaker name and commit" behavior by setting the value and pressing Enter.
+
+    // Load captions JSON with multiple existing speaker names.
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return
+
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'speaker-autocomplete-1' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Bob' },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Alice' }
+        ]
+      }, null, 2)
+
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
+    })
+
+    const captionCount = window.locator('h2', { hasText: 'Captions' })
+    await expect(captionCount).toContainText('3', { timeout: 2000 })
+
+    // Start editing the speaker cell for the first row.
+    await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi) throw new Error('Grid API not available')
+      gridApi.startEditingCell({
+        rowIndex: 0,
+        colKey: 'speakerName'
+      })
+    })
+
+    const input = window.locator('.speaker-name-editor')
+    await expect(input).toBeVisible()
+    await expect(input).toBeFocused({ timeout: 5000 })
+
+    // Simulate "selecting from autocomplete" by setting the value to an existing name.
+    await window.evaluate(() => {
+      const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
+      if (!input) throw new Error('speaker-name-editor input not found')
+      input.value = 'Bob'
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await input.press('Enter')
+    await window.waitForTimeout(200)
+
+    // Verify store updated.
+    const speakerName = await window.evaluate(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.[0]?.speakerName
+    })
+    expect(speakerName).toBe('Bob')
   })
 })
