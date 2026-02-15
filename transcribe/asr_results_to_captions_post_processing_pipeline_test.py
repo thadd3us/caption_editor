@@ -70,7 +70,7 @@ def load_and_parse_fixture(
 
 
 def format_result(cues: list) -> dict:
-    """Format cues for snapshot comparison."""
+    """Format resulting caption segments for snapshot comparison."""
     return {
         "num_cues": len(cues),
         "cues": [
@@ -123,7 +123,7 @@ def test_asr_post_processing_pipeline(model: str, chunk_size: int, snapshot):
         overlap=5.0,  # Standard 5s overlap
     )
 
-    # Run production post-processing pipeline (same as transcribe.py)
+    # Run production post-processing pipeline (same as transcribe_cli.py)
     cues = post_process_asr_segments(
         segments=segments,
         chunk_size=float(chunk_size),

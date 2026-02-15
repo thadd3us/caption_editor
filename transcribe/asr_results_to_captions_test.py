@@ -1,4 +1,4 @@
-"""Tests for ASR result processing and segment splitting."""
+"""Tests for ASR result processing and caption-segment splitting."""
 
 from asr_results_to_vtt import (
     ASRSegment,
@@ -296,7 +296,7 @@ def test_combined_splitting_pipeline():
 
 
 def test_asr_segments_to_vtt_cues():
-    """Test conversion from ASRSegment to VTTCue."""
+    """Test conversion from ASRSegment to caption segments (TranscriptSegment)."""
     segments = [
         ASRSegment(
             text="The birch canoe slid",
@@ -343,7 +343,10 @@ def test_asr_segments_to_vtt_cues_empty_text():
             text="Valid text",
             start=0.0,
             end=1.0,
-            words=[WordTimestamp("Valid", 0.0, 0.5), WordTimestamp("text", 0.5, 1.0)],
+            words=[
+                WordTimestamp("Valid", 0.0, 0.5),
+                WordTimestamp("text", 0.5, 1.0),
+            ],
         ),
         ASRSegment(
             text="   ",  # Whitespace only

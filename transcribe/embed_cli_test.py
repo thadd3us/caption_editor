@@ -4,10 +4,11 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from typer.testing import CliRunner
 from repo_root import REPO_ROOT
-from vtt_lib import parse_vtt_file
+from captions_json_lib import parse_captions_json_file
 from embed_cli import app
 
 import numpy as np
@@ -17,7 +18,6 @@ from audio_utils import extract_audio_to_wav
 
 # Path to test files
 TEST_AUDIO = REPO_ROOT / "test_data" / "OSR_us_000_0010_8k.wav"
-TEST_VTT = REPO_ROOT / "test_data" / "OSR_us_000_0010_8k.vtt"
 
 
 def test_convert_to_wav():
@@ -83,56 +83,74 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
 
     Note: Uses default wespeaker model which doesn't require HF_TOKEN.
     """
-    assert TEST_VTT.exists(), f"Test VTT file not found: {TEST_VTT}"
     assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
-    # Copy VTT and audio to temp directory
-    test_vtt = tmp_path / "test.vtt"
+    # Create captions json + copy audio to temp directory.
+    test_captions = tmp_path / "test.captions.json"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
 
-    test_vtt.write_text(TEST_VTT.read_text())
     test_audio.write_bytes(TEST_AUDIO.read_bytes())
 
-    # # Pass HF_TOKEN if available (not needed for default model)
-    # env = dict(os.environ)
-    # if "HF_TOKEN" in os.environ:
-    #     env["HF_TOKEN"] = os.environ["HF_TOKEN"]
-
-    result = CliRunner().invoke(
-        app,
-        [
-            str(test_vtt),
-        ],
-    )
-    assert result.exit_code == 0
-    # Parse the updated VTT file to extract embeddings
-    metadata, segments = parse_vtt_file(test_vtt)
-
-    # Read the VTT file to extract embeddings from NOTE comments
-    vtt_content = test_vtt.read_text()
-
-    embeddings = []
-    for line in vtt_content.split("\n"):
-        if "SegmentSpeakerEmbedding" in line:
-            # Extract JSON from the NOTE comment
-            import re
-
-            match = re.search(r"SegmentSpeakerEmbedding (.+)$", line)
-            if match:
-                embedding_data = json.loads(match.group(1))
-                # Use camelCase field name as it appears in the JSON
-                embedding_array = np.array(embedding_data["speakerEmbedding"])
-                # Round to 2 decimal places for snapshot stability across environments
-                rounded = np.round(embedding_array, 2).tolist()
-                embeddings.append(
+    # Minimal input document for embedding.
+    # Keep ids/timestamps deterministic for snapshot stability.
+    test_captions.write_text(
+        json.dumps(
+            {
+                "metadata": {
+                    "id": "doc_id",
+                    "mediaFilePath": "OSR_us_000_0010_8k.wav",
+                },
+                "segments": [
                     {
-                        "segment_id": embedding_data["segmentId"],
-                        "embedding": rounded[
-                            :10
-                        ],  # First 10 values for compact snapshot
-                        "shape": len(embedding_array),
-                    }
-                )
+                        "id": "id_00000",
+                        "startTime": 0.0,
+                        "endTime": 1.2,
+                        "text": "The birch canoe slid.",
+                        "timestamp": "2025-01-01T00:00:00.000000+00:00",
+                    },
+                    {
+                        "id": "id_00001",
+                        "startTime": 1.4,
+                        "endTime": 2.6,
+                        "text": "Glue the sheet.",
+                        "timestamp": "2025-01-01T00:00:00.000000+00:00",
+                    },
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
+
+    # Mock embedding model so tests don't download weights and outputs are stable.
+    with (
+        patch("embed_cli.Model.from_pretrained") as mock_model,
+        patch("embed_cli.Inference") as mock_inference,
+    ):
+        del mock_model
+        dummy_embedding = [0.1] * 192
+        mock_inference.return_value.side_effect = lambda x: dummy_embedding
+
+        result = CliRunner().invoke(
+            app,
+            [
+                str(test_captions),
+                *("--min-segment-duration", "0.0"),
+            ],
+        )
+    assert result.exit_code == 0
+    doc = parse_captions_json_file(test_captions)
+    assert doc.embeddings is not None
+
+    embeddings = [
+        {
+            "segment_id": e.segment_id,
+            "embedding": np.round(np.array(e.speaker_embedding), 2).tolist()[:10],
+            "shape": len(e.speaker_embedding),
+        }
+        for e in doc.embeddings
+    ]
 
     # Sort by segment_id for consistent comparison
     embeddings.sort(key=lambda x: x["segment_id"])

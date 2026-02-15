@@ -19,7 +19,6 @@ dependencies = [
     "torchaudio>=2.9.0",
     "transformers>=4.53.0,<4.54",
     "typer>=0.20.0",
-    "webvtt-py>=0.5.1",
     # Diarization dependencies
     "pyannote-audio>=4.0.0",
     "torchvision>=0.15.0",
@@ -38,6 +37,7 @@ embed_cli = "embed_cli:app"
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
 ]
 
 [tool.uv]
@@ -63,7 +63,12 @@ py-modules = [
     "asr_results_to_vtt",
     "capture_raw_asr_output",
     "schema",
-    "vtt_lib",
+]
+
+[tool.coverage.run]
+omit = [
+    "capture_raw_asr_output.py",
+    "__snapshots__/*",
 ]
 
 [tool.setuptools.packages.find]
