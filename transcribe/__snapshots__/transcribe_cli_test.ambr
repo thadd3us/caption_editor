@@ -12,6 +12,7 @@
         'startTime': 0.24,
         'text': 'The birch canoe slid on the smooth planks.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 0.56,
@@ -61,6 +62,7 @@
         'startTime': 4.0,
         'text': 'Glue the sheet to the dark blue background.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 4.56,
@@ -110,6 +112,7 @@
         'startTime': 7.44,
         'text': 'It is easy to tell the depth of a well.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 7.76,
@@ -169,6 +172,7 @@
         'startTime': 10.48,
         'text': 'These days a chicken leg is a rare dish.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 10.88,
@@ -223,6 +227,7 @@
         'startTime': 14.0,
         'text': 'Rice is often served in round bowls.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 14.48,
@@ -267,6 +272,7 @@
         'startTime': 17.0,
         'text': 'The juice of lemons makes fine punch.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 17.32,
@@ -311,6 +317,7 @@
         'startTime': 20.24,
         'text': 'The box was thrown beside the parked truck.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 20.48,
@@ -360,6 +367,7 @@
         'startTime': 23.44,
         'text': 'The hogs were fed chopped corn and garbage.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 23.68,
@@ -409,6 +417,7 @@
         'startTime': 26.8,
         'text': 'Four hours of steady work faced us.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 27.2,
@@ -453,6 +462,7 @@
         'startTime': 29.8,
         'text': 'A large size in stockings is hard to sell.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 30.04,
@@ -518,6 +528,7 @@
         'startTime': 0.0,
         'text': 'The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 0.68,
@@ -587,6 +598,7 @@
         'startTime': 5.44,
         'text': 'dark  blue',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 5.62,
@@ -606,6 +618,7 @@
         'startTime': 7.94,
         'text': 'It  It  is  easy',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 8.04,
@@ -635,6 +648,7 @@
         'startTime': 8.6,
         'text': 'tell  the',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 8.72,
@@ -654,6 +668,7 @@
         'startTime': 9.48,
         'text': 'a  well.  These',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 9.54,
@@ -678,6 +693,7 @@
         'startTime': 11.44,
         'text': 'a  chicken  leg  is  a  rare',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 11.62,
@@ -717,6 +733,7 @@
         'startTime': 14.38,
         'text': 'Rice  is  often  served  in  round',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 14.54,
@@ -756,6 +773,7 @@
         'startTime': 17.54,
         'text': 'The  juice',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 17.54,
@@ -775,6 +793,7 @@
         'startTime': 18.6,
         'text': 'fine  punch.  The  box  was  thrown',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 19.0,
@@ -814,6 +833,7 @@
         'startTime': 21.72,
         'text': 'the  chuck.  The',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 22.08,
@@ -838,6 +858,7 @@
         'startTime': 24.34,
         'text': 'were  fed  chopped  corn  in  garbage.  Four',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 24.44,
@@ -882,6 +903,7 @@
         'startTime': 27.7,
         'text': 'of  steady  work',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 27.88,
@@ -906,6 +928,7 @@
         'startTime': 28.62,
         'text': 'us.  A  large  size  in  stockings  is  hard  to',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
         'words': list([
           dict({
             'endTime': 30.24,

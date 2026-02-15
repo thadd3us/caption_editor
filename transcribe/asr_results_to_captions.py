@@ -494,7 +494,7 @@ def asr_segments_to_transcript_segments(
                 speakerName=None,
                 rating=None,
                 timestamp=None,
-                verified=None,
+                verified=False,
                 asrModel=None,
             )
         )
