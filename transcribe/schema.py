@@ -69,6 +69,14 @@ class TranscriptSegment(BaseModel):
         None,
         description="ISO 8601 timestamp of when the segment was created/last modified",
     )
+    verified: Optional[bool] = Field(
+        None, description="Whether a human has reviewed/checked off this segment"
+    )
+    asr_model: Optional[str] = Field(
+        None,
+        description="Name of the ASR model that generated this segment",
+        alias="asrModel",
+    )
 
 
 # Legacy alias for backwards compatibility during migration
@@ -127,6 +135,7 @@ class CaptionsDocument(BaseModel):
     metadata: TranscriptMetadata = Field(
         description="Document metadata (id, media file path)"
     )
+    title: Optional[str] = Field(None, description="Optional document title")
     segments: list[TranscriptSegment] = Field(description="Transcript segments")
     history: Optional[list[SegmentHistoryEntry]] = Field(
         None, description="Historical record of segment changes"

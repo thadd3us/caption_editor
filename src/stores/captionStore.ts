@@ -203,6 +203,15 @@ export const useCaptionStore = defineStore('captions', () => {
     return serializeCaptionsJSON(documentToExport)
   }
 
+  function updateTitle(title: string) {
+    console.log('Updating document title:', title)
+    document.value = {
+      ...document.value,
+      title: title || undefined
+    }
+    isDirty.value = true
+  }
+
   function updateFilePath(filePath: string) {
     console.log('Updating file path:', filePath)
     document.value = {
@@ -275,6 +284,16 @@ export const useCaptionStore = defineStore('captions', () => {
       updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { speakerName })
     }
 
+    document.value = updatedDoc
+    isDirty.value = true
+  }
+
+  function bulkSetVerified(segmentIds: string[], verified: boolean) {
+    console.log('Bulk setting verified for', segmentIds.length, 'segments to:', verified)
+    let updatedDoc = document.value
+    for (const segmentId of segmentIds) {
+      updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { verified: verified || undefined })
+    }
     document.value = updatedDoc
     isDirty.value = true
   }
@@ -488,6 +507,7 @@ export const useCaptionStore = defineStore('captions', () => {
     loadFromFile,
     loadMediaFile,
     exportToString,
+    updateTitle,
     updateFilePath,
     setIsDirty,
     processFilePaths,
@@ -496,6 +516,7 @@ export const useCaptionStore = defineStore('captions', () => {
     deleteSegment,
     renameSpeaker,
     bulkSetSpeaker,
+    bulkSetVerified,
     bulkDeleteSegments,
     splitSegmentAtWordIndex,
     mergeAdjacentSegments,

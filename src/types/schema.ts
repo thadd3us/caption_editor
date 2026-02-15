@@ -42,6 +42,8 @@ export interface TranscriptSegment {
   readonly speakerName?: string // Optional speaker name
   readonly rating?: number // Optional rating 1-5
   readonly timestamp?: string // ISO 8601 timestamp of when the segment was created/last modified
+  readonly verified?: boolean // Whether a human has reviewed/checked off this segment
+  readonly asrModel?: string // Name of the ASR model that generated this segment (e.g. 'nvidia/parakeet-tdt-0.6b-v3')
 }
 
 /**
@@ -60,6 +62,7 @@ export interface TranscriptMetadata {
  */
 export interface CaptionsDocument {
   readonly metadata: TranscriptMetadata // Document metadata (id, media file path)
+  readonly title?: string // Optional document title
   readonly segments: readonly TranscriptSegment[]
   readonly filePath?: string // Original file path if loaded from file
   readonly history?: readonly SegmentHistoryEntry[] // Historical record of segment changes

@@ -74,6 +74,7 @@ export function parseCaptionsJSON(content: string): ParseResult {
 
     const document: CaptionsDocument = {
       metadata,
+      title: typeof obj.title === 'string' ? obj.title : undefined,
       segments: sortSegments(typedSegments),
       history: Array.isArray(obj.history) ? (obj.history as any) : undefined,
       embeddings: Array.isArray(obj.embeddings) ? (obj.embeddings as any) : undefined

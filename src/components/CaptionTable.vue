@@ -8,6 +8,16 @@
       >📁</button>
       <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
+    <div class="title-row">
+      <input
+        type="text"
+        class="document-title-input"
+        :value="store.document.title || ''"
+        @input="store.updateTitle(($event.target as HTMLInputElement).value)"
+        placeholder="Untitled document"
+      />
+      <span class="caption-count">{{ store.document.segments.length }} captions</span>
+    </div>
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
@@ -73,6 +83,7 @@ import { formatTimestampSimple } from '../utils/captionsUtils'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
 import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
+import VerifiedCheckCell from './VerifiedCheckCell.vue'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
@@ -107,6 +118,7 @@ const rowData = computed(() => {
     text: segment.text,
     speakerName: segment.speakerName,
     rating: segment.rating,
+    verified: segment.verified,
     speakerSimilarity: speakerSimilarityScores.value.get(segment.id)
   }))
 })
@@ -140,8 +152,17 @@ const columnDefs = ref<ColDef[]>([
     sortable: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
-      store.updateSegment(params.data.id, { text: params.newValue })
+      store.updateSegment(params.data.id, { text: params.newValue, verified: true })
     }
+  },
+  {
+    field: 'verified',
+    headerName: '✓',
+    width: 50,
+    cellRenderer: VerifiedCheckCell,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    filter: false,
+    sortable: true,
   },
   {
     field: 'speakerName',
@@ -769,6 +790,48 @@ onUnmounted(() => {
   flex-direction: column;
   padding: 10px;
 }
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.document-title-input {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.document-title-input:hover {
+  border-color: var(--border-1);
+  background: var(--surface-1);
+}
+
+.document-title-input:focus {
+  border-color: var(--accent-color, #4a9eff);
+  background: var(--surface-1);
+}
+
+.document-title-input::placeholder {
+  color: var(--text-3, #999);
+  font-weight: 400;
+}
+
+.caption-count {
+  font-size: 13px;
+  color: var(--text-2, #666);
+  white-space: nowrap;
+}
+
+
 
 .file-path-display {
   padding: 8px 12px;

@@ -406,6 +406,7 @@ def main(
         # (history/embeddings are optional but pass explicitly for type-checkers)
         document = CaptionsDocument(
             metadata=metadata,
+            title=None,
             segments=final_segments_list,
             history=None,
             embeddings=None,
