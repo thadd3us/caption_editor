@@ -1,80 +1,40 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Bulk Delete', () => {
-  let electronApp: ElectronApplication
+test.describe('Caption Editor - Bulk Delete', () => {
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-
+  test.beforeEach(async ({ page }) => {
+    window = page
     // Wait for AG Grid to be ready (more reliable than waiting for store)
     await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
-  test.afterEach(async () => {
-    if (electronApp) {
-      await electronApp.close().catch(() => {
-        // Ignore errors during cleanup
-      })
-    }
-  })
-
-  test('should delete multiple selected rows after confirmation', async () => {
+  test('should delete multiple selected rows after confirmation', async ({ page }) => {
+    window = page
     // Wait for store to be available
     await window.waitForFunction(() => {
       return (window as any).$store !== undefined
     }, { timeout: 5000 })
 
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return { success: false, error: 'No store on window' }
+      const store = (window as any).$store
+      if (!store) return { success: false, error: 'No store on window' }
 
-      const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message","rating":5}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message","rating":4}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message","rating":3}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue4","startTime":13,"endTime":16,"text":"Fourth message","rating":2}
-
-cue4
-00:00:13.000 --> 00:00:16.000
-Fourth message`
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'bulk-delete-doc' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
+          { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 },
+          { id: 'seg4', startTime: 13, endTime: 16, text: 'Fourth message', rating: 2 }
+        ]
+      }, null, 2)
 
       try {
-        vttStore.loadFromFile(vttContent, '/test/file.vtt')
-        return { success: true, segmentCount: vttStore.document.segments.length }
+        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
       }
@@ -89,14 +49,14 @@ Fourth message`
 
     // Select first two rows and trigger delete confirmation dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) throw new Error('Store not available')
+      const store = (window as any).$store
+      if (!store) throw new Error('Store not available')
 
-      // Get the first two cue IDs
-      const cues = vttStore.document.segments
+      // Get the first two segment IDs
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text },
-        { id: cues[1].id, text: cues[1].text }
+        { id: segments[0].id, text: segments[0].text },
+        { id: segments[1].id, text: segments[1].text }
       ]
 
         // Store selected rows for App.vue
@@ -128,44 +88,38 @@ Fourth message`
     await expect(dialog).not.toBeVisible()
 
     // Verify rows were deleted in the store
-    const remainingCues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => ({
-        id: cue.id,
-        text: cue.text
+    const remainingSegments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => ({
+        id: segment.id,
+        text: segment.text
       }))
     })
 
-    expect(remainingCues).toHaveLength(2)
-    expect(remainingCues[0].text).toBe('Third message')
-    expect(remainingCues[1].text).toBe('Fourth message')
+    expect(remainingSegments).toHaveLength(2)
+    expect(remainingSegments[0].text).toBe('Third message')
+    expect(remainingSegments[1].text).toBe('Fourth message')
 
     // Verify caption count updated
     await expect(captionCount).toContainText('2', { timeout: 2000 })
   })
 
   test('should delete single row after confirmation', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'single-delete-doc' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -175,12 +129,12 @@ Second`
 
     // Select only one row
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -210,37 +164,31 @@ Second`
     })
 
     // Verify only one row remains
-    const remainingCues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments
+    const remainingSegments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments
     })
 
-    expect(remainingCues).toHaveLength(1)
-    expect(remainingCues[0].text).toBe('Second')
+    expect(remainingSegments).toHaveLength(1)
+    expect(remainingSegments[0].text).toBe('Second')
   })
 
   test('should cancel delete when clicking Cancel button', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'cancel-delete-doc' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'Hello' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'World' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Hello"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Hello
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"World"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-World`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -250,12 +198,12 @@ World`
 
     // Select a row and open delete dialog
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -277,62 +225,56 @@ World`
     await expect(dialog).not.toBeVisible()
 
     // Verify nothing was deleted
-    const cues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments
+    const segments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments
     })
 
-    expect(cues).toHaveLength(2)
+    expect(segments).toHaveLength(2)
   })
 
-  test('should clear selectedCueId if deleted cue was selected', async () => {
-    // Load VTT with cues
+  test('should clear selectedSegmentId if deleted segment was selected', async () => {
+    // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'selected-delete-doc' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
 
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
-
-      // Select the first cue
-      vttStore.selectCue('cue1')
+      // Select the first segment
+      store.selectSegment('seg1')
     })
 
     await window.waitForFunction(() => {
       const store = (window as any).$store
-      return store?.selectedCueId === 'cue1'
+      return store?.selectedSegmentId === 'seg1'
     })
 
-    // Verify cue is selected
+    // Verify segment is selected
     const selectedBefore = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore ? vttStore.selectedCueId : null
+      const store = (window as any).$store
+      return store ? store.selectedSegmentId : null
     })
 
-    expect(selectedBefore).toBe('cue1')
+    expect(selectedBefore).toBe('seg1')
 
-    // Delete the selected cue
+    // Delete the selected segment
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -354,13 +296,13 @@ Second`
 
     await window.waitForFunction(() => {
       const store = (window as any).$store
-      return store?.selectedCueId === null
+      return store?.selectedSegmentId === null
     })
 
-    // Verify selectedCueId was cleared
+    // Verify selectedSegmentId was cleared
     const selectedAfter = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore ? vttStore.selectedCueId : null
+      const store = (window as any).$store
+      return store ? store.selectedSegmentId : null
     })
 
     expect(selectedAfter).toBeNull()

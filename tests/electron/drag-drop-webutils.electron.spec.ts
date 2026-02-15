@@ -23,15 +23,15 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     // Wait for app to be ready
     await page.waitForSelector('.app', { timeout: 10000 })
 
-    // Create a test VTT file
-    const testVttPath = path.join(getProjectRoot(), 'test_data/sample.vtt.copy')
-    const originalContent = fs.readFileSync(
-      path.join(getProjectRoot(), 'test_data/sample.vtt'),
-      'utf-8'
-    )
-    fs.writeFileSync(testVttPath, originalContent, 'utf-8')
+    // Create a test captions JSON file
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/sample.captions.json.copy')
+    const content = JSON.stringify({
+      metadata: { id: 'webutils-doc' },
+      segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test caption' }]
+    }, null, 2)
+    fs.writeFileSync(testCaptionsPath, content, 'utf-8')
 
-    console.log('[test] Created test VTT file at:', testVttPath)
+    console.log('[test] Created test captions file at:', testCaptionsPath)
 
     try {
       // Simulate drag-and-drop by creating a DataTransfer with File objects
@@ -46,8 +46,8 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
         // In real drag-and-drop, this File object comes from dataTransfer.files
         const response = await fetch(`file://${filePath}`)
         const blob = await response.blob()
-        const file = new File([blob], filePath.split('/').pop() || 'test.vtt', {
-          type: 'text/vtt'
+        const file = new File([blob], filePath.split('/').pop() || 'test.captions.json', {
+          type: 'application/json'
         })
 
         console.log('[test] Created File object:', {
@@ -66,7 +66,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
           fileName: file.name,
           fileSize: file.size
         }
-      }, testVttPath)
+      }, testCaptionsPath)
 
       console.log('[test] Result:', result)
 
@@ -82,8 +82,8 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
 
     } finally {
       // Cleanup
-      if (fs.existsSync(testVttPath)) {
-        fs.unlinkSync(testVttPath)
+      if (fs.existsSync(testCaptionsPath)) {
+        fs.unlinkSync(testCaptionsPath)
         console.log('[test] Cleaned up test file')
       }
     }
@@ -101,8 +101,8 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
 
       // Simulate multiple File objects
       const files = [
-        new File(['WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nTest 1'], 'test1.vtt', { type: 'text/vtt' }),
-        new File(['WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nTest 2'], 'test2.vtt', { type: 'text/vtt' })
+        new File([JSON.stringify({ metadata: { id: 'doc1' }, segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test 1' }] }, null, 2)], 'test1.captions.json', { type: 'application/json' }),
+        new File([JSON.stringify({ metadata: { id: 'doc2' }, segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test 2' }] }, null, 2)], 'test2.captions.json', { type: 'application/json' })
       ]
 
       const paths = files.map(file => {

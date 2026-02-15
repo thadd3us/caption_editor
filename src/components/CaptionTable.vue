@@ -1,24 +1,37 @@
 <template>
   <div class="caption-table">
     <div v-if="store.document.filePath" class="file-path-display">
-      <span class="file-path-value">📄 {{ store.document.filePath }}</span>
+      <button 
+        class="show-in-finder-btn" 
+        @click="showCaptionsInFinder" 
+        data-tooltip="Reveal caption file in Finder"
+      >📁</button>
+      <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
     <div class="table-header">
       <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
         <button
           @click="toggleSequentialPlayback"
-          class="sequential-play-btn"
+          class="sequential-play-btn tooltip-btn"
           :disabled="!store.mediaPath || store.document.segments.length === 0"
-          :title="sequentialPlayButtonTooltip"
+          :data-tooltip="sequentialPlayButtonTooltip"
         >
-          {{ sequentialPlayButtonLabel }}
+          {{ sequentialPlayButtonIcon }}
         </button>
-        <label class="checkbox-label">
+        <button
+          @click="addCaptionAtCurrentTime"
+          class="add-caption-btn tooltip-btn"
+          :disabled="!store.mediaPath"
+          data-tooltip="Add caption at current position"
+        >
+          ➕
+        </button>
+        <label class="checkbox-label tooltip-btn" data-tooltip="Autoplays selected row">
           <input type="checkbox" v-model="autoplayEnabled" />
-          Autoplay (selected row)
+          Autoplay
         </label>
-        <label class="checkbox-label">
+        <label class="checkbox-label tooltip-btn" data-tooltip="Scroll to current caption during playback">
           <input type="checkbox" v-model="autoScrollEnabled" />
           Auto-scroll
         </label>
@@ -26,10 +39,12 @@
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
+      :theme="gridTheme"
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
-      :rowSelection="'multiple'"
+      :rowSelection="rowSelectionConfig"
+      
       :getRowId="getRowId"
       @grid-ready="onGridReady"
       @selection-changed="onSelectionChanged"
@@ -37,7 +52,7 @@
       @cell-context-menu="onCellContextMenu"
       @cell-editing-started="onCellEditingStarted"
       :domLayout="'normal'"
-      :style="{ height: store.document.filePath ? 'calc(100% - 100px)' : 'calc(100% - 60px)' }"
+      style="flex: 1; min-height: 0;"
     />
     <ContextMenu
       :is-visible="isContextMenuVisible"
@@ -51,22 +66,24 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
-import { useVTTStore, PlaybackMode } from '../stores/vttStore'
-import { formatTimestampSimple } from '../utils/vttParser'
+import { themeAlpine } from 'ag-grid-community'
+import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
+import { formatTimestampSimple } from '../utils/captionsUtils'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
 import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const gridApi = ref<GridApi | null>(null)
 const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(true)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
+
+// AG Grid v33+ Theming API (do not import legacy CSS themes)
+const gridTheme = themeAlpine
 
 // Speaker similarity scores (not persisted, UI-only)
 const speakerSimilarityScores = ref<Map<string, number>>(new Map())
@@ -77,37 +94,31 @@ const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
 const selectedRowsForContextMenu = ref<any[]>([])
 
+
+
 const rowData = computed(() => {
-  // Cues are always kept sorted in the document model
-  return store.document.segments.map(cue => ({
-    id: cue.id,
-    startTime: cue.startTime,
-    endTime: cue.endTime,
-    startTimeFormatted: formatTimestampSimple(cue.startTime),
-    endTimeFormatted: formatTimestampSimple(cue.endTime),
-    text: cue.text,
-    speakerName: cue.speakerName,
-    rating: cue.rating,
-    speakerSimilarity: speakerSimilarityScores.value.get(cue.id)
+  // Segments are always kept sorted in the document model
+  return store.document.segments.map(segment => ({
+    id: segment.id,
+    startTime: segment.startTime,
+    endTime: segment.endTime,
+    startTimeFormatted: formatTimestampSimple(segment.startTime),
+    endTimeFormatted: formatTimestampSimple(segment.endTime),
+    text: segment.text,
+    speakerName: segment.speakerName,
+    rating: segment.rating,
+    speakerSimilarity: speakerSimilarityScores.value.get(segment.id)
   }))
 })
 
 const columnDefs = ref<ColDef[]>([
-  {
-    headerCheckboxSelection: true,
-    checkboxSelection: true,
-    width: 50,
-    pinned: 'left',
-    sortable: false,
-    filter: false,
-    resizable: false
-  },
   {
     field: 'actions',
     headerName: '▶️',
     width: 50,
     pinned: 'left',
     cellRenderer: ActionButtonsCell,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     filter: false,
     sortable: false,
     resizable: false
@@ -129,7 +140,7 @@ const columnDefs = ref<ColDef[]>([
     sortable: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
-      store.updateCue(params.data.id, { text: params.newValue })
+      store.updateSegment(params.data.id, { text: params.newValue })
     }
   },
   {
@@ -138,10 +149,29 @@ const columnDefs = ref<ColDef[]>([
     width: 150,
     editable: true,
     sortable: true,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
-      store.updateCue(params.data.id, { speakerName: params.newValue })
+      const newSpeaker = params.newValue
+      const editedNode = params.node
+      
+      // Get all selected rows
+      const selectedNodes = gridApi.value?.getSelectedNodes() || []
+      
+      // If multiple rows selected, apply to all of them
+      if (selectedNodes.length > 1) {
+        console.log('Applying speaker to all selected rows')
+        selectedNodes.forEach(node => {
+          if (node !== editedNode && node.data?.id) {
+            // Update other selected rows via AG Grid (triggers store update)
+            node.setDataValue('speakerName', newSpeaker)
+          }
+        })
+      }
+      
+      // Always update the edited row in store
+      store.updateSegment(params.data.id, { speakerName: newSpeaker })
     }
   },
   {
@@ -160,6 +190,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Rating',
     width: 120,
     cellRenderer: StarRatingCell,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     sortable: true,
   },
   {
@@ -169,7 +200,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
-    cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -198,7 +229,7 @@ const columnDefs = ref<ColDef[]>([
           throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
         }
 
-        store.updateCue(params.data.id, { startTime: seconds })
+        store.updateSegment(params.data.id, { startTime: seconds })
       } catch (err) {
         if ((window as any).showAlert) {
           (window as any).showAlert({
@@ -217,7 +248,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
-    cellStyle: { textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' },
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
       if (params.data && params.event) {
@@ -246,7 +277,7 @@ const columnDefs = ref<ColDef[]>([
           throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
         }
 
-        store.updateCue(params.data.id, { endTime: seconds })
+        store.updateSegment(params.data.id, { endTime: seconds })
       } catch (err) {
         if ((window as any).showAlert) {
           (window as any).showAlert({
@@ -263,8 +294,17 @@ const columnDefs = ref<ColDef[]>([
 const defaultColDef = ref<ColDef>({
   sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
-  resizable: true
+  resizable: true,
+  cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }
 })
+
+// Row selection: multiRow mode with click selection enabled for shift-click range selection
+const rowSelectionConfig = {
+  mode: 'multiRow' as const,
+  enableClickSelection: true,
+  checkboxes: false,
+  headerCheckbox: false
+}
 
 function getRowId(params: { data: { id: string } }) {
   return params.data.id
@@ -279,44 +319,42 @@ function onGridReady(params: GridReadyEvent) {
 }
 
 function onRowClicked(event: RowClickedEvent) {
-  if (event.data) {
-    const cueId = event.data.id
-    const startTime = event.data.startTime
-    console.log('Row clicked:', cueId, 'startTime:', startTime)
-    store.selectCue(cueId)
-
-    // Move playhead to the start of the clicked cue
-    store.setCurrentTime(startTime)
-
-    // Also update the media element directly to ensure scrubber syncs
-    const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
-    if (mediaElement) {
-      mediaElement.currentTime = startTime
-    }
-  }
+  if (!event.data) return
+  
+  const { id: segmentId, startTime } = event.data
+  console.log('Row clicked:', segmentId, 'startTime:', startTime)
+  
+  // Move playhead to the start of the clicked segment
+  store.setCurrentTime(startTime)
+  const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
+  if (mediaElement) mediaElement.currentTime = startTime
 }
+
+// Track if we're programmatically changing selection (to avoid feedback loops)
+let isSyncingSelection = false
 
 function onSelectionChanged(event: SelectionChangedEvent) {
+  if (isSyncingSelection) return
+  
   const selectedRows = event.api.getSelectedRows()
-  if (selectedRows.length > 0) {
-    const row = selectedRows[0]
-    const cueId = row.id
-    console.log('Selected cue:', cueId, 'isAutoScrolling:', isAutoScrolling)
-    store.selectCue(cueId)
+  if (selectedRows.length === 0) return
+  
+  const lastRow = selectedRows[selectedRows.length - 1]
+  
+  // Only sync single selection to store (multi-select is grid-only)
+  if (selectedRows.length === 1) {
+    store.selectSegment(lastRow.id)
+  }
 
-    // If autoplay is enabled AND we're not auto-scrolling, play the segment
-    // (During auto-scroll, we don't want to trigger autoplay)
-    if (autoplayEnabled.value && !isAutoScrolling) {
-      console.log('Autoplay: playing segment for cue:', cueId)
-      // Create a playlist of just this one segment
-      store.startPlaylistPlayback([cueId], 0)
-    }
+  // Autoplay on selection (but not during auto-scroll)
+  if (autoplayEnabled.value && !isAutoScrolling) {
+    store.startPlaylistPlayback([lastRow.id], 0)
   }
 }
 
-// Sequential playback button label and tooltip
-const sequentialPlayButtonLabel = computed(() => {
-  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸ Pause Segments' : '▶️ Play Segments'
+// Sequential playback button icon and tooltip
+const sequentialPlayButtonIcon = computed(() => {
+  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸' : '▶️'
 })
 
 const sequentialPlayButtonTooltip = computed(() => {
@@ -325,6 +363,24 @@ const sequentialPlayButtonTooltip = computed(() => {
   }
   return 'Play segments in table order, skipping silence'
 })
+
+/**
+ * Show captions file in Finder
+ */
+function showCaptionsInFinder() {
+  if (store.document.filePath) {
+    window.electronAPI?.showInFolder(store.document.filePath)
+  }
+}
+
+/**
+ * Add a new caption at the current playhead position
+ */
+function addCaptionAtCurrentTime() {
+  console.log('Adding caption at current time:', store.currentTime)
+  const segmentId = store.addSegment(store.currentTime, 5)
+  store.selectSegment(segmentId)
+}
 
 /**
  * Toggle sequential playback mode
@@ -440,11 +496,11 @@ function computeSpeakerSimilarity() {
   // Compute similarity scores for all rows
   const newScores = new Map<string, number>()
 
-  for (const cue of store.document.segments) {
-    const embedding = store.document.embeddings?.find(e => e.segmentId === cue.id)
+  for (const segment of store.document.segments) {
+    const embedding = store.document.embeddings?.find(e => e.segmentId === segment.id)
     if (!embedding || embedding.speakerEmbedding.length === 0) {
       // No embedding for this row - assign 0 similarity
-      newScores.set(cue.id, 0)
+      newScores.set(segment.id, 0)
       continue
     }
 
@@ -455,7 +511,7 @@ function computeSpeakerSimilarity() {
       maxSimilarity = Math.max(maxSimilarity, similarity)
     }
 
-    newScores.set(cue.id, maxSimilarity)
+    newScores.set(segment.id, maxSimilarity)
   }
 
   console.log('Computed similarity scores for', newScores.size, 'rows')
@@ -486,54 +542,49 @@ function computeSpeakerSimilarity() {
 // Note: With immutableData: true and getRowId, AG Grid handles updates automatically
 // No need to manually refresh cells when segments change
 
-// Sync store.selectedCueId to AG Grid selection
-// This ensures when the store programmatically selects a cue (e.g., startPlaylistPlayback),
-// the AG Grid UI updates to show the selection
-watch(() => store.selectedCueId, (cueId) => {
-  if (!gridApi.value || !cueId) return
+// Helper: select a single row in AG Grid without disturbing multi-selection
+function selectRowIfNeeded(rowNode: any) {
+  if (rowNode.isSelected()) return false  // Already selected, don't disturb
+  
+  isSyncingSelection = true
+  gridApi.value!.deselectAll()
+  rowNode.setSelected(true)
+  isSyncingSelection = false
+  return true
+}
 
-  const rowNode = gridApi.value.getRowNode(cueId)
+// Sync store.selectedSegmentId → AG Grid (for programmatic selection, e.g., playlist playback)
+watch(() => store.selectedSegmentId, (segmentId) => {
+  if (!gridApi.value || !segmentId) return
+  const rowNode = gridApi.value.getRowNode(segmentId)
   if (rowNode) {
-    // Always deselect all and select this node, even if AG Grid thinks it's already selected
-    // This ensures the selection is correct in the UI
-    console.log('[CaptionTable] Syncing store selection to AG Grid:', cueId)
-    gridApi.value.deselectAll()
-    rowNode.setSelected(true)
-    // Optionally ensure visible (but don't scroll if already visible)
+    selectRowIfNeeded(rowNode)
     gridApi.value.ensureNodeVisible(rowNode, null)
   }
 })
 
-// Auto-scroll: watch currentTime and scroll to the intersecting row
+// Auto-scroll: follow playhead to intersecting row
 watch(() => store.currentTime, (currentTime) => {
   if (!autoScrollEnabled.value || !gridApi.value) return
 
-  // Find the first cue that the playhead intersects
-  const cue = store.document.segments.find(c =>
-    c.startTime <= currentTime && currentTime < c.endTime
+  const segment = store.document.segments.find(s =>
+    s.startTime <= currentTime && currentTime < s.endTime
   )
+  if (!segment) return
 
-  if (cue) {
-    const rowNode = gridApi.value.getRowNode(cue.id)
-    if (rowNode) {
-      isAutoScrolling = true
+  const rowNode = gridApi.value.getRowNode(segment.id)
+  if (!rowNode) return
 
-      // Select the row (highlights it blue)
-      gridApi.value.deselectAll()
-      rowNode.setSelected(true)
-
-      // Scroll just enough to ensure the row is visible (don't force it to top)
-      // This reduces UI jumping when the row is already visible
-      gridApi.value.ensureNodeVisible(rowNode, null)
-
-      console.log('Auto-scrolled to cue:', cue.id, 'at time:', currentTime)
-
-      // Reset the flag after a short delay to allow selection to complete
-      setTimeout(() => {
-        isAutoScrolling = false
-      }, 100)
-    }
+  // If row already selected, just ensure visible (preserves multi-selection)
+  if (rowNode.isSelected()) {
+    gridApi.value.ensureNodeVisible(rowNode, null)
+    return
   }
+
+  isAutoScrolling = true
+  selectRowIfNeeded(rowNode)
+  gridApi.value.ensureNodeVisible(rowNode, null)
+  setTimeout(() => { isAutoScrolling = false }, 100)
 })
 
 // Handle computeSpeakerSimilarity event from menu
@@ -721,8 +772,8 @@ onUnmounted(() => {
 
 .file-path-display {
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 13px;
@@ -733,17 +784,74 @@ onUnmounted(() => {
 
 .file-path-label {
   font-weight: 600;
-  color: #495057;
+  color: var(--text-2);
   white-space: nowrap;
 }
 
 .file-path-value {
-  font-family: 'Courier New', monospace;
-  color: #212529;
+  color: var(--text-1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  font-size: 13px;
+}
+
+.show-in-finder-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  position: relative;
+}
+
+.show-in-finder-btn:hover {
+  opacity: 1;
+}
+
+.show-in-finder-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+/*
+ * CSS Tooltips: Add class="tooltip-btn" and data-tooltip="Text" to any element.
+ * The tooltip appears below on hover. Parent containers need overflow:visible
+ * (see .left-panel in App.vue) for tooltips to extend beyond boundaries.
+ */
+.tooltip-btn {
+  position: relative;
+}
+
+.tooltip-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 10000;
+  pointer-events: none;
 }
 
 .table-header {
@@ -756,7 +864,7 @@ onUnmounted(() => {
 .table-header h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-1);
 }
 
 .header-controls {
@@ -765,7 +873,8 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.sequential-play-btn {
+.sequential-play-btn,
+.add-caption-btn {
   padding: 8px 16px;
   background: #3498db;
   color: white;
@@ -778,12 +887,14 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.sequential-play-btn:hover:not(:disabled) {
+.sequential-play-btn:hover:not(:disabled),
+.add-caption-btn:hover:not(:disabled) {
   background: #2980b9;
 }
 
-.sequential-play-btn:disabled {
-  background: #ccc;
+.sequential-play-btn:disabled,
+.add-caption-btn:disabled {
+  background: var(--btn-disabled-bg);
   cursor: not-allowed;
 }
 
@@ -792,7 +903,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #555;
+  color: var(--text-2);
   cursor: pointer;
   user-select: none;
 }
@@ -805,6 +916,49 @@ onUnmounted(() => {
 
 .ag-theme-alpine {
   width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Column lines */
+:deep(.ag-cell) {
+  border-right: 1px solid var(--border-1);
+}
+
+
+
+:deep(.ag-header-cell) {
+  border-right: 1px solid var(--border-2);
+}
+
+/* Taller header to accommodate wrapping.
+   AG Grid defaults .ag-header to 26px with overflow:hidden, which clips our 48px header row.
+   Must override all three properties to prevent clipping. */
+:deep(.ag-header) {
+  min-height: 48px !important;
+  height: auto !important;
+  overflow: visible !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+:deep(.ag-header-cell-text) {
+  color: white;
+  font-weight: 600;
+}
+
+:deep(.ag-header-viewport),
+:deep(.ag-header-container) {
+  min-height: 48px;
+}
+
+:deep(.ag-header-row) {
+  height: 48px !important;
+}
+
+:deep(.ag-header-cell) {
+  height: 48px !important;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 /* Override AG Grid's default ellipsis behavior for time columns */
@@ -813,8 +967,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  direction: rtl !important;
-  text-align: right !important;
+  justify-content: flex-end !important;
 }
 
 /* When editing, switch back to LTR for proper input */

@@ -1,10 +1,9 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import { readFileSync } from 'fs'
 import * as path from 'path'
 import { APP_VERSION } from './constants'
 
 // Log version on startup
-console.log(`[preload] VTT Caption Editor v${APP_VERSION} - Preload script loaded`)
+console.log(`[preload] Caption Editor v${APP_VERSION} - Preload script loaded`)
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -32,6 +31,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }) => ipcRenderer.invoke('file:save', options),
 
   /**
+   * Save SRT file with dialog
+   */
+  saveSrtFile: (options: {
+    content: string,
+    suggestedName?: string
+  }) => ipcRenderer.invoke('file:saveSrt', options),
+
+  /**
    * Save to existing file path
    */
   saveExistingFile: (options: {
@@ -43,6 +50,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * Get file stats
    */
   statFile: (filePath: string) => ipcRenderer.invoke('file:stat', filePath),
+
+  /**
+   * Show file in Finder/Explorer
+   */
+  showInFolder: (filePath: string) => ipcRenderer.invoke('file:showInFolder', filePath),
 
   /**
    * Convert file path to URL for media loading
@@ -73,6 +85,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isElectron: true,
 
   /**
+   * Check if running under Playwright/E2E test environment.
+   * Used to disable problematic browser features in tests (e.g. datalist in Electron).
+   */
+  isTest: process.env.NODE_ENV === 'test',
+
+  /**
    * Listen for files opened from the OS (double-click, right-click > Open With)
    */
   onFileOpen: (callback: (filePath: string) => void) => {
@@ -96,10 +114,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * IPC renderer for menu events
    */
   ipcRenderer: {
-    on: (channel: string, callback: (...args: any[]) => void) => {
+    on: (channel: string, callback: (...args: unknown[]) => void) => {
       ipcRenderer.on(channel, (_event, ...args) => callback(...args))
     },
-    send: (channel: string, ...args: any[]) => {
+    send: (channel: string, ...args: unknown[]) => {
       ipcRenderer.send(channel, ...args)
     }
   },
@@ -110,7 +128,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   asr: {
     transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number }) =>
       ipcRenderer.invoke('asr:transcribe', options),
-    embed: (options: { vttPath: string, model?: string }) =>
+    embed: (options: { captionsPath: string, model?: string }) =>
       ipcRenderer.invoke('asr:embed', options),
     cancel: (processId: string) =>
       ipcRenderer.invoke('asr:cancel', processId),

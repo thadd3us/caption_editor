@@ -4,7 +4,7 @@
     ref="inputRef"
     v-model="localValue"
     type="text"
-    :list="datalistId"
+    :list="enableDatalist ? datalistId : undefined"
     :placeholder="placeholder"
     :class="inputClass"
     autocomplete="off"
@@ -12,7 +12,7 @@
     @keydown.enter="handleEnter"
     @blur="handleBlur"
   />
-  <datalist :id="datalistId">
+  <datalist v-if="enableDatalist" :id="datalistId">
     <option
       v-for="speaker in filteredSpeakers"
       :key="speaker"
@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 const props = withDefaults(
   defineProps<{
@@ -45,12 +45,18 @@ const emit = defineEmits<{
   'blur': []
 }>()
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const localValue = ref(props.modelValue)
 const inputRef = ref<HTMLInputElement | null>(null)
 
 // Generate unique datalist ID to avoid conflicts when multiple instances exist
 const datalistId = computed(() => `${props.inputId}-datalist`)
+
+// Playwright+Electron has a known crash bug when interacting with <input list=...> / <datalist>.
+// Disable datalist suggestions in E2E tests to keep the renderer stable.
+const enableDatalist = computed(() => {
+  return !((window as any).electronAPI?.isTest === true)
+})
 
 // Get all unique speaker names from the document, sorted by frequency (most common first)
 const allSpeakers = computed(() => {

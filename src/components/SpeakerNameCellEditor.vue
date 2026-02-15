@@ -4,13 +4,13 @@
       ref="inputRef"
       v-model="editValue"
       type="text"
-      :list="datalistId"
+      :list="enableDatalist ? datalistId : undefined"
       class="speaker-name-editor"
       autocomplete="off"
       @keydown="handleKeyDown"
       @blur="handleBlur"
     />
-    <datalist :id="datalistId">
+    <datalist v-if="enableDatalist" :id="datalistId">
       <option
         v-for="speaker in filteredSpeakers"
         :key="speaker"
@@ -22,7 +22,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, nextTick, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 import type { ICellEditorParams } from 'ag-grid-community'
 
 export default defineComponent({
@@ -34,11 +34,17 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     const inputRef = ref<HTMLInputElement | null>(null)
     const editValue = ref(props.params.value || '')
     const shouldStop = ref(false)
+
+    // Playwright+Electron has a known crash bug when interacting with <input list=...> / <datalist>.
+    // Disable datalist suggestions in E2E tests to keep the renderer stable.
+    const enableDatalist = computed(() => {
+      return !((window as any).electronAPI?.isTest === true)
+    })
 
     // Debug logging for macOS troubleshooting
     console.log('[SpeakerNameCellEditor] Component created with initial value:', props.params.value)
@@ -202,6 +208,7 @@ export default defineComponent({
       editValue,
       datalistId,
       filteredSpeakers,
+      enableDatalist,
 
       // Event handlers
       handleKeyDown,
@@ -230,7 +237,8 @@ export default defineComponent({
   padding: 4px 8px;
   border: none;
   outline: none;
-  background: white;
+  background: var(--input-bg);
+  color: var(--input-text);
   font-family: inherit;
   font-size: inherit;
   box-sizing: border-box;

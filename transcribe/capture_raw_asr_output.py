@@ -2,10 +2,12 @@
 """
 Capture raw ASR output in JSON format for test fixtures.
 
-This script uses the actual production code from transcribe.py to process audio
+This script uses the actual production code from transcribe_cli.py to process audio
 and captures the raw ASR output for use in unit tests.
 
 Supports both Whisper (transformers) and Parakeet (NeMo) models.
+
+TODO: Add sample usage commands.
 """
 
 import json
@@ -16,7 +18,12 @@ import soundfile as sf
 import typer
 
 # Import production code
-from transcribe import load_audio_chunk, transcribe_chunk, NEMO_AVAILABLE, TRANSFORMERS_AVAILABLE
+from transcribe_cli import (
+    load_audio_chunk,
+    transcribe_chunk,
+    NEMO_AVAILABLE,
+    TRANSFORMERS_AVAILABLE,
+)
 
 app = typer.Typer()
 
@@ -31,18 +38,22 @@ def serialize_asr_segments(segments: list) -> dict:
     result_words = []
 
     for seg in segments:
-        result_segments.append({
-            "text": seg.text,
-            "start": float(seg.start),
-            "end": float(seg.end),
-        })
+        result_segments.append(
+            {
+                "text": seg.text,
+                "start": float(seg.start),
+                "end": float(seg.end),
+            }
+        )
 
         for word in seg.words:
-            result_words.append({
-                "word": word.word,
-                "start": float(word.start),
-                "end": float(word.end),
-            })
+            result_words.append(
+                {
+                    "word": word.word,
+                    "start": float(word.start),
+                    "end": float(word.end),
+                }
+            )
 
     return {
         "text": " ".join(seg.text for seg in segments),
@@ -57,20 +68,28 @@ def load_asr_model(model_name: str):
 
     if is_nemo:
         if not NEMO_AVAILABLE:
-            typer.echo("Error: NeMo not available. Install with: pip install nemo_toolkit[asr]", err=True)
+            typer.echo(
+                "Error: NeMo not available. Install with: pip install nemo_toolkit[asr]",
+                err=True,
+            )
             raise typer.Exit(1)
 
         import nemo.collections.asr as nemo_asr
+
         typer.echo(f"Loading NeMo model: {model_name}")
         asr_model = nemo_asr.models.ASRModel.from_pretrained(model_name)
-        asr_model.eval()
+        asr_model.eval()  # type: ignore[union-attr]
         return asr_model, True
     else:
         if not TRANSFORMERS_AVAILABLE:
-            typer.echo("Error: transformers not available. Install with: pip install transformers", err=True)
+            typer.echo(
+                "Error: transformers not available. Install with: pip install transformers",
+                err=True,
+            )
             raise typer.Exit(1)
 
-        from transformers import pipeline
+        from transformers.pipelines import pipeline
+
         typer.echo(f"Loading Transformers model: {model_name}")
         asr_pipeline = pipeline(
             "automatic-speech-recognition",
@@ -82,11 +101,25 @@ def load_asr_model(model_name: str):
 
 @app.command()
 def capture(
-    audio_file: Path = typer.Argument(..., help="Path to audio file (e.g., test_data/OSR_us_000_0010_8k.wav)"),
-    model: str = typer.Option("openai/whisper-tiny", "--model", "-m", help="Model name (e.g., openai/whisper-tiny, nvidia/parakeet-tdt-0.6b-v3)"),
+    audio_file: Path = typer.Argument(
+        ..., help="Path to audio file (e.g., test_data/OSR_us_000_0010_8k.wav)"
+    ),
+    model: str = typer.Option(
+        "openai/whisper-tiny",
+        "--model",
+        "-m",
+        help="Model name (e.g., openai/whisper-tiny, nvidia/parakeet-tdt-0.6b-v3)",
+    ),
     chunk_size: float = typer.Option(60, "--chunk-size", help="Chunk size in seconds"),
-    overlap: float = typer.Option(5.0, "--overlap", help="Overlap in seconds for chunked processing"),
-    output: Path = typer.Option(..., "--output", "-o", help="Output JSON file path (auto-generated if not provided)"),
+    overlap: float = typer.Option(
+        5.0, "--overlap", help="Overlap in seconds for chunked processing"
+    ),
+    output: Path = typer.Option(
+        ...,
+        "--output",
+        "-o",
+        help="Output JSON file path (auto-generated if not provided)",
+    ),
 ):
     """Capture raw ASR output from audio file using production transcription pipeline."""
 
@@ -130,7 +163,9 @@ def capture(
             continue
 
         # Use production transcribe_chunk with chunk_start=0 to get relative times
-        segments = transcribe_chunk(audio, asr_pipeline, chunk_start=0.0, sample_rate=sr, is_nemo=is_nemo)
+        segments = transcribe_chunk(
+            audio, asr_pipeline, chunk_start=0.0, sample_rate=sr, is_nemo=is_nemo
+        )
 
         serialized = serialize_asr_segments(segments)
         chunk_results.append(serialized)

@@ -1,0 +1,35 @@
+#!/bin/bash
+# Pre-commit hook for caption_editor
+# Runs linting and type checking before commits
+#
+# To install: ln -sf ../../scripts/pre-commit .git/hooks/pre-commit
+# Or run: ./scripts/setup-hooks.sh
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Auto-install dependencies if missing
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing npm dependencies..."
+    npm install
+fi
+
+# TypeScript/JavaScript checks
+echo "📦 Checking TypeScript..."
+npx tsc --noEmit
+
+echo "📦 Running ESLint..."
+npx eslint . --quiet
+
+# Python checks (transcribe directory)
+echo "🐍 Checking Python with ruff..."
+cd transcribe
+uv run ruff check .
+uv run ruff format --check .
+
+echo "🐍 Running pyright..."
+uv run pyright
+cd ..
+
+echo "✅ All pre-commit checks passed!"

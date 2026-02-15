@@ -1,13 +1,22 @@
 import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
+import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('Sequential Playback', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
 
-  // Helper to load VTT file via IPC
-  async function loadVTTFile(electronApp: ElectronApplication, page: Page, filePath: string) {
+  async function writeTestCaptionsFile(fileName: string, doc: any): Promise<string> {
+    const dir = path.join(getProjectRoot(), 'test_data', 'temp-sequential-playback')
+    await fs.mkdir(dir, { recursive: true })
+    const filePath = path.join(dir, fileName)
+    await fs.writeFile(filePath, JSON.stringify(doc, null, 2), 'utf-8')
+    return filePath
+  }
+
+  // Helper to load captions file via IPC
+  async function loadCaptionsFile(electronApp: ElectronApplication, page: Page, filePath: string) {
     await electronApp.evaluate(async ({ webContents }, path) => {
       const windows = webContents.getAllWebContents()
       if (windows.length > 0) {
@@ -25,50 +34,82 @@ test.describe('Sequential Playback', () => {
     )
   }
 
+  test.afterAll(async () => {
+    // Best-effort cleanup of generated fixtures
+    const dir = path.join(getProjectRoot(), 'test_data', 'temp-sequential-playback')
+    await fs.rm(dir, { recursive: true, force: true }).catch(() => {})
+  })
+
   // Helper to load media file
   async function loadMediaFile(page: Page, filePath: string) {
-    await page.evaluate((path) => {
+    const url = await page.evaluate(async (p) => {
       const store = (window as any).$store
-      if (store && store.loadMediaFile) {
-        store.loadMediaFile(path, path)
-      }
+      const electronAPI = (window as any).electronAPI
+      if (!store?.loadMediaFile) throw new Error('Store not available')
+      if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
+
+      const urlResult = await electronAPI.fileToURL(p)
+      if (!urlResult.success || !urlResult.url) throw new Error('Failed to convert file path to URL')
+      store.loadMediaFile(urlResult.url, p)
+      return urlResult.url as string
     }, filePath)
-    await page.waitForTimeout(100)
+    await page.waitForFunction(
+      (expectedUrl) => {
+        const store = (window as any).$store
+        return store && store.mediaPath === expectedUrl
+      },
+      url,
+      { timeout: 5000 }
+    )
   }
 
   test('should show sequential play button in table header', async ({ electronApp, page }) => {
-    // Load a VTT file with multiple segments
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    // Load a captions file with multiple segments
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await expect(sequentialBtn).toBeVisible()
   })
 
   test('should start sequential playback from top when no row selected', async ({ electronApp, page }) => {
-    console.log('[Test] Loading VTT file...')
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    console.log('[Test] Loading captions file...')
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     console.log('[Test] Loading media file...')
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(page, audioPath)
 
     console.log('[Test] Clicking Play Segments button...')
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await sequentialBtn.click()
 
-    console.log('[Test] Verifying button changed to Pause Segments...')
-    await expect(page.locator('button:has-text("Pause Segments")')).toBeVisible()
+    console.log('[Test] Verifying button changed to Pause icon...')
+    await expect(sequentialBtn).toHaveText(/⏸/)
 
     console.log('[Test] Checking playback state...')
     const state = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return {
         playbackMode: store.playbackMode,
         isPlaying: store.isPlaying,
-        selectedCueId: store.selectedCueId,
+        selectedSegmentId: store.selectedSegmentId,
         currentTime: store.currentTime
       }
     })
@@ -92,9 +133,16 @@ test.describe('Sequential Playback', () => {
   test('should start sequential playback from selected row', async ({ electronApp, page }) => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
-    // Load a VTT file
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    // Load a captions file
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Load media file
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
@@ -151,7 +199,7 @@ test.describe('Sequential Playback', () => {
     await page.waitForTimeout(50)
 
     // Click sequential play button
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await sequentialBtn.click()
 
     await page.waitForTimeout(100)
@@ -163,31 +211,44 @@ test.describe('Sequential Playback', () => {
 
   test('should stop sequential playback when pause button clicked', async ({ electronApp, page }) => {
     // Load files
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const playBtn = page.locator('button:has-text("Play Segments")')
+    const playBtn = page.locator('button.sequential-play-btn')
     await playBtn.click()
 
-    // Button should change to pause
-    const pauseBtn = page.locator('button:has-text("Pause Segments")')
-    await expect(pauseBtn).toBeVisible()
+    // Button should change to pause icon
+    await expect(playBtn).toHaveText(/⏸/)
 
     // Click pause
-    await pauseBtn.click()
+    await playBtn.click()
 
     // Button should change back to play
-    await expect(page.locator('button:has-text("Play Segments")')).toBeVisible()
+    await expect(playBtn).toHaveText(/▶️/)
   })
 
   test('should play segments in table order respecting sort', async ({ electronApp, page }) => {
     // Load files
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(page, audioPath)
@@ -205,13 +266,13 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await page.locator('button:has-text("Play Segments")').click()
+    await page.locator('button.sequential-play-btn').click()
 
     await page.waitForTimeout(100)
 
     // Check that the playlist matches the initial order
     const playlistOrder = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return store.playlist
     })
 
@@ -223,20 +284,27 @@ test.describe('Sequential Playback', () => {
 
   test('should preserve playlist order even if table is resorted', async ({ electronApp, page }) => {
     // Load files
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await page.locator('button:has-text("Play Segments")').click()
+    await page.locator('button.sequential-play-btn').click()
 
     await page.waitForTimeout(50)
 
     // Get the playlist before sorting
     const playlistBefore = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return [...store.playlist]
     })
 
@@ -247,7 +315,7 @@ test.describe('Sequential Playback', () => {
 
     // Get the playlist after sorting
     const playlistAfter = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return store.playlist
     })
 
@@ -256,12 +324,18 @@ test.describe('Sequential Playback', () => {
   })
 
   test('should disable sequential button when no media loaded', async ({ electronApp, page }) => {
-    // Load only VTT file without media reference
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'no-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    // Load captions file without loading media
+    const captionsPath = await writeTestCaptionsFile('no-media-reference.captions.json', {
+      metadata: { id: 'seq-no-media' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Sequential play button should be disabled (no media path)
-    const sequentialBtn = page.locator('button:has-text("Play Segments")')
+    const sequentialBtn = page.locator('button.sequential-play-btn')
     await expect(sequentialBtn).toBeDisabled()
   })
 
@@ -269,19 +343,28 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load files
-    const vttPath = path.join(getProjectRoot(), 'test_data', 'with-media-reference.vtt')
-    await loadVTTFile(electronApp, page, vttPath)
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+      metadata: { id: 'seq-with-media-ref' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' },
+        { id: 'seg3', startTime: 2, endTime: 3, text: 'Three' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
 
     const audioPath = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await page.locator('button:has-text("Play Segments")').click()
+    const sequentialBtn = page.locator('button.sequential-play-btn')
+    await sequentialBtn.click()
 
     await page.waitForTimeout(50)
 
     // Stop sequential playback
-    await page.locator('button:has-text("Pause Segments")').click()
+    await expect(sequentialBtn).toHaveText(/⏸/)
+    await sequentialBtn.click()
 
     await page.waitForTimeout(50)
 
@@ -303,7 +386,7 @@ test.describe('Sequential Playback', () => {
 
     // Should be in SEGMENTS_PLAYING mode with single-item playlist
     const mode = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return {
         playbackMode: store.playbackMode,
         playlistLength: store.playlist.length

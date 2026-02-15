@@ -1,48 +1,13 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
+import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { fileURLToPath } from 'url'
-import { enableConsoleCapture } from '../helpers/console'
-import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// Helper function to normalize VTT content for snapshot comparison
-// Replaces dynamic values (UUIDs, timestamps) with placeholders
-function normalizeVTTForSnapshot(vttContent: string): string {
-  let normalized = vttContent
-
-  // Replace all UUIDs with a consistent placeholder
-  normalized = normalized.replace(
-    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-    '<UUID>'
-  )
-
-  // Replace ISO timestamps with a consistent placeholder
-  normalized = normalized.replace(
-    /"timestamp":"[^"]+"/g,
-    '"timestamp":"<TIMESTAMP>"'
-  )
-
-  // Replace action timestamps
-  normalized = normalized.replace(
-    /"actionTimestamp":"[^"]+"/g,
-    '"actionTimestamp":"<TIMESTAMP>"'
-  )
-
-  // Strip SegmentSpeakerEmbedding notes as they are large and can vary
-  normalized = normalized.replace(/^NOTE CAPTION_EDITOR:SegmentSpeakerEmbedding .*\n?/gm, '')
-
-  return normalized
-}
+import { getProjectRoot } from '../helpers/project-root'
 
 test.describe('File Save Workflow - Complete save and save-as cycle', () => {
-  let electronApp: ElectronApplication
   let window: Page
   let tempDir: string
-  let testVttPath: string
+  let testCaptionsPath: string
   let saveAsPath: string
 
   test.beforeEach(async () => {
@@ -50,20 +15,23 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     tempDir = path.join(getProjectRoot(), 'test_data/temp-save-test')
     await fs.mkdir(tempDir, { recursive: true })
 
-    // Copy sample.vtt to temp directory for testing
-    const sourceVtt = path.join(getProjectRoot(), 'test_data/sample.vtt')
-    testVttPath = path.join(tempDir, 'test-captions.vtt')
-    await fs.copyFile(sourceVtt, testVttPath)
+    // Create a sample captions file for testing
+    testCaptionsPath = path.join(tempDir, 'test-captions.captions.json')
+    const initialDoc = {
+      metadata: { id: 'sample-doc' },
+      segments: [
+        { id: 'segment-1', startTime: 0, endTime: 5, text: 'Welcome to the Caption Editor!' },
+        { id: 'segment-2', startTime: 5, endTime: 10, text: 'This is a sample caption file.' },
+        { id: 'segment-3', startTime: 10, endTime: 15, text: 'Edit captions and save changes.' }
+      ]
+    }
+    await fs.writeFile(testCaptionsPath, JSON.stringify(initialDoc, null, 2), 'utf-8')
 
     // Define the save-as target path
-    saveAsPath = path.join(tempDir, 'test-captions-edited.vtt')
+    saveAsPath = path.join(tempDir, 'test-captions-edited.captions.json')
   })
 
   test.afterEach(async () => {
-    if (electronApp) {
-      await electronApp.close()
-    }
-
     // Clean up temp directory
     try {
       await fs.rm(tempDir, { recursive: true, force: true })
@@ -72,33 +40,28 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     }
   })
 
-  test('should open, edit, and save VTT file', async () => {
-    // Step 1: Launch Electron with the test VTT file
-    console.log('Step 1: Launching Electron with VTT file:', testVttPath)
+  test('should open, edit, and save captions file', async ({ page }) => {
+    window = page
 
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        testVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
+    // Step 1: Load the test captions file into the shared renderer store
+    console.log('Step 1: Loading captions into store:', testCaptionsPath)
+    const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: initialCaptions, filePath: testCaptionsPath })
 
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
+    await window.waitForFunction(
+      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      testCaptionsPath,
+      { timeout: 5000 }
+    )
 
     // Step 2: Verify the file path is displayed in the UI
     console.log('Step 2: Verifying file path display in UI')
 
     const filePathDisplay = await window.locator('.file-path-display').textContent()
-    expect(filePathDisplay).toContain(testVttPath)
+    expect(filePathDisplay).toContain(testCaptionsPath)
     console.log('✓ File path displayed correctly:', filePathDisplay)
 
     // Verify the store has the correct file path
@@ -106,32 +69,32 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
       const store = (window as any).$store
       return store.document.filePath
     })
-    expect(storeFilePath).toBe(testVttPath)
+    expect(storeFilePath).toBe(testCaptionsPath)
     console.log('✓ Store file path is correct:', storeFilePath)
 
-    // Step 3: Add a new cue segment and edit it multiple times to create history
-    console.log('Step 3: Adding new cue segment and editing it')
+    // Step 3: Add a new segment and edit it multiple times to create history
+    console.log('Step 3: Adding new segment and editing it')
 
-    // Set current time to 20 seconds and add a cue
-    const newCueId = await window.evaluate(() => {
+    // Set current time to 20 seconds and add a segment
+    const newSegmentId = await window.evaluate(() => {
       const store = (window as any).$store
       store.setCurrentTime(20)
-      const cueId = store.addCue(20, 5) // Add cue from 20s to 25s
-      store.updateCue(cueId, { text: 'First version of caption' })
-      store.updateCue(cueId, { text: 'Second version of caption' })
-      store.updateCue(cueId, { text: 'This is a new test caption added by the E2E test!' })
-      return cueId
+      const segmentId = store.addSegment(20, 5) // Add segment from 20s to 25s
+      store.updateSegment(segmentId, { text: 'First version of caption' })
+      store.updateSegment(segmentId, { text: 'Second version of caption' })
+      store.updateSegment(segmentId, { text: 'This is a new test caption added by the E2E test!' })
+      return segmentId
     })
 
-    console.log('✓ Added new cue with ID:', newCueId, 'and edited it 3 times')
+    console.log('✓ Added new segment with ID:', newSegmentId, 'and edited it 3 times')
 
-    // Verify the cue was added
-    const cueCount = await window.evaluate(() => {
+    // Verify the segment was added
+    const segmentCount = await window.evaluate(() => {
       const store = (window as any).$store
       return store.document.segments.length
     })
-    expect(cueCount).toBe(4) // Original 3 cues + 1 new cue
-    console.log('✓ Cue count is now:', cueCount)
+    expect(segmentCount).toBe(4) // Original 3 segments + 1 new segment
+    console.log('✓ Segment count is now:', segmentCount)
 
     // Step 4: Save the file (overwrite original)
     console.log('Step 4: Saving file (overwrite)')
@@ -159,61 +122,41 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     console.log(`✓ Save triggered programmatically`)
 
-    // Step 5: Check the contents of the saved VTT file
-    console.log('Step 5: Verifying saved VTT file contents')
+    // Step 5: Check the contents of the saved captions file
+    console.log('Step 5: Verifying saved captions file contents')
 
-    const savedContent = await fs.readFile(testVttPath, 'utf-8')
-    console.log('Saved VTT content preview (first 500 chars):')
-    console.log(savedContent.substring(0, 500))
+    const savedContent = await fs.readFile(testCaptionsPath, 'utf-8')
+    const savedDoc = JSON.parse(savedContent)
+    console.log('Saved captions JSON preview:', JSON.stringify(savedDoc, null, 2).substring(0, 500))
 
-    // Verify the saved content has the new cue
-    expect(savedContent).toContain('This is a new test caption added by the E2E test!')
-    expect(savedContent).toContain('00:00:20.000 --> 00:00:25.000')
+    // Verify the saved content has the new segment
+    expect(JSON.stringify(savedDoc)).toContain('This is a new test caption added by the E2E test!')
+    const newSegment = savedDoc.segments.find((s: any) => s.text?.includes('This is a new test caption'))
+    expect(newSegment).toBeTruthy()
+    expect(newSegment.startTime).toBe(20)
+    expect(newSegment.endTime).toBe(25)
 
-    // Verify it still has original cues
-    expect(savedContent).toContain('Welcome to the VTT Editor!')
-    expect(savedContent).toContain('This is a sample caption file.')
+    // Verify it still has original segments
+    expect(JSON.stringify(savedDoc)).toContain('Welcome to the Caption Editor!')
+    expect(JSON.stringify(savedDoc)).toContain('This is a sample caption file.')
 
-    // Verify WEBVTT header
-    expect(savedContent).toMatch(/^WEBVTT/)
-
-    // Snapshot the saved content for future comparison (normalized)
-    const normalizedSavedContent = normalizeVTTForSnapshot(savedContent)
-    expect(normalizedSavedContent).toMatchSnapshot('saved-vtt-with-new-cue.vtt')
-
-    console.log('✓ Saved VTT file content verified')
+    console.log('✓ Saved captions file content verified')
   })
 
-  test('should save-as VTT file to new location and update UI', async () => {
-    // Setup: Copy the original sample file
-    console.log('Setup: Creating initial VTT file for save-as test')
-    const sourceVtt = path.join(getProjectRoot(), 'test_data/sample.vtt')
-    await fs.copyFile(sourceVtt, testVttPath)
+  test('should save-as captions file to new location and update UI', async ({ page }) => {
+    window = page
+    console.log('Setup: Loading initial captions file for save-as test')
+    const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: initialCaptions, filePath: testCaptionsPath })
 
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        testVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
-
-    // Verify window loaded successfully
-    const isWindowClosed = window.isClosed()
-    console.log('Window closed after launch?', isWindowClosed)
-    if (isWindowClosed) {
-      throw new Error('Window closed unexpectedly after launch')
-    }
+    await window.waitForFunction(
+      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      testCaptionsPath,
+      { timeout: 5000 }
+    )
 
     // Step 6: Test updateFilePath functionality and verify file save
     console.log('Step 6: Testing Save As functionality')
@@ -224,7 +167,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
       return store.document.filePath
     })
     console.log('Initial file path:', initialFilePath)
-    expect(initialFilePath).toBe(testVttPath)
+    expect(initialFilePath).toBe(testCaptionsPath)
 
     // Simulate what Save As does: export content and update file path
     const exportedContent = await window.evaluate(() => {
@@ -260,14 +203,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Step 7: Final verification of the file on disk
     const savedAsContent = await fs.readFile(saveAsPath, 'utf-8')
-    expect(savedAsContent).toContain('Welcome to the VTT Editor!')
-    expect(savedAsContent).toContain('This is a sample caption file.')
-
-    // Snapshot the save-as content (normalized)
-    const normalizedSaveAsContent = normalizeVTTForSnapshot(savedAsContent)
+    const savedAsDoc = JSON.parse(savedAsContent)
+    expect(JSON.stringify(savedAsDoc)).toContain('Welcome to the Caption Editor!')
+    expect(JSON.stringify(savedAsDoc)).toContain('This is a sample caption file.')
 
     // Verify both files exist
-    const originalExists = await fs.access(testVttPath).then(() => true).catch(() => false)
+    const originalExists = await fs.access(testCaptionsPath).then(() => true).catch(() => false)
     const saveAsExists = await fs.access(saveAsPath).then(() => true).catch(() => false)
 
     expect(originalExists).toBe(true)
@@ -277,43 +218,56 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('✅ Save As test completed successfully!')
   })
 
-  test('should load, modify, and save speaker_name field via table UI', async () => {
-    // Step 1: Copy the OSR test file which has speaker names to temp directory
-    console.log('Step 1: Setting up test with OSR file containing speaker names')
-    const osrSourceVtt = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.vtt')
-    const osrVttPath = path.join(tempDir, 'osr-test-speakers.vtt')
+  test('should load, modify, and save speaker_name field via table UI', async ({ page }) => {
+    window = page
+    // Step 1: Set up a captions JSON document containing speaker names
+    console.log('Step 1: Setting up test document with speaker names')
+    const osrCaptionsPath = path.join(tempDir, 'osr-test-speakers.captions.json')
     const osrMediaFileName = 'OSR_us_000_0010_8k.wav'
     const osrMediaPath = path.join(getProjectRoot(), 'test_data', osrMediaFileName)
     const tempOsrMediaPath = path.join(tempDir, osrMediaFileName)
 
-    // Copy original OSR files to temp testing dir
-    await fs.copyFile(osrSourceVtt, osrVttPath) // Copy the VTT file
+    // Copy media file to temp dir (so relative mediaFilePath works)
     if (await fs.stat(osrMediaPath).catch(() => null)) { // Check if media file exists in source
       await fs.copyFile(osrMediaPath, tempOsrMediaPath) // Copy media file to temp
     }
 
-    // Step 2: Launch Electron with the OSR test file
-    console.log('Step 2: Launching Electron with OSR file:', osrVttPath)
-    electronApp = await electron.launch({
-      args: [
-        path.join(getElectronMainPath()),
-        '--no-sandbox',
-        osrVttPath
-      ],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
+    // Write captions document
+    const osrDoc = {
+      metadata: { id: 'osr-doc', mediaFilePath: osrMediaFileName },
+      segments: [
+        { id: 'osr-1', startTime: 0, endTime: 1, text: 'The birch canoe slid on the smooth planks.', speakerName: 'Alice' },
+        { id: 'osr-2', startTime: 1, endTime: 2, text: 'Glue the sheet to the dark blue background.' },
+        { id: 'osr-3', startTime: 2, endTime: 3, text: 'The juice of lemons makes fine punch.', speakerName: 'Bob' }
+      ]
+    }
+    await fs.writeFile(osrCaptionsPath, JSON.stringify(osrDoc, null, 2), 'utf-8')
 
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-    await window.waitForTimeout(2000)
+    // Step 2: Load the OSR test document into the shared renderer store
+    console.log('Step 2: Loading OSR captions into store:', osrCaptionsPath)
+    const osrContent = await fs.readFile(osrCaptionsPath, 'utf-8')
+    await window.evaluate(({ content, filePath }) => {
+      const store = (window as any).$store
+      store.loadFromFile(content, filePath)
+    }, { content: osrContent, filePath: osrCaptionsPath })
+
+    await window.waitForFunction(
+      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      osrCaptionsPath,
+      { timeout: 5000 }
+    )
 
     // Step 2.5: Verify media actually loaded
     console.log('Step 2.5: Verifying media loaded and has non-zero duration')
+    await window.waitForFunction(
+      () => {
+        const video = document.querySelector('video')
+        const audio = document.querySelector('audio')
+        const media = (video || audio) as HTMLMediaElement | null
+        return !!media && Number.isFinite(media.duration) && media.duration > 0
+      },
+      { timeout: 15000 }
+    )
     const mediaStatus = await window.evaluate(() => {
       const video = document.querySelector('video')
       const audio = document.querySelector('audio')
@@ -332,67 +286,67 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log(`✓ Media duration detected: ${mediaStatus.duration}`)
 
     // Step 3: Verify speaker names are loaded correctly
-    console.log('Step 3: Verifying speaker names loaded from VTT file')
+    console.log('Step 3: Verifying speaker names loaded from captions file')
 
     const speakerData = await window.evaluate(() => {
       const store = (window as any).$store
-      const cues = store.document.segments
-      return cues.map((cue: any) => ({
-        id: cue.id,
-        text: cue.text.substring(0, 30),
-        speakerName: cue.speakerName
+      const segments = store.document.segments
+      return segments.map((segment: any) => ({
+        id: segment.id,
+        text: segment.text.substring(0, 30),
+        speakerName: segment.speakerName
       }))
     })
 
-    console.log('Loaded cues with speaker data:', speakerData)
+    console.log('Loaded segments with speaker data:', speakerData)
 
-    // First cue should have Alice
+    // First segment should have Alice
     expect(speakerData[0].speakerName).toBe('Alice')
-    console.log('✓ First cue has speaker "Alice"')
+    console.log('✓ First segment has speaker "Alice"')
 
-    // Second cue should have no speaker
+    // Second segment should have no speaker
     expect(speakerData[1].speakerName).toBeUndefined()
-    console.log('✓ Second cue has no speaker (as expected)')
+    console.log('✓ Second segment has no speaker (as expected)')
 
-    // Third cue should have Bob
+    // Third segment should have Bob
     expect(speakerData[2].speakerName).toBe('Bob')
-    console.log('✓ Third cue has speaker "Bob"')
+    console.log('✓ Third segment has speaker "Bob"')
 
     // Step 4: Modify the first speaker name from "Alice" to "Charlie" via the table
     console.log('Step 4: Modifying first speaker name from Alice to Charlie')
 
-    const firstCueId = speakerData[0].id
-    await window.evaluate((cueId) => {
+    const firstSegmentId = speakerData[0].id
+    await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      store.updateCue(cueId, { speakerName: 'Charlie' })
-    }, firstCueId)
+      store.updateSegment(segmentId, { speakerName: 'Charlie' })
+    }, firstSegmentId)
 
     // Verify the update
-    const updatedFirstSpeaker = await window.evaluate((cueId) => {
+    const updatedFirstSpeaker = await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      const cue = store.document.segments.find((c: any) => c.id === cueId)
-      return cue?.speakerName
-    }, firstCueId)
+      const segment = store.document.segments.find((s: any) => s.id === segmentId)
+      return segment?.speakerName
+    }, firstSegmentId)
     expect(updatedFirstSpeaker).toBe('Charlie')
     console.log('✓ First speaker updated to "Charlie"')
 
-    // Step 5: Add speaker name "Diana" to second cue that didn't have one
-    console.log('Step 5: Adding speaker name "Diana" to second cue')
+    // Step 5: Add speaker name "Diana" to second segment that didn't have one
+    console.log('Step 5: Adding speaker name "Diana" to second segment')
 
-    const secondCueId = speakerData[1].id
-    await window.evaluate((cueId) => {
+    const secondSegmentId = speakerData[1].id
+    await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      store.updateCue(cueId, { speakerName: 'Diana' })
-    }, secondCueId)
+      store.updateSegment(segmentId, { speakerName: 'Diana' })
+    }, secondSegmentId)
 
     // Verify the addition
-    const newSecondSpeaker = await window.evaluate((cueId) => {
+    const newSecondSpeaker = await window.evaluate((segmentId) => {
       const store = (window as any).$store
-      const cue = store.document.segments.find((c: any) => c.id === cueId)
-      return cue?.speakerName
-    }, secondCueId)
+      const segment = store.document.segments.find((s: any) => s.id === segmentId)
+      return segment?.speakerName
+    }, secondSegmentId)
     expect(newSecondSpeaker).toBe('Diana')
-    console.log('✓ Second cue now has speaker "Diana"')
+    console.log('✓ Second segment now has speaker "Diana"')
 
     // Step 6: Save the file
     console.log('Step 6: Saving file with updated speaker names')
@@ -419,39 +373,27 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     await window.waitForTimeout(500)
     console.log(`✓ Save triggered programmatically`)
 
-    // Step 7: Read and verify the saved VTT file contents
-    console.log('Step 7: Verifying saved VTT file contains updated speaker names')
+    // Step 7: Read and verify the saved captions file contents
+    console.log('Step 7: Verifying saved captions file contains updated speaker names')
 
-    const savedContent = await fs.readFile(osrVttPath, 'utf-8')
+    const savedContent = await fs.readFile(osrCaptionsPath, 'utf-8')
+    const savedDoc = JSON.parse(savedContent)
 
-    // Check that the saved content has the updated speaker names in the NOTE metadata
-    expect(savedContent).toContain('"speakerName":"Charlie"')
+    const savedSegments = savedDoc.segments as Array<any>
+    expect(savedSegments[0].speakerName).toBe('Charlie')
     console.log('✓ Saved file contains updated speaker "Charlie"')
 
-    expect(savedContent).toContain('"speakerName":"Diana"')
+    expect(savedSegments[1].speakerName).toBe('Diana')
     console.log('✓ Saved file contains new speaker "Diana"')
 
-    expect(savedContent).toContain('"speakerName":"Bob"')
+    expect(savedSegments[2].speakerName).toBe('Bob')
     console.log('✓ Saved file still contains original speaker "Bob"')
 
-    // Verify it should NOT contain Alice anymore (changed to Charlie)
-    // Count occurrences - Alice should only appear in history, not in current cues
-    const aliceMatches = savedContent.match(/"speakerName":"Alice"/g)
-    // Alice should appear in history but not in current cue NOTE metadata
-    // Since we have history entries, Alice might appear there
-    console.log('✓ Alice reference count:', aliceMatches?.length || 0, '(should be in history only)')
-
-    // Verify the file still has valid VTT structure
-    expect(savedContent).toMatch(/^WEBVTT/)
     expect(savedContent).toContain('The birch canoe slid on the smooth planks.')
     expect(savedContent).toContain('Glue the sheet to the dark blue background.')
     expect(savedContent).toContain('The juice of lemons makes fine punch.')
 
-    // Snapshot the saved content (normalized for dynamic values)
-    const normalizedContent = normalizeVTTForSnapshot(savedContent)
-    expect(normalizedContent).toMatchSnapshot('saved-vtt-with-speaker-names.vtt')
-
-    console.log('✓ Saved VTT file verified with speaker names')
+    console.log('✓ Saved captions file verified with speaker names')
     console.log('✅ Speaker name test completed successfully!')
   })
 })

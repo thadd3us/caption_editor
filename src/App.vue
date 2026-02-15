@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { useVTTStore } from './stores/vttStore'
+import { useCaptionStore } from './stores/captionStore'
 import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
@@ -76,27 +76,25 @@ import AsrModal from './components/AsrModal.vue'
 import GenericConfirmDialog from './components/GenericConfirmDialog.vue'
 import GenericAlertDialog from './components/GenericAlertDialog.vue'
 import packageJson from '../package.json'
+import { exportDocumentToSrt } from './utils/srt'
 
 // Log version on startup
 console.log(`========================================`)
-console.log(`VTT Caption Editor v${packageJson.version}`)
+console.log(`Caption Editor v${packageJson.version}`)
 console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' : 'Browser'}`)
 console.log(`========================================`)
 
-const store = useVTTStore()
-
-// Expose store to window for testing
-;(window as any).__vttStore = store
+const store = useCaptionStore()
 
 const leftPanelWidth = ref(60)
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
 const isBulkSetSpeakerDialogOpen = ref(false)
 const bulkSetRowCount = ref(0)
-const selectedCueIdsForBulkSet = ref<string[]>([])
+const selectedSegmentIdsForBulkSet = ref<string[]>([])
 const isDeleteConfirmDialogOpen = ref(false)
 const deleteRowCount = ref(0)
-const selectedCueIdsForDelete = ref<string[]>([])
+const selectedSegmentIdsForDelete = ref<string[]>([])
 let isResizing = false
 
 // ASR state
@@ -166,6 +164,12 @@ async function showAlert(options: {
 // Track if we've already attempted auto-load for the current document
 const attemptedAutoLoad = ref<string | null>(null)
 
+// Test helper: shared Electron E2E tests reset the store between tests, but
+// App-level refs like this one can otherwise leak across tests.
+;(window as any).__resetAttemptedAutoLoad = () => {
+  attemptedAutoLoad.value = null
+}
+
 function openRenameSpeakerDialog() {
   // Check if there are any speakers in the document
   const hasSpeakers = store.document.segments.some(
@@ -193,23 +197,29 @@ function openBulkSetSpeakerDialog(event: Event) {
   const { rowCount } = customEvent.detail
 
   // Get the currently selected rows from CaptionTable
-  // We need to get the cue IDs from the grid
+  // We need to get the segment IDs from the grid
   const selectedRows = (window as any).__captionTableSelectedRows || []
 
   bulkSetRowCount.value = rowCount
-  selectedCueIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
+  selectedSegmentIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
   isBulkSetSpeakerDialogOpen.value = true
 }
 
 function closeBulkSetSpeakerDialog() {
   isBulkSetSpeakerDialogOpen.value = false
-  selectedCueIdsForBulkSet.value = []
+  selectedSegmentIdsForBulkSet.value = []
   bulkSetRowCount.value = 0
 }
 
 function handleBulkSetSpeaker({ speakerName }: { speakerName: string }) {
-  console.log('Bulk setting speaker to:', speakerName, 'for', selectedCueIdsForBulkSet.value.length, 'cues')
-  store.bulkSetSpeaker(selectedCueIdsForBulkSet.value, speakerName)
+  console.log(
+    'Bulk setting speaker to:',
+    speakerName,
+    'for',
+    selectedSegmentIdsForBulkSet.value.length,
+    'segments'
+  )
+  store.bulkSetSpeaker(selectedSegmentIdsForBulkSet.value, speakerName)
 }
 
 function openDeleteConfirmDialog(event: Event) {
@@ -220,19 +230,19 @@ function openDeleteConfirmDialog(event: Event) {
   const selectedRows = (window as any).__captionTableSelectedRows || []
 
   deleteRowCount.value = rowCount
-  selectedCueIdsForDelete.value = selectedRows.map((row: any) => row.id)
+  selectedSegmentIdsForDelete.value = selectedRows.map((row: any) => row.id)
   isDeleteConfirmDialogOpen.value = true
 }
 
 function closeDeleteConfirmDialog() {
   isDeleteConfirmDialogOpen.value = false
-  selectedCueIdsForDelete.value = []
+  selectedSegmentIdsForDelete.value = []
   deleteRowCount.value = 0
 }
 
 function handleConfirmDelete() {
-  console.log('Deleting', selectedCueIdsForDelete.value.length, 'cues')
-  store.bulkDeleteCues(selectedCueIdsForDelete.value)
+  console.log('Deleting', selectedSegmentIdsForDelete.value.length, 'segments')
+  store.bulkDeleteSegments(selectedSegmentIdsForDelete.value)
 }
 
 function startResize(e: MouseEvent) {
@@ -270,7 +280,7 @@ function startResize(e: MouseEvent) {
 }
 
 /**
- * Attempts to automatically load media file referenced in VTT metadata
+ * Attempts to automatically load media file referenced in document metadata
  * This works in Electron mode only - browser mode cannot access file system
  */
 async function attemptMediaAutoLoad() {
@@ -280,7 +290,7 @@ async function attemptMediaAutoLoad() {
 
   // Skip if no media file path in metadata
   if (!mediaFilePath) {
-    console.log('[Auto-load] No mediaFilePath in VTT metadata')
+    console.log('[Auto-load] No mediaFilePath in document metadata')
     return
   }
 
@@ -297,7 +307,7 @@ async function attemptMediaAutoLoad() {
     return
   }
 
-  console.log('[Auto-load] VTT metadata references media file:', mediaFilePath)
+  console.log('[Auto-load] Document metadata references media file:', mediaFilePath)
 
   // Mark that we've attempted auto-load for this document
   attemptedAutoLoad.value = documentId
@@ -308,7 +318,7 @@ async function attemptMediaAutoLoad() {
   if (isElectron && (window as any).electronAPI && store.document.filePath) {
     try {
       const electronAPI = (window as any).electronAPI
-      const vttFilePath = store.document.filePath
+      const captionsFilePath = store.document.filePath
 
       // Check if the media path is already absolute
       let resolvedMediaPath: string
@@ -316,17 +326,17 @@ async function attemptMediaAutoLoad() {
         // Path is already absolute, use it directly
         resolvedMediaPath = mediaFilePath
       } else {
-        // Path is relative, resolve it relative to the VTT file directory
+        // Path is relative, resolve it relative to the captions file directory
         if (electronAPI.path) {
-          const vttDir = electronAPI.path.dirname(vttFilePath)
-          resolvedMediaPath = electronAPI.path.resolve(vttDir, mediaFilePath)
+          const captionsDir = electronAPI.path.dirname(captionsFilePath)
+          resolvedMediaPath = electronAPI.path.resolve(captionsDir, mediaFilePath)
         } else {
           // Fallback to manual path concatenation if path API not available
-          const vttDir = vttFilePath.substring(0, Math.max(
-            vttFilePath.lastIndexOf('/'),
-            vttFilePath.lastIndexOf('\\')
+          const captionsDir = captionsFilePath.substring(0, Math.max(
+            captionsFilePath.lastIndexOf('/'),
+            captionsFilePath.lastIndexOf('\\')
           ))
-          resolvedMediaPath = vttDir + '/' + mediaFilePath.replace(/\\/g, '/')
+          resolvedMediaPath = captionsDir + '/' + mediaFilePath.replace(/\\/g, '/')
         }
       }
 
@@ -346,7 +356,7 @@ async function attemptMediaAutoLoad() {
           console.warn('[Auto-load] Failed to convert media file to URL:', urlResult.error)
         }
       } else {
-        console.warn('[Auto-load] Media file referenced in VTT metadata not found:', resolvedMediaPath)
+        console.warn('[Auto-load] Media file referenced in metadata not found:', resolvedMediaPath)
       }
     } catch (err) {
       console.error('[Auto-load] Error auto-loading media file:', err)
@@ -416,7 +426,7 @@ async function handleMenuSaveFile() {
     return
   }
 
-  console.log('Saving VTT file to:', store.document.filePath)
+  console.log('Saving captions file to:', store.document.filePath)
   try {
     const content = store.exportToString()
 
@@ -426,23 +436,23 @@ async function handleMenuSaveFile() {
     })
 
     if (result.success) {
-      console.log('VTT file saved successfully to:', result.filePath)
+      console.log('Captions file saved successfully to:', result.filePath)
       store.setIsDirty(false)
       if (result.filePath && result.filePath !== store.document.filePath) {
         store.updateFilePath(result.filePath)
       }
     } else {
-      console.error('Failed to save VTT:', result.error)
+      console.error('Failed to save captions:', result.error)
       await showAlert({
         title: 'Save Failed',
-        message: 'Failed to save VTT file: ' + result.error
+        message: 'Failed to save captions file: ' + result.error
       })
     }
   } catch (err) {
-    console.error('Failed to save VTT:', err)
+    console.error('Failed to save captions:', err)
     await showAlert({
       title: 'Save Error',
-      message: 'Failed to save VTT file: ' + (err instanceof Error ? err.message : 'Unknown error')
+      message: 'Failed to save captions file: ' + (err instanceof Error ? err.message : 'Unknown error')
     })
   }
 }
@@ -453,33 +463,55 @@ async function handleMenuSaveAs() {
     return
   }
 
-  console.log('Exporting VTT file')
+  console.log('Exporting captions file')
   try {
     const content = store.exportToString()
 
     const result = await window.electronAPI.saveFile({
       content,
-      suggestedName: store.document.filePath || 'captions.vtt'
+      suggestedName: store.document.filePath || 'captions.captions.json'
     })
 
     if (result.success) {
-      console.log('VTT file saved successfully:', result.filePath)
+      console.log('Captions file saved successfully:', result.filePath)
       store.setIsDirty(false)
       if (result.filePath) {
         store.updateFilePath(result.filePath)
       }
     } else if (result.error !== 'Save canceled') {
-      console.error('Failed to save VTT:', result.error)
+      console.error('Failed to save captions:', result.error)
       await showAlert({
         title: 'Save Failed',
-        message: 'Failed to save VTT file: ' + result.error
+        message: 'Failed to save captions file: ' + result.error
       })
     }
   } catch (err) {
-    console.error('Failed to export VTT:', err)
+    console.error('Failed to export captions:', err)
     await showAlert({
       title: 'Save Error',
-      message: 'Failed to export VTT file: ' + (err instanceof Error ? err.message : 'Unknown error')
+      message: 'Failed to export captions file: ' + (err instanceof Error ? err.message : 'Unknown error')
+    })
+  }
+}
+
+async function handleMenuExportSrt() {
+  if (!window.electronAPI) return
+  try {
+    const srtContent = exportDocumentToSrt(store.document)
+    const result = await (window.electronAPI as any).saveSrtFile({
+      content: srtContent,
+      suggestedName: 'captions.srt'
+    })
+    if (!result.success && result.error !== 'Save canceled') {
+      await showAlert({
+        title: 'Export Failed',
+        message: 'Failed to export SRT: ' + result.error
+      })
+    }
+  } catch (err) {
+    await showAlert({
+      title: 'Export Error',
+      message: 'Failed to export SRT: ' + (err instanceof Error ? err.message : 'Unknown error')
     })
   }
 }
@@ -500,12 +532,12 @@ async function handleMenuAsrCaption() {
 async function handleMenuAsrEmbed() {
   console.log('[ASR] Embed menu item clicked')
   
-  // We need to ensure the VTT file is saved before embedding
+  // We need to ensure the captions file is saved before embedding
   if (!store.document.filePath) {
     // If no file path, ask user to save it first
     await showAlert({
       title: 'Save Required',
-      message: 'Please save the VTT file before computing speaker embeddings.'
+      message: 'Please save the captions file before computing speaker embeddings.'
     })
     handleMenuSaveAs()
     return
@@ -521,7 +553,7 @@ async function handleMenuAsrEmbed() {
   if (!result.success) {
     await showAlert({
       title: 'Save Failed',
-      message: 'Failed to save VTT file before embedding: ' + result.error
+      message: 'Failed to save captions file before embedding: ' + result.error
     })
     return
   }
@@ -554,7 +586,7 @@ async function startAsrEmbedding() {
     const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
     
     const result = await window.electronAPI.asr.embed({
-      vttPath: store.document.filePath,
+      captionsPath: store.document.filePath,
       model
     })
 
@@ -571,10 +603,10 @@ async function startAsrEmbedding() {
 
     console.log('[ASR] Embedding completed successfully')
 
-    // Reload the VTT file with embeddings using content returned from main
+    // Reload the captions file with embeddings using content returned from main
     if (result.content) {
       store.loadFromFile(result.content, store.document.filePath!)
-      console.log('[ASR] VTT file reloaded with embeddings')
+      console.log('[ASR] Captions file reloaded with embeddings')
     } else {
       throw new Error('Embedding succeeded but no content was returned')
     }
@@ -636,14 +668,14 @@ async function startAsrTranscription() {
     }
 
     if (result.success) {
-      console.log('[ASR] Transcription completed successfully:', result.vttPath)
+      console.log('[ASR] Transcription completed successfully:', result.captionsPath)
 
-      // Load the generated VTT file using the content returned directly from the main process
-      if (result.content) {
-        store.loadFromFile(result.content, result.vttPath)
-        console.log('[ASR] VTT file loaded successfully')
+      // Load the generated captions JSON using the content returned directly from the main process
+      if (result.content && result.captionsPath) {
+        store.loadFromFile(result.content, result.captionsPath)
+        console.log('[ASR] Captions file loaded successfully')
       } else {
-        throw new Error('Transcription succeeded but no VTT content was returned')
+        throw new Error('Transcription succeeded but no captions content was returned')
       }
 
       // Close modal on success
@@ -739,6 +771,7 @@ onMounted(() => {
       ipcRenderer.on('menu-open-file', handleMenuOpenFile)
       ipcRenderer.on('menu-save-file', handleMenuSaveFile)
       ipcRenderer.on('menu-save-as', handleMenuSaveAs)
+      ipcRenderer.on('menu-export-srt', handleMenuExportSrt)
       ipcRenderer.on('menu-rename-speaker', openRenameSpeakerDialog)
       ipcRenderer.on('menu-compute-speaker-similarity', () => {
         // Dispatch custom event that CaptionTable will listen for
@@ -808,6 +841,19 @@ onMounted(() => {
   padding: 0;
 }
 
+/* Restore ag-grid filter popup default styles */
+.ag-popup .ag-filter {
+  padding: 6px;
+}
+.ag-popup .ag-filter-body-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ag-popup .ag-picker-field-wrapper {
+  min-height: 24px;
+}
+
 html, body, #app {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -818,6 +864,8 @@ html, body, #app {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: var(--app-bg);
+  color: var(--text-1);
 }
 
 .main-content {
@@ -832,24 +880,26 @@ html, body, #app {
 
 .left-panel {
   height: 100%;
-  overflow: auto;
-  background: #f5f5f5;
+  overflow: visible;
+  background: var(--surface-1);
+  display: flex;
+  flex-direction: column;
 }
 
 .resizer {
   width: 4px;
-  background: #ddd;
+  background: var(--border-1);
   cursor: col-resize;
   flex-shrink: 0;
 }
 
 .resizer:hover {
-  background: #999;
+  background: var(--border-2);
 }
 
 .right-panel {
   height: 100%;
   overflow: auto;
-  background: #fff;
+  background: var(--surface-2);
 }
 </style>

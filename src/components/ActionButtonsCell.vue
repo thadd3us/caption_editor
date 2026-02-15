@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 interface Props {
   params?: {
@@ -26,7 +26,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const store = useVTTStore()
+const store = useCaptionStore()
 
 // Support both AG Grid (params.data) and direct usage (data)
 const rowData = computed(() => props.params?.data || props.data)
@@ -48,8 +48,8 @@ function playSnippet() {
 
 .action-btn {
   padding: 4px 8px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid var(--border-1);
+  background: var(--surface-2);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -57,7 +57,7 @@ function playSnippet() {
 }
 
 .action-btn:hover {
-  background: #f0f0f0;
-  border-color: #999;
+  background: var(--surface-hover);
+  border-color: var(--border-2);
 }
 </style>

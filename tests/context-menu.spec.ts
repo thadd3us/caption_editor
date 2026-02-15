@@ -1,70 +1,30 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Context Menu', () => {
-  let electronApp: ElectronApplication
+test.describe('Caption Editor - Context Menu', () => {
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-
+  test.beforeEach(async ({ page }) => {
+    window = page
     // Wait for AG Grid to be ready (more reliable than waiting for store)
     await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
-  test.afterEach(async () => {
-    if (electronApp) {
-      // Best effort to clear dirty state if window is still open
-      try {
-        if (window && !window.isClosed()) {
-          await window.evaluate(() => {
-            const store = (window as any).$store
-            if (store) store.setIsDirty(false)
-          })
-        }
-      } catch (e) {
-        // Ignore errors during cleanup
-      }
-      await electronApp.close().catch(() => { })
-    }
-  })
-
   test('should show context menu with both options when rows are selected', async () => {
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'context-menu-doc' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -74,12 +34,12 @@ Second`
 
     // Simulate context menu by directly setting the state
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         // Store selected rows
@@ -113,20 +73,17 @@ Second`
   })
 
   test('should open bulk set speaker dialog when context menu option is triggered', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'bulk-set-dialog-doc' },
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Test' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Test"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Test`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -136,11 +93,11 @@ Test`
 
     // Trigger bulk set speaker dialog via event (simulating context menu selection)
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
 
@@ -161,20 +118,17 @@ Test`
   })
 
   test('should open delete confirmation dialog when context menu option is triggered', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'delete-dialog-doc' },
+        segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Test' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Test"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Test`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -184,11 +138,11 @@ Test`
 
     // Trigger delete confirmation dialog via event (simulating context menu selection)
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
-      const selectedRows = [{ id: cues[0].id, text: cues[0].text }]
+      const segments = store.document.segments
+      const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
 
@@ -209,26 +163,20 @@ Test`
   })
 
   test('should handle both context menu actions in sequence', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'context-menu-seq-doc' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -238,13 +186,13 @@ Second`
 
     // First action: Bulk set speaker
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text },
-        { id: cues[1].id, text: cues[1].text }
+        { id: segments[0].id, text: segments[0].text },
+        { id: segments[1].id, text: segments[1].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -274,9 +222,9 @@ Second`
 
     // Verify speaker was set
     const speakerNames = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments.map((cue: any) => cue.speakerName)
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments.map((segment: any) => segment.speakerName)
     })
 
     expect(speakerNames[0]).toBe('Alice')
@@ -284,12 +232,12 @@ Second`
 
     // Second action: Delete one of the rows
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const cues = vttStore.document.segments
+      const segments = store.document.segments
       const selectedRows = [
-        { id: cues[0].id, text: cues[0].text }
+        { id: segments[0].id, text: segments[0].text }
       ]
 
         ; (window as any).__captionTableSelectedRows = selectedRows
@@ -316,14 +264,14 @@ Second`
     })
 
     // Verify only one row remains
-    const remainingCues = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return null
-      return vttStore.document.segments
+    const remainingSegments = await window.evaluate(() => {
+      const store = (window as any).$store
+      if (!store) return null
+      return store.document.segments
     })
 
-    expect(remainingCues).toHaveLength(1)
-    expect(remainingCues[0].text).toBe('Second')
-    expect(remainingCues[0].speakerName).toBe('Alice')
+    expect(remainingSegments).toHaveLength(1)
+    expect(remainingSegments[0].text).toBe('Second')
+    expect(remainingSegments[0].speakerName).toBe('Alice')
   })
 })

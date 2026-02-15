@@ -1,54 +1,44 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
-import * as path from 'path'
-import { enableConsoleCapture } from './helpers/console'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Merge Adjacent Segments', () => {
-  let electronApp: ElectronApplication
+test.describe('Caption Editor - Merge Adjacent Segments', () => {
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
+  test.beforeEach(async ({ page }) => {
+    window = page
+    // Ensure grid is mounted before asserting UI reactions.
+    await window.waitForSelector('.ag-root', { timeout: 10000 })
+  })
+
+  async function getDisplayedRowData(): Promise<any[]> {
+    return await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi?.getDisplayedRowCount) return []
+      const rows: any[] = []
+      const n = gridApi.getDisplayedRowCount()
+      for (let i = 0; i < n; i++) {
+        const row = gridApi.getDisplayedRowAtIndex(i)
+        if (row?.data) rows.push(row.data)
       }
+      return rows
     })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
+  }
 
   test('should merge two adjacent segments', async () => {
-    // Load VTT with two adjacent segments
+    // Load captions JSON with two adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'Hello', rating: 3 },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'world', rating: 5 }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"Hello","rating":3}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-Hello
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"world","rating":5}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-world`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -56,18 +46,21 @@ world`
       return store?.document?.segments?.length === 2
     })
 
-    // Verify we have 2 segments initially
-    const initialSegments = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore.document.segments
+    // Verify UI shows 2 rows initially
+    await window.waitForFunction(() => {
+      const gridApi = (window as any).__agGridApi
+      return gridApi?.getDisplayedRowCount?.() === 2
     })
-    expect(initialSegments).toHaveLength(2)
+    const beforeRows = await getDisplayedRowData()
+    expect(beforeRows).toHaveLength(2)
+    expect(beforeRows[0].text).toBe('Hello')
+    expect(beforeRows[1].text).toBe('world')
 
     // Merge the adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      const segments = vttStore.document.segments
-      vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
+      const store = (window as any).$store
+      const segments = store.document.segments
+      store.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
     await window.waitForFunction(() => {
@@ -75,46 +68,43 @@ world`
       return store?.document?.segments?.length === 1
     })
 
-    // Verify we have 1 merged segment
-    const mergedSegments = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore.document.segments
+    // Verify UI reacts (grid rows + caption display)
+    await window.waitForFunction(() => {
+      const gridApi = (window as any).__agGridApi
+      return gridApi?.getDisplayedRowCount?.() === 1
     })
+    const mergedSegments = await getDisplayedRowData()
 
     expect(mergedSegments).toHaveLength(1)
     expect(mergedSegments[0].text).toBe('Hello world')
     expect(mergedSegments[0].startTime).toBe(0)
     expect(mergedSegments[0].endTime).toBe(10)
     expect(mergedSegments[0].rating).toBe(5) // highest rating
+
+    // Ensure MediaPlayer renders the merged caption at an in-range time.
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      store.setCurrentTime(1.0)
+    })
+    await expect(window.locator('.caption-text')).toContainText('Hello world')
   })
 
   test('should merge three adjacent segments', async () => {
-    // Load VTT with three adjacent segments
+    // Load captions JSON with three adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) return
+      const store = (window as any).$store
+      if (!store) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'One' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'Two' },
+          { id: 'seg3', startTime: 10, endTime: 15, text: 'Three' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"One"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-One
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"Two"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-Two
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg3","startTime":10,"endTime":15,"text":"Three"}
-
-seg3
-00:00:10.000 --> 00:00:15.000
-Three`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -124,9 +114,9 @@ Three`
 
     // Merge all three adjacent segments
     await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      const segments = vttStore.document.segments
-      vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id, segments[2].id])
+      const store = (window as any).$store
+      const segments = store.document.segments
+      store.mergeAdjacentSegments([segments[0].id, segments[1].id, segments[2].id])
     })
 
     await window.waitForFunction(() => {
@@ -134,16 +124,22 @@ Three`
       return store?.document?.segments?.length === 1
     })
 
-    // Verify we have 1 merged segment
-    const mergedSegments = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      return vttStore.document.segments
+    await window.waitForFunction(() => {
+      const gridApi = (window as any).__agGridApi
+      return gridApi?.getDisplayedRowCount?.() === 1
     })
+    const mergedSegments = await getDisplayedRowData()
 
     expect(mergedSegments).toHaveLength(1)
     expect(mergedSegments[0].text).toBe('One Two Three')
     expect(mergedSegments[0].startTime).toBe(0)
     expect(mergedSegments[0].endTime).toBe(15)
+
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      store.setCurrentTime(6.0)
+    })
+    await expect(window.locator('.caption-text')).toContainText('One Two Three')
   })
 
   test('should not merge non-adjacent segments', async () => {
@@ -152,27 +148,16 @@ Three`
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'One' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'Two' },
+          { id: 'seg3', startTime: 10, endTime: 15, text: 'Three' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"One"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-One
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"Two"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-Two
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg3","startTime":10,"endTime":15,"text":"Three"}
-
-seg3
-00:00:10.000 --> 00:00:15.000
-Three`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -203,26 +188,20 @@ Three`
   })
 
   test('should preserve speaker name when merging', async () => {
-    // Load VTT with segments that have speaker names
+    // Load captions JSON with segments that have speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'Hello' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'there', speakerName: 'Alice' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"Hello"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-Hello
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"there","speakerName":"Alice"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-there`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -258,27 +237,16 @@ there`
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'One' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'Two' },
+          { id: 'seg3', startTime: 10, endTime: 15, text: 'Three' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"One"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-One
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"Two"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-Two
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg3","startTime":10,"endTime":15,"text":"Three"}
-
-seg3
-00:00:10.000 --> 00:00:15.000
-Three`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -371,26 +339,20 @@ Three`
   })
 
   test('should add history entries for merged segments', async () => {
-    // Load VTT with two segments
+    // Load captions JSON with two segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'Hello' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'world' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"Hello"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-Hello
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"world"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-world`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {

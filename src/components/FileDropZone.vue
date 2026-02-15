@@ -9,7 +9,7 @@
   >
     <div class="drop-zone-content">
       <div class="drop-icon">📁</div>
-      <p>Drop VTT or media files here</p>
+      <p>Drop captions, SRT, or media files here</p>
       <p class="drop-hint">You can drop both at the same time</p>
     </div>
   </div>
@@ -17,9 +17,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const showDropZone = ref(false)
 
 // Use a counter to handle dragenter/dragleave correctly for nested elements
@@ -141,7 +141,7 @@ defineExpose({
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,7 +151,7 @@ defineExpose({
 }
 
 .drop-zone-content {
-  background: white;
+  background: var(--surface-popover);
   padding: 60px;
   border-radius: 12px;
   text-align: center;
@@ -166,12 +166,12 @@ defineExpose({
 
 .drop-zone-content p {
   font-size: 20px;
-  color: #333;
+  color: var(--text-1);
   margin: 10px 0;
 }
 
 .drop-hint {
   font-size: 14px !important;
-  color: #666 !important;
+  color: var(--text-2) !important;
 }
 </style>

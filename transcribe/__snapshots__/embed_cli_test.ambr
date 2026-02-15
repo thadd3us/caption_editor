@@ -1,0 +1,37 @@
+# serializer version: 1
+# name: test_embed_osr_audio
+  list([
+    dict({
+      'embedding': list([
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+      ]),
+      'segment_id': 'id_00000',
+      'shape': 192,
+    }),
+    dict({
+      'embedding': list([
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+      ]),
+      'segment_id': 'id_00001',
+      'shape': 192,
+    }),
+  ])
+# ---

@@ -142,8 +142,8 @@ if (result.success) {
 ```typescript
 // Renderer side
 const result = await window.electronAPI.saveFile({
-  content: vttContent,
-  suggestedName: 'captions.vtt'
+  content: captionsJsonContent,
+  suggestedName: 'captions.captions.json'
 })
 ```
 

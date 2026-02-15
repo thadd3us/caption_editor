@@ -1,7 +1,12 @@
 <template>
   <div class="media-player">
     <div v-if="hasMedia && mediaFileName" class="media-info">
-      <span class="media-filename">📁 {{ mediaFileName }}</span>
+      <button 
+        class="show-in-finder-btn" 
+        @click="showMediaInFinder" 
+        data-tooltip="Reveal media file in Finder"
+      >📁</button>
+      <span class="media-filename">{{ mediaFileName }}</span>
     </div>
     <div class="video-container">
       <video
@@ -31,12 +36,6 @@
     </div>
 
     <div class="controls">
-      <div class="caption-controls">
-        <button @click="addCaptionAtCurrentTime" class="add-caption-btn" :disabled="!hasMedia">
-          ➕ Add Caption at Current Position
-        </button>
-      </div>
-
       <div class="playback-controls">
         <button @click="togglePlayPause" class="control-btn" :disabled="!hasMedia">
           {{ store.isPlaying ? '⏸️' : '▶️' }}
@@ -61,9 +60,9 @@
           class="caption-text"
           @contextmenu="onCaptionContextMenu"
         >
-          <template v-if="currentCue && currentCue.words && currentCue.words.length > 0">
+          <template v-if="currentSegment && currentSegment.words && currentSegment.words.length > 0">
             <span
-              v-for="(word, index) in currentCue.words"
+              v-for="(word, index) in currentSegment.words"
               :key="index"
               class="word-span"
               :data-word-index="index"
@@ -89,11 +88,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore, PlaybackMode } from '../stores/vttStore'
+import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const videoElement = ref<HTMLVideoElement | null>(null)
 const audioElement = ref<HTMLAudioElement | null>(null)
 const duration = ref(0)
@@ -105,7 +104,7 @@ const isManualScrub = ref(false)  // Track if user is manually scrubbing
 const isContextMenuVisible = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
-const currentCue = computed(() => store.currentCue)
+const currentSegment = computed(() => store.currentSegment)
 
 const mediaElement = computed(() => videoElement.value || audioElement.value)
 const hasMedia = computed(() => !!store.mediaPath)
@@ -117,8 +116,8 @@ const isVideo = computed(() => {
 })
 
 const mediaFileName = computed(() => {
-  // Display exactly what will be saved in VTT metadata (document.metadata.mediaFilePath)
-  // This is typically a relative path (e.g., just filename) when media is in same dir as VTT
+  // Display exactly what will be saved in document metadata (document.metadata.mediaFilePath)
+  // This is typically a relative path (e.g., just filename) when media is in same dir as the captions file
   if (store.mediaFilePath) return store.mediaFilePath
   if (!store.mediaPath) return ''
   // Fallback: extract filename from media URL path if metadata not available
@@ -128,15 +127,15 @@ const mediaFileName = computed(() => {
 })
 
 const currentCaptionText = computed(() => {
-  const cues = store.document.segments
+  const segments = store.document.segments
   const time = store.currentTime
 
-  // Find the cue that contains the current time (startTime <= time < endTime)
-  const cue = cues.find(cue =>
-    cue.startTime <= time && time < cue.endTime
+  // Find the segment that contains the current time (startTime <= time < endTime)
+  const seg = segments.find(seg =>
+    seg.startTime <= time && time < seg.endTime
   )
 
-  return cue ? cue.text : 'No caption at current time'
+  return seg ? seg.text : 'No caption at current time'
 })
 
 function onCaptionContextMenu(event: MouseEvent) {
@@ -152,9 +151,9 @@ function onCaptionContextMenu(event: MouseEvent) {
     if (!wordIndexStr) return
 
     const wordIndex = parseInt(wordIndexStr, 10)
-    const cue = currentCue.value
+    const segment = currentSegment.value
 
-    if (!cue) return
+    if (!segment) return
 
     // Build context menu items
     const items: ContextMenuItem[] = []
@@ -164,8 +163,8 @@ function onCaptionContextMenu(event: MouseEvent) {
       items.push({
         label: 'Split segment starting here',
         action: () => {
-          console.log('Splitting segment', cue.id, 'at word index', wordIndex)
-          store.splitSegmentAtWordIndex(cue.id, wordIndex)
+          console.log('Splitting segment', segment.id, 'at word index', wordIndex)
+          store.splitSegmentAtWordIndex(segment.id, wordIndex)
         }
       })
     } else {
@@ -285,10 +284,10 @@ function onScrub(event: Event) {
   }, 100)
 }
 
-function addCaptionAtCurrentTime() {
-  console.log('Adding caption at current time:', store.currentTime)
-  const cueId = store.addCue(store.currentTime, 5)
-  store.selectCue(cueId)
+function showMediaInFinder() {
+  if (store.mediaFilePath) {
+    window.electronAPI?.showInFolder(store.mediaFilePath)
+  }
 }
 
 function formatTime(seconds: number): string {
@@ -346,7 +345,7 @@ watch(() => store.currentTime, (time) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
 .media-info {
@@ -354,26 +353,58 @@ watch(() => store.currentTime, (time) => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: 6px;
-  margin-bottom: 12px;
-  font-size: 14px;
+  margin-bottom: 8px;
+  font-size: 13px;
 }
 
 .media-filename {
   font-weight: 500;
-  color: #495057;
+  color: var(--text-1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   margin-right: 16px;
+  font-size: 13px;
+}
+
+.show-in-finder-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  position: relative;
+}
+
+.show-in-finder-btn:hover {
+  opacity: 1;
+}
+
+.show-in-finder-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 100;
 }
 
 .media-duration {
   font-family: monospace;
-  color: #6c757d;
+  color: var(--text-2);
   white-space: nowrap;
 }
 
@@ -395,7 +426,7 @@ video, audio {
 
 .no-media {
   text-align: center;
-  color: #999;
+  color: var(--text-3);
   padding: 40px;
 }
 
@@ -406,7 +437,7 @@ video, audio {
 
 .hint {
   font-size: 14px !important;
-  color: #666 !important;
+  color: var(--text-2) !important;
 }
 
 .controls {
@@ -437,7 +468,7 @@ video, audio {
 }
 
 .control-btn:disabled {
-  background: #ccc;
+  background: var(--btn-disabled-bg);
   cursor: not-allowed;
 }
 
@@ -445,7 +476,7 @@ video, audio {
   font-family: monospace;
   font-size: 16px;
   min-width: 90px;
-  color: #333;
+  color: var(--text-1);
 }
 
 .scrubber {
@@ -456,8 +487,8 @@ video, audio {
 
 .current-caption-display {
   padding: 16px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: 6px;
   min-height: 80px;
 }
@@ -466,7 +497,7 @@ video, audio {
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--text-2);
   margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
@@ -474,7 +505,7 @@ video, audio {
 .caption-text {
   font-size: 16px;
   line-height: 1.5;
-  color: #212529;
+  color: var(--text-1);
   white-space: pre-wrap;
   word-wrap: break-word;
 }
@@ -491,33 +522,12 @@ video, audio {
 }
 
 .word-span[data-has-timestamp="false"] {
-  color: #999;
+  color: var(--text-3);
   font-style: italic;
 }
 
 .caption-controls {
   display: flex;
   gap: 12px;
-}
-
-.add-caption-btn {
-  padding: 12px 20px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.add-caption-btn:hover:not(:disabled) {
-  background: #229954;
-}
-
-.add-caption-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
 }
 </style>

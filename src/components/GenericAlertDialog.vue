@@ -44,7 +44,7 @@ function handleClose() {
 
 <style scoped>
 .alert-content {
-  color: #ddd;
+  color: var(--text-1);
 }
 
 .dialog-button {

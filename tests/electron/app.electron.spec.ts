@@ -13,7 +13,7 @@ test.describe('Electron App', () => {
 
   test('should have the correct title', async ({ page }) => {
     const title = await page.title()
-    expect(title).toBe('VTT Editor')
+    expect(title).toBe('Caption Editor')
   })
 
   test('should show the caption table header', async ({ page }) => {
@@ -42,29 +42,22 @@ test.describe('Electron App', () => {
     expect(apiMethods).toContain('processDroppedFiles')
   })
 
-  test('should load and display VTT content', async ({ page }) => {
-    // Create a temporary VTT file
-    const testVTTPath = path.join(getProjectRoot(), 'test_data/test.vtt')
-    const vttContent = `WEBVTT
+  test('should load and display captions JSON content', async ({ page }) => {
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [
+        { id: 'seg_1', startTime: 0, endTime: 5, text: 'First caption' },
+        { id: 'seg_2', startTime: 5, endTime: 10, text: 'Second caption' }
+      ]
+    })
 
-00:00:00.000 --> 00:00:05.000
-First caption
-
-00:00:05.000 --> 00:00:10.000
-Second caption
-`
-
-    // Ensure test_data directory exists
-    await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
-    await fs.writeFile(testVTTPath, vttContent)
-
-    // Load VTT file programmatically
+    // Load captions file programmatically
     await page.evaluate(async (content) => {
-      const store = (window as any).vttStore
-      if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test.vtt')
+      const store = (window as any).$store
+      if (store?.loadFromFile) {
+        store.loadFromFile(content, 'test.captions.json')
       }
-    }, vttContent)
+    }, captionsJson)
 
     // Wait for the table to update
     await page.waitForTimeout(500)
@@ -73,29 +66,23 @@ Second caption
     const captionTable = page.locator('.ag-center-cols-container')
     await expect(captionTable).toBeVisible()
 
-    // Clean up
-    await fs.unlink(testVTTPath).catch(() => {})
+    // Verify segments loaded
+    const segmentCount = await page.evaluate(() => (window as any).$store?.document?.segments?.length || 0)
+    expect(segmentCount).toBe(2)
   })
 
-  test('should be able to export VTT', async ({ page }) => {
-    // First load some content
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-123"}
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg-1","startTime":0.0,"endTime":5.0,"text":"Test caption"}
-
-seg-1
-00:00:00.000 --> 00:00:05.000
-Test caption
-`
+  test('should be able to export captions JSON', async ({ page }) => {
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'test-123' },
+      segments: [{ id: 'seg-1', startTime: 0.0, endTime: 5.0, text: 'Test caption' }]
+    })
 
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test-export.vtt')
+        store.loadFromFile(content, 'test-export.captions.json')
       }
-    }, vttContent)
+    }, captionsJson)
 
     await page.waitForTimeout(500)
 
@@ -112,41 +99,40 @@ Test caption
       return store.exportToString()
     })
 
-    // Verify the exported content is valid VTT with correct format
-    expect(exportedContent).toContain('WEBVTT')
-    expect(exportedContent).toContain('Test caption')
-    expect(exportedContent).toContain('TranscriptSegment')
-    expect(exportedContent).toContain('"id":"seg-1"')
-    expect(exportedContent).toContain('00:00:00.000 --> 00:00:05.000')
+    // Verify the exported content is valid JSON
+    const parsed = JSON.parse(exportedContent)
+    expect(parsed.metadata.id).toBe('test-123')
+    expect(parsed.segments).toHaveLength(1)
+    expect(parsed.segments[0].id).toBe('seg-1')
+    expect(parsed.segments[0].text).toBe('Test caption')
 
     console.log('✓ Export functionality verified')
   })
 
   test('should handle file drops', async ({ page }) => {
-    // Create a test VTT file
-    const testVTTPath = path.join(getProjectRoot(), 'test_data/drop-test.vtt')
-    const vttContent = `WEBVTT
-
-00:00:00.000 --> 00:00:05.000
-Dropped caption
-`
+    // Create a test captions file
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions.json')
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 0, endTime: 5, text: 'Dropped caption' }]
+    })
 
     await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
-    await fs.writeFile(testVTTPath, vttContent)
+    await fs.writeFile(testCaptionsPath, captionsJson)
 
     // Simulate file drop via electronAPI
     const result = await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return null
       return await window.electronAPI.processDroppedFiles([filePath])
-    }, testVTTPath)
+    }, testCaptionsPath)
 
     expect(result).toBeTruthy()
     expect(result).toHaveLength(1)
-    expect(result![0].type).toBe('vtt')
+    expect(result![0].type).toBe('captions_json')
     expect(result![0].content).toContain('Dropped caption')
 
     // Clean up
-    await fs.unlink(testVTTPath).catch(() => {})
+    await fs.unlink(testCaptionsPath).catch(() => {})
   })
 
   test('should respect user file selection permissions', async ({ electronApp, page }) => {

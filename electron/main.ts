@@ -1,9 +1,9 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell, nativeTheme } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, readFileSync, createReadStream, mkdirSync } from 'fs'
+import { existsSync, mkdirSync } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
-import { exec } from 'child_process'
+import { exec, type ChildProcess } from 'child_process'
 import { promisify } from 'util'
 import * as os from 'os'
 import { APP_VERSION, UV_VERSION, ASR_COMMIT_HASH, ASR_GITHUB_REPO } from './constants'
@@ -13,7 +13,9 @@ const execAsync = promisify(exec)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const vtt_files = ['vtt']
+const CAPTIONS_JSON_SUFFIX = '.captions.json'
+const captions_json_files = ['json'] // dialog filter limitation (multi-dot suffix handled by runtime checks)
+const srt_files = ['srt']
 const MIME_TYPES: Record<string, string> = {
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',
@@ -25,7 +27,7 @@ const MIME_TYPES: Record<string, string> = {
   '.flac': 'audio/flac'
 }
 const media_files = Object.keys(MIME_TYPES).map(ext => ext.substring(1))
-const all_files = vtt_files.concat(media_files)
+const all_files = captions_json_files.concat(srt_files, media_files)
 
 // Register custom protocols as privileged for media streaming
 protocol.registerSchemesAsPrivileged([
@@ -34,7 +36,7 @@ protocol.registerSchemesAsPrivileged([
 
 // Log version on startup
 console.log(`[main] ========================================`)
-console.log(`[main] VTT Caption Editor v${APP_VERSION}`)
+console.log(`[main] Caption Editor v${APP_VERSION}`)
 console.log(`[main] Electron v${process.versions.electron}`)
 console.log(`[main] Chrome v${process.versions.chrome}`)
 console.log(`[main] Node v${process.versions.node}`)
@@ -88,6 +90,17 @@ function createMenu() {
           click: () => {
             mainWindow?.webContents.send('menu-save-as')
           }
+        },
+        {
+          label: 'Export',
+          submenu: [
+            {
+              label: 'SRT...',
+              click: () => {
+                mainWindow?.webContents.send('menu-export-srt')
+              }
+            }
+          ]
         },
         { type: 'separator' as const },
         isMac ? { role: 'close' as const } : { role: 'quit' as const }
@@ -157,7 +170,7 @@ function createMenu() {
         },
         {
           label: 'Compute Speaker Embeddings for Segments',
-          enabled: false,  // Will be enabled when media and VTT are loaded
+          enabled: false,  // Will be enabled when media is loaded and segments exist
           id: 'asr-embed',
           click: () => {
             mainWindow?.webContents.send('menu-asr-embed')
@@ -204,7 +217,7 @@ function createMenu() {
       role: 'help',
       submenu: [
         {
-          label: `VTT Caption Editor v${APP_VERSION}`,
+          label: `Caption Editor v${APP_VERSION}`,
           enabled: false
         }
       ]
@@ -220,6 +233,8 @@ function createWindow() {
     width: 1200,
     height: 800,
     show: process.env.HEADLESS !== 'true',
+    // Prevent a bright flash when launching in dark mode.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#0f1115' : '#ffffff',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -305,6 +320,9 @@ app.on('open-file', (event, filePath) => {
 })
 
 app.whenReady().then(() => {
+  // Ensure we follow the OS appearance setting (macOS light/dark).
+  nativeTheme.themeSource = 'system'
+
   // Create a custom media protocol handler to securely serve local files.
   // Using a custom protocol is required once webSecurity is enabled.
   protocol.handle('media', async (request) => {
@@ -386,7 +404,8 @@ app.whenReady().then(() => {
   // In production, macOS uses the 'open-file' event instead
   if (process.argv.length >= 2) {
     const filePath = process.argv[process.argv.length - 1]
-    if (filePath && !filePath.startsWith('-') && filePath.endsWith('.vtt')) {
+    const lower = (filePath || '').toLowerCase()
+    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.srt'))) {
       fileToOpen = filePath
     }
   }
@@ -421,7 +440,8 @@ ipcMain.handle('dialog:openFile', async (_event, options?: {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
       { name: 'All Supported Files', extensions: all_files },
-      { name: 'VTT Files', extensions: vtt_files },
+      { name: 'Captions Files (*.captions.json)', extensions: captions_json_files },
+      { name: 'SRT Files', extensions: srt_files },
       { name: 'Media Files', extensions: media_files }
     ]
   })
@@ -440,7 +460,7 @@ ipcMain.handle('file:read', async (_event, filePath: string) => {
   try {
     // On macOS, start accessing the security-scoped resource
     if (process.platform === 'darwin' && fileBookmarks.has(filePath)) {
-      const bookmark = fileBookmarks.get(filePath)!
+      const _bookmark = fileBookmarks.get(filePath)!
       // In a real implementation, you'd use app.startAccessingSecurityScopedResource
       // For now, we rely on the dialog.showOpenDialog providing temporary access
     }
@@ -468,9 +488,9 @@ ipcMain.handle('file:save', async (_event, options: {
 
   try {
     const result = await dialog.showSaveDialog(mainWindow, {
-      defaultPath: options.suggestedName || 'captions.vtt',
+      defaultPath: options.suggestedName || `captions${CAPTIONS_JSON_SUFFIX}`,
       filters: [
-        { name: 'VTT Files', extensions: ['vtt'] },
+        { name: 'Captions Files (*.captions.json)', extensions: captions_json_files },
         { name: 'All Files', extensions: ['*'] }
       ]
     })
@@ -479,11 +499,60 @@ ipcMain.handle('file:save', async (_event, options: {
       return { success: false, error: 'Save canceled' }
     }
 
-    await fs.writeFile(result.filePath, options.content, 'utf-8')
+    let targetPath = result.filePath
+    const lower = targetPath.toLowerCase()
+    if (!lower.endsWith(CAPTIONS_JSON_SUFFIX)) {
+      if (lower.endsWith('.json')) {
+        targetPath = targetPath.slice(0, -'.json'.length) + CAPTIONS_JSON_SUFFIX
+      } else {
+        targetPath = targetPath + CAPTIONS_JSON_SUFFIX
+      }
+    }
 
-    return { success: true, filePath: result.filePath }
+    await fs.writeFile(targetPath, options.content, 'utf-8')
+
+    return { success: true, filePath: targetPath }
   } catch (error) {
     console.error('Error saving file:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error saving file'
+    }
+  }
+})
+
+/**
+ * Write SRT file contents - prompts for save location
+ */
+ipcMain.handle('file:saveSrt', async (_event, options: {
+  content: string,
+  suggestedName?: string
+}) => {
+  if (!mainWindow) return { success: false, error: 'No window available' }
+
+  try {
+    const result = await dialog.showSaveDialog(mainWindow, {
+      defaultPath: options.suggestedName || 'captions.srt',
+      filters: [
+        { name: 'SRT Files', extensions: srt_files },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+
+    if (result.canceled || !result.filePath) {
+      return { success: false, error: 'Save canceled' }
+    }
+
+    let targetPath = result.filePath
+    if (!targetPath.toLowerCase().endsWith('.srt')) {
+      targetPath = targetPath + '.srt'
+    }
+
+    await fs.writeFile(targetPath, options.content, 'utf-8')
+
+    return { success: true, filePath: targetPath }
+  } catch (error) {
+    console.error('Error saving SRT file:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error saving file'
@@ -501,7 +570,7 @@ ipcMain.handle('file:saveExisting', async (_event, options: {
   try {
     // On macOS, start accessing the security-scoped resource
     if (process.platform === 'darwin' && fileBookmarks.has(options.filePath)) {
-      const bookmark = fileBookmarks.get(options.filePath)!
+      const _bookmark = fileBookmarks.get(options.filePath)!
       // In a real implementation, you'd use app.startAccessingSecurityScopedResource
     }
 
@@ -538,6 +607,21 @@ ipcMain.handle('file:stat', async (_event, filePath: string) => {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error checking file'
+    }
+  }
+})
+
+/**
+ * Show file in Finder/Explorer
+ */
+ipcMain.handle('file:showInFolder', async (_event, filePath: string) => {
+  try {
+    shell.showItemInFolder(filePath)
+    return { success: true }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }
   }
 })
@@ -661,19 +745,54 @@ async function ensureUvBinaries(onLog?: (msg: string) => void): Promise<{ uv: st
 /**
  * Common helper to run ASR tools (transcribe, embed, etc.)
  */
+interface AsrResult {
+  success: boolean
+  script?: string
+  processId?: string
+  error?: string
+  canceled?: boolean
+}
+
+interface ActiveProcess {
+  proc: ChildProcess
+  cancel: () => void
+}
+
 async function runAsrTool(options: {
-  tool: 'transcribe' | 'embed',
+  script: 'transcribe_cli.py' | 'embed_cli.py',
   inputPath: string,
   model?: string,
   chunkSize?: number
-}) {
-  const { tool, inputPath, model, chunkSize } = options
+}): Promise<AsrResult> {
+  const { script, inputPath, model, chunkSize } = options
 
   // Store process for cancellation
   const processId = Date.now().toString()
 
+  const shouldMirrorAsrOutputToMainStdio =
+    process.env.CAPTION_EDITOR_MIRROR_ASR_OUTPUT_TO_STDIO === '1' ||
+    process.env.NODE_ENV === 'test'
+
+  const appendTail = (current: string, addition: string, maxChars: number) => {
+    const combined = current + addition
+    if (combined.length <= maxChars) return combined
+    return combined.slice(combined.length - maxChars)
+  }
+
+  let stdoutTail = ''
+  let stderrTail = ''
+
   const sendOutput = (type: 'stdout' | 'stderr', data: string) => {
     mainWindow?.webContents.send('asr:output', { processId, type, data })
+
+    if (shouldMirrorAsrOutputToMainStdio) {
+      const prefix = `[asr:${processId}:${type}] `
+      if (type === 'stdout') {
+        process.stdout.write(prefix + data)
+      } else {
+        process.stderr.write(prefix + data)
+      }
+    }
   }
 
   // Determine if we're in dev mode
@@ -683,8 +802,7 @@ async function runAsrTool(options: {
   let pythonCommand: string
   let pythonArgs: string[]
   let cwd: string
-
-  const scriptName = `${tool}.py`
+  let tempOverridesPath: string | null = null
 
   if (isDev) {
     const codeTreeRoot = process.env.CAPTION_EDITOR_RUN_TRANSCRIBE_FROM_CODE_TREE === '1'
@@ -692,39 +810,46 @@ async function runAsrTool(options: {
       : path.join(__dirname, '..')
 
     pythonCommand = 'uv'
-    pythonArgs = ['run', 'python', scriptName, inputPath]
+    pythonArgs = ['run', 'python', script, inputPath]
     cwd = path.join(codeTreeRoot, 'transcribe')
 
-    if (tool === 'transcribe' && chunkSize !== undefined) {
+    if (script === 'transcribe_cli.py' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
 
-    const scriptPath = path.join(cwd, scriptName)
+    const scriptPath = path.join(cwd, script)
     if (!existsSync(scriptPath)) {
-      throw new Error(`${scriptName} not found at ${scriptPath}`)
+      throw new Error(`${script} not found at ${scriptPath}`)
     }
   } else {
     // Production mode: use downloaded uvx
     const { uvx } = await ensureUvBinaries((msg) => sendOutput('stdout', msg))
     pythonCommand = uvx
 
+    const entryPoint = script.replace('.py', '')
     const overridesPath = path.join(__dirname, '..', 'electron', 'overrides.txt')
+    // uvx has issues with spaces in file paths in some environments.
+    // Our repo path often includes spaces (e.g. "Imbue Dropbox"), so copy
+    // overrides.txt to a temp path with no spaces before invoking uvx.
+    const overridesPathForUvx = path.join(os.tmpdir(), `caption_editor_overrides_${processId}.txt`)
     pythonArgs = [
       '--from', `${ASR_GITHUB_REPO}@${ASR_COMMIT_HASH}#subdirectory=transcribe`,
-      '--overrides', overridesPath,
-      tool,
+      '--overrides', overridesPathForUvx,
+      entryPoint,
       inputPath
     ]
     cwd = os.tmpdir()
 
-    if (tool === 'transcribe' && chunkSize !== undefined) {
+    if (script === 'transcribe_cli.py' && chunkSize !== undefined) {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
 
     if (!existsSync(pythonCommand)) throw new Error(`UV/UVX binary not found at ${pythonCommand}`)
     if (!existsSync(overridesPath)) throw new Error(`overrides.txt not found at ${overridesPath}`)
+    await fs.copyFile(overridesPath, overridesPathForUvx)
+    tempOverridesPath = overridesPathForUvx
   }
 
   mainWindow?.webContents.send('asr:started', { processId })
@@ -759,7 +884,7 @@ async function runAsrTool(options: {
           try {
             // Kill the entire process group
             process.kill(-proc.pid!, 'SIGTERM')
-          } catch (e) {
+          } catch {
             // Fallback if PGID killing fails
             proc.kill('SIGTERM')
           }
@@ -767,25 +892,40 @@ async function runAsrTool(options: {
       }
     })
 
-    proc.stdout?.on('data', (data) => sendOutput('stdout', data.toString()))
-    proc.stderr?.on('data', (data) => sendOutput('stderr', data.toString()))
+    proc.stdout?.on('data', (data) => {
+      const chunk = data.toString()
+      stdoutTail = appendTail(stdoutTail, chunk, 20_000)
+      sendOutput('stdout', chunk)
+    })
+    proc.stderr?.on('data', (data) => {
+      const chunk = data.toString()
+      stderrTail = appendTail(stderrTail, chunk, 20_000)
+      sendOutput('stderr', chunk)
+    })
 
     proc.on('close', (code) => {
       activeProcesses.delete(processId)
+      if (tempOverridesPath) {
+        fs.unlink(tempOverridesPath).catch(() => {})
+      }
       if (code === 0) {
-        resolve({ success: true, tool, processId })
+        resolve({ success: true, script, processId })
       } else if (canceled || code === 143) {
-        console.log(`[main] ASR ${tool} process ${processId} canceled or terminated with code ${code}`)
+        console.log(`[main] ASR ${script} process ${processId} canceled or terminated with code ${code}`)
         resolve({ success: false, error: 'Canceled', canceled: true })
       } else {
         const errorMsg = `Process exited with code ${code}`
-        console.error(`[main] ASR ${tool} ${errorMsg}`)
-        reject(new Error(errorMsg))
+        console.error(`[main] ASR ${script} ${errorMsg}`)
+        const tail = (stderrTail || stdoutTail).trim()
+        reject(new Error(tail ? `${errorMsg}\n\n--- process output (tail) ---\n${tail}` : errorMsg))
       }
     })
 
     proc.on('error', (err) => {
       activeProcesses.delete(processId)
+      if (tempOverridesPath) {
+        fs.unlink(tempOverridesPath).catch(() => {})
+      }
       if (canceled) {
         resolve({ success: false, error: 'Canceled', canceled: true })
       } else {
@@ -804,23 +944,23 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   chunkSize?: number
 }) => {
   const result = await runAsrTool({
-    tool: 'transcribe',
+    script: 'transcribe_cli.py',
     inputPath: options.mediaFilePath,
     model: options.model,
     chunkSize: options.chunkSize
-  }) as any
+  })
 
   if (result.success) {
-    const vttPath = options.mediaFilePath.replace(path.extname(options.mediaFilePath), '.vtt')
+    const captionsPath = options.mediaFilePath.replace(path.extname(options.mediaFilePath), CAPTIONS_JSON_SUFFIX)
     try {
-      const content = await fs.readFile(vttPath, 'utf-8')
+      const content = await fs.readFile(captionsPath, 'utf-8')
       return {
         ...result,
-        vttPath,
+        captionsPath,
         content
       }
     } catch (err) {
-      console.error('[main] Failed to read generated VTT file:', err)
+      console.error('[main] Failed to read generated captions JSON file:', err)
       return {
         success: false,
         error: `Transcription succeeded but failed to read result file: ${err instanceof Error ? err.message : 'Unknown error'}`
@@ -832,27 +972,27 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
 })
 
 /**
- * Run speaker embedding on VTT file
+ * Run speaker embedding on captions JSON file
  */
 ipcMain.handle('asr:embed', async (_event, options: {
-  vttPath: string,
+  captionsPath: string,
   model?: string
 }) => {
   const result = await runAsrTool({
-    tool: 'embed',
-    inputPath: options.vttPath,
+    script: 'embed_cli.py',
+    inputPath: options.captionsPath,
     model: options.model
-  }) as any
+  })
 
   if (result.success) {
     try {
-      const content = await fs.readFile(options.vttPath, 'utf-8')
+      const content = await fs.readFile(options.captionsPath, 'utf-8')
       return {
         ...result,
         content
       }
     } catch (err) {
-      console.error('[main] Failed to read VTT file after embedding:', err)
+      console.error('[main] Failed to read captions JSON file after embedding:', err)
       return {
         success: false,
         error: `Embedding succeeded but failed to read result file: ${err instanceof Error ? err.message : 'Unknown error'}`
@@ -880,13 +1020,18 @@ ipcMain.handle('asr:cancel', async (_event, processId: string) => {
 })
 
 // Store active ASR processes
-const activeProcesses = new Map<string, any>()
+const activeProcesses = new Map<string, ActiveProcess>()
 
 // Handle file drops from system
 ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) => {
   console.log('[main] processDroppedFiles called for', filePaths.length, 'files')
 
-  const results = []
+  type DroppedFileResult =
+    | { type: 'captions_json'; filePath: string; fileName: string; content: string }
+    | { type: 'srt'; filePath: string; fileName: string; content: string }
+    | { type: 'media'; filePath: string; fileName: string; url: string }
+
+  const results: DroppedFileResult[] = []
 
   for (const filePath of filePaths) {
     try {
@@ -895,16 +1040,26 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
 
       const ext = path.extname(filePath).toLowerCase()
       const extensionWithoutDot = ext.substring(1)
+      const lowerPath = filePath.toLowerCase()
 
-      if (vtt_files.includes(extensionWithoutDot)) {
+      if (lowerPath.endsWith(CAPTIONS_JSON_SUFFIX)) {
         const content = await fs.readFile(filePath, 'utf-8')
         results.push({
-          type: 'vtt',
+          type: 'captions_json',
           filePath,
           fileName: path.basename(filePath),
           content
         })
-        console.log(`[main] Loaded VTT: ${filePath}`)
+        console.log(`[main] Loaded captions JSON: ${filePath}`)
+      } else if (srt_files.includes(extensionWithoutDot)) {
+        const content = await fs.readFile(filePath, 'utf-8')
+        results.push({
+          type: 'srt',
+          filePath,
+          fileName: path.basename(filePath),
+          content
+        })
+        console.log(`[main] Loaded SRT: ${filePath}`)
       } else if (media_files.includes(extensionWithoutDot)) {
         const url = `media://local${filePath}`
         results.push({

@@ -1,38 +1,19 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import { enableConsoleCapture } from './helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
-  let electronApp: ElectronApplication
+test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () => {
   let window: Page
 
   test.setTimeout(60000) // Increase timeout to 60s for E2E tests
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
-    })
-
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
-
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => { }) }
+  test.beforeEach(async ({ page }) => {
+    window = page
   })
 
   // Helper function to seek to a time
@@ -51,10 +32,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     console.log('Resetting store to clean state...')
     await window.evaluate(() => {
       const store = (window as any).$store
-      // Reset to empty document
-      store.loadFromFile('WEBVTT\n', '/test/empty.vtt')
+      store.reset()
       store.setCurrentTime(0)
-      store.loadMediaFile(null)
     })
 
     // Wait for AG Grid to reflect the empty state - check that rows disappear
@@ -78,7 +57,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
           text: s.text
         })),
         currentTime: store.currentTime,
-        mediaUrl: store.mediaUrl
+        mediaPath: store.mediaPath
       }
     })
     console.log('Initial state after reset:', JSON.stringify(initialState, null, 2))
@@ -110,8 +89,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     const addCaptionBtn = window.locator('.add-caption-btn')
     await expect(addCaptionBtn).toBeEnabled()
 
-    // === Test 1: Add first cue to empty table ===
-    console.log('Test 1: Adding first cue to empty table')
+    // === Test 1: Add first segment to empty table ===
+    console.log('Test 1: Adding first segment to empty table')
 
     // Verify table is empty initially
     const grid = window.locator('.ag-theme-alpine')
@@ -189,14 +168,14 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
 
     expect(rowCount, `Expected 1 row but found ${rowCount}. Row contents: ${rowDebugInfo.contents.join(' | ')}`).toBe(1)
 
-    // Verify the cue in store spans 2-7 seconds (default 5s duration)
-    let cues = await window.evaluate(() => (window as any).$store.document.segments)
-    expect(cues).toHaveLength(1)
-    expect(cues[0].startTime).toBeCloseTo(2, 1)
-    expect(cues[0].endTime).toBeCloseTo(7, 1)
+    // Verify the segment in store spans 2-7 seconds (default 5s duration)
+    let segments = await window.evaluate(() => (window as any).$store.document.segments)
+    expect(segments).toHaveLength(1)
+    expect(segments[0].startTime).toBeCloseTo(2, 1)
+    expect(segments[0].endTime).toBeCloseTo(7, 1)
 
-    // === Test 2: Add cue BEFORE first cue ===
-    console.log('Test 2: Adding cue before first cue')
+    // === Test 2: Add segment BEFORE first segment ===
+    console.log('Test 2: Adding segment before first segment')
 
     // Seek to 0.5 seconds
     await seekToTime(0.5)
@@ -218,18 +197,18 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     })
     expect(rowCount).toBe(2)
 
-    // Verify cues are in correct order
-    cues = await window.evaluate(() => (window as any).$store.document.segments)
-    expect(cues).toHaveLength(2)
+    // Verify segments are in correct order
+    segments = await window.evaluate(() => (window as any).$store.document.segments)
+    expect(segments).toHaveLength(2)
 
     // Should be sorted by start time (store keeps them sorted)
-    expect(cues[0].startTime).toBeCloseTo(0.5, 1)
-    expect(cues[0].endTime).toBeCloseTo(5.5, 1)
-    expect(cues[1].startTime).toBeCloseTo(2, 1)
-    expect(cues[1].endTime).toBeCloseTo(7, 1)
+    expect(segments[0].startTime).toBeCloseTo(0.5, 1)
+    expect(segments[0].endTime).toBeCloseTo(5.5, 1)
+    expect(segments[1].startTime).toBeCloseTo(2, 1)
+    expect(segments[1].endTime).toBeCloseTo(7, 1)
 
-    // === Test 3: Add cue AFTER existing cues ===
-    console.log('Test 3: Adding cue after existing cues')
+    // === Test 3: Add segment AFTER existing segments ===
+    console.log('Test 3: Adding segment after existing segments')
 
     // Seek to 8 seconds
     await seekToTime(8)
@@ -251,9 +230,9 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     })
     expect(rowCount).toBe(3)
 
-    // Verify third cue
-    cues = await window.evaluate(() => (window as any).$store.document.segments)
-    expect(cues).toHaveLength(3)
+    // Verify third segment
+    segments = await window.evaluate(() => (window as any).$store.document.segments)
+    expect(segments).toHaveLength(3)
 
     // === Test 4: Scrub bar seeking (auto-selection not yet implemented) ===
     console.log('Test 4: Testing scrub bar seeking')

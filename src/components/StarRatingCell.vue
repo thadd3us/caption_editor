@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 interface Props {
   params?: {
@@ -31,7 +31,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const store = useVTTStore()
+const store = useCaptionStore()
 
 // Support both AG Grid (params.data) and direct usage (data)
 const rowData = computed(() => props.params?.data || props.data)
@@ -40,13 +40,13 @@ const rating = computed(() => rowData.value?.rating)
 function handleClick(star: number) {
   if (!rowData.value) return
 
-  console.log('Star clicked:', star, 'for cue:', rowData.value.id)
+  console.log('Star clicked:', star, 'for segment:', rowData.value.id)
 
   // If clicking the current rating, clear it
   if (star === rating.value) {
-    store.updateCue(rowData.value.id, { rating: undefined })
+    store.updateSegment(rowData.value.id, { rating: undefined })
   } else {
-    store.updateCue(rowData.value.id, { rating: star })
+    store.updateSegment(rowData.value.id, { rating: star })
   }
 }
 </script>

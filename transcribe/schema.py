@@ -1,10 +1,10 @@
 """
-Pydantic schema definitions for VTT document structure.
+Pydantic schema definitions for the caption editor document structure.
 
-This module defines the data models used by the caption editor for VTT files,
-including cues, metadata, and history entries. These models are shared between
-the Python transcription tools and can be used by other tools that need to
-work with the VTT format.
+This module defines the data models used by the caption editor for its native
+`.captions.json` document format, including segments, metadata, history entries,
+and speaker embeddings. These models are shared between the Python transcription
+tools and the Electron app.
 
 TypeScript/Python Schema Sync
 ==============================
@@ -16,7 +16,7 @@ When adding or modifying fields:
 1. Update both Python (this file) and TypeScript (src/types/schema.ts) schemas
 2. Use snake_case in Python with Field aliases for camelCase conversion to match TypeScript
 3. Ensure optional fields are marked consistently (Optional[type] in Python, readonly field?: type in TS)
-4. Update serialization/parsing logic in src/utils/vttParser.ts if needed
+4. Update serialization/parsing logic in src/utils/captionsJson.ts if needed
 5. Run both Python and TypeScript tests to verify compatibility
 """
 
@@ -24,10 +24,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
-# Sentinel prefix for app-specific NOTE comments in VTT files
-# Format: NOTE CAPTION_EDITOR:TypeName {json}
-CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
+from pydantic.aliases import AliasChoices
 
 
 class HistoryAction(str, Enum):
@@ -44,8 +41,12 @@ class TranscriptWord(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     text: str = Field(description="Word text")
-    start_time: Optional[float] = Field(None, description="Start time in seconds", alias="startTime")
-    end_time: Optional[float] = Field(None, description="End time in seconds", alias="endTime")
+    start_time: Optional[float] = Field(
+        None, description="Start time in seconds", alias="startTime"
+    )
+    end_time: Optional[float] = Field(
+        None, description="End time in seconds", alias="endTime"
+    )
 
 
 class TranscriptSegment(BaseModel):
@@ -57,10 +58,17 @@ class TranscriptSegment(BaseModel):
     start_time: float = Field(description="Start time in seconds", alias="startTime")
     end_time: float = Field(description="End time in seconds", alias="endTime")
     text: str = Field(description="Segment text")
-    words: Optional[list[TranscriptWord]] = Field(None, description="Optional word-level timestamps from ASR")
-    speaker_name: Optional[str] = Field(None, description="Optional speaker name", alias="speakerName")
+    words: Optional[list[TranscriptWord]] = Field(
+        None, description="Optional word-level timestamps from ASR"
+    )
+    speaker_name: Optional[str] = Field(
+        None, description="Optional speaker name", alias="speakerName"
+    )
     rating: Optional[int] = Field(None, description="Optional rating 1-5")
-    timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of when the segment was created/last modified")
+    timestamp: Optional[str] = Field(
+        None,
+        description="ISO 8601 timestamp of when the segment was created/last modified",
+    )
 
 
 # Legacy alias for backwards compatibility during migration
@@ -73,7 +81,11 @@ class TranscriptMetadata(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(description="UUID for the document")
-    media_file_path: Optional[str] = Field(None, description="Optional path to the media file (relative to VTT file directory if possible)", alias="mediaFilePath")
+    media_file_path: Optional[str] = Field(
+        None,
+        description="Optional path to the media file (relative to captions file directory if possible)",
+        alias="mediaFilePath",
+    )
 
 
 class SegmentHistoryEntry(BaseModel):
@@ -83,8 +95,15 @@ class SegmentHistoryEntry(BaseModel):
 
     id: str = Field(description="UUID for this history entry")
     action: HistoryAction = Field(description="Type of action performed")
-    action_timestamp: str = Field(description="ISO 8601 timestamp of when this action occurred", alias="actionTimestamp")
-    segment: TranscriptSegment = Field(description="The segment's state before the change (preserves the original timestamp)", alias="cue")  # alias "cue" for backwards compatibility
+    action_timestamp: str = Field(
+        description="ISO 8601 timestamp of when this action occurred",
+        alias="actionTimestamp",
+    )
+    segment: TranscriptSegment = Field(
+        description="The segment's state before the change (preserves the original timestamp)",
+        validation_alias=AliasChoices("segment"),
+        serialization_alias="segment",
+    )
 
 
 class SegmentSpeakerEmbedding(BaseModel):
@@ -92,5 +111,26 @@ class SegmentSpeakerEmbedding(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    segment_id: str = Field(description="UUID of the segment this embedding belongs to", alias="segmentId")
-    speaker_embedding: list[float] = Field(description="Speaker embedding vector", alias="speakerEmbedding")
+    segment_id: str = Field(
+        description="UUID of the segment this embedding belongs to", alias="segmentId"
+    )
+    speaker_embedding: list[float] = Field(
+        description="Speaker embedding vector", alias="speakerEmbedding"
+    )
+
+
+class CaptionsDocument(BaseModel):
+    """Complete captions document (native .captions.json format)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    metadata: TranscriptMetadata = Field(
+        description="Document metadata (id, media file path)"
+    )
+    segments: list[TranscriptSegment] = Field(description="Transcript segments")
+    history: Optional[list[SegmentHistoryEntry]] = Field(
+        None, description="Historical record of segment changes"
+    )
+    embeddings: Optional[list[SegmentSpeakerEmbedding]] = Field(
+        None, description="Speaker embeddings for segments"
+    )

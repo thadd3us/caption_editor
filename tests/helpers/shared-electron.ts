@@ -22,34 +22,23 @@ let sharedPage: Page | null = null
 
 /**
  * Reset the app state between tests by:
- * 1. Clearing the VTT store
- * 2. Clearing media
- * 3. Resetting isDirty flag
+ * Reloading the renderer (fast, avoids relaunching Electron)
+ *
+ * This keeps the Electron main process alive (faster, no bouncing dock/taskbar icons),
+ * while resetting all Vue component state and any module-level refs in the renderer.
  */
 async function resetAppState(page: Page): Promise<void> {
-    await page.evaluate(() => {
-        const store = (window as any).$store || (window as any).store
-        if (store) {
-            // Reset document to empty
-            store.document = {
-                id: '',
-                metadata: {},
-                segments: [],
-                history: [],
-                filePath: undefined
-            }
-            // Clear media
-            store.mediaPath = null
-            store.mediaFilePath = null
-            // Reset dirty flag
-            store.isDirty = false
-            // Reset current time
-            store.currentTime = 0
-            store.selectedCueId = null
-        }
-    })
-    
-    // Wait a tick for Vue to react
+    if (page.isClosed()) return
+
+    await page.reload({ waitUntil: 'domcontentloaded' })
+
+    // Wait for app/store to be ready again
+    await page.waitForFunction(
+        () => (window as any).$store || (window as any).store,
+        { timeout: 10000 }
+    )
+
+    // Give Vue a tick to finish initial render
     await page.waitForTimeout(50)
 }
 

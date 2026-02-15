@@ -1,9 +1,8 @@
 # Caption Editor
 
-* A WebVTT caption file editor with media playback support, including synchronizing selected caption with the current position of the media playback. 
-* Browser-based UI, packaged as an electron app. 
-* Stores extended metadata about each caption using a special JSON structure stuffed into the VTT comments.
-* Carefully preserves version history of edited captions.
+* A caption editor with media playback support, including synchronizing the selected caption segment with the current position of media playback.
+* Browser-based UI, packaged as an electron app.
+* Persists documents as a native JSON format (`*.captions.json`) with UUIDs and edit history.
 
 ### Quick Start (Desktop)
 
@@ -43,9 +42,10 @@ npm run package:linux   # Linux (AppImage)
 
 ### Core Functionality
 
-- **VTT File Support**: Open, edit, and export WebVTT caption files with full standard compliance
+- **Captions JSON Support**: Open and edit `*.captions.json` documents (primary save/load format)
+- **SRT Import/Export**: Import `*.srt` files and export to standard SRT
 - **Media Playback**: Load and play video or audio files alongside captions
-- **Drag & Drop**: Intuitive file loading - drop VTT and media files together or separately
+- **Drag & Drop**: Intuitive file loading - drop captions JSON/SRT and media files together or separately
 - **Dual Panel Layout**: Resizable split view with caption table (left, 60% default) and media player (right)
 
 ### Caption Management
@@ -64,7 +64,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Data Persistence
 
-- **Lossless Export**: All metadata (UUIDs, ratings) preserved in exported VTT files via NOTE comments
+- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions.json`
 
 ### Technical Details
 
@@ -190,7 +190,7 @@ WEBVTT
 NOTE {"id":"2ea43707-088b-c4fe-c7ff-b59f4a1232a0","mediaFilePath":"video.mp4"}
 ```
 
-**Note:** When using the Python transcription tool (`transcribe/transcribe.py`), the media file is automatically copied alongside the VTT output to ensure they stay together and the relative path remains valid across different systems.
+**Note:** When using the Python transcription tool (`transcribe/transcribe_cli.py`), the output is a `.captions.json` file. The document’s `metadata.mediaFilePath` is written relative to the captions file directory when possible.
 
 #### Cue Metadata
 Each caption can have metadata stored in a NOTE comment immediately before it:
@@ -226,21 +226,21 @@ In development mode, the Pinia store is exposed on `window.$store` for easy debu
 console.log(JSON.stringify($store.document, null, 2))
 
 // Access individual properties
-console.log($store.document.cues.length)          // Number of captions
-console.log($store.document.cues)                 // Captions (always sorted by time)
-console.log($store.currentCue)                    // Current cue at playhead
+console.log($store.document.segments.length)      // Number of segments
+console.log($store.document.segments)             // Segments (always sorted by time)
+console.log($store.currentSegment)                // Current segment at playhead
 console.log($store.currentTime)                   // Current playback position
 console.log($store.mediaPath)                     // Loaded media file path
 
-// View a specific cue
-console.log(JSON.stringify($store.document.cues[0], null, 2))
+// View a specific segment
+console.log(JSON.stringify($store.document.segments[0], null, 2))
 ```
 
 **Example output:**
 
 ```json
 {
-  "cues": [
+  "segments": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "startTime": 1.5,
@@ -249,11 +249,11 @@ console.log(JSON.stringify($store.document.cues[0], null, 2))
       "rating": 5
     }
   ],
-  "filePath": "example.vtt"
+  "filePath": "example.captions.json"
 }
 ```
 
-This outputs the complete TypeScript `VTTDocument` structure including all cues with their IDs, timestamps, text, and ratings.
+This outputs the complete TypeScript `CaptionsDocument` structure including all segments with their IDs, timestamps, text, and ratings.
 
 **Note:** The store is only exposed in development mode (`npm run dev`). In production builds, use Vue DevTools extension for state inspection.
 

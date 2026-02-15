@@ -1,0 +1,30 @@
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    ignores: [
+      "dist/**",
+      "dist-electron/**",
+      "node_modules/**",
+      "*.cjs",
+      "bug-reports/**",
+      "prototypes/**",
+      "hack/**",
+      "**/.venv/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
+  },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  }
+);

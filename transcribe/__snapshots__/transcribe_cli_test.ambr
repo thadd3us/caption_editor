@@ -1,0 +1,958 @@
+# serializer version: 1
+# name: test_transcribe_osr_audio[nvidia/parakeet-tdt-0.6b-v3]
+  dict({
+    'metadata': dict({
+      'id': 'doc_id',
+      'mediaFilePath': 'OSR_us_000_0010_8k.wav',
+    }),
+    'segments': list([
+      dict({
+        'endTime': 3.44,
+        'id': 'id_00000',
+        'startTime': 0.24,
+        'text': 'The birch canoe slid on the smooth planks.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 0.56,
+            'startTime': 0.24,
+            'text': 'The',
+          }),
+          dict({
+            'endTime': 1.12,
+            'startTime': 0.56,
+            'text': 'birch',
+          }),
+          dict({
+            'endTime': 1.6,
+            'startTime': 1.12,
+            'text': 'canoe',
+          }),
+          dict({
+            'endTime': 2.0,
+            'startTime': 1.6,
+            'text': 'slid',
+          }),
+          dict({
+            'endTime': 2.16,
+            'startTime': 2.0,
+            'text': 'on',
+          }),
+          dict({
+            'endTime': 2.24,
+            'startTime': 2.16,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 2.8,
+            'startTime': 2.24,
+            'text': 'smooth',
+          }),
+          dict({
+            'endTime': 3.44,
+            'startTime': 2.8,
+            'text': 'planks.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 7.2,
+        'id': 'id_00001',
+        'startTime': 4.0,
+        'text': 'Glue the sheet to the dark blue background.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 4.56,
+            'startTime': 4.0,
+            'text': 'Glue',
+          }),
+          dict({
+            'endTime': 4.72,
+            'startTime': 4.56,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 5.04,
+            'startTime': 4.72,
+            'text': 'sheet',
+          }),
+          dict({
+            'endTime': 5.2,
+            'startTime': 5.04,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 5.28,
+            'startTime': 5.2,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 5.6,
+            'startTime': 5.28,
+            'text': 'dark',
+          }),
+          dict({
+            'endTime': 6.0,
+            'startTime': 5.6,
+            'text': 'blue',
+          }),
+          dict({
+            'endTime': 7.2,
+            'startTime': 6.0,
+            'text': 'background.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 9.76,
+        'id': 'id_00002',
+        'startTime': 7.44,
+        'text': 'It is easy to tell the depth of a well.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 7.76,
+            'startTime': 7.44,
+            'text': 'It',
+          }),
+          dict({
+            'endTime': 7.92,
+            'startTime': 7.76,
+            'text': 'is',
+          }),
+          dict({
+            'endTime': 8.24,
+            'startTime': 7.92,
+            'text': 'easy',
+          }),
+          dict({
+            'endTime': 8.4,
+            'startTime': 8.24,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 8.64,
+            'startTime': 8.4,
+            'text': 'tell',
+          }),
+          dict({
+            'endTime': 8.72,
+            'startTime': 8.64,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 9.12,
+            'startTime': 8.72,
+            'text': 'depth',
+          }),
+          dict({
+            'endTime': 9.28,
+            'startTime': 9.12,
+            'text': 'of',
+          }),
+          dict({
+            'endTime': 9.44,
+            'startTime': 9.28,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 9.76,
+            'startTime': 9.44,
+            'text': 'well.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 13.52,
+        'id': 'id_00003',
+        'startTime': 10.48,
+        'text': 'These days a chicken leg is a rare dish.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 10.88,
+            'startTime': 10.48,
+            'text': 'These',
+          }),
+          dict({
+            'endTime': 11.28,
+            'startTime': 10.88,
+            'text': 'days',
+          }),
+          dict({
+            'endTime': 11.36,
+            'startTime': 11.28,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 11.84,
+            'startTime': 11.36,
+            'text': 'chicken',
+          }),
+          dict({
+            'endTime': 12.16,
+            'startTime': 11.84,
+            'text': 'leg',
+          }),
+          dict({
+            'endTime': 12.24,
+            'startTime': 12.16,
+            'text': 'is',
+          }),
+          dict({
+            'endTime': 12.32,
+            'startTime': 12.24,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 12.88,
+            'startTime': 12.32,
+            'text': 'rare',
+          }),
+          dict({
+            'endTime': 13.52,
+            'startTime': 12.88,
+            'text': 'dish.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 16.72,
+        'id': 'id_00004',
+        'startTime': 14.0,
+        'text': 'Rice is often served in round bowls.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 14.48,
+            'startTime': 14.0,
+            'text': 'Rice',
+          }),
+          dict({
+            'endTime': 14.64,
+            'startTime': 14.48,
+            'text': 'is',
+          }),
+          dict({
+            'endTime': 14.96,
+            'startTime': 14.64,
+            'text': 'often',
+          }),
+          dict({
+            'endTime': 15.28,
+            'startTime': 14.96,
+            'text': 'served',
+          }),
+          dict({
+            'endTime': 15.52,
+            'startTime': 15.28,
+            'text': 'in',
+          }),
+          dict({
+            'endTime': 15.92,
+            'startTime': 15.52,
+            'text': 'round',
+          }),
+          dict({
+            'endTime': 16.72,
+            'startTime': 15.92,
+            'text': 'bowls.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 19.8,
+        'id': 'id_00005',
+        'startTime': 17.0,
+        'text': 'The juice of lemons makes fine punch.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 17.32,
+            'startTime': 17.0,
+            'text': 'The',
+          }),
+          dict({
+            'endTime': 17.64,
+            'startTime': 17.32,
+            'text': 'juice',
+          }),
+          dict({
+            'endTime': 17.8,
+            'startTime': 17.64,
+            'text': 'of',
+          }),
+          dict({
+            'endTime': 18.36,
+            'startTime': 17.8,
+            'text': 'lemons',
+          }),
+          dict({
+            'endTime': 18.68,
+            'startTime': 18.36,
+            'text': 'makes',
+          }),
+          dict({
+            'endTime': 19.16,
+            'startTime': 18.68,
+            'text': 'fine',
+          }),
+          dict({
+            'endTime': 19.8,
+            'startTime': 19.16,
+            'text': 'punch.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 22.88,
+        'id': 'id_00006',
+        'startTime': 20.24,
+        'text': 'The box was thrown beside the parked truck.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 20.48,
+            'startTime': 20.24,
+            'text': 'The',
+          }),
+          dict({
+            'endTime': 20.8,
+            'startTime': 20.48,
+            'text': 'box',
+          }),
+          dict({
+            'endTime': 20.96,
+            'startTime': 20.8,
+            'text': 'was',
+          }),
+          dict({
+            'endTime': 21.36,
+            'startTime': 20.96,
+            'text': 'thrown',
+          }),
+          dict({
+            'endTime': 21.6,
+            'startTime': 21.36,
+            'text': 'beside',
+          }),
+          dict({
+            'endTime': 21.76,
+            'startTime': 21.6,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 22.16,
+            'startTime': 21.76,
+            'text': 'parked',
+          }),
+          dict({
+            'endTime': 22.88,
+            'startTime': 22.32,
+            'text': 'truck.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 26.24,
+        'id': 'id_00007',
+        'startTime': 23.44,
+        'text': 'The hogs were fed chopped corn and garbage.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 23.68,
+            'startTime': 23.44,
+            'text': 'The',
+          }),
+          dict({
+            'endTime': 24.08,
+            'startTime': 23.68,
+            'text': 'hogs',
+          }),
+          dict({
+            'endTime': 24.24,
+            'startTime': 24.08,
+            'text': 'were',
+          }),
+          dict({
+            'endTime': 24.56,
+            'startTime': 24.24,
+            'text': 'fed',
+          }),
+          dict({
+            'endTime': 25.04,
+            'startTime': 24.56,
+            'text': 'chopped',
+          }),
+          dict({
+            'endTime': 25.28,
+            'startTime': 25.04,
+            'text': 'corn',
+          }),
+          dict({
+            'endTime': 25.44,
+            'startTime': 25.28,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 26.24,
+            'startTime': 25.44,
+            'text': 'garbage.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 29.28,
+        'id': 'id_00008',
+        'startTime': 26.8,
+        'text': 'Four hours of steady work faced us.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 27.2,
+            'startTime': 26.8,
+            'text': 'Four',
+          }),
+          dict({
+            'endTime': 27.44,
+            'startTime': 27.2,
+            'text': 'hours',
+          }),
+          dict({
+            'endTime': 27.68,
+            'startTime': 27.44,
+            'text': 'of',
+          }),
+          dict({
+            'endTime': 28.08,
+            'startTime': 27.68,
+            'text': 'steady',
+          }),
+          dict({
+            'endTime': 28.4,
+            'startTime': 28.08,
+            'text': 'work',
+          }),
+          dict({
+            'endTime': 28.96,
+            'startTime': 28.4,
+            'text': 'faced',
+          }),
+          dict({
+            'endTime': 29.28,
+            'startTime': 28.96,
+            'text': 'us.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 32.44,
+        'id': 'id_00009',
+        'startTime': 29.8,
+        'text': 'A large size in stockings is hard to sell.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 30.04,
+            'startTime': 29.8,
+            'text': 'A',
+          }),
+          dict({
+            'endTime': 30.44,
+            'startTime': 30.04,
+            'text': 'large',
+          }),
+          dict({
+            'endTime': 30.76,
+            'startTime': 30.44,
+            'text': 'size',
+          }),
+          dict({
+            'endTime': 30.92,
+            'startTime': 30.76,
+            'text': 'in',
+          }),
+          dict({
+            'endTime': 31.4,
+            'startTime': 30.92,
+            'text': 'stockings',
+          }),
+          dict({
+            'endTime': 31.56,
+            'startTime': 31.4,
+            'text': 'is',
+          }),
+          dict({
+            'endTime': 31.8,
+            'startTime': 31.56,
+            'text': 'hard',
+          }),
+          dict({
+            'endTime': 32.12,
+            'startTime': 31.8,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 32.44,
+            'startTime': 32.12,
+            'text': 'sell.',
+          }),
+        ]),
+      }),
+    ]),
+  })
+# ---
+# name: test_transcribe_osr_audio[openai/whisper-tiny]
+  dict({
+    'metadata': dict({
+      'id': 'doc_id',
+      'mediaFilePath': 'OSR_us_000_0010_8k.wav',
+    }),
+    'segments': list([
+      dict({
+        'endTime': 5.06,
+        'id': 'id_00000',
+        'startTime': 0.0,
+        'text': 'The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 0.68,
+            'startTime': 0.0,
+            'text': ' The',
+          }),
+          dict({
+            'endTime': 1.12,
+            'startTime': 0.68,
+            'text': ' birch',
+          }),
+          dict({
+            'endTime': 1.38,
+            'startTime': 1.12,
+            'text': ' can',
+          }),
+          dict({
+            'endTime': 1.68,
+            'startTime': 1.38,
+            'text': ' use',
+          }),
+          dict({
+            'endTime': 1.96,
+            'startTime': 1.68,
+            'text': ' lid',
+          }),
+          dict({
+            'endTime': 2.24,
+            'startTime': 1.96,
+            'text': ' on',
+          }),
+          dict({
+            'endTime': 2.38,
+            'startTime': 2.24,
+            'text': ' the',
+          }),
+          dict({
+            'endTime': 2.7,
+            'startTime': 2.38,
+            'text': ' smooth',
+          }),
+          dict({
+            'endTime': 4.62,
+            'startTime': 2.7,
+            'text': ' planks.',
+          }),
+          dict({
+            'endTime': 4.62,
+            'startTime': 4.62,
+            'text': ' Glue',
+          }),
+          dict({
+            'endTime': 4.9,
+            'startTime': 4.62,
+            'text': ' the',
+          }),
+          dict({
+            'endTime': 5.06,
+            'startTime': 4.9,
+            'text': ' sheet',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 5.82,
+        'id': 'id_00001',
+        'startTime': 5.44,
+        'text': 'dark  blue',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 5.62,
+            'startTime': 5.44,
+            'text': ' dark',
+          }),
+          dict({
+            'endTime': 5.82,
+            'startTime': 5.62,
+            'text': ' blue',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 8.3,
+        'id': 'id_00002',
+        'startTime': 7.94,
+        'text': 'It  It  is  easy',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 8.04,
+            'startTime': 7.94,
+            'text': ' It',
+          }),
+          dict({
+            'endTime': 8.06,
+            'startTime': 8.06,
+            'text': ' It',
+          }),
+          dict({
+            'endTime': 8.16,
+            'startTime': 8.06,
+            'text': ' is',
+          }),
+          dict({
+            'endTime': 8.3,
+            'startTime': 8.16,
+            'text': ' easy',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 8.94,
+        'id': 'id_00003',
+        'startTime': 8.6,
+        'text': 'tell  the',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 8.72,
+            'startTime': 8.6,
+            'text': ' tell',
+          }),
+          dict({
+            'endTime': 8.94,
+            'startTime': 8.72,
+            'text': ' the',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 11.18,
+        'id': 'id_00004',
+        'startTime': 9.48,
+        'text': 'a  well.  These',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 9.54,
+            'startTime': 9.48,
+            'text': ' a',
+          }),
+          dict({
+            'endTime': 10.98,
+            'startTime': 9.54,
+            'text': ' well.',
+          }),
+          dict({
+            'endTime': 11.18,
+            'startTime': 10.98,
+            'text': ' These',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 12.54,
+        'id': 'id_00005',
+        'startTime': 11.44,
+        'text': 'a  chicken  leg  is  a  rare',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 11.62,
+            'startTime': 11.44,
+            'text': ' a',
+          }),
+          dict({
+            'endTime': 11.82,
+            'startTime': 11.62,
+            'text': ' chicken',
+          }),
+          dict({
+            'endTime': 12.04,
+            'startTime': 11.82,
+            'text': ' leg',
+          }),
+          dict({
+            'endTime': 12.24,
+            'startTime': 12.04,
+            'text': ' is',
+          }),
+          dict({
+            'endTime': 12.36,
+            'startTime': 12.24,
+            'text': ' a',
+          }),
+          dict({
+            'endTime': 12.54,
+            'startTime': 12.36,
+            'text': ' rare',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 15.86,
+        'id': 'id_00006',
+        'startTime': 14.38,
+        'text': 'Rice  is  often  served  in  round',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 14.54,
+            'startTime': 14.38,
+            'text': ' Rice',
+          }),
+          dict({
+            'endTime': 14.8,
+            'startTime': 14.54,
+            'text': ' is',
+          }),
+          dict({
+            'endTime': 15.12,
+            'startTime': 14.8,
+            'text': ' often',
+          }),
+          dict({
+            'endTime': 15.38,
+            'startTime': 15.12,
+            'text': ' served',
+          }),
+          dict({
+            'endTime': 15.64,
+            'startTime': 15.42,
+            'text': ' in',
+          }),
+          dict({
+            'endTime': 15.86,
+            'startTime': 15.64,
+            'text': ' round',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 17.76,
+        'id': 'id_00007',
+        'startTime': 17.54,
+        'text': 'The  juice',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 17.54,
+            'startTime': 17.54,
+            'text': ' The',
+          }),
+          dict({
+            'endTime': 17.76,
+            'startTime': 17.56,
+            'text': ' juice',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 21.38,
+        'id': 'id_00008',
+        'startTime': 18.6,
+        'text': 'fine  punch.  The  box  was  thrown',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 19.0,
+            'startTime': 18.6,
+            'text': ' fine',
+          }),
+          dict({
+            'endTime': 20.6,
+            'startTime': 19.0,
+            'text': ' punch.',
+          }),
+          dict({
+            'endTime': 20.64,
+            'startTime': 20.6,
+            'text': ' The',
+          }),
+          dict({
+            'endTime': 20.9,
+            'startTime': 20.64,
+            'text': ' box',
+          }),
+          dict({
+            'endTime': 21.14,
+            'startTime': 20.92,
+            'text': ' was',
+          }),
+          dict({
+            'endTime': 21.38,
+            'startTime': 21.16,
+            'text': ' thrown',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 23.96,
+        'id': 'id_00009',
+        'startTime': 21.72,
+        'text': 'the  chuck.  The',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 22.08,
+            'startTime': 21.72,
+            'text': ' the',
+          }),
+          dict({
+            'endTime': 23.82,
+            'startTime': 22.18,
+            'text': ' chuck.',
+          }),
+          dict({
+            'endTime': 23.96,
+            'startTime': 23.86,
+            'text': ' The',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 27.36,
+        'id': 'id_00010',
+        'startTime': 24.34,
+        'text': 'were  fed  chopped  corn  in  garbage.  Four',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 24.44,
+            'startTime': 24.34,
+            'text': ' were',
+          }),
+          dict({
+            'endTime': 24.62,
+            'startTime': 24.44,
+            'text': ' fed',
+          }),
+          dict({
+            'endTime': 24.96,
+            'startTime': 24.62,
+            'text': ' chopped',
+          }),
+          dict({
+            'endTime': 25.24,
+            'startTime': 24.96,
+            'text': ' corn',
+          }),
+          dict({
+            'endTime': 25.4,
+            'startTime': 25.26,
+            'text': ' in',
+          }),
+          dict({
+            'endTime': 27.22,
+            'startTime': 25.4,
+            'text': ' garbage.',
+          }),
+          dict({
+            'endTime': 27.36,
+            'startTime': 27.24,
+            'text': ' Four',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 28.32,
+        'id': 'id_00011',
+        'startTime': 27.7,
+        'text': 'of  steady  work',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 27.88,
+            'startTime': 27.7,
+            'text': ' of',
+          }),
+          dict({
+            'endTime': 28.0,
+            'startTime': 27.88,
+            'text': ' steady',
+          }),
+          dict({
+            'endTime': 28.32,
+            'startTime': 28.02,
+            'text': ' work',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 32.0,
+        'id': 'id_00012',
+        'startTime': 28.62,
+        'text': 'us.  A  large  size  in  stockings  is  hard  to',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'words': list([
+          dict({
+            'endTime': 30.24,
+            'startTime': 28.62,
+            'text': ' us.',
+          }),
+          dict({
+            'endTime': 30.32,
+            'startTime': 30.24,
+            'text': ' A',
+          }),
+          dict({
+            'endTime': 30.52,
+            'startTime': 30.32,
+            'text': ' large',
+          }),
+          dict({
+            'endTime': 30.78,
+            'startTime': 30.52,
+            'text': ' size',
+          }),
+          dict({
+            'endTime': 31.0,
+            'startTime': 30.78,
+            'text': ' in',
+          }),
+          dict({
+            'endTime': 31.36,
+            'startTime': 31.0,
+            'text': ' stockings',
+          }),
+          dict({
+            'endTime': 31.54,
+            'startTime': 31.36,
+            'text': ' is',
+          }),
+          dict({
+            'endTime': 31.78,
+            'startTime': 31.54,
+            'text': ' hard',
+          }),
+          dict({
+            'endTime': 32.0,
+            'startTime': 31.78,
+            'text': ' to',
+          }),
+        ]),
+      }),
+    ]),
+  })
+# ---

@@ -9,7 +9,8 @@ const __dirname = path.dirname(__filename)
 
 test.describe('ASR Menu Integration @expensive', () => {
   // Expensive test - requires downloading ML models and running transcription
-  // Skip with SKIP_EXPENSIVE_TESTS=true
+  // Skipped by default since it depends on local Python tooling (`uv`).
+  test.skip(process.env.RUN_PY_E2E !== 'true', 'Set RUN_PY_E2E=true to enable Python-dependent Electron E2E tests')
   test('should run ASR transcription from menu @expensive', async () => {
     test.setTimeout(180000) // 3 minute timeout for model download + transcription
     // Create a temporary directory for test files
@@ -61,7 +62,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Load the audio file by simulating file drop
       await page.evaluate((audioPath) => {
-        const store = (window as any).__vttStore
+        const store = (window as any).$store
         // Simulate loading media file directly
         store.loadMediaFile(`file://${audioPath}`, audioPath)
       }, destAudioPath)
@@ -71,7 +72,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Verify media is loaded
       const mediaLoaded = await page.evaluate(() => {
-        const store = (window as any).__vttStore
+        const store = (window as any).$store
         return !!store.mediaPath
       })
       expect(mediaLoaded).toBe(true)
@@ -122,14 +123,14 @@ test.describe('ASR Menu Integration @expensive', () => {
       expect(modalVisible).toBe(false)
       console.log('[Test] ASR completed successfully')
 
-      // Verify VTT file was generated and loaded
-      const vttPath = path.join(tmpDir, 'test_audio.vtt')
-      expect(fs.existsSync(vttPath)).toBe(true)
-      console.log('[Test] VTT file generated:', vttPath)
+      // Verify captions file was generated and loaded
+      const captionsPath = path.join(tmpDir, 'test_audio.captions.json')
+      expect(fs.existsSync(captionsPath)).toBe(true)
+      console.log('[Test] Captions file generated:', captionsPath)
 
       // Verify segments were loaded into the store
       const segmentCount = await page.evaluate(() => {
-        const store = (window as any).__vttStore
+        const store = (window as any).$store
         return store.document.segments.length
       })
       expect(segmentCount).toBeGreaterThan(0)
@@ -137,7 +138,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Verify segments have text content
       const firstSegmentText = await page.evaluate(() => {
-        const store = (window as any).__vttStore
+        const store = (window as any).$store
         return store.document.segments[0]?.text || ''
       })
       expect(firstSegmentText.length).toBeGreaterThan(0)
@@ -185,13 +186,13 @@ test.describe('ASR Menu Integration @expensive', () => {
 
     // Create a fake media path and add a test segment
     await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       store.loadMediaFile('file:///fake/path.wav', '/fake/path.wav')
-      store.addCue(0, 1)  // Add a 1-second cue starting at 0
+      store.addSegment(0, 1)  // Add a 1-second segment starting at 0
       // Update the text
       if (store.document.segments.length > 0) {
-        const cue = store.document.segments[0]
-        store.updateCue(cue.id, { text: 'Test segment' })
+        const segment = store.document.segments[0]
+        store.updateSegment(segment.id, { text: 'Test segment' })
       }
     })
 
@@ -235,13 +236,13 @@ test.describe('ASR Menu Integration @expensive', () => {
 
     // Verify segment still exists
     const segmentCount = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return store.document.segments.length
     })
     expect(segmentCount).toBe(1)
 
     // Clean up: Disable dirty bit so we can close without beforeunload prompt
-    await page.evaluate(() => (window as any).__vttStore.setIsDirty(false))
+    await page.evaluate(() => (window as any).$store.setIsDirty(false))
     await electronApp.close()
   })
 
@@ -276,7 +277,7 @@ test.describe('ASR Menu Integration @expensive', () => {
     // Note: We can't directly test native Electron menu state from renderer,
     // but we can verify the watcher is set up correctly
     const hasMediaPath = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return !!store.mediaPath
     })
     expect(hasMediaPath).toBe(false)

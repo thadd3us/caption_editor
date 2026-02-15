@@ -138,7 +138,7 @@ jobs:
             uvx --from https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/${{ steps.find-artifacts.outputs.wheel_name }} --overrides overrides.txt transcribe audio.wav
 
             # Compute speaker embeddings
-            uvx --from https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/${{ steps.find-artifacts.outputs.wheel_name }} --overrides overrides.txt embed captions.vtt
+            uvx --from https://github.com/${{ github.repository }}/releases/download/uvx-v${{ inputs.version }}/${{ steps.find-artifacts.outputs.wheel_name }} --overrides overrides.txt embed captions.captions.json
             ```
 
             **Why overrides.txt?** NeMo Toolkit has a conservative `numpy<2.0` constraint in its metadata, but works perfectly fine with numpy 2.x in practice. The overrides file tells uvx to use numpy 2.x anyway.
@@ -162,7 +162,7 @@ jobs:
 
             **Compute speaker embeddings:**
             ```bash
-            uvx --from <URL> embed captions.vtt
+            uvx --from <URL> embed captions.captions.json
             ```
 
             ### System Requirements

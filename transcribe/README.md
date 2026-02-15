@@ -1,13 +1,13 @@
 # Media Transcription and Speaker Diarization
 
 A unified Python environment providing:
-- **Transcription**: Convert media files to VTT (WebVTT) format using NVIDIA's Parakeet TDT ASR model
+- **Transcription**: Convert media files to the caption editor native `.captions.json` format using NVIDIA's Parakeet TDT ASR model
 - **Speaker Diarization**: Identify and label different speakers in audio using pyannote.audio
 
 ## Features
 
 ### Transcription
-- **Multi-format support**: Converts nearly any media format to transcribed VTT using ffmpeg
+- **Multi-format support**: Converts nearly any media format to `.captions.json` using ffmpeg
 - **Chunked processing**: Handles long audio files (hours) by processing in configurable chunks
 - **Overlap handling**: Prevents word cutoffs at chunk boundaries with intelligent overlap resolution
 - **Segment-level transcripts**: Produces sentence-level segments with timestamps
@@ -39,13 +39,13 @@ uvx --from . transcribe --help
 
 ```bash
 # Transcribe a media file
-uv run python transcribe.py input.mp4
+uv run python transcribe_cli.py input.mp4
 
 # Specify output location
-uv run python transcribe.py input.mp4 --output output.vtt
+uv run python transcribe_cli.py input.mp4 --output output.captions.json
 
 # Adjust chunk size and overlap
-uv run python transcribe.py long_audio.wav --chunk-size 120 --overlap 10
+uv run python transcribe_cli.py long_audio.wav --chunk-size 120 --overlap 10
 ```
 
 ### Speaker Diarization
@@ -82,29 +82,28 @@ SPEAKER_00 speaks between t=7.200s and t=10.000s
 
 ### Speaker Embeddings
 
-Compute speaker embedding vectors for each segment in a VTT file. This is useful for speaker clustering, comparison, and identification tasks.
+Compute speaker embedding vectors for each segment in a `.captions.json` file. This is useful for speaker clustering, comparison, and identification tasks.
 
 **Prerequisites:**
 
-1. **Have a VTT file with CAPTION_EDITOR metadata:**
-   - VTT file must include `NOTE CAPTION_EDITOR:TranscriptMetadata` with media file path
-   - VTT file must include `NOTE CAPTION_EDITOR:VTTCue` for each segment
-   - Media file path is relative to the VTT file directory
+1. **Have a `.captions.json` file with media metadata:**
+   - Captions file must include `metadata.mediaFilePath` pointing to the media file
+   - Media file path is relative to the captions file directory
 
 **Run embedding computation:**
 
 ```bash
-# Basic usage (writes embeddings to the VTT file as NOTE comments)
-uv run embed path/to/transcript.vtt
+# Basic usage (writes embeddings into `embeddings[]` in the captions JSON file)
+uv run embed_cli path/to/transcript.captions.json
 
 # Use a different model
-uv run embed transcript.vtt --model pyannote/embedding
+uv run embed_cli transcript.captions.json --model pyannote/embedding
 ```
 
 **Output format:**
 
-The embeddings are written back to the VTT file as `NOTE CAPTION_EDITOR:SegmentSpeakerEmbedding` comments. Each embedding contains:
-- `segmentId`: UUID of the VTT segment
+The embeddings are written back to the `.captions.json` file in the `embeddings[]` array. Each embedding contains:
+- `segmentId`: UUID of the segment
 - `speakerEmbedding`: 512-dimensional vector (for default wespeaker model)
 
 **Note:** The default model (`pyannote/wespeaker-voxceleb-resnet34-LM`) is publicly accessible and doesn't require a HuggingFace token. Some alternative models (like `pyannote/embedding`) are gated and require accepting terms and setting `HF_TOKEN`.
@@ -112,7 +111,7 @@ The embeddings are written back to the VTT file as `NOTE CAPTION_EDITOR:SegmentS
 ### Options
 
 - `media_file`: Input media file to transcribe (required)
-- `--output`, `-o`: Output VTT file path (default: input file with .vtt extension)
+- `--output`, `-o`: Output captions JSON file path (default: input file with `.captions.json` extension)
 - `--chunk-size`, `-c`: Chunk size in seconds (default: 60)
 - `--overlap`, `-v`: Overlap interval in seconds (default: 5)
 - `--model`, `-m`: Hugging Face model name (default: nvidia/parakeet-tdt-0.6b-v3)
@@ -121,7 +120,7 @@ The embeddings are written back to the VTT file as `NOTE CAPTION_EDITOR:SegmentS
 
 ```bash
 # Transcribe a 2-hour podcast with 2-minute chunks and 10-second overlap
-python transcribe.py podcast.mp3 --chunk-size 120 --overlap 10 --output podcast_transcript.vtt
+python transcribe_cli.py podcast.mp3 --chunk-size 120 --overlap 10 --output podcast_transcript.captions.json
 ```
 
 ## How It Works
@@ -171,13 +170,6 @@ Each segment has:
 # Run all tests
 uv run pytest -v
 
-# Run transcription tests
-uv run pytest tests/test_transcribe.py -v
-
-# Run diarization tests (requires HF_TOKEN environment variable)
-export HF_TOKEN=your_token_here
-uv run pytest tests/test_diarization.py -v
-
 # Update snapshots after intentional changes
 uv run pytest tests/ -v --snapshot-update
 ```
@@ -214,7 +206,7 @@ The tool automatically detects NeMo models (models containing "parakeet" or "nvi
 
 **Example:**
 ```bash
-python transcribe.py audio.wav --model nvidia/parakeet-tdt-0.6b-v3
+python transcribe_cli.py audio.wav --model nvidia/parakeet-tdt-0.6b-v3
 ```
 
 ### 2. Hugging Face Transformers Models
@@ -229,7 +221,7 @@ The tool also supports any model compatible with the Hugging Face `automatic-spe
 
 **Example:**
 ```bash
-python transcribe.py audio.wav --model openai/whisper-small
+python transcribe_cli.py audio.wav --model openai/whisper-small
 ```
 
 ### Model Selection
@@ -240,7 +232,7 @@ The tool automatically determines which framework to use:
 
 To use a different model, simply specify it with the `--model` flag:
 ```bash
-python transcribe.py input.mp4 --model your/favorite-model
+python transcribe_cli.py input.mp4 --model your/favorite-model
 ```
 
 ## License

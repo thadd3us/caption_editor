@@ -1,14 +1,14 @@
 /**
  * TypeScript/Python Schema Sync
  *
- * IMPORTANT: This file defines the data schema for VTT documents and must be kept
+ * IMPORTANT: This file defines the data schema for caption documents and must be kept
  * in sync with the Python schema defined in transcribe/schema.py.
  *
  * When adding or modifying fields:
  * 1. Update both TypeScript (this file) and Python (transcribe/schema.py) schemas
  * 2. Use camelCase in TypeScript and snake_case in Python with Field aliases for conversion
  * 3. Ensure optional fields are marked consistently (readonly field?: type in TS, Optional[type] in Python)
- * 4. Update serialization/parsing logic in src/utils/vttParser.ts if needed
+ * 4. Update serialization/parsing logic in src/utils/captionsJson.ts if needed
  * 5. Run both TypeScript and Python tests to verify compatibility
  */
 
@@ -31,7 +31,7 @@ export interface TranscriptWord {
 }
 
 /**
- * Transcript segment (formerly VTTCue) with UUID, timestamps, rating, and text
+ * Transcript segment with UUID, timestamps, rating, and text
  */
 export interface TranscriptSegment {
   readonly id: string // UUID - segment identifier
@@ -47,20 +47,18 @@ export interface TranscriptSegment {
 /**
  * @deprecated Use TranscriptSegment instead. Legacy alias for backwards compatibility.
  */
-export type VTTCue = TranscriptSegment
-
 /**
  * Metadata for the transcript document
  */
 export interface TranscriptMetadata {
   readonly id: string // UUID for the document
-  readonly mediaFilePath?: string // Optional path to the media file (relative to VTT file directory if possible)
+  readonly mediaFilePath?: string // Optional path to the media file (relative to captions file directory if possible)
 }
 
 /**
- * Complete VTT document with metadata
+ * Complete captions document with metadata
  */
-export interface VTTDocument {
+export interface CaptionsDocument {
   readonly metadata: TranscriptMetadata // Document metadata (id, media file path)
   readonly segments: readonly TranscriptSegment[]
   readonly filePath?: string // Original file path if loaded from file
@@ -69,11 +67,11 @@ export interface VTTDocument {
 }
 
 /**
- * Result of parsing a VTT file
+ * Result of parsing a captions file
  */
 export interface ParseResult {
   success: boolean
-  document?: VTTDocument
+  document?: CaptionsDocument
   error?: string
 }
 

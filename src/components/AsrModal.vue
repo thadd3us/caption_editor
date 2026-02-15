@@ -104,7 +104,7 @@ defineExpose({
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,7 +112,7 @@ defineExpose({
 }
 
 .asr-modal {
-  background: #1e1e1e;
+  background: var(--surface-popover);
   border-radius: 8px;
   width: 90%;
   max-width: 900px;
@@ -120,30 +120,31 @@ defineExpose({
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-1);
 }
 
 .asr-modal-header {
   padding: 20px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-1);
 }
 
 .asr-modal-header h2 {
   margin: 0 0 8px 0;
-  color: #fff;
+  color: var(--text-1);
   font-size: 20px;
   font-weight: 600;
 }
 
 .asr-status {
   margin: 0;
-  color: #888;
+  color: var(--text-3);
   font-size: 14px;
 }
 
 .asr-terminal {
   flex: 1;
   overflow-y: auto;
-  background: #0e0e0e;
+  background: var(--terminal-bg);
   padding: 16px;
   font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
@@ -152,14 +153,14 @@ defineExpose({
 
 .asr-terminal pre {
   margin: 0;
-  color: #d4d4d4;
+  color: var(--terminal-text);
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
 .asr-modal-footer {
   padding: 16px 20px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-1);
   display: flex;
   justify-content: flex-end;
 }
@@ -175,12 +176,12 @@ defineExpose({
 }
 
 .asr-button-cancel {
-  background: #555;
-  color: #fff;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .asr-button-cancel:hover {
-  background: #666;
+  background: var(--btn-secondary-hover-bg);
 }
 
 .asr-button-error {
@@ -198,15 +199,15 @@ defineExpose({
 }
 
 .asr-terminal::-webkit-scrollbar-track {
-  background: #0e0e0e;
+  background: var(--terminal-bg);
 }
 
 .asr-terminal::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--btn-secondary-bg);
   border-radius: 5px;
 }
 
 .asr-terminal::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: var(--btn-secondary-hover-bg);
 }
 </style>

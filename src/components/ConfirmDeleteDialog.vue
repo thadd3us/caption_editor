@@ -46,11 +46,11 @@ function handleConfirm() {
 
 <style scoped>
 .warning-box {
-  background: #442a2a;
-  border-left: 4px solid #d32f2f;
+  background: var(--danger-bg);
+  border-left: 4px solid var(--danger-border);
   padding: 16px;
   border-radius: 4px;
-  color: #ffcdd2;
+  color: var(--danger-text);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -66,12 +66,12 @@ function handleConfirm() {
 }
 
 .dialog-button-secondary {
-  background: #444;
-  color: #fff;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .dialog-button-secondary:hover {
-  background: #555;
+  background: var(--btn-secondary-hover-bg);
 }
 
 .dialog-button-danger {

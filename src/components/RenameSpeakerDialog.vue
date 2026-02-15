@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 import BaseModal from './BaseModal.vue'
 
 const props = defineProps<{
@@ -64,17 +64,17 @@ const emit = defineEmits<{
   rename: [{ oldName: string; newName: string }]
 }>()
 
-const store = useVTTStore()
+const store = useCaptionStore()
 
 const selectedSpeaker = ref('')
 const newName = ref('')
 
-// Compute unique non-empty speaker names from all cues
+// Compute unique non-empty speaker names from all segments
 const uniqueSpeakers = computed(() => {
   const speakers = new Set<string>()
-  for (const cue of store.document.segments) {
-    if (cue.speakerName && cue.speakerName.trim() !== '') {
-      speakers.add(cue.speakerName)
+  for (const segment of store.document.segments) {
+    if (segment.speakerName && segment.speakerName.trim() !== '') {
+      speakers.add(segment.speakerName)
     }
   }
   return Array.from(speakers).sort()
@@ -119,7 +119,7 @@ label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #bbb;
+  color: var(--text-2);
   font-size: 14px;
 }
 
@@ -128,10 +128,10 @@ label {
   width: 100%;
   padding: 10px 12px;
   font-size: 14px;
-  background: #1e1e1e;
-  border: 1px solid #444;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
-  color: #eee;
+  color: var(--input-text);
   box-sizing: border-box;
   font-family: inherit;
 }
@@ -144,7 +144,7 @@ label {
 }
 
 .name-input::placeholder {
-  color: #666;
+  color: var(--input-placeholder);
 }
 
 .dialog-button {
@@ -158,12 +158,12 @@ label {
 }
 
 .dialog-button-secondary {
-  background: #444;
-  color: #fff;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .dialog-button-secondary:hover {
-  background: #555;
+  background: var(--btn-secondary-hover-bg);
 }
 
 .dialog-button-primary {
@@ -176,8 +176,8 @@ label {
 }
 
 .dialog-button-primary:disabled {
-  background: #333;
-  color: #666;
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
   cursor: not-allowed;
 }
 </style>

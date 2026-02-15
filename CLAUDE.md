@@ -1,7 +1,5 @@
 # Claude Development Notes
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
-
 ## Important Reminders
 
 **DO NOT create summary/readme files like CLUSTERING_README.md, IMPLEMENTATION_SUMMARY.md, etc.**
@@ -51,8 +49,6 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 
 ### Test Status
 
-**All 282/282 tests passing** (187 TypeScript unit + 71 E2E + 24 Python)
-
 ### Platform Notes
 
 - **macOS**: All tests work out of the box
@@ -63,14 +59,14 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 ## Architecture Essentials
 
 ### State Management
-- Pinia store (`vttStore.ts`)
+- Pinia store (`captionStore.ts` / `useCaptionStore()`)
 - Immutable document model
-- Cues always sorted by start/end time
+- Segments always sorted by start/end time
 
-### VTT Format
-- Metadata in NOTE comments with `CAPTION_EDITOR_SENTINEL` prefix
+### Captions JSON Format
+- Primary document format: `*.captions.json`
 - Media file paths stored as **absolute** internally, **relative** when serialized
-- Speaker embeddings stored as `SegmentSpeakerEmbedding` NOTE comments
+- Speaker embeddings stored in `embeddings[]` (no VTT comments)
 
 ### Key Features
 
@@ -79,7 +75,7 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 - Includes "AI Annotations → Caption with Speech Recognizer"
 
 **ASR Integration**
-- Dev mode: Uses `uv run python transcribe.py`
+- Dev mode: Uses `uv run python transcribe_cli.py`
 - Production: Uses bundled `uvx` to fetch from GitHub at specific commit
 - Default model: `nvidia/parakeet-tdt-0.6b-v3`
 - Test override: Set `window.__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'`
@@ -93,9 +89,9 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 - New/modified words get no timestamps, unchanged words keep original
 
 ### Key Utilities
-- `findIndexOfRowForTime(cues, time)`: Find cue index for time
-- `serializeVTT(document)`: Convert to VTT string (converts paths to relative)
-- `parseVTT(content)`: Parse VTT string to document
+- `findIndexOfRowForTime(segments, time)`: Find segment index for time
+- `serializeCaptionsJSON(document)`: Convert to stable `.captions.json` (converts paths to relative via store export)
+- `parseCaptionsJSON(content)`: Parse `.captions.json` to document
 - `realignWords(originalWords, editedText)`: Preserve word timestamps
 
 ## Common Issues
@@ -123,23 +119,23 @@ await page.evaluate(() => {
 
 ## Python Tools
 
-### Transcription (transcribe/transcribe.py)
+### Transcription (transcribe/transcribe_cli.py)
 ```bash
 cd transcribe
-uv run python transcribe.py audio.wav \
+uv run python transcribe_cli.py audio.wav \
   --max-intra-segment-gap-seconds 2.0 \
   --max-segment-duration-seconds 10.0
 ```
 
 Three-pass pipeline: split by gaps, split long segments, resolve overlaps.
 
-### Speaker Embeddings (transcribe/embed.py)
+### Speaker Embeddings (transcribe/embed_cli.py)
 ```bash
 cd transcribe
-uv run python embed.py file.vtt  # Uses wespeaker (no token required)
+uv run python embed_cli.py file.captions.json  # Uses wespeaker (no token required)
 ```
 
-Adds 256-dimensional speaker embeddings to VTT as NOTE comments.
+Writes speaker embeddings into the `.captions.json` document `embeddings[]`.
 
 ### UVX Distribution
 Package for distribution: `./scripts/package-for-uvx.sh`

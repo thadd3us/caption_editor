@@ -1,44 +1,45 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import type { Page } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import { enableConsoleCapture } from './helpers/console'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 test.describe('Media Element Seek Test', () => {
-  let electronApp: ElectronApplication
   let window: Page
 
-  test.beforeEach(async () => {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'dist-electron/main.cjs'), '--no-sandbox'],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        DISPLAY: process.env.DISPLAY || ':99'
-      }
+  test.beforeEach(async ({ page }) => {
+    window = page
+  })
+
+  test('should set audio currentTime and update store + scrubber via timeupdate event', async () => {
+    // Load a tiny captions doc so MediaPlayer has something to render.
+    await window.evaluate(() => {
+      const store = (window as any).$store
+      store.loadFromFile(JSON.stringify({
+        metadata: { id: 'seek-doc' },
+        segments: [
+          { id: 'seg1', startTime: 2.9, endTime: 3.2, text: 'At three seconds' }
+        ]
+      }), '/test/seek-doc.captions.json')
     })
 
-    // Wait for the first window
-    window = await electronApp.firstWindow()
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
-  })
+    await window.waitForFunction(() => {
+      const store = (window as any).$store
+      return store?.document?.segments?.length === 1
+    })
 
-  test.afterEach(async () => {
-    if (electronApp) { await electronApp.close().catch(() => {}) }
-  })
-
-  test('should set audio currentTime and update store via timeupdate event', async () => {
     // Load audio file
-    const audioPath = path.join(__dirname, 'fixtures', 'test-audio-10s.wav')
-    await window.evaluate((filePath) => {
-      const audioUrl = `file://${filePath}`
-      ;(window as any).$store.loadMediaFile(audioUrl)
+    const audioPath = path.join(__dirname, '..', 'test_data', 'test-audio-10s.wav')
+    await window.evaluate(async (filePath) => {
+      const store = (window as any).$store
+      const electronAPI = (window as any).electronAPI
+      if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
+      const res = await electronAPI.fileToURL(filePath)
+      if (!res?.success || !res.url) throw new Error('Failed to convert filePath to media:// URL')
+      store.loadMediaFile(res.url, filePath)
     }, audioPath)
 
     // Wait for audio element to exist
@@ -51,15 +52,16 @@ test.describe('Media Element Seek Test', () => {
     })
     expect(hasAudio).toBe(true)
 
-    // Set audio currentTime directly
+    // Set audio currentTime directly, and dispatch a timeupdate so MediaPlayer updates the store/scrubber.
     await window.evaluate(() => {
       const audio = document.querySelector('audio') as HTMLAudioElement
       if (audio) {
         audio.currentTime = 3
+        audio.dispatchEvent(new Event('timeupdate'))
       }
     })
 
-    // Wait for time to be set
+    // Wait for time to be set on the element
     await window.waitForFunction(() => {
       const audio = document.querySelector('audio') as HTMLAudioElement
       return audio && Math.abs(audio.currentTime - 3) < 0.5
@@ -72,20 +74,17 @@ test.describe('Media Element Seek Test', () => {
     })
     expect(audioTime).toBeCloseTo(3, 1)
 
-    // Check if store was updated (via onTimeUpdate event)
-    // Note: timeupdate event may not fire if media isn't playing
-    const storeTime = await window.evaluate(() => (window as any).$store.currentTime)
-    console.log('Store currentTime:', storeTime)
-
-    // Check scrubber value
-    const scrubberValue = await window.evaluate(() => {
-      const scrubber = document.querySelector('.scrubber') as HTMLInputElement
-      return scrubber ? parseFloat(scrubber.value) : null
+    // Store should have been updated by the timeupdate handler.
+    await window.waitForFunction(() => {
+      const t = (window as any).$store?.currentTime
+      return typeof t === 'number' && Math.abs(t - 3) < 0.5
     })
-    console.log('Scrubber value:', scrubberValue)
 
-    // Note: The timeupdate event typically doesn't fire when just setting currentTime
-    // It fires during playback. So the store and scrubber may not update automatically.
-    console.log('Test completed: audio.currentTime can be set directly')
+    // Scrubber should reflect currentTime.
+    const scrubber = window.locator('.scrubber')
+    await expect(scrubber).toHaveValue(/3(\.\d+)?/)
+
+    // Caption display should also react.
+    await expect(window.locator('.caption-text')).toContainText('At three seconds')
   })
 })
