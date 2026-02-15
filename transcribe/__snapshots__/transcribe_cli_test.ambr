@@ -502,6 +502,7 @@
         ]),
       }),
     ]),
+    'title': 'OSR_us_000_0010_8k',
   })
 # ---
 # name: test_transcribe_osr_audio[openai/whisper-tiny]
@@ -954,5 +955,6 @@
         ]),
       }),
     ]),
+    'title': 'OSR_us_000_0010_8k',
   })
 # ---
