@@ -772,8 +772,8 @@ onUnmounted(() => {
 
 .file-path-display {
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 13px;
