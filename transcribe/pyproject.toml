@@ -27,6 +27,7 @@ dependencies = [
     #    "torchcodec",
     "ruff>=0.15.0",
     "pyright>=1.1.408",
+    "imageio-ffmpeg>=0.6.0",
 ]
 
 [project.scripts]
