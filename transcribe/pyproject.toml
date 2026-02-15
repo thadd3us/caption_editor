@@ -58,10 +58,14 @@ override-dependencies = [
 [tool.setuptools]
 # Use find_packages to discover Python modules, exclude test directories
 py-modules = [
+    "audio_utils",
     "transcribe_cli",
     "embed_cli",
     "asr_results_to_captions",
+    "captions_json_lib",
     "capture_raw_asr_output",
+    "constants",
+    "repo_root",
     "schema",
 ]
 
