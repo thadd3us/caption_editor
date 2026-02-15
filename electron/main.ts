@@ -764,8 +764,30 @@ async function runAsrTool(options: {
   // Store process for cancellation
   const processId = Date.now().toString()
 
+  const shouldMirrorAsrOutputToMainStdio =
+    process.env.CAPTION_EDITOR_MIRROR_ASR_OUTPUT_TO_STDIO === '1' ||
+    process.env.NODE_ENV === 'test'
+
+  const appendTail = (current: string, addition: string, maxChars: number) => {
+    const combined = current + addition
+    if (combined.length <= maxChars) return combined
+    return combined.slice(combined.length - maxChars)
+  }
+
+  let stdoutTail = ''
+  let stderrTail = ''
+
   const sendOutput = (type: 'stdout' | 'stderr', data: string) => {
     mainWindow?.webContents.send('asr:output', { processId, type, data })
+
+    if (shouldMirrorAsrOutputToMainStdio) {
+      const prefix = `[asr:${processId}:${type}] `
+      if (type === 'stdout') {
+        process.stdout.write(prefix + data)
+      } else {
+        process.stderr.write(prefix + data)
+      }
+    }
   }
 
   // Determine if we're in dev mode
@@ -865,8 +887,16 @@ async function runAsrTool(options: {
       }
     })
 
-    proc.stdout?.on('data', (data) => sendOutput('stdout', data.toString()))
-    proc.stderr?.on('data', (data) => sendOutput('stderr', data.toString()))
+    proc.stdout?.on('data', (data) => {
+      const chunk = data.toString()
+      stdoutTail = appendTail(stdoutTail, chunk, 20_000)
+      sendOutput('stdout', chunk)
+    })
+    proc.stderr?.on('data', (data) => {
+      const chunk = data.toString()
+      stderrTail = appendTail(stderrTail, chunk, 20_000)
+      sendOutput('stderr', chunk)
+    })
 
     proc.on('close', (code) => {
       activeProcesses.delete(processId)
@@ -881,7 +911,8 @@ async function runAsrTool(options: {
       } else {
         const errorMsg = `Process exited with code ${code}`
         console.error(`[main] ASR ${script} ${errorMsg}`)
-        reject(new Error(errorMsg))
+        const tail = (stderrTail || stdoutTail).trim()
+        reject(new Error(tail ? `${errorMsg}\n\n--- process output (tail) ---\n${tail}` : errorMsg))
       }
     })
 
