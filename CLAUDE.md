@@ -59,14 +59,14 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 ## Architecture Essentials
 
 ### State Management
-- Pinia store (`vttStore.ts`)
+- Pinia store (`captionStore.ts` / `useCaptionStore()`)
 - Immutable document model
 - Cues always sorted by start/end time
 
-### VTT Format
-- Metadata in NOTE comments with `CAPTION_EDITOR_SENTINEL` prefix
+### Captions JSON Format
+- Primary document format: `*.captions.json`
 - Media file paths stored as **absolute** internally, **relative** when serialized
-- Speaker embeddings stored as `SegmentSpeakerEmbedding` NOTE comments
+- Speaker embeddings stored in `embeddings[]` (no VTT comments)
 
 ### Key Features
 
@@ -90,8 +90,8 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 
 ### Key Utilities
 - `findIndexOfRowForTime(cues, time)`: Find cue index for time
-- `serializeVTT(document)`: Convert to VTT string (converts paths to relative)
-- `parseVTT(content)`: Parse VTT string to document
+- `serializeCaptionsJSON(document)`: Convert to stable `.captions.json` (converts paths to relative via store export)
+- `parseCaptionsJSON(content)`: Parse `.captions.json` to document
 - `realignWords(originalWords, editedText)`: Preserve word timestamps
 
 ## Common Issues

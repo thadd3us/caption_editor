@@ -9,9 +9,16 @@ const __dirname = path.dirname(__filename)
 test.describe('File Drop', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
 
-  test('should handle VTT file drops', async ({ page }) => {
-    const vttFilePath = path.resolve(__dirname, '../../test_data/sample.vtt')
-    await fs.access(vttFilePath)
+  test('should handle captions JSON file drops', async ({ page }) => {
+    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions.json')
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [
+        { id: 'seg_1', startTime: 0, endTime: 5, text: 'First caption' },
+        { id: 'seg_2', startTime: 5, endTime: 10, text: 'Second caption' }
+      ]
+    })
+    await fs.writeFile(captionsFilePath, captionsJson, 'utf-8')
 
     const result = await page.evaluate(async (filePath) => {
       const api = (window as any).electronAPI
@@ -20,18 +27,18 @@ test.describe('File Drop', () => {
       }
 
       return await api.processDroppedFiles([filePath])
-    }, vttFilePath)
+    }, captionsFilePath)
 
     expect(result).toBeDefined()
     expect(result.length).toBe(1)
-    expect(result[0].type).toBe('vtt')
-    expect(result[0].filePath).toBe(vttFilePath)
-    expect(result[0].content).toContain('WEBVTT')
+    expect(result[0].type).toBe('captions_json')
+    expect(result[0].filePath).toBe(captionsFilePath)
+    expect(result[0].content).toContain('First caption')
 
     await page.evaluate((fileResult) => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       if (!store) {
-        throw new Error('__vttStore not available')
+        throw new Error('$store not available')
       }
       store.loadFromFile(fileResult.content, fileResult.filePath)
     }, result[0])
@@ -40,6 +47,8 @@ test.describe('File Drop', () => {
 
     const rows = await page.locator('.ag-row').all()
     expect(rows.length).toBeGreaterThan(0)
+
+    await fs.unlink(captionsFilePath).catch(() => {})
   })
 
   test('should handle WAV file drops', async ({ page }) => {
@@ -63,9 +72,9 @@ test.describe('File Drop', () => {
 
     // Verify the media file gets loaded into the store
     const mediaPath = await page.evaluate((fileResult) => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       if (!store) {
-        throw new Error('__vttStore not available')
+        throw new Error('$store not available')
       }
       store.loadMediaFile(fileResult.url, fileResult.filePath)
       return store.mediaFilePath
@@ -74,11 +83,18 @@ test.describe('File Drop', () => {
     expect(mediaPath).toBe(wavFilePath)
   })
 
-  test('should handle dropping both VTT and WAV files together', async ({ page }) => {
-    const vttFilePath = path.resolve(__dirname, '../../test_data/sample.vtt')
+  test('should handle dropping both captions and WAV files together', async ({ page }) => {
+    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions.json')
     const wavFilePath = path.resolve(__dirname, '../../test_data/test-audio-10s.wav')
 
-    await fs.access(vttFilePath)
+    await fs.writeFile(
+      captionsFilePath,
+      JSON.stringify({
+        metadata: { id: 'doc_1' },
+        segments: [{ id: 'seg_1', startTime: 0, endTime: 5, text: 'Dropped caption' }]
+      }),
+      'utf-8'
+    )
     await fs.access(wavFilePath)
 
     const result = await page.evaluate(async (filePaths) => {
@@ -88,30 +104,30 @@ test.describe('File Drop', () => {
       }
 
       return await api.processDroppedFiles(filePaths)
-    }, [vttFilePath, wavFilePath])
+    }, [captionsFilePath, wavFilePath])
 
     expect(result).toBeDefined()
     expect(result.length).toBe(2)
 
-    const vttResult = result.find((r: any) => r.type === 'vtt')
+    const captionsResult = result.find((r: any) => r.type === 'captions_json')
     const mediaResult = result.find((r: any) => r.type === 'media')
 
-    expect(vttResult).toBeDefined()
+    expect(captionsResult).toBeDefined()
     expect(mediaResult).toBeDefined()
-    expect(vttResult.filePath).toBe(vttFilePath)
+    expect(captionsResult.filePath).toBe(captionsFilePath)
     expect(mediaResult.filePath).toBe(wavFilePath)
 
     await page.evaluate((results) => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       if (!store) {
-        throw new Error('__vttStore not available')
+        throw new Error('$store not available')
       }
 
-      const vtt = results.find((r: any) => r.type === 'vtt')
+      const captions = results.find((r: any) => r.type === 'captions_json')
       const media = results.find((r: any) => r.type === 'media')
 
-      if (vtt) {
-        store.loadFromFile(vtt.content, vtt.filePath)
+      if (captions) {
+        store.loadFromFile(captions.content, captions.filePath)
       }
       if (media) {
         store.loadMediaFile(media.url, media.filePath)
@@ -122,7 +138,7 @@ test.describe('File Drop', () => {
 
     // Verify both files were loaded
     const storeState = await page.evaluate(() => {
-      const store = (window as any).__vttStore
+      const store = (window as any).$store
       return {
         segmentCount: store.document.segments.length,
         mediaPath: store.mediaFilePath
@@ -131,5 +147,7 @@ test.describe('File Drop', () => {
 
     expect(storeState.segmentCount).toBeGreaterThan(0)
     expect(storeState.mediaPath).toBe(wavFilePath)
+
+    await fs.unlink(captionsFilePath).catch(() => {})
   })
 })

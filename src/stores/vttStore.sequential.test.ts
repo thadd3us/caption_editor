@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useVTTStore, PlaybackMode } from './vttStore'
+import { useCaptionStore, PlaybackMode } from './vttStore'
 // import type { VTTDocument } from '../types/schema'
 
 describe('Playlist Playback Store', () => {
@@ -8,29 +8,24 @@ describe('Playlist Playback Store', () => {
     setActivePinia(createPinia())
   })
 
+  function loadTestDocument(store: ReturnType<typeof useCaptionStore>, segments: any[]) {
+    store.loadFromFile(
+      JSON.stringify({
+        metadata: { id: 'doc1', mediaFilePath: 'test.wav' },
+        segments
+      })
+    )
+  }
+
   it('should start playlist playback with all segments from index 0', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup: Load a document with 3 segments
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg3","startTime":6,"endTime":8,"text":"Third segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:06.000 --> 00:00:08.000
-Third segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg3', startTime: 6, endTime: 8, text: 'Third segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
 
@@ -48,28 +43,14 @@ Third segment
   })
 
   it('should start playlist playback from a specific index', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup: Load a document with 3 segments
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg3","startTime":6,"endTime":8,"text":"Third segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:06.000 --> 00:00:08.000
-Third segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg3', startTime: 6, endTime: 8, text: 'Third segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
 
@@ -84,23 +65,13 @@ Third segment
   })
 
   it('should get current playlist segment correctly', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup document
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
     store.startPlaylistPlayback(segmentIds, 0)
@@ -113,28 +84,14 @@ Second segment
   })
 
   it('should advance to next segment', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup document
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg3","startTime":6,"endTime":8,"text":"Third segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:06.000 --> 00:00:08.000
-Third segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg3', startTime: 6, endTime: 8, text: 'Third segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
     store.startPlaylistPlayback(segmentIds, 0)
@@ -151,23 +108,13 @@ Third segment
   })
 
   it('should return false and return to start when reaching end of playlist', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup document with 2 segments
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
     store.startPlaylistPlayback(segmentIds, 0)
@@ -188,23 +135,13 @@ Second segment
   })
 
   it('should stop playlist playback without returning to start', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup document
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
     store.startPlaylistPlayback(segmentIds, 0)
@@ -226,7 +163,7 @@ Second segment
   })
 
   it('should handle empty segment list gracefully', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Try to start playlist playback with empty list
     store.startPlaylistPlayback([], 0)
@@ -239,28 +176,14 @@ Second segment
   })
 
   it('should preserve playlist order even if document changes', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup document
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg3","startTime":6,"endTime":8,"text":"Third segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:06.000 --> 00:00:08.000
-Third segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg3', startTime: 6, endTime: 8, text: 'Third segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     // Start playlist playback in a specific order
     const segmentIds = ['seg3', 'seg1', 'seg2'] // Out of time order
@@ -282,7 +205,7 @@ Third segment
   })
 
   it('should handle advancing when not in playlist mode', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Try to advance without starting playlist playback
     const hasNext = store.nextPlaylistSegment()
@@ -292,23 +215,13 @@ Third segment
   })
 
   it('should cancel playlist playback without returning to start', () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Setup document
-    store.loadFromFile(`WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"doc1","mediaFilePath":"test.wav"}
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg1","startTime":0,"endTime":2,"text":"First segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:00.000 --> 00:00:02.000
-First segment
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"seg2","startTime":3,"endTime":5,"text":"Second segment","timestamp":"2024-01-01T00:00:00.000Z"}
-
-00:00:03.000 --> 00:00:05.000
-Second segment
-`)
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First segment', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 3, endTime: 5, text: 'Second segment', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
 
     const segmentIds = store.document.segments.map(s => s.id)
     store.startPlaylistPlayback(segmentIds, 0)

@@ -10,12 +10,11 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from schema import (
-    CAPTION_EDITOR_SENTINEL,
-    SegmentSpeakerEmbedding,
-    TranscriptMetadata,
-    TranscriptSegment,
-)
+from schema import SegmentSpeakerEmbedding, TranscriptMetadata, TranscriptSegment
+
+# NOTE: VTT support is deprecated in favor of `.captions.json`, but this module
+# is still kept around for legacy test fixtures.
+CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
 
 
 def parse_vtt_file(

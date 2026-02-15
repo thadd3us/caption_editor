@@ -7,7 +7,7 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
+test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () => {
   let window: Page
 
   test.setTimeout(60000) // Increase timeout to 60s for E2E tests
@@ -32,10 +32,8 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
     console.log('Resetting store to clean state...')
     await window.evaluate(() => {
       const store = (window as any).$store
-      // Reset to empty document
-      store.loadFromFile('WEBVTT\n', '/test/empty.vtt')
+      store.reset()
       store.setCurrentTime(0)
-      store.loadMediaFile(null)
     })
 
     // Wait for AG Grid to reflect the empty state - check that rows disappear
@@ -59,7 +57,7 @@ test.describe('VTT Editor - Playhead, Scrub Bar, and Table Integration', () => {
           text: s.text
         })),
         currentTime: store.currentTime,
-        mediaUrl: store.mediaUrl
+        mediaPath: store.mediaPath
       }
     })
     console.log('Initial state after reset:', JSON.stringify(initialState, null, 2))

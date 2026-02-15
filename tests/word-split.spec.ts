@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Word-Level Split', () => {
+test.describe('Caption Editor - Word-Level Split', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -9,12 +9,12 @@ test.describe('VTT Editor - Word-Level Split', () => {
     await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
-  async function loadVttAndWaitForSegments(vttContent: string, expectedCount: number): Promise<void> {
+  async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedCount: number): Promise<void> {
     await window.evaluate(({ content }) => {
       const vttStore = (window as any).$store
       if (!vttStore) return
-      vttStore.loadFromFile(content, '/test/file.vtt')
-    }, { content: vttContent })
+      vttStore.loadFromFile(content, '/test/file.captions.json')
+    }, { content: captionsContent })
 
     await window.waitForFunction((count) => {
       const vttStore = (window as any).$store
@@ -45,15 +45,23 @@ test.describe('VTT Editor - Word-Level Split', () => {
   })
 
   test('should render words as spans when segment has word-level timestamps', async () => {
-    // Load VTT with word-level timestamps
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"Hello world today","words":[{"text":"Hello","startTime":1.0,"endTime":1.5},{"text":"world","startTime":2.0,"endTime":2.5},{"text":"today","startTime":3.0,"endTime":3.5}]}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-Hello world today`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [
+        {
+          id: 'seg1',
+          startTime: 1,
+          endTime: 5,
+          text: 'Hello world today',
+          words: [
+            { text: 'Hello', startTime: 1.0, endTime: 1.5 },
+            { text: 'world', startTime: 2.0, endTime: 2.5 },
+            { text: 'today', startTime: 3.0, endTime: 3.5 }
+          ]
+        }
+      ]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
 
     // Seek to the segment time to display it
     await setCurrentTimeAndWait(2.0)
@@ -79,15 +87,23 @@ Hello world today`
   })
 
   test('should show context menu on word right-click with split option enabled', async () => {
-    // Load VTT with word-level timestamps
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"Hello world today","words":[{"text":"Hello","startTime":1.0,"endTime":1.5},{"text":"world","startTime":2.0,"endTime":2.5},{"text":"today","startTime":3.0,"endTime":3.5}]}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-Hello world today`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [
+        {
+          id: 'seg1',
+          startTime: 1,
+          endTime: 5,
+          text: 'Hello world today',
+          words: [
+            { text: 'Hello', startTime: 1.0, endTime: 1.5 },
+            { text: 'world', startTime: 2.0, endTime: 2.5 },
+            { text: 'today', startTime: 3.0, endTime: 3.5 }
+          ]
+        }
+      ]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="1"]', { timeout: 2000 })
 
@@ -106,15 +122,25 @@ Hello world today`
   })
 
   test('should split segment when clicking split option in context menu', async () => {
-    // Load VTT with word-level timestamps
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"Hello world today","words":[{"text":"Hello","startTime":1.0,"endTime":1.5},{"text":"world","startTime":2.0,"endTime":2.5},{"text":"today","startTime":3.0,"endTime":3.5}],"speakerName":"Alice","rating":4}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-Hello world today`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [
+        {
+          id: 'seg1',
+          startTime: 1,
+          endTime: 5,
+          text: 'Hello world today',
+          speakerName: 'Alice',
+          rating: 4,
+          words: [
+            { text: 'Hello', startTime: 1.0, endTime: 1.5 },
+            { text: 'world', startTime: 2.0, endTime: 2.5 },
+            { text: 'today', startTime: 3.0, endTime: 3.5 }
+          ]
+        }
+      ]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="1"]', { timeout: 2000 })
 
@@ -179,15 +205,22 @@ Hello world today`
   })
 
   test('should show disabled split option for first word', async () => {
-    // Load VTT with word-level timestamps
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"Hello world","words":[{"text":"Hello","startTime":1.0,"endTime":1.5},{"text":"world","startTime":2.0,"endTime":2.5}]}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-Hello world`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [
+        {
+          id: 'seg1',
+          startTime: 1,
+          endTime: 5,
+          text: 'Hello world',
+          words: [
+            { text: 'Hello', startTime: 1.0, endTime: 1.5 },
+            { text: 'world', startTime: 2.0, endTime: 2.5 }
+          ]
+        }
+      ]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="0"]', { timeout: 2000 })
 
@@ -207,15 +240,23 @@ Hello world`
   })
 
   test('should show disabled split option for word without timestamp', async () => {
-    // Load VTT with mixed words (some with timestamps, some without)
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"Hello beautiful world","words":[{"text":"Hello","startTime":1.0,"endTime":1.5},{"text":"beautiful"},{"text":"world","startTime":3.0,"endTime":3.5}]}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-Hello beautiful world`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [
+        {
+          id: 'seg1',
+          startTime: 1,
+          endTime: 5,
+          text: 'Hello beautiful world',
+          words: [
+            { text: 'Hello', startTime: 1.0, endTime: 1.5 },
+            { text: 'beautiful' },
+            { text: 'world', startTime: 3.0, endTime: 3.5 }
+          ]
+        }
+      ]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="1"]', { timeout: 2000 })
 
@@ -239,15 +280,11 @@ Hello beautiful world`
   })
 
   test('should fall back to plain text display when segment has no words', async () => {
-    // Load VTT without word-level timestamps
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"Hello world"}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-Hello world`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [{ id: 'seg1', startTime: 1, endTime: 5, text: 'Hello world' }]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.caption-text', { timeout: 2000 })
 
@@ -261,15 +298,25 @@ Hello world`
   })
 
   test('should preserve speaker metadata when splitting segment', async () => {
-    // Load VTT with speaker and rating
-    const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":1,"endTime":5,"text":"First second third","words":[{"text":"First","startTime":1.0,"endTime":1.5},{"text":"second","startTime":2.0,"endTime":2.5},{"text":"third","startTime":3.0,"endTime":3.5}],"speakerName":"Bob","rating":5}
-
-seg1
-00:00:01.000 --> 00:00:05.000
-First second third`
-    await loadVttAndWaitForSegments(vttContent, 1)
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc1' },
+      segments: [
+        {
+          id: 'seg1',
+          startTime: 1,
+          endTime: 5,
+          text: 'First second third',
+          speakerName: 'Bob',
+          rating: 5,
+          words: [
+            { text: 'First', startTime: 1.0, endTime: 1.5 },
+            { text: 'second', startTime: 2.0, endTime: 2.5 },
+            { text: 'third', startTime: 3.0, endTime: 3.5 }
+          ]
+        }
+      ]
+    })
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="2"]', { timeout: 2000 })
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useVTTStore } from './vttStore'
+import { useCaptionStore } from './vttStore'
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -30,7 +30,7 @@ describe('vttStore', () => {
 
   describe('initialization', () => {
     it('should initialize with empty document', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       expect(store.document.segments).toHaveLength(0)
       expect(store.mediaPath).toBeNull()
       expect(store.currentTime).toBe(0)
@@ -40,22 +40,22 @@ describe('vttStore', () => {
   })
 
   describe('loadFromFile', () => {
-    it('should load valid VTT content', () => {
-      const store = useVTTStore()
-      const vttContent = `WEBVTT
+    it('should load valid captions JSON content', () => {
+      const store = useCaptionStore()
+      const captionsJson = JSON.stringify({
+        metadata: { id: 'doc_1' },
+        segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
+      })
 
-00:00:01.000 --> 00:00:04.000
-Test caption`
-
-      store.loadFromFile(vttContent, '/test/file.vtt')
+      store.loadFromFile(captionsJson, '/test/file.captions.json')
       expect(store.document.segments).toHaveLength(1)
       expect(store.document.segments[0].text).toBe('Test caption')
-      expect(store.document.filePath).toBe('/test/file.vtt')
+      expect(store.document.filePath).toBe('/test/file.captions.json')
     })
 
-    it('should throw error on invalid VTT content', () => {
-      const store = useVTTStore()
-      const invalidContent = 'Not a VTT file'
+    it('should throw error on invalid captions content', () => {
+      const store = useCaptionStore()
+      const invalidContent = '{not json'
 
       expect(() => store.loadFromFile(invalidContent)).toThrow()
     })
@@ -63,32 +63,33 @@ Test caption`
 
   describe('loadMediaFile', () => {
     it('should set media path', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.loadMediaFile('/path/to/video.mp4')
       expect(store.mediaPath).toBe('/path/to/video.mp4')
     })
   })
 
   describe('exportToString', () => {
-    it('should export document as VTT string', () => {
-      const store = useVTTStore()
-      const vttContent = `WEBVTT
+    it('should export document as captions JSON string', () => {
+      const store = useCaptionStore()
+      const captionsJson = JSON.stringify({
+        metadata: { id: 'doc_1' },
+        segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
+      })
 
-00:00:01.000 --> 00:00:04.000
-Test caption`
-
-      store.loadFromFile(vttContent)
+      store.loadFromFile(captionsJson)
       const exported = store.exportToString()
 
-      expect(exported).toContain('WEBVTT')
-      expect(exported).toContain('Test caption')
-      expect(exported).toContain('00:00:01.000 --> 00:00:04.000')
+      const parsed = JSON.parse(exported)
+      expect(parsed.metadata.id).toBe('doc_1')
+      expect(parsed.segments).toHaveLength(1)
+      expect(parsed.segments[0].text).toBe('Test caption')
     })
   })
 
   describe('addCue', () => {
     it('should add a new cue at specified time', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10, 5)
 
       expect(store.document.segments).toHaveLength(1)
@@ -99,7 +100,7 @@ Test caption`
     })
 
     it('should use default duration if not specified', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.addCue(10)
 
       expect(store.document.segments[0].endTime).toBe(15)
@@ -108,7 +109,7 @@ Test caption`
 
   describe('updateCue', () => {
     it('should update cue text', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10)
 
       store.updateCue(cueId, { text: 'Updated text' })
@@ -116,7 +117,7 @@ Test caption`
     })
 
     it('should update cue timing', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10)
 
       store.updateCue(cueId, { startTime: 12, endTime: 18 })
@@ -125,7 +126,7 @@ Test caption`
     })
 
     it('should update cue rating', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10)
 
       store.updateCue(cueId, { rating: 5 })
@@ -133,7 +134,7 @@ Test caption`
     })
 
     it('should throw error if endTime <= startTime', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10)
 
       expect(() => {
@@ -142,7 +143,7 @@ Test caption`
     })
 
     it('should throw error if startTime >= existing endTime', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10, 5) // endTime = 15
 
       expect(() => {
@@ -151,7 +152,7 @@ Test caption`
     })
 
     it('should throw error if endTime <= existing startTime', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10, 5) // startTime = 10
 
       expect(() => {
@@ -162,7 +163,7 @@ Test caption`
 
   describe('deleteCue', () => {
     it('should delete a cue', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10)
 
       store.deleteCue(cueId)
@@ -170,7 +171,7 @@ Test caption`
     })
 
     it('should clear selectedCueId if deleting selected cue', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10)
       store.selectCue(cueId)
 
@@ -179,7 +180,7 @@ Test caption`
     })
 
     it('should not clear selectedCueId if deleting different cue', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId1 = store.addCue(10)
       const cueId2 = store.addCue(20)
       store.selectCue(cueId1)
@@ -192,13 +193,13 @@ Test caption`
 
   describe('setCurrentTime', () => {
     it('should update current time', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.setCurrentTime(42.5)
       expect(store.currentTime).toBe(42.5)
     })
 
     it('should auto-select current cue', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10, 10) // 10-20s
 
       store.setCurrentTime(15)
@@ -206,7 +207,7 @@ Test caption`
     })
 
     it('should not select if no cue at current time', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.addCue(10, 10) // 10-20s
 
       store.setCurrentTime(5)
@@ -216,7 +217,7 @@ Test caption`
 
   describe('setPlaying', () => {
     it('should update playing state', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.setPlaying(true)
       expect(store.isPlaying).toBe(true)
 
@@ -227,13 +228,13 @@ Test caption`
 
   describe('selectCue', () => {
     it('should set selected cue ID', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.selectCue('test-id')
       expect(store.selectedCueId).toBe('test-id')
     })
 
     it('should allow null to deselect', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.selectCue('test-id')
       store.selectCue(null)
       expect(store.selectedCueId).toBeNull()
@@ -242,7 +243,7 @@ Test caption`
 
   describe('document.segments (always sorted)', () => {
     it('should keep cues sorted by start time', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.addCue(20)
       store.addCue(10)
       store.addCue(30)
@@ -254,7 +255,7 @@ Test caption`
     })
 
     it('should sort by end time when start times are equal', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const id1 = store.addCue(10, 10) // 10-20
       store.updateCue(id1, { endTime: 20 })
 
@@ -269,7 +270,7 @@ Test caption`
 
   describe('currentCue', () => {
     it('should return cue at current time', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId = store.addCue(10, 10) // 10-20s
 
       store.setCurrentTime(15)
@@ -277,7 +278,7 @@ Test caption`
     })
 
     it('should return undefined if no cue at current time', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       store.addCue(10, 10) // 10-20s
 
       store.setCurrentTime(5)
@@ -285,7 +286,7 @@ Test caption`
     })
 
     it('should return first matching cue if multiple overlap', () => {
-      const store = useVTTStore()
+      const store = useCaptionStore()
       const cueId1 = store.addCue(10, 20) // 10-30s
       store.addCue(15, 10) // 15-25s
 

@@ -31,6 +31,18 @@ export interface ElectronAPI {
   }>
 
   /**
+   * Save SRT file with dialog
+   */
+  saveSrtFile: (options: {
+    content: string
+    suggestedName?: string
+  }) => Promise<{
+    success: boolean
+    filePath?: string
+    error?: string
+  }>
+
+  /**
    * Save to existing file path
    */
   saveExistingFile: (options: {
@@ -77,7 +89,7 @@ export interface ElectronAPI {
    * Process dropped files
    */
   processDroppedFiles: (filePaths: string[]) => Promise<Array<{
-    type: 'vtt' | 'media'
+    type: 'captions_json' | 'srt' | 'media'
     filePath: string
     fileName: string
     content?: string
@@ -131,13 +143,13 @@ export interface ElectronAPI {
   asr: {
     transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number }) => Promise<{
       success: boolean
-      vttPath: string
+      captionsPath: string
       processId: string
       content?: string
       error?: string
       canceled?: boolean
     }>
-    embed: (options: { vttPath: string, model?: string }) => Promise<{
+    embed: (options: { captionsPath: string, model?: string }) => Promise<{
       success: boolean
       content?: string
       error?: string

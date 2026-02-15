@@ -21,18 +21,24 @@ test.describe('Speaker Embedding Integration @expensive', () => {
         try {
             const projectRoot = getProjectRoot()
 
-            // 1. Copy test audio file and VTT file to temp directory
+            // 1. Copy test audio file and create captions file in temp directory
             const sourceAudioPath = path.join(projectRoot, 'test_data/full_pipeline/OSR_us_000_0010_8k.wav')
-            const sourceVttPath = path.join(projectRoot, 'test_data/full_pipeline/1_after_transcribe.vtt')
 
             const destAudioPath = path.join(tmpDir, 'test_audio.wav')
-            const destVttPath = path.join(tmpDir, 'test_audio.vtt')
+            const destCaptionsPath = path.join(tmpDir, 'test_audio.captions.json')
 
             fs.copyFileSync(sourceAudioPath, destAudioPath)
-            fs.copyFileSync(sourceVttPath, destVttPath)
+            fs.writeFileSync(destCaptionsPath, JSON.stringify({
+                metadata: { id: 'embed-test-doc', mediaFilePath: 'test_audio.wav' },
+                segments: [
+                    { id: 'cue1', startTime: 0, endTime: 1, text: 'Test one' },
+                    { id: 'cue2', startTime: 1, endTime: 2, text: 'Test two' },
+                    { id: 'cue3', startTime: 2, endTime: 3, text: 'Test three' }
+                ]
+            }, null, 2), 'utf-8')
 
             console.log('[Test] Copied audio file to:', destAudioPath)
-            console.log('[Test] Copied VTT file to:', destVttPath)
+            console.log('[Test] Created captions file at:', destCaptionsPath)
 
             // 2. Set environment to trigger uvx path if in production
             // But for tests usually we might want to run in dev mode or prod mode
@@ -65,19 +71,19 @@ test.describe('Speaker Embedding Integration @expensive', () => {
                 console.log('[Test] electronAPI.asr keys:', Object.keys((window as any).electronAPI?.asr || {}))
             })
 
-            // 4. Load the VTT file
-            console.log('[Test] Loading VTT file:', destVttPath)
-            await page.evaluate(async (vttPath) => {
+            // 4. Load the captions file
+            console.log('[Test] Loading captions file:', destCaptionsPath)
+            await page.evaluate(async (captionsPath) => {
                 const store = (window as any).$store || (window as any).store
                 if (!store) throw new Error('Store not found on window')
 
-                const result = await (window as any).electronAPI.readFile(vttPath)
+                const result = await (window as any).electronAPI.readFile(captionsPath)
                 if (result.success && result.content) {
-                    store.loadFromFile(result.content, vttPath)
+                    store.loadFromFile(result.content, captionsPath)
                 } else {
-                    throw new Error('Failed to load VTT: ' + result.error)
+                    throw new Error('Failed to load captions file: ' + result.error)
                 }
-            }, destVttPath)
+            }, destCaptionsPath)
 
             // 5. Load the media file
             console.log('[Test] Loading media file:', destAudioPath)

@@ -30,6 +30,7 @@
     "test:all:complete": "./scripts/run-all-tests.sh"
   },
   "dependencies": {
+    "@qgustavor/srt-parser": "^2.0.0",
     "ag-grid-community": "^35.0.1",
     "ag-grid-vue3": "^35.0.1",
     "ansi-to-html": "^0.7.2",

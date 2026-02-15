@@ -1,4 +1,4 @@
-"""Command-line interface for computing speaker embeddings from VTT files."""
+"""Command-line interface for computing speaker embeddings for `.captions.json` files."""
 
 import os
 import tempfile
@@ -12,10 +12,10 @@ from pyannote.audio import Inference, Model
 from tqdm import tqdm
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
+from captions_json_lib import parse_captions_json_file, write_captions_json_file
 from schema import SegmentSpeakerEmbedding
-from vtt_lib import parse_vtt_file, serialize_vtt
 
-app = typer.Typer(help="Compute speaker embeddings from VTT files")
+app = typer.Typer(help="Compute speaker embeddings for .captions.json files")
 
 
 def get_hf_token() -> Optional[str]:
@@ -54,13 +54,13 @@ def compute_embedding(
 
 @app.command()
 def main(
-    vtt_path: Path = typer.Argument(
+    captions_path: Path = typer.Argument(
         ...,
         exists=True,
         file_okay=True,
         dir_okay=False,
         readable=True,
-        help="Path to the VTT file",
+        help="Path to the .captions.json file",
     ),
     model: str = typer.Option(
         "pyannote/wespeaker-voxceleb-resnet34-LM",
@@ -74,10 +74,10 @@ def main(
     ),
 ) -> None:
     """
-    Compute speaker embeddings for each segment in a VTT file.
+    Compute speaker embeddings for each segment in a captions JSON document.
 
     HF_TOKEN environment variable is optional (only needed for gated models).
-    Writes embeddings as NOTE comments in the VTT file.
+    Writes embeddings into the `embeddings` field of the captions JSON document.
     """
     # Use a temporary directory that persists through the whole function
     temp_dir_obj = tempfile.TemporaryDirectory()
@@ -87,16 +87,18 @@ def main(
         # Get HuggingFace token (optional for public models)
         token = get_hf_token()
 
-        # Parse VTT file
-        typer.echo(f"Parsing VTT file: {vtt_path}")
-        metadata, segments = parse_vtt_file(vtt_path)
+        # Parse captions JSON file
+        typer.echo(f"Parsing captions JSON: {captions_path}")
+        document = parse_captions_json_file(captions_path)
+        metadata = document.metadata
+        segments = document.segments
 
-        # Get media file path (relative to VTT directory)
+        # Get media file path (relative to captions file directory)
         if not metadata.media_file_path:
-            raise ValueError("No media file path found in VTT metadata")
+            raise ValueError("No media file path found in document metadata")
 
-        vtt_dir = vtt_path.parent
-        media_path = vtt_dir / metadata.media_file_path
+        captions_dir = captions_path.parent
+        media_path = captions_dir / metadata.media_file_path
 
         if not media_path.exists():
             raise ValueError(f"Media file not found: {media_path}")
@@ -181,13 +183,11 @@ def main(
                 )
             )
 
-        # Write updated VTT file with embeddings
-        typer.echo(f"Writing embeddings to VTT file: {vtt_path}")
-        vtt_content = serialize_vtt(
-            metadata, segments, embeddings=embeddings, vtt_path=vtt_path
-        )
-        vtt_path.write_text(vtt_content)
-        typer.echo(f"Done! Wrote {len(embeddings)} embeddings to VTT file")
+        # Write updated document with embeddings
+        typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
+        document.embeddings = embeddings
+        write_captions_json_file(captions_path, document)
+        typer.echo(f"Done! Wrote {len(embeddings)} embeddings to captions JSON")
 
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)

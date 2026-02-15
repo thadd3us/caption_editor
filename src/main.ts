@@ -3,12 +3,12 @@ import { createPinia } from 'pinia'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import App from './App.vue'
 import './style.css'
-import { useVTTStore } from './stores/vttStore'
+import { useCaptionStore } from './stores/captionStore'
 
 // Register AG Grid modules (required for v35+)
 ModuleRegistry.registerModules([AllCommunityModule])
 
-console.log('VTT Editor starting...')
+console.log('Caption Editor starting...')
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -17,14 +17,14 @@ app.use(pinia)
 app.mount('#app')
 
 // Always expose store on window for tests and debugging
-const store = useVTTStore()
+const store = useCaptionStore()
   ; (window as any).$store = store
 
 if (import.meta.env && import.meta.env.DEV) {
-  console.log('VTT Editor mounted - Store available at window.$store')
+  console.log('Caption Editor mounted - Store available at window.$store')
   console.log('Debug tip: console.log(JSON.stringify($store.document, null, 2))')
 } else {
-  console.log('VTT Editor mounted (production) - Store available at window.$store')
+  console.log('Caption Editor mounted (production) - Store available at window.$store')
 }
 
 // Listen for file open events from OS (Electron only)
@@ -32,29 +32,23 @@ if (window.electronAPI?.onFileOpen) {
   window.electronAPI.onFileOpen(async (filePath: string) => {
     console.log('Opening file from OS:', filePath)
 
-    // Read the file using Electron API
-    const result = await window.electronAPI!.readFile(filePath)
-
-    if (result.success && result.content) {
-      // Load the VTT content into the store
-      try {
-        store.loadFromFile(result.content, result.filePath)
-        console.log('File loaded successfully:', filePath)
-      } catch (err) {
-        console.error('Failed to parse VTT file:', err)
+    // Delegate to the same path-based ingestion used for drag & drop
+    try {
+      const { failures } = await store.processFilePaths([filePath])
+      if (failures > 0) {
         if ((window as any).showAlert) {
-          (window as any).showAlert({
+          ;(window as any).showAlert({
             title: 'Load Failed',
-            message: 'Failed to load VTT file: ' + (err instanceof Error ? err.message : 'Unknown error')
+            message: 'Failed to load file. Check console for details.'
           })
         }
       }
-    } else {
-      console.error('Failed to read file:', result.error)
+    } catch (err) {
+      console.error('Failed to process file:', err)
       if ((window as any).showAlert) {
-        (window as any).showAlert({
-          title: 'Read Failed',
-          message: 'Failed to read file: ' + (result.error || 'Unknown error')
+        ;(window as any).showAlert({
+          title: 'Load Failed',
+          message: 'Failed to load file: ' + (err instanceof Error ? err.message : 'Unknown error')
         })
       }
     }

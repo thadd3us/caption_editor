@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Media transcription tool using NVIDIA Parakeet TDT model.
-Converts media files to VTT format with segment-level transcription.
+Converts media files to the caption editor native `.captions.json` format with segment-level transcription.
 """
 
 import hashlib
@@ -29,12 +29,13 @@ from asr_results_to_vtt import (
     split_segments_by_word_gap,
 )
 from schema import (
+    CaptionsDocument,
     TranscriptMetadata,
     TranscriptSegment,
 )
 from constants import MODEL_PARAKEET, MODEL_VOXCELEB
-from vtt_lib import serialize_vtt
 from embed_cli import main as embed_main
+from captions_json_lib import write_captions_json_file
 
 
 try:
@@ -210,7 +211,7 @@ def main(
         None,
         "--output",
         "-o",
-        help="Output VTT file path",
+        help="Output captions JSON file path (.captions.json)",
         exists=False,
         file_okay=True,
         dir_okay=False,
@@ -246,7 +247,7 @@ def main(
     embed: bool = typer.Option(
         True,
         "--embed/--no-embed",
-        help="Whether to automatically run speaker embedding on the output VTT",
+        help="Whether to automatically run speaker embedding on the output captions JSON",
     ),
     embed_model: str = typer.Option(
         MODEL_VOXCELEB,
@@ -260,14 +261,14 @@ def main(
     ),
 ):
     """
-    Transcribe media files to VTT format using NVIDIA Parakeet TDT model.
+    Transcribe media files to the caption editor `.captions.json` format using NVIDIA Parakeet TDT model.
 
     Supports long media files by processing in chunks with overlap to avoid
     cutting off words at boundaries.
     """
     # Determine output path
     if output is None:
-        output = media_file.with_suffix(".vtt")
+        output = media_file.with_suffix(".captions.json")
 
     typer.echo(f"Transcribing: {media_file}")
     typer.echo(f"Output: {output}")
@@ -401,12 +402,15 @@ def main(
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate VTT
-        typer.echo("Generating VTT...")
-        vtt_content = serialize_vtt(metadata, final_segments_list, vtt_path=output)
-
-        # Write output
-        output.write_text(vtt_content)
+        # Build document and write output
+        # (history/embeddings are optional but pass explicitly for type-checkers)
+        document = CaptionsDocument(
+            metadata=metadata,
+            segments=final_segments_list,
+            history=None,
+            embeddings=None,
+        )
+        write_captions_json_file(output, document)
         typer.echo(f"Transcription complete: {output}")
         typer.echo(f"Generated {len(final_segments_list)} segments")
 
@@ -415,7 +419,7 @@ def main(
             typer.echo("Running speaker embedding...")
             try:
                 embed_main(
-                    vtt_path=output,
+                    captions_path=output,
                     model=embed_model,
                     min_segment_duration=min_segment_duration,
                 )

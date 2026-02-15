@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Rename Speaker', () => {
+test.describe('Caption Editor - Rename Speaker', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -9,34 +9,22 @@ test.describe('VTT Editor - Rename Speaker', () => {
   })
 
   test('should rename speaker across multiple cues', async () => {
-    // Load VTT with multiple speakers using direct store manipulation
+    // Load captions JSON with multiple speakers using direct store manipulation
     const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
-      // Directly load VTT content into store
-      const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Hello from Alice","speakerName":"Alice","rating":5}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Hello from Alice
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Hello from Bob","speakerName":"Bob","rating":4}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Hello from Bob
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Another message from Alice","speakerName":"Alice","rating":3}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Another message from Alice`
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'Hello from Alice', speakerName: 'Alice', rating: 5 },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Hello from Bob', speakerName: 'Bob', rating: 4 },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Another message from Alice', speakerName: 'Alice', rating: 3 }
+        ]
+      })
 
       try {
-        vttStore.loadFromFile(vttContent, '/test/file.vtt')
+        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
         return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -97,8 +85,7 @@ Another message from Alice`
     console.log('Resetting store to clean state...')
     await window.evaluate(() => {
       const store = (window as any).$store
-      // Reset to empty document
-      store.loadFromFile('WEBVTT\n', '/test/empty.vtt')
+      store.reset()
     })
     await window.waitForFunction(() => { const store = (window as any).$store; return store?.document !== undefined })
 
@@ -115,18 +102,18 @@ Another message from Alice`
     })
     console.log('State after reset (should be empty):', JSON.stringify(beforeState, null, 2))
 
-    // Load VTT without speakers using store directly
-    console.log('Loading VTT without speakers')
+    // Load captions JSON without speakers using store directly
+    console.log('Loading captions without speakers')
     await window.evaluate(() => {
       const store = (window as any).$store
-      const vttContent = `WEBVTT
-
-00:00:01.000 --> 00:00:04.000
-Caption without speaker
-
-00:00:05.000 --> 00:00:08.000
-Another caption without speaker`
-      store.loadFromFile(vttContent, '/test/no-speakers.vtt')
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 1, endTime: 4, text: 'Caption without speaker' },
+          { id: 'seg2', startTime: 5, endTime: 8, text: 'Another caption without speaker' }
+        ]
+      })
+      store.loadFromFile(captionsContent, '/test/no-speakers.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -172,20 +159,17 @@ Another caption without speaker`
   })
 
   test('should close dialog when clicking Cancel', async () => {
-    // Load VTT with speaker
+    // Load captions JSON with speaker
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Hello', speakerName: 'Alice' }]
+      })
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Hello","speakerName":"Alice"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Hello`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -211,26 +195,20 @@ Hello`
   })
 
   test('should record history entries for renamed cues', async () => {
-    // Load VTT with speakers
+    // Load captions JSON with speakers
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'Message 1', speakerName: 'John' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Message 2', speakerName: 'John' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Message 1","speakerName":"John"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Message 1
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Message 2","speakerName":"John"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Message 2`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {

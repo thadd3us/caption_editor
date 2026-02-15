@@ -1,12 +1,6 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-test.describe('VTT Editor', () => {
+test.describe('Caption Editor', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
 
   test('should load the application', async ({ page }) => {
@@ -22,28 +16,28 @@ test.describe('VTT Editor', () => {
     console.log('Caption table is visible')
   })
 
-  test('should load VTT file via drag and drop', async ({ page }) => {
-    // Read the sample VTT file
-    const vttPath = path.join(__dirname, 'fixtures', 'sample.vtt')
-
+  test('should load captions JSON file via drag and drop', async ({ page }) => {
     // Simulate file drop
-    const dataTransfer = await page.evaluateHandle((_filePath) => {
+    const dataTransfer = await page.evaluateHandle(() => {
       const dt = new DataTransfer()
       const file = new File(
-        ['WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nTest caption'],
-        'test.vtt',
-        { type: 'text/vtt' }
+        [JSON.stringify({
+          metadata: { id: 'drag-drop-doc' },
+          segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test caption' }]
+        }, null, 2)],
+        'test.captions.json',
+        { type: 'application/json' }
       )
       dt.items.add(file)
       return dt
-    }, vttPath)
+    })
 
     await page.dispatchEvent('body', 'drop', { dataTransfer })
 
     // Check that captions appear in the table
     const captionTable = page.locator('.caption-table')
     await expect(captionTable).toBeVisible()
-    console.log('VTT file loaded and table displayed')
+    console.log('Captions JSON file loaded and table displayed')
   })
 
   test('should add a new caption', async ({ page }) => {

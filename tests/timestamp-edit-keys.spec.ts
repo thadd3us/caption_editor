@@ -1,11 +1,11 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Locator, Page } from '@playwright/test'
 
-async function loadVttAndWaitForFirstRow(page: Page, vttContent: string): Promise<void> {
+async function loadCaptionsAndWaitForFirstRow(page: Page, captionsContent: string): Promise<void> {
   await page.evaluate((content) => {
     const store = (window as any).$store
-    store.loadFromFile(content, '/test/test.vtt')
-  }, vttContent)
+    store.loadFromFile(content, '/test/test.captions.json')
+  }, captionsContent)
 
   // Wait for store + grid to reflect the new document (avoid race vs AG Grid render).
   await page.waitForFunction(() => {
@@ -55,13 +55,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should increment start time by 0.1s when pressing + key during edit', async ({ page }) => {
     const window = page
-    // Load a VTT file directly using store
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
+    })
 
-00:00:01.000 --> 00:00:04.000
-Test caption`
-
-    await loadVttAndWaitForFirstRow(window, vttContent)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
 
     // Find the start time cell (should show "1.000" in simple format)
     // Use ag-cell to target data cells, not header cells
@@ -86,13 +85,12 @@ Test caption`
 
   test('should decrement start time by 0.1s when pressing - key during edit', async ({ page }) => {
     const window = page
-    // Load a VTT file
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 2.5, endTime: 5.0, text: 'Test caption' }]
+    })
 
-00:00:02.500 --> 00:00:05.000
-Test caption`
-
-    await loadVttAndWaitForFirstRow(window, vttContent)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
 
     // Find the start time cell
     const startTimeCell = await firstCell(window, 'startTime')
@@ -116,13 +114,12 @@ Test caption`
 
   test('should increment end time by 0.1s when pressing + key during edit', async ({ page }) => {
     const window = page
-    // Load a VTT file
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 1.0, endTime: 3.0, text: 'Test caption' }]
+    })
 
-00:00:01.000 --> 00:00:03.000
-Test caption`
-
-    await loadVttAndWaitForFirstRow(window, vttContent)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
 
     // Find the end time cell
     const endTimeCell = await firstCell(window, 'endTime')
@@ -146,13 +143,12 @@ Test caption`
 
   test('should not allow decrementing below 0', async ({ page }) => {
     const window = page
-    // Load a VTT file with start time close to 0
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 0.05, endTime: 2.0, text: 'Test caption' }]
+    })
 
-00:00:00.050 --> 00:00:02.000
-Test caption`
-
-    await loadVttAndWaitForFirstRow(window, vttContent)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
 
     // Find the start time cell
     const startTimeCell = await firstCell(window, 'startTime')
@@ -174,13 +170,12 @@ Test caption`
 
   test('should support multiple +/- presses in sequence', async ({ page }) => {
     const window = page
-    // Load a VTT file
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 5.0, endTime: 8.0, text: 'Test caption' }]
+    })
 
-00:00:05.000 --> 00:00:08.000
-Test caption`
-
-    await loadVttAndWaitForFirstRow(window, vttContent)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
 
     // Find the start time cell
     const startTimeCell = await firstCell(window, 'startTime')
@@ -210,13 +205,12 @@ Test caption`
 
   test('should display times in simple seconds format (ssss.000)', async ({ page }) => {
     const window = page
-    // Load a VTT file with times that would be shown differently in HH:MM:SS format
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 90.5, endTime: 165.75, text: 'Caption at 90.5 seconds' }]
+    })
 
-00:01:30.500 --> 00:02:45.750
-Caption at 90.5 seconds`
-
-    await loadVttAndWaitForFirstRow(window, vttContent)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
 
     // Verify times are displayed in simple format
     const startTimeCell = await firstCell(window, 'startTime')

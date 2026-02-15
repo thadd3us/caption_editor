@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import StarRatingCell from './StarRatingCell.vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -107,7 +107,7 @@ describe('StarRatingCell', () => {
   })
 
   it('should update rating when clicking on an empty star', async () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
     const updateCueSpy = vi.spyOn(store, 'updateCue')
 
     const wrapper = mount(StarRatingCell, {
@@ -127,7 +127,7 @@ describe('StarRatingCell', () => {
   })
 
   it('should update rating when clicking on a different star', async () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
     const updateCueSpy = vi.spyOn(store, 'updateCue')
 
     const wrapper = mount(StarRatingCell, {
@@ -147,7 +147,7 @@ describe('StarRatingCell', () => {
   })
 
   it('should clear rating when clicking on the current rating', async () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
     const updateCueSpy = vi.spyOn(store, 'updateCue')
 
     const wrapper = mount(StarRatingCell, {
@@ -167,7 +167,7 @@ describe('StarRatingCell', () => {
   })
 
   it('should handle full rating flow: unrated -> rated -> different rating -> cleared', async () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Add a cue to the store
     store.addCue(1.0, 3.0)
@@ -324,7 +324,7 @@ describe('StarRatingCell', () => {
   })
 
   it('should handle clicks with AG Grid params format', async () => {
-    const store = useVTTStore()
+    const store = useCaptionStore()
     const updateCueSpy = vi.spyOn(store, 'updateCue')
 
     const wrapper = mount(StarRatingCell, {

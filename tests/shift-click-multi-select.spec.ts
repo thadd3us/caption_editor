@@ -1,47 +1,26 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 
-test.describe('VTT Editor - Shift-Click Multi-Select', () => {
+test.describe('Caption Editor - Shift-Click Multi-Select', () => {
   test('should select range of rows with shift-click and bulk set speaker', async ({ page }) => {
     const window = page
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
-      const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message","rating":5}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message","rating":4}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message","rating":3}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue4","startTime":13,"endTime":16,"text":"Fourth message","rating":2}
-
-cue4
-00:00:13.000 --> 00:00:16.000
-Fourth message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue5","startTime":17,"endTime":20,"text":"Fifth message","rating":1}
-
-cue5
-00:00:17.000 --> 00:00:20.000
-Fifth message`
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'shift-click-1' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 },
+          { id: 'cue4', startTime: 13, endTime: 16, text: 'Fourth message', rating: 2 },
+          { id: 'cue5', startTime: 17, endTime: 20, text: 'Fifth message', rating: 1 }
+        ]
+      }, null, 2)
 
       try {
-        vttStore.loadFromFile(vttContent, '/test/file.vtt')
+        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
         return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -141,44 +120,23 @@ Fifth message`
 
   test('should edit speaker for multi-selected rows via keyboard', async ({ page }) => {
     const window = page
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) throw new Error('No store')
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'shift-click-2' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message' },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message' },
+          { id: 'cue4', startTime: 13, endTime: 16, text: 'Fourth message' },
+          { id: 'cue5', startTime: 17, endTime: 20, text: 'Fifth message' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message"}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue4","startTime":13,"endTime":16,"text":"Fourth message"}
-
-cue4
-00:00:13.000 --> 00:00:16.000
-Fourth message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue5","startTime":17,"endTime":20,"text":"Fifth message"}
-
-cue5
-00:00:17.000 --> 00:00:20.000
-Fifth message`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     // Wait for rows to render

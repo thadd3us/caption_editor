@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 interface Props {
   params?: {
@@ -31,7 +31,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const store = useVTTStore()
+const store = useCaptionStore()
 
 // Support both AG Grid (params.data) and direct usage (data)
 const rowData = computed(() => props.params?.data || props.data)

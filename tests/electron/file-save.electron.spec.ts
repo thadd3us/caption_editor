@@ -3,32 +3,25 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
 
-test.describe('File Save - Save VTT files correctly', () => {
-  test('should include mediaFilePath in saved VTT metadata', async ({ page }) => {
-    // Create a temporary VTT file
+test.describe('File Save - Save captions files correctly', () => {
+  test('should include mediaFilePath in saved captions metadata', async ({ page }) => {
+    // Create a temporary captions file
     const tempDir = path.join(getProjectRoot(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
-    const tempVttPath = path.join(tempDir, 'test-media-save.vtt')
+    const tempCaptionsPath = path.join(tempDir, 'test-media-save.captions.json')
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
-    // Start with a simple VTT file
-    const initialVtt = `WEBVTT
+    const initialCaptions = JSON.stringify({
+      metadata: { id: 'test-id-123' },
+      segments: [{ id: 'test-cue-id', startTime: 0.0, endTime: 3.0, text: 'Test caption' }]
+    })
+    await fs.writeFile(tempCaptionsPath, initialCaptions, 'utf-8')
 
-NOTE CAPTION_EDITOR:TranscriptMetadata {"id":"test-id-123"}
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"test-cue-id","startTime":0.0,"endTime":3.0,"text":"Test caption"}
-
-test-cue-id
-00:00:00.000 --> 00:00:03.000
-Test caption
-`
-    await fs.writeFile(tempVttPath, initialVtt, 'utf-8')
-
-    // Load the VTT into the shared renderer store (sets document.filePath)
+    // Load the captions JSON into the shared renderer store (sets document.filePath)
     await page.evaluate(({ content, filePath }) => {
       const store = (window as any).$store
       store.loadFromFile(content, filePath)
-    }, { content: initialVtt, filePath: tempVttPath })
+    }, { content: initialCaptions, filePath: tempCaptionsPath })
 
     // Load a media file
     await page.evaluate(async (audioPath) => {
@@ -59,36 +52,21 @@ Test caption
     expect(mediaState.mediaPath).toBeTruthy()
     expect(mediaState.mediaFilePath).toBe(audioFilePath)
 
-    // Export the VTT content to see what would be saved
+    // Export the captions content to see what would be saved
     const exportedContent = await page.evaluate(() => {
       const store = (window as any).$store
       return store.exportToString()
     })
 
-    console.log('Exported VTT content:')
+    console.log('Exported captions content:')
     console.log(exportedContent)
 
-    // THIS IS THE BUG: The exported content should include mediaFilePath in metadata
-    // but it doesn't because the store's mediaFilePath is separate from document.metadata
-
-    // Verify the exported content contains mediaFilePath
-    expect(exportedContent).toContain('CAPTION_EDITOR:TranscriptMetadata')
-
-    // Parse the metadata to check if mediaFilePath is included
-    const metadataMatch = exportedContent.match(/NOTE CAPTION_EDITOR:TranscriptMetadata ({.*?})\n/s)
-    expect(metadataMatch).toBeTruthy()
-
-    if (metadataMatch) {
-      const metadata = JSON.parse(metadataMatch[1])
-      console.log('Parsed metadata:', metadata)
-
-      // This will FAIL because mediaFilePath is not being included in the export
-      expect(metadata.mediaFilePath).toBeTruthy()
-      expect(metadata.mediaFilePath).toContain('OSR_us_000_0010_8k.wav')
-    }
+    const exported = JSON.parse(exportedContent)
+    expect(exported.metadata.mediaFilePath).toBeTruthy()
+    expect(String(exported.metadata.mediaFilePath)).toContain('OSR_us_000_0010_8k.wav')
 
     // Clean up
-    await fs.unlink(tempVttPath)
+    await fs.unlink(tempCaptionsPath)
     await fs.rmdir(tempDir).catch(() => { }) // Ignore error if not empty
   })
 })

@@ -1,10 +1,10 @@
 """
-Pydantic schema definitions for VTT document structure.
+Pydantic schema definitions for the caption editor document structure.
 
-This module defines the data models used by the caption editor for VTT files,
-including cues, metadata, and history entries. These models are shared between
-the Python transcription tools and can be used by other tools that need to
-work with the VTT format.
+This module defines the data models used by the caption editor for its native
+`.captions.json` document format, including segments, metadata, history entries,
+and speaker embeddings. These models are shared between the Python transcription
+tools and the Electron app.
 
 TypeScript/Python Schema Sync
 ==============================
@@ -16,7 +16,7 @@ When adding or modifying fields:
 1. Update both Python (this file) and TypeScript (src/types/schema.ts) schemas
 2. Use snake_case in Python with Field aliases for camelCase conversion to match TypeScript
 3. Ensure optional fields are marked consistently (Optional[type] in Python, readonly field?: type in TS)
-4. Update serialization/parsing logic in src/utils/vttParser.ts if needed
+4. Update serialization/parsing logic in src/utils/captionsJson.ts if needed
 5. Run both Python and TypeScript tests to verify compatibility
 """
 
@@ -24,10 +24,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
-# Sentinel prefix for app-specific NOTE comments in VTT files
-# Format: NOTE CAPTION_EDITOR:TypeName {json}
-CAPTION_EDITOR_SENTINEL = "CAPTION_EDITOR"
+from pydantic.aliases import AliasChoices
 
 
 class HistoryAction(str, Enum):
@@ -86,7 +83,7 @@ class TranscriptMetadata(BaseModel):
     id: str = Field(description="UUID for the document")
     media_file_path: Optional[str] = Field(
         None,
-        description="Optional path to the media file (relative to VTT file directory if possible)",
+        description="Optional path to the media file (relative to captions file directory if possible)",
         alias="mediaFilePath",
     )
 
@@ -104,8 +101,9 @@ class SegmentHistoryEntry(BaseModel):
     )
     segment: TranscriptSegment = Field(
         description="The segment's state before the change (preserves the original timestamp)",
-        alias="cue",
-    )  # alias "cue" for backwards compatibility
+        validation_alias=AliasChoices("segment", "cue"),
+        serialization_alias="segment",
+    )
 
 
 class SegmentSpeakerEmbedding(BaseModel):
@@ -118,4 +116,21 @@ class SegmentSpeakerEmbedding(BaseModel):
     )
     speaker_embedding: list[float] = Field(
         description="Speaker embedding vector", alias="speakerEmbedding"
+    )
+
+
+class CaptionsDocument(BaseModel):
+    """Complete captions document (native .captions.json format)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    metadata: TranscriptMetadata = Field(
+        description="Document metadata (id, media file path)"
+    )
+    segments: list[TranscriptSegment] = Field(description="Transcript segments")
+    history: Optional[list[SegmentHistoryEntry]] = Field(
+        None, description="Historical record of segment changes"
+    )
+    embeddings: Optional[list[SegmentSpeakerEmbedding]] = Field(
+        None, description="Speaker embeddings for segments"
     )

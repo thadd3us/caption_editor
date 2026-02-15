@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import FileDropZone from './FileDropZone.vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -69,14 +69,17 @@ describe('FileDropZone', () => {
   })
 
   describe('Electron file processing', () => {
-    it('should process VTT files through Electron API', async () => {
+    it('should process captions JSON files through Electron API', async () => {
       // Mock Electron API
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'vtt',
-          filePath: '/path/to/test.vtt',
-          fileName: 'test.vtt',
-          content: 'WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nTest caption'
+          type: 'captions_json',
+          filePath: '/path/to/test.captions.json',
+          fileName: 'test.captions.json',
+          content: JSON.stringify({
+            metadata: { id: 'doc_1' },
+            segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test caption' }]
+          })
         }
       ])
 
@@ -85,19 +88,19 @@ describe('FileDropZone', () => {
       }) as any
 
       mount(FileDropZone)
-      const store = useVTTStore()
+      const store = useCaptionStore()
 
       // Simulate Electron file drop
-      const mockFilePaths = ['/path/to/test.vtt']
+      const mockFilePaths = ['/path/to/test.captions.json']
       await store.processFilePaths(mockFilePaths)
 
       // Verify Electron API was called
       expect(mockProcessDroppedFiles).toHaveBeenCalledWith(mockFilePaths)
 
-      // Verify VTT content was loaded into store
+      // Verify captions content was loaded into store
       expect(store.document.segments.length).toBe(1)
       expect(store.document.segments[0].text).toBe('Test caption')
-      expect(store.document.filePath).toBe('/path/to/test.vtt')
+      expect(store.document.filePath).toBe('/path/to/test.captions.json')
 
       // Cleanup
       delete global.window.electronAPI
@@ -119,7 +122,7 @@ describe('FileDropZone', () => {
       }) as any
 
       mount(FileDropZone)
-      const store = useVTTStore()
+      const store = useCaptionStore()
 
       // Simulate Electron media file drop
       const mockFilePaths = ['/path/to/video.mp4']
@@ -136,14 +139,17 @@ describe('FileDropZone', () => {
       delete global.window.electronAPI
     })
 
-    it('should process both VTT and media files in one drop', async () => {
+    it('should process both captions and media files in one drop', async () => {
       // Mock Electron API
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'vtt',
-          filePath: '/path/to/test.vtt',
-          fileName: 'test.vtt',
-          content: 'WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nTest caption'
+          type: 'captions_json',
+          filePath: '/path/to/test.captions.json',
+          fileName: 'test.captions.json',
+          content: JSON.stringify({
+            metadata: { id: 'doc_1' },
+            segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test caption' }]
+          })
         },
         {
           type: 'media',
@@ -158,10 +164,10 @@ describe('FileDropZone', () => {
       }) as any
 
       mount(FileDropZone)
-      const store = useVTTStore()
+      const store = useCaptionStore()
 
       // Simulate Electron drop with multiple files
-      const mockFilePaths = ['/path/to/test.vtt', '/path/to/video.mp4']
+      const mockFilePaths = ['/path/to/test.captions.json', '/path/to/video.mp4']
       await store.processFilePaths(mockFilePaths)
 
       // Verify both files were processed
@@ -178,13 +184,13 @@ describe('FileDropZone', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { })
 
-      // Mock Electron API to return invalid VTT
+      // Mock Electron API to return invalid captions JSON
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'vtt',
-          filePath: '/path/to/bad.vtt',
-          fileName: 'bad.vtt',
-          content: 'This is not valid VTT content'
+          type: 'captions_json',
+          filePath: '/path/to/bad.captions.json',
+          fileName: 'bad.captions.json',
+          content: '{not json'
         }
       ])
 
@@ -193,10 +199,10 @@ describe('FileDropZone', () => {
       }) as any
 
       mount(FileDropZone)
-      const store = useVTTStore()
+      const store = useCaptionStore()
 
-      // Simulate Electron drop with invalid VTT
-      const mockFilePaths = ['/path/to/bad.vtt']
+      // Simulate Electron drop with invalid captions JSON
+      const mockFilePaths = ['/path/to/bad.captions.json']
       const result = await store.processFilePaths(mockFilePaths)
 
       // Verify error was logged and failure count is 1
@@ -210,28 +216,25 @@ describe('FileDropZone', () => {
       delete global.window.electronAPI
     })
 
-    it('should show alert for VTT files with duplicate UUIDs', async () => {
+    it('should show alert for captions files with duplicate segment IDs', async () => {
       // Mock console.error to avoid noise in test output
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { })
 
-      // Mock Electron API to return VTT with duplicate IDs
-      const vttWithDuplicates = `WEBVTT
-
-duplicate-id
-00:00:00.000 --> 00:00:02.000
-First cue
-
-duplicate-id
-00:00:02.000 --> 00:00:04.000
-Second cue with same ID`
+      const captionsWithDuplicates = JSON.stringify({
+        metadata: { id: 'doc_1' },
+        segments: [
+          { id: 'duplicate-id', startTime: 0, endTime: 2, text: 'First cue' },
+          { id: 'duplicate-id', startTime: 2, endTime: 4, text: 'Second cue with same ID' }
+        ]
+      })
 
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'vtt',
-          filePath: '/path/to/duplicates.vtt',
-          fileName: 'duplicates.vtt',
-          content: vttWithDuplicates
+          type: 'captions_json',
+          filePath: '/path/to/duplicates.captions.json',
+          fileName: 'duplicates.captions.json',
+          content: captionsWithDuplicates
         }
       ])
 
@@ -240,10 +243,10 @@ Second cue with same ID`
       }) as any
 
       mount(FileDropZone)
-      const store = useVTTStore()
+      const store = useCaptionStore()
 
-      // Simulate Electron drop with duplicate UUID VTT
-      const mockFilePaths = ['/path/to/duplicates.vtt']
+      // Simulate Electron drop with duplicate IDs
+      const mockFilePaths = ['/path/to/duplicates.captions.json']
       const result = await store.processFilePaths(mockFilePaths)
 
       // Verify failure count is 1 and console error logged
@@ -262,13 +265,16 @@ Second cue with same ID`
 
   describe('triggerFileInput method', () => {
     it('should call Electron openFile API when in Electron', async () => {
-      const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.vtt'])
+      const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.captions.json'])
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'vtt',
-          filePath: '/path/to/test.vtt',
-          fileName: 'test.vtt',
-          content: 'WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nTest'
+          type: 'captions_json',
+          filePath: '/path/to/test.captions.json',
+          fileName: 'test.captions.json',
+          content: JSON.stringify({
+            metadata: { id: 'doc_1' },
+            segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test' }]
+          })
         }
       ])
 
@@ -288,7 +294,7 @@ Second cue with same ID`
       })
 
       // Verify files were processed
-      expect(mockProcessDroppedFiles).toHaveBeenCalledWith(['/path/to/test.vtt'])
+      expect(mockProcessDroppedFiles).toHaveBeenCalledWith(['/path/to/test.captions.json'])
 
       // Cleanup
       delete global.window.electronAPI

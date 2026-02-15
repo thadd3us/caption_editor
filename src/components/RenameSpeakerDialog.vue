@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 import BaseModal from './BaseModal.vue'
 
 const props = defineProps<{
@@ -64,7 +64,7 @@ const emit = defineEmits<{
   rename: [{ oldName: string; newName: string }]
 }>()
 
-const store = useVTTStore()
+const store = useCaptionStore()
 
 const selectedSpeaker = ref('')
 const newName = ref('')

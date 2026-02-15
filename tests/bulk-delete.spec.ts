@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Bulk Delete', () => {
+test.describe('Caption Editor - Bulk Delete', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -17,39 +17,23 @@ test.describe('VTT Editor - Bulk Delete', () => {
       return (window as any).$store !== undefined
     }, { timeout: 5000 })
 
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
-      const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message","rating":5}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message","rating":4}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message","rating":3}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue4","startTime":13,"endTime":16,"text":"Fourth message","rating":2}
-
-cue4
-00:00:13.000 --> 00:00:16.000
-Fourth message`
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'bulk-delete-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 },
+          { id: 'cue4', startTime: 13, endTime: 16, text: 'Fourth message', rating: 2 }
+        ]
+      }, null, 2)
 
       try {
-        vttStore.loadFromFile(vttContent, '/test/file.vtt')
+        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
         return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -122,26 +106,20 @@ Fourth message`
   })
 
   test('should delete single row after confirmation', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'single-delete-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -197,26 +175,20 @@ Second`
   })
 
   test('should cancel delete when clicking Cancel button', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'cancel-delete-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'Hello' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'World' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Hello"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Hello
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"World"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-World`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -263,26 +235,20 @@ World`
   })
 
   test('should clear selectedCueId if deleted cue was selected', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'selected-delete-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
 
       // Select the first cue
       vttStore.selectCue('cue1')

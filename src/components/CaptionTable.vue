@@ -3,7 +3,7 @@
     <div v-if="store.document.filePath" class="file-path-display">
       <button 
         class="show-in-finder-btn" 
-        @click="showVttInFinder" 
+        @click="showCaptionsInFinder" 
         data-tooltip="Reveal caption file in Finder"
       >📁</button>
       <span class="file-path-value">{{ store.document.filePath }}</span>
@@ -68,7 +68,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
 import { themeAlpine } from 'ag-grid-community'
-import { useVTTStore, PlaybackMode } from '../stores/vttStore'
+import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 import { formatTimestampSimple } from '../utils/vttParser'
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
@@ -76,7 +76,7 @@ import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const gridApi = ref<GridApi | null>(null)
 const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(true)
@@ -365,9 +365,9 @@ const sequentialPlayButtonTooltip = computed(() => {
 })
 
 /**
- * Show VTT file in Finder
+ * Show captions file in Finder
  */
-function showVttInFinder() {
+function showCaptionsInFinder() {
   if (store.document.filePath) {
     window.electronAPI?.showInFolder(store.document.filePath)
   }

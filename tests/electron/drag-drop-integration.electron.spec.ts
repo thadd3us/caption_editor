@@ -27,7 +27,7 @@ test.describe('Drag-and-Drop IPC Integration', () => {
     })
 
     test('should process files-dropped IPC message correctly', async () => {
-        const testFilePath = '/path/to/fake.vtt'
+        const testFilePath = '/path/to/fake.captions.json'
 
         // 1. Mock processDroppedFiles in the main process to return a fake result
         // so we don't actually hit the filesystem in this test
@@ -36,10 +36,13 @@ test.describe('Drag-and-Drop IPC Integration', () => {
             ipcMain.removeHandler('file:processDroppedFiles')
             ipcMain.handle('file:processDroppedFiles', async () => {
                 return [{
-                    type: 'vtt',
-                    filePath: '/path/to/fake.vtt',
-                    fileName: 'fake.vtt',
-                    content: 'WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\nIntegration test successful'
+                    type: 'captions_json',
+                    filePath: '/path/to/fake.captions.json',
+                    fileName: 'fake.captions.json',
+                    content: JSON.stringify({
+                        metadata: { id: 'drag-drop-integration' },
+                        segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Integration test successful' }]
+                    }, null, 2)
                 }]
             })
         })

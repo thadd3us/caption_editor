@@ -3,7 +3,7 @@ import * as path from 'path'
 import { APP_VERSION } from './constants'
 
 // Log version on startup
-console.log(`[preload] VTT Caption Editor v${APP_VERSION} - Preload script loaded`)
+console.log(`[preload] Caption Editor v${APP_VERSION} - Preload script loaded`)
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -29,6 +29,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     defaultPath?: string,
     suggestedName?: string
   }) => ipcRenderer.invoke('file:save', options),
+
+  /**
+   * Save SRT file with dialog
+   */
+  saveSrtFile: (options: {
+    content: string,
+    suggestedName?: string
+  }) => ipcRenderer.invoke('file:saveSrt', options),
 
   /**
    * Save to existing file path
@@ -114,7 +122,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   asr: {
     transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number }) =>
       ipcRenderer.invoke('asr:transcribe', options),
-    embed: (options: { vttPath: string, model?: string }) =>
+    embed: (options: { captionsPath: string, model?: string }) =>
       ipcRenderer.invoke('asr:embed', options),
     cancel: (processId: string) =>
       ipcRenderer.invoke('asr:cancel', processId),

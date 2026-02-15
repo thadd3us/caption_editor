@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Bulk Set Speaker', () => {
+test.describe('Caption Editor - Bulk Set Speaker', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -11,33 +11,22 @@ test.describe('VTT Editor - Bulk Set Speaker', () => {
   })
 
   test('should set speaker name for multiple selected rows via context menu', async () => {
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
-      const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message","rating":5}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message","rating":4}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message","rating":3}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message`
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'bulk-set-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', rating: 5 },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', rating: 4 },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', rating: 3 }
+        ]
+      }, null, 2)
 
       try {
-        vttStore.loadFromFile(vttContent, '/test/file.vtt')
+        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
         return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -107,20 +96,17 @@ Third message`
   })
 
   test('should not show context menu when no rows are selected', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'no-context-menu-doc' },
+        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Hello' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Hello"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Hello`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -154,20 +140,17 @@ Hello`
   })
 
   test('should close dialog when clicking Cancel', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'cancel-bulk-set-doc' },
+        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Hello' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Hello"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Hello`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -208,29 +191,18 @@ Hello`
     // SKIPPED: AG Grid v35 clears multi-row selection when double-clicking to edit a cell,
     // even with enableClickSelection: false. The bulk edit feature works if selection is
     // maintained, but we cannot automate this test reliably via UI interactions.
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
-      const vttContent = `WEBVTT
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message","speakerName":"Speaker1"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message","speakerName":"Speaker2"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message","speakerName":"Speaker3"}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message`
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'inline-bulk-edit-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Speaker1' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Speaker2' },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Speaker3' }
+        ]
+      }, null, 2)
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     // Wait for rows
@@ -280,26 +252,20 @@ Third message`
   })
 
   test('should handle bulk set with single row selected', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'single-bulk-set-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {

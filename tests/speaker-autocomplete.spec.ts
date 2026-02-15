@@ -1,34 +1,23 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 
-test.describe('VTT Editor - Speaker Name Autocomplete', () => {
+test.describe('Caption Editor - Speaker Name Autocomplete', () => {
   test('should show autocomplete datalist in bulk set speaker dialog', async ({ page }) => {
     const window = page
-    // Load VTT with cues that have speaker names
+    // Load captions JSON with segments that have speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'speaker-autocomplete-1' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second message', speakerName: 'Alice' },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Bob' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First message","speakerName":"Alice"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second message","speakerName":"Alice"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second message
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third message","speakerName":"Bob"}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third message`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -77,32 +66,21 @@ Third message`
 
   test('should provide all speakers in datalist for browser filtering', async ({ page }) => {
     const window = page
-    // Load VTT with various speaker names
+    // Load captions JSON with various speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'speaker-autocomplete-2' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second', speakerName: 'Anna' },
+          { id: 'cue3', startTime: 9, endTime: 12, text: 'Third', speakerName: 'Bob' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First","speakerName":"Alice"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second","speakerName":"Anna"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":9,"endTime":12,"text":"Third","speakerName":"Bob"}
-
-cue3
-00:00:09.000 --> 00:00:12.000
-Third`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -142,20 +120,17 @@ Third`
 
   test('should allow typing new speaker name not in autocomplete', async ({ page }) => {
     const window = page
-    // Load VTT with existing speakers
+    // Load captions JSON with existing speakers
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'speaker-autocomplete-3' },
+        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First","speakerName":"Alice"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -204,50 +179,24 @@ First`
 
   test('should sort speakers by frequency (most common first)', async ({ page }) => {
     const window = page
-    // Load VTT with speakers of varying frequencies
+    // Load captions JSON with speakers of varying frequencies
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'speaker-autocomplete-4' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 2, text: '1', speakerName: 'Alice' },
+          { id: 'cue2', startTime: 2, endTime: 3, text: '2', speakerName: 'Alice' },
+          { id: 'cue3', startTime: 3, endTime: 4, text: '3', speakerName: 'Alice' },
+          { id: 'cue4', startTime: 4, endTime: 5, text: '4', speakerName: 'Bob' },
+          { id: 'cue5', startTime: 5, endTime: 6, text: '5', speakerName: 'Bob' },
+          { id: 'cue6', startTime: 6, endTime: 7, text: '6', speakerName: 'Charlie' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":2,"text":"1","speakerName":"Alice"}
-
-cue1
-00:00:01.000 --> 00:00:02.000
-1
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":2,"endTime":3,"text":"2","speakerName":"Alice"}
-
-cue2
-00:00:02.000 --> 00:00:03.000
-2
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue3","startTime":3,"endTime":4,"text":"3","speakerName":"Alice"}
-
-cue3
-00:00:03.000 --> 00:00:04.000
-3
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue4","startTime":4,"endTime":5,"text":"4","speakerName":"Bob"}
-
-cue4
-00:00:04.000 --> 00:00:05.000
-4
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue5","startTime":5,"endTime":6,"text":"5","speakerName":"Bob"}
-
-cue5
-00:00:05.000 --> 00:00:06.000
-5
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue6","startTime":6,"endTime":7,"text":"6","speakerName":"Charlie"}
-
-cue6
-00:00:06.000 --> 00:00:07.000
-6`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -286,26 +235,20 @@ cue6
 
   test('should autocomplete in AG Grid cell editor', async ({ page }) => {
     const window = page
-    // Load VTT with speaker names
+    // Load captions JSON with speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'speaker-autocomplete-grid' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second', speakerName: 'Bob' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First","speakerName":"Alice"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second","speakerName":"Bob"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     // Wait for grid to render

@@ -8,21 +8,21 @@ import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-test.describe('File Association - Open VTT files from OS', () => {
+test.describe('File Association - Open captions files from OS', () => {
   let electronApp: ElectronApplication
   let window: Page
 
-  test('should open VTT file passed as command line argument and auto-load media', async () => {
-    // Path to the test VTT file with media reference
-    const vttFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
+  test('should open captions file passed as command line argument and auto-load media', async () => {
+    // Path to the test captions file with media reference
+    const captionsFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.captions.json')
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
-    // Launch Electron with the VTT file as an argument (simulates double-clicking the file)
+    // Launch Electron with the captions file as an argument (simulates double-clicking the file)
     electronApp = await electron.launch({
       args: [
         path.join(getElectronMainPath()),
         '--no-sandbox',
-        vttFilePath  // Pass VTT file path as argument
+        captionsFilePath
       ],
       env: {
         ...process.env,
@@ -51,7 +51,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     })
     console.log('Initial store state:', initialCheck)
 
-    // Wait for the VTT file to be loaded (check that cues are loaded)
+    // Wait for the captions file to be loaded (check that segments are loaded)
     await window.waitForFunction(
       () => {
         const store = (window as any).$store
@@ -60,7 +60,7 @@ test.describe('File Association - Open VTT files from OS', () => {
       { timeout: 5000 }
     )
 
-    // Check that the VTT file was loaded by checking the store
+    // Check that the captions file was loaded by checking the store
     const storeState = await window.evaluate(() => {
       const store = (window as any).$store
       return {
@@ -75,10 +75,10 @@ test.describe('File Association - Open VTT files from OS', () => {
 
     console.log('Store state after file open:', storeState)
 
-    // Verify VTT file was loaded
+    // Verify captions file was loaded
     expect(storeState.hasDocument).toBe(true)
-    expect(storeState.segmentCount).toBe(3) // with-media-reference.vtt has 3 cues
-    expect(storeState.filePath).toBe(vttFilePath)
+    expect(storeState.segmentCount).toBe(3)
+    expect(storeState.filePath).toBe(captionsFilePath)
 
     // Verify metadata contains media file reference
     // Note: After auto-load, the path is stored as absolute path internally
@@ -137,7 +137,7 @@ test.describe('File Association - Open VTT files from OS', () => {
   })
 
   test('should handle open-file event on macOS', async () => {
-    const vttFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.vtt')
+    const captionsFilePath = path.join(getProjectRoot(), 'test_data/with-media-reference.captions.json')
 
     // Launch Electron without file argument first
     electronApp = await electron.launch({
@@ -157,9 +157,9 @@ test.describe('File Association - Open VTT files from OS', () => {
     await electronApp.evaluate(async ({ app }, filePath) => {
       // Emit the open-file event
       app.emit('open-file', { preventDefault: () => {} } as any, filePath)
-    }, vttFilePath)
+    }, captionsFilePath)
 
-    // Wait for the VTT file to be loaded (check that cues are loaded)
+    // Wait for the captions file to be loaded (check that segments are loaded)
     await window.waitForFunction(
       () => {
         const store = (window as any).$store
@@ -180,7 +180,7 @@ test.describe('File Association - Open VTT files from OS', () => {
     console.log('Store state after open-file event:', storeState)
 
     expect(storeState.segmentCount).toBe(3)
-    expect(storeState.filePath).toBe(vttFilePath)
+    expect(storeState.filePath).toBe(captionsFilePath)
 
     await electronApp.close()
   })

@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Merge Adjacent Segments', () => {
+test.describe('Caption Editor - Merge Adjacent Segments', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -9,26 +9,20 @@ test.describe('VTT Editor - Merge Adjacent Segments', () => {
   })
 
   test('should merge two adjacent segments', async () => {
-    // Load VTT with two adjacent segments
+    // Load captions JSON with two adjacent segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'Hello', rating: 3 },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'world', rating: 5 }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"Hello","rating":3}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-Hello
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"world","rating":5}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-world`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -69,32 +63,21 @@ world`
   })
 
   test('should merge three adjacent segments', async () => {
-    // Load VTT with three adjacent segments
+    // Load captions JSON with three adjacent segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'One' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'Two' },
+          { id: 'seg3', startTime: 10, endTime: 15, text: 'Three' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"One"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-One
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"Two"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-Two
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg3","startTime":10,"endTime":15,"text":"Three"}
-
-seg3
-00:00:10.000 --> 00:00:15.000
-Three`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -132,27 +115,16 @@ Three`
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'One' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'Two' },
+          { id: 'seg3', startTime: 10, endTime: 15, text: 'Three' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"One"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-One
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"Two"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-Two
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg3","startTime":10,"endTime":15,"text":"Three"}
-
-seg3
-00:00:10.000 --> 00:00:15.000
-Three`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -183,26 +155,20 @@ Three`
   })
 
   test('should preserve speaker name when merging', async () => {
-    // Load VTT with segments that have speaker names
+    // Load captions JSON with segments that have speaker names
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'Hello' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'there', speakerName: 'Alice' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"Hello"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-Hello
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"there","speakerName":"Alice"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-there`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -238,27 +204,16 @@ there`
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'One' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'Two' },
+          { id: 'seg3', startTime: 10, endTime: 15, text: 'Three' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"One"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-One
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"Two"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-Two
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg3","startTime":10,"endTime":15,"text":"Three"}
-
-seg3
-00:00:10.000 --> 00:00:15.000
-Three`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -351,26 +306,20 @@ Three`
   })
 
   test('should add history entries for merged segments', async () => {
-    // Load VTT with two segments
+    // Load captions JSON with two segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'doc1' },
+        segments: [
+          { id: 'seg1', startTime: 0, endTime: 5, text: 'Hello' },
+          { id: 'seg2', startTime: 5, endTime: 10, text: 'world' }
+        ]
+      })
 
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg1","startTime":0,"endTime":5,"text":"Hello"}
-
-seg1
-00:00:00.000 --> 00:00:05.000
-Hello
-
-NOTE CAPTION_EDITOR:TranscriptSegment {"id":"seg2","startTime":5,"endTime":10,"text":"world"}
-
-seg2
-00:00:05.000 --> 00:00:10.000
-world`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {

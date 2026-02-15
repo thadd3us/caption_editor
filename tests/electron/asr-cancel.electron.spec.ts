@@ -46,8 +46,15 @@ test.describe('ASR Cancellation Reproduction', () => {
 
             // Load the audio file
             await page.evaluate((audioPath) => {
-                const store = (window as any).__vttStore
-                store.loadMediaFile(`file://${audioPath}`, audioPath)
+                const store = (window as any).$store
+                const electronAPI = (window as any).electronAPI
+                if (!store) throw new Error('No $store on window')
+                if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
+
+                return electronAPI.fileToURL(audioPath).then((urlResult: any) => {
+                    if (!urlResult.success || !urlResult.url) throw new Error('Failed to convert audio path to URL')
+                    store.loadMediaFile(urlResult.url, audioPath)
+                })
             }, destAudioPath)
 
             // Wait for media to be loaded
@@ -76,7 +83,7 @@ test.describe('ASR Cancellation Reproduction', () => {
             // VERIFY APP IS STILL RESPONSIVE
             console.log('[Test] Verifying app responsiveness')
             const appState = await page.evaluate(() => {
-                const store = (window as any).__vttStore
+                const store = (window as any).$store
                 return {
                     isElectron: !!(window as any).electronAPI,
                     hasMediaPath: !!store.mediaPath
@@ -87,9 +94,8 @@ test.describe('ASR Cancellation Reproduction', () => {
 
             // Clear dirty flag so we can close without confirmation
             await page.evaluate(() => {
-                if ((window as any).__vttStore) {
-                    (window as any).__vttStore.setIsDirty(false)
-                }
+                const store = (window as any).$store
+                store?.setIsDirty?.(false)
             })
 
             await electronApp.close()

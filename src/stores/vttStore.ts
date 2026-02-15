@@ -3,8 +3,6 @@ import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { VTTDocument, TranscriptSegment } from '../types/schema'
 import {
-  parseVTT,
-  serializeVTT,
   createEmptyDocument,
   addCue as addCueToDoc,
   updateCue as updateCueInDoc,
@@ -14,6 +12,8 @@ import {
   mergeAdjacentSegments as mergeAdjacentSegmentsInDoc,
   getCurrentTimestamp
 } from '../utils/vttParser'
+import { parseCaptionsJSON, serializeCaptionsJSON } from '../utils/captionsJson'
+import { createDocumentFromSrtContent } from '../utils/srt'
 
 /**
  * Playback modes for the media player
@@ -27,8 +27,8 @@ export enum PlaybackMode {
   SEGMENTS_PLAYING = 'SEGMENTS_PLAYING'
 }
 
-export const useVTTStore = defineStore('vtt', () => {
-  // State - all state lives in memory only, persisted by saving VTT files
+export const useCaptionStore = defineStore('captions', () => {
+  // State - all state lives in memory only, persisted by saving `.captions.json` files
   const document = ref<VTTDocument>(createEmptyDocument())
 
   // Media URL - always a media:// URL in Electron mode
@@ -71,8 +71,8 @@ export const useVTTStore = defineStore('vtt', () => {
 
   // Actions
   function loadFromFile(content: string, filePath?: string) {
-    console.log('Loading VTT from file:', filePath)
-    const result = parseVTT(content)
+    console.log('Loading captions from file:', filePath)
+    const result = parseCaptionsJSON(content)
 
     if (result.success && result.document) {
       const loadedDoc = {
@@ -88,11 +88,11 @@ export const useVTTStore = defineStore('vtt', () => {
           const mediaPath = loadedDoc.metadata.mediaFilePath
           // Only convert if it's a relative path
           if (!electronAPI.path.isAbsolute(mediaPath)) {
-            const vttDir = electronAPI.path.dirname(filePath)
-            const absoluteMediaPath = electronAPI.path.resolve(vttDir, mediaPath)
+            const captionsDir = electronAPI.path.dirname(filePath)
+            const absoluteMediaPath = electronAPI.path.resolve(captionsDir, mediaPath)
             console.log('Converting relative media path to absolute:')
             console.log('  Relative:', mediaPath)
-            console.log('  VTT dir:', vttDir)
+            console.log('  Captions dir:', captionsDir)
             console.log('  Absolute:', absoluteMediaPath)
             loadedDoc.metadata = {
               ...loadedDoc.metadata,
@@ -109,9 +109,25 @@ export const useVTTStore = defineStore('vtt', () => {
       isDirty.value = false // Reset dirty flag on load
       console.log('Loaded document with', document.value.segments.length, 'segments')
     } else {
-      console.error('Failed to load VTT:', result.error)
-      throw new Error(result.error || 'Failed to parse VTT file')
+      console.error('Failed to load captions:', result.error)
+      throw new Error(result.error || 'Failed to parse captions file')
     }
+  }
+
+  function loadFromSrt(content: string) {
+    console.log('Importing segments from SRT')
+    const result = createDocumentFromSrtContent(content)
+    if (!result.success) {
+      console.error('Failed to import SRT:', result.error)
+      throw new Error(result.error || 'Failed to parse SRT file')
+    }
+
+    // SRT is an import format only; do not set document.filePath to the .srt path.
+    document.value = {
+      ...result.document,
+      filePath: undefined
+    }
+    isDirty.value = true
   }
 
   /**
@@ -124,7 +140,7 @@ export const useVTTStore = defineStore('vtt', () => {
     mediaPath.value = path
 
     // Store the ABSOLUTE file path in metadata
-    // We'll convert it to a relative path only when exporting/saving the VTT file
+    // We'll convert it to a relative path only when exporting/saving the captions JSON file
     if (filePath) {
       document.value = {
         ...document.value,
@@ -138,12 +154,12 @@ export const useVTTStore = defineStore('vtt', () => {
   }
 
   function exportToString(): string {
-    console.log('Exporting VTT document')
+    console.log('Exporting captions document')
     console.log('  document.value.filePath:', document.value.filePath || '(null)')
     console.log('  document.value.metadata.mediaFilePath:', document.value.metadata.mediaFilePath || '(null)')
 
-    // Convert absolute media path to relative path for VTT file export
-    // This is important for portability and for Save As operations where the VTT file moves
+    // Convert absolute media path to relative path for captions JSON export.
+    // This is important for portability and for Save As operations where the captions file moves.
     let documentToExport = document.value
 
     const absoluteMediaPath = document.value.metadata.mediaFilePath
@@ -153,16 +169,16 @@ export const useVTTStore = defineStore('vtt', () => {
       try {
         // Check if the media path is already absolute (using Node.js path module)
         if (electronAPI.path.isAbsolute(absoluteMediaPath)) {
-          // Compute the relative path from the VTT file directory to the media file
-          const vttDir = electronAPI.path.dirname(document.value.filePath)
-          console.log('  VTT directory:', vttDir)
-          console.log('  Computing relative path from', vttDir, 'to', absoluteMediaPath)
+          // Compute the relative path from the captions file directory to the media file
+          const captionsDir = electronAPI.path.dirname(document.value.filePath)
+          console.log('  Captions directory:', captionsDir)
+          console.log('  Computing relative path from', captionsDir, 'to', absoluteMediaPath)
 
           // Use Node.js path.relative() to compute the relative path
-          const relativeMediaPath = electronAPI.path.relative(vttDir, absoluteMediaPath)
+          const relativeMediaPath = electronAPI.path.relative(captionsDir, absoluteMediaPath)
 
           console.log('Converting media path for export:')
-          console.log('  VTT file path:', document.value.filePath)
+          console.log('  Captions file path:', document.value.filePath)
           console.log('  Absolute media path:', absoluteMediaPath)
           console.log('  Relative path:', relativeMediaPath)
 
@@ -184,7 +200,7 @@ export const useVTTStore = defineStore('vtt', () => {
       }
     }
 
-    return serializeVTT(documentToExport)
+    return serializeCaptionsJSON(documentToExport)
   }
 
   function updateFilePath(filePath: string) {
@@ -420,26 +436,30 @@ export const useVTTStore = defineStore('vtt', () => {
 
     try {
       const results = await electronAPI.processDroppedFiles(filePaths)
-      console.log('[vttStore] Processed file results:', results)
+      console.log('[captionStore] Processed file results:', results)
 
       for (const result of results) {
         try {
-          if (result.type === 'vtt' && result.content) {
+          if (result.type === 'captions_json' && result.content) {
             loadFromFile(result.content, result.filePath)
-            console.log('[vttStore] VTT file loaded successfully:', result.fileName)
+            console.log('[captionStore] Captions file loaded successfully:', result.fileName)
+            successes++
+          } else if (result.type === 'srt' && result.content) {
+            loadFromSrt(result.content)
+            console.log('[captionStore] SRT file imported successfully:', result.fileName)
             successes++
           } else if (result.type === 'media' && result.url) {
             loadMediaFile(result.url, result.filePath)
-            console.log('[vttStore] Media file loaded successfully:', result.fileName)
+            console.log('[captionStore] Media file loaded successfully:', result.fileName)
             successes++
           }
         } catch (err) {
-          console.error(`[vttStore] Failed to load file ${result.fileName}:`, err)
+          console.error(`[captionStore] Failed to load file ${result.fileName}:`, err)
           failures++
         }
       }
     } catch (err) {
-      console.error('[vttStore] Failed to process files:', err)
+      console.error('[captionStore] Failed to process files:', err)
       failures = filePaths.length
     }
 
@@ -500,3 +520,4 @@ export const useVTTStore = defineStore('vtt', () => {
     }
   }
 })
+

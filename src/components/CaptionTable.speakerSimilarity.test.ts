@@ -2,9 +2,25 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import CaptionTable from './CaptionTable.vue'
-import { useVTTStore } from '../stores/vttStore'
-import fs from 'fs'
-import path from 'path'
+import { useCaptionStore } from '../stores/captionStore'
+
+function getPartialEmbeddingsCaptionsJson(): string {
+  return JSON.stringify({
+    metadata: { id: 'doc1' },
+    segments: [
+      { id: 'cue-with-embedding-1', startTime: 0, endTime: 1, text: 'A' },
+      { id: 'cue-without-embedding-1', startTime: 1, endTime: 2, text: 'B' },
+      { id: 'cue-with-embedding-2', startTime: 2, endTime: 3, text: 'C' },
+      { id: 'cue-without-embedding-2', startTime: 3, endTime: 4, text: 'D' },
+      { id: 'cue-with-embedding-3', startTime: 4, endTime: 5, text: 'E' }
+    ],
+    embeddings: [
+      { segmentId: 'cue-with-embedding-1', speakerEmbedding: [1, 0, 0] },
+      { segmentId: 'cue-with-embedding-2', speakerEmbedding: [0.9, 0.1, 0] },
+      { segmentId: 'cue-with-embedding-3', speakerEmbedding: [0.8, 0.2, 0] }
+    ]
+  })
+}
 
 // Mock AG Grid Vue component
 vi.mock('ag-grid-vue3', () => ({
@@ -38,12 +54,9 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(createPinia())
   })
 
-  it('should parse VTT file with partial embeddings', () => {
-    const store = useVTTStore()
-    const vttPath = path.join(process.cwd(), 'test_data', 'partial-embeddings.vtt')
-    const content = fs.readFileSync(vttPath, 'utf-8')
-
-    store.loadFromFile(content, vttPath)
+  it('should parse captions JSON with partial embeddings', () => {
+    const store = useCaptionStore()
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
 
     // Verify document loaded correctly
     expect(store.document.segments.length).toBe(5)
@@ -76,11 +89,8 @@ describe('CaptionTable - Speaker Similarity', () => {
     const pinia = createPinia()
     setActivePinia(pinia)
 
-    const store = useVTTStore()
-    const vttPath = path.join(process.cwd(), 'test_data', 'partial-embeddings.vtt')
-    const content = fs.readFileSync(vttPath, 'utf-8')
-
-    store.loadFromFile(content, vttPath)
+    const store = useCaptionStore()
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -148,11 +158,8 @@ describe('CaptionTable - Speaker Similarity', () => {
     const pinia = createPinia()
     setActivePinia(pinia)
 
-    const store = useVTTStore()
-    const vttPath = path.join(process.cwd(), 'test_data', 'partial-embeddings.vtt')
-    const content = fs.readFileSync(vttPath, 'utf-8')
-
-    store.loadFromFile(content, vttPath)
+    const store = useCaptionStore()
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -200,11 +207,8 @@ describe('CaptionTable - Speaker Similarity', () => {
     const pinia = createPinia()
     setActivePinia(pinia)
 
-    const store = useVTTStore()
-    const vttPath = path.join(process.cwd(), 'test_data', 'partial-embeddings.vtt')
-    const content = fs.readFileSync(vttPath, 'utf-8')
-
-    store.loadFromFile(content, vttPath)
+    const store = useCaptionStore()
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -286,7 +290,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     const pinia = createPinia()
     setActivePinia(pinia)
 
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     // Create cues with specific time ranges
     // Add in reverse chronological order to test that it doesn't matter

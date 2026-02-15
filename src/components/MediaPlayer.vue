@@ -88,11 +88,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore, PlaybackMode } from '../stores/vttStore'
+import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const videoElement = ref<HTMLVideoElement | null>(null)
 const audioElement = ref<HTMLAudioElement | null>(null)
 const duration = ref(0)
@@ -116,8 +116,8 @@ const isVideo = computed(() => {
 })
 
 const mediaFileName = computed(() => {
-  // Display exactly what will be saved in VTT metadata (document.metadata.mediaFilePath)
-  // This is typically a relative path (e.g., just filename) when media is in same dir as VTT
+  // Display exactly what will be saved in document metadata (document.metadata.mediaFilePath)
+  // This is typically a relative path (e.g., just filename) when media is in same dir as the captions file
   if (store.mediaFilePath) return store.mediaFilePath
   if (!store.mediaPath) return ''
   // Fallback: extract filename from media URL path if metadata not available

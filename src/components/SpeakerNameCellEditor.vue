@@ -22,7 +22,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, nextTick, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 import type { ICellEditorParams } from 'ag-grid-community'
 
 export default defineComponent({
@@ -34,7 +34,7 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const store = useVTTStore()
+    const store = useCaptionStore()
 
     const inputRef = ref<HTMLInputElement | null>(null)
     const editValue = ref(props.params.value || '')

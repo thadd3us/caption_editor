@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - User Interactions', () => {
+test.describe('Caption Editor - User Interactions', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -9,11 +9,11 @@ test.describe('VTT Editor - User Interactions', () => {
     await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
-  async function loadVttAndWaitForSegments(vttContent: string, expectedSegmentCount: number): Promise<void> {
+  async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedSegmentCount: number): Promise<void> {
     await window.evaluate((content) => {
       const store = (window as any).$store
-      store.loadFromFile(content, '/test/file.vtt')
-    }, vttContent)
+      store.loadFromFile(content, '/test/file.captions.json')
+    }, captionsContent)
 
     await window.waitForFunction((expected) => {
       const store = (window as any).$store
@@ -22,13 +22,12 @@ test.describe('VTT Editor - User Interactions', () => {
   }
 
   test('should add a caption through UI interaction', async () => {
-    // Load a VTT file first
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'First caption' }]
+    })
 
-00:00:01.000 --> 00:00:04.000
-First caption`
-
-    await loadVttAndWaitForSegments(vttContent, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
 
     // Check initial caption count
     const grid = window.locator('.ag-theme-alpine')
@@ -36,40 +35,39 @@ First caption`
   })
 
   test('should edit caption text in grid', async () => {
-    // Load VTT
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Original text' }]
+    })
 
-00:00:01.000 --> 00:00:04.000
-Original text`
-
-    await loadVttAndWaitForSegments(vttContent, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
 
     // Grid should be visible
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
   })
 
   test('should delete caption using action button', async () => {
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [
+        { id: 'seg_1', startTime: 1, endTime: 4, text: 'Caption to delete' },
+        { id: 'seg_2', startTime: 5, endTime: 8, text: 'Caption to keep' }
+      ]
+    })
 
-00:00:01.000 --> 00:00:04.000
-Caption to delete
-
-00:00:05.000 --> 00:00:08.000
-Caption to keep`
-
-    await loadVttAndWaitForSegments(vttContent, 2)
+    await loadCaptionsAndWaitForSegments(captionsJson, 2)
 
     // Grid should show 2 captions
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
   })
 
-  test('should handle invalid VTT file gracefully', async () => {
-    const invalidContent = 'This is not a VTT file'
+  test('should handle invalid captions file gracefully', async () => {
+    const invalidContent = '{not json'
 
     await window.evaluate((content) => {
       const store = (window as any).$store
       try {
-        store.loadFromFile(content, '/test/file.vtt')
+        store.loadFromFile(content, '/test/file.captions.json')
       } catch {
         // Expected parse error
       }
@@ -87,12 +85,12 @@ Caption to keep`
   })
 
   test('should update caption timing', async () => {
-    const vttContent = `WEBVTT
+    const captionsJson = JSON.stringify({
+      metadata: { id: 'doc_1' },
+      segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Caption with timing' }]
+    })
 
-00:00:01.000 --> 00:00:04.000
-Caption with timing`
-
-    await loadVttAndWaitForSegments(vttContent, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson, 1)
 
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
   })

@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
-test.describe('VTT Editor - Context Menu', () => {
+test.describe('Caption Editor - Context Menu', () => {
   let window: Page
 
   test.beforeEach(async ({ page }) => {
@@ -11,26 +11,20 @@ test.describe('VTT Editor - Context Menu', () => {
   })
 
   test('should show context menu with both options when rows are selected', async () => {
-    // Load VTT with multiple cues
+    // Load captions JSON with multiple segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'context-menu-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -79,20 +73,17 @@ Second`
   })
 
   test('should open bulk set speaker dialog when context menu option is triggered', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'bulk-set-dialog-doc' },
+        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Test"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Test`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -127,20 +118,17 @@ Test`
   })
 
   test('should open delete confirmation dialog when context menu option is triggered', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'delete-dialog-doc' },
+        segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test' }]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"Test"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-Test`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {
@@ -175,26 +163,20 @@ Test`
   })
 
   test('should handle both context menu actions in sequence', async () => {
-    // Load VTT with cues
+    // Load captions JSON with segments
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
-      const vttContent = `WEBVTT
+      const captionsContent = JSON.stringify({
+        metadata: { id: 'context-menu-seq-doc' },
+        segments: [
+          { id: 'cue1', startTime: 1, endTime: 4, text: 'First' },
+          { id: 'cue2', startTime: 5, endTime: 8, text: 'Second' }
+        ]
+      }, null, 2)
 
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue1","startTime":1,"endTime":4,"text":"First"}
-
-cue1
-00:00:01.000 --> 00:00:04.000
-First
-
-NOTE CAPTION_EDITOR:VTTCue {"id":"cue2","startTime":5,"endTime":8,"text":"Second"}
-
-cue2
-00:00:05.000 --> 00:00:08.000
-Second`
-
-      vttStore.loadFromFile(vttContent, '/test/file.vtt')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
     })
 
     await window.waitForFunction(() => {

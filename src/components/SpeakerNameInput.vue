@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useVTTStore } from '../stores/vttStore'
+import { useCaptionStore } from '../stores/captionStore'
 
 const props = withDefaults(
   defineProps<{
@@ -45,7 +45,7 @@ const emit = defineEmits<{
   'blur': []
 }>()
 
-const store = useVTTStore()
+const store = useCaptionStore()
 const localValue = ref(props.modelValue)
 const inputRef = ref<HTMLInputElement | null>(null)
 
