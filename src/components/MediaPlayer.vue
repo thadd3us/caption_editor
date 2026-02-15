@@ -353,8 +353,8 @@ watch(() => store.currentTime, (time) => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 13px;
@@ -362,7 +362,7 @@ watch(() => store.currentTime, (time) => {
 
 .media-filename {
   font-weight: 500;
-  color: #495057;
+  color: var(--text-1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -394,8 +394,8 @@ watch(() => store.currentTime, (time) => {
   transform: translateY(-50%);
   margin-left: 8px;
   padding: 4px 8px;
-  background: #333;
-  color: white;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 12px;
   white-space: nowrap;
   border-radius: 4px;
@@ -404,7 +404,7 @@ watch(() => store.currentTime, (time) => {
 
 .media-duration {
   font-family: monospace;
-  color: #6c757d;
+  color: var(--text-2);
   white-space: nowrap;
 }
 
@@ -426,7 +426,7 @@ video, audio {
 
 .no-media {
   text-align: center;
-  color: #999;
+  color: var(--text-3);
   padding: 40px;
 }
 
@@ -437,7 +437,7 @@ video, audio {
 
 .hint {
   font-size: 14px !important;
-  color: #666 !important;
+  color: var(--text-2) !important;
 }
 
 .controls {
@@ -468,7 +468,7 @@ video, audio {
 }
 
 .control-btn:disabled {
-  background: #ccc;
+  background: var(--btn-disabled-bg);
   cursor: not-allowed;
 }
 
@@ -476,7 +476,7 @@ video, audio {
   font-family: monospace;
   font-size: 16px;
   min-width: 90px;
-  color: #333;
+  color: var(--text-1);
 }
 
 .scrubber {
@@ -487,8 +487,8 @@ video, audio {
 
 .current-caption-display {
   padding: 16px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: 6px;
   min-height: 80px;
 }
@@ -497,7 +497,7 @@ video, audio {
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--text-2);
   margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
@@ -505,7 +505,7 @@ video, audio {
 .caption-text {
   font-size: 16px;
   line-height: 1.5;
-  color: #212529;
+  color: var(--text-1);
   white-space: pre-wrap;
   word-wrap: break-word;
 }
@@ -522,7 +522,7 @@ video, audio {
 }
 
 .word-span[data-has-timestamp="false"] {
-  color: #999;
+  color: var(--text-3);
   font-style: italic;
 }
 

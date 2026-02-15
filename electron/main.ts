@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell, nativeTheme } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
@@ -233,6 +233,8 @@ function createWindow() {
     width: 1200,
     height: 800,
     show: process.env.HEADLESS !== 'true',
+    // Prevent a bright flash when launching in dark mode.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#0f1115' : '#ffffff',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -318,6 +320,9 @@ app.on('open-file', (event, filePath) => {
 })
 
 app.whenReady().then(() => {
+  // Ensure we follow the OS appearance setting (macOS light/dark).
+  nativeTheme.themeSource = 'system'
+
   // Create a custom media protocol handler to securely serve local files.
   // Using a custom protocol is required once webSecurity is enabled.
   protocol.handle('media', async (request) => {

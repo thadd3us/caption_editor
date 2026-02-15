@@ -15,6 +15,22 @@
     <link rel="icon" href="/vite.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caption Editor</title>
+    <script>
+      // Apply system theme early to avoid a light/dark flash before Vue mounts.
+      (() => {
+        try {
+          const prefersDark =
+            typeof window !== 'undefined' &&
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches
+          const mode = prefersDark ? 'dark' : 'light'
+          document.documentElement.dataset.theme = mode
+          document.documentElement.setAttribute('data-ag-theme-mode', mode)
+        } catch {
+          // Ignore: fall back to default CSS variables.
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

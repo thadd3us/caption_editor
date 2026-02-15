@@ -45,6 +45,11 @@
   /* Tooltips */
   --tooltip-bg: #333333;
   --tooltip-text: #ffffff;
+
+  /* Terminal-like surfaces (used in ASR output). Keep dark in both modes. */
+  --terminal-bg: #0e0e0e;
+  --terminal-border: #333333;
+  --terminal-text: #d4d4d4;
 }
 
 :root[data-theme='light'] {
@@ -90,6 +95,10 @@
 
   --tooltip-bg: #111827;
   --tooltip-text: #f3f4f6;
+
+  --terminal-bg: #0e0e0e;
+  --terminal-border: #333333;
+  --terminal-text: #d4d4d4;
 }
 
 body {

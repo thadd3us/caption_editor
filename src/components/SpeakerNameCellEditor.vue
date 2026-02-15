@@ -237,7 +237,8 @@ export default defineComponent({
   padding: 4px 8px;
   border: none;
   outline: none;
-  background: white;
+  background: var(--input-bg);
+  color: var(--input-text);
   font-family: inherit;
   font-size: inherit;
   box-sizing: border-box;

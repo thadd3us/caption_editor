@@ -23,9 +23,16 @@ function setupSystemThemeSync() {
   const mq = window.matchMedia('(prefers-color-scheme: dark)')
   applyThemeMode(mq.matches ? 'dark' : 'light')
 
-  mq.addEventListener('change', (e) => {
+  const onChange = (e: MediaQueryListEvent) => {
     applyThemeMode(e.matches ? 'dark' : 'light')
-  })
+  }
+
+  // Some environments still use the older addListener/removeListener API.
+  if (typeof mq.addEventListener === 'function') {
+    mq.addEventListener('change', onChange)
+  } else if (typeof (mq as any).addListener === 'function') {
+    ;(mq as any).addListener(onChange)
+  }
 }
 
 // Register AG Grid modules (required for v35+)

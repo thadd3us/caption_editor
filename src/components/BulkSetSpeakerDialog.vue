@@ -109,10 +109,10 @@ label {
   width: 100%;
   padding: 10px 12px;
   font-size: 14px;
-  background: #1e1e1e;
-  border: 1px solid #444;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
-  color: #eee;
+  color: var(--input-text);
   box-sizing: border-box;
   font-family: inherit;
 }
@@ -134,12 +134,12 @@ label {
 }
 
 .dialog-button-secondary {
-  background: #444;
-  color: #fff;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .dialog-button-secondary:hover {
-  background: #555;
+  background: var(--btn-secondary-hover-bg);
 }
 
 .dialog-button-primary {
@@ -152,8 +152,8 @@ label {
 }
 
 .dialog-button-primary:disabled {
-  background: #333;
-  color: #666;
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
   cursor: not-allowed;
 }
 </style>

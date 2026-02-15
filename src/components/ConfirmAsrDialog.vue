@@ -47,7 +47,7 @@ function handleCancel() {
 
 <style scoped>
 .dialog-content {
-  color: #ddd;
+  color: var(--text-1);
 }
 
 .warning-text {
@@ -65,12 +65,12 @@ function handleCancel() {
 }
 
 .dialog-button-secondary {
-  background: #444;
-  color: #fff;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .dialog-button-secondary:hover {
-  background: #555;
+  background: var(--btn-secondary-hover-bg);
 }
 
 .dialog-button-danger {

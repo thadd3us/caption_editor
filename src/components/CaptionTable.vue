@@ -784,12 +784,12 @@ onUnmounted(() => {
 
 .file-path-label {
   font-weight: 600;
-  color: #495057;
+  color: var(--text-2);
   white-space: nowrap;
 }
 
 .file-path-value {
-  color: #212529;
+  color: var(--text-1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -820,8 +820,8 @@ onUnmounted(() => {
   transform: translateY(-50%);
   margin-left: 8px;
   padding: 4px 8px;
-  background: #333;
-  color: white;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 12px;
   white-space: nowrap;
   border-radius: 4px;
@@ -845,8 +845,8 @@ onUnmounted(() => {
   transform: translateX(-50%);
   margin-top: 6px;
   padding: 4px 8px;
-  background: #333;
-  color: white;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 12px;
   white-space: nowrap;
   border-radius: 4px;
@@ -864,7 +864,7 @@ onUnmounted(() => {
 .table-header h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-1);
 }
 
 .header-controls {
@@ -894,7 +894,7 @@ onUnmounted(() => {
 
 .sequential-play-btn:disabled,
 .add-caption-btn:disabled {
-  background: #ccc;
+  background: var(--btn-disabled-bg);
   cursor: not-allowed;
 }
 
@@ -903,7 +903,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #555;
+  color: var(--text-2);
   cursor: pointer;
   user-select: none;
 }
@@ -922,13 +922,13 @@ onUnmounted(() => {
 
 /* Column lines */
 :deep(.ag-cell) {
-  border-right: 1px solid #dde2eb;
+  border-right: 1px solid var(--border-1);
 }
 
 
 
 :deep(.ag-header-cell) {
-  border-right: 1px solid #babfc7;
+  border-right: 1px solid var(--border-2);
 }
 
 /* Taller header to accommodate wrapping.
