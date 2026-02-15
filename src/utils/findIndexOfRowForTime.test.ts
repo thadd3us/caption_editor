@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { findIndexOfRowForTime } from './vttParser'
+import { findIndexOfRowForTime } from './captionsUtils'
 import type { TranscriptSegment } from '../types/schema'
 
 describe('findIndexOfRowForTime', () => {

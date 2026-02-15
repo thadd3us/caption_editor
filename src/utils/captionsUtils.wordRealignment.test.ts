@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { updateCue, createEmptyDocument, addCue } from './vttParser'
-import type { TranscriptSegment, VTTDocument } from '../types/schema'
+import { updateCue, createEmptyDocument, addCue } from './captionsUtils'
+import type { TranscriptSegment, CaptionsDocument } from '../types/schema'
 
-describe('updateCue - word realignment', () => {
+describe('updateCue - word realignment (captionsUtils)', () => {
   it('should realign words when text is edited', () => {
     // Create a document with a segment that has word-level timestamps
-    let doc: VTTDocument = createEmptyDocument()
+    let doc: CaptionsDocument = createEmptyDocument()
 
     const segment: TranscriptSegment = {
       id: 'test-1',
@@ -41,7 +41,9 @@ describe('updateCue - word realignment', () => {
     const updatedSegment = updatedDoc.segments[0]
 
     // Verify text was updated
-    expect(updatedSegment.text).toBe('the courtesy of your home is somewhat listened of late Theoden King')
+    expect(updatedSegment.text).toBe(
+      'the courtesy of your home is somewhat listened of late Theoden King'
+    )
 
     // Verify words array was updated
     expect(updatedSegment.words).toBeDefined()
@@ -49,7 +51,11 @@ describe('updateCue - word realignment', () => {
 
     // Verify preserved words kept their timestamps
     expect(updatedSegment.words![0]).toEqual({ text: 'the', startTime: 59.84, endTime: 60.08 })
-    expect(updatedSegment.words![1]).toEqual({ text: 'courtesy', startTime: 60.08, endTime: 60.88 })
+    expect(updatedSegment.words![1]).toEqual({
+      text: 'courtesy',
+      startTime: 60.08,
+      endTime: 60.88
+    })
     expect(updatedSegment.words![9]).toEqual({ text: 'late', startTime: 63.92, endTime: 64.48 })
 
     // Verify new word doesn't have timestamps
@@ -60,7 +66,7 @@ describe('updateCue - word realignment', () => {
   })
 
   it('should handle text edits with no original words', () => {
-    let doc: VTTDocument = createEmptyDocument()
+    let doc: CaptionsDocument = createEmptyDocument()
 
     const segment: TranscriptSegment = {
       id: 'test-1',
@@ -86,7 +92,7 @@ describe('updateCue - word realignment', () => {
   })
 
   it('should preserve words when only speaker name is updated', () => {
-    let doc: VTTDocument = createEmptyDocument()
+    let doc: CaptionsDocument = createEmptyDocument()
 
     const segment: TranscriptSegment = {
       id: 'test-1',
@@ -118,3 +124,4 @@ describe('updateCue - word realignment', () => {
     expect(updatedSegment.speakerName).toBe('Alice')
   })
 })
+

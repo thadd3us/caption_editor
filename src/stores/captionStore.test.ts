@@ -22,7 +22,7 @@ const localStorageMock = (() => {
 
 global.localStorage = localStorageMock as any
 
-describe('vttStore', () => {
+describe('captionStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()

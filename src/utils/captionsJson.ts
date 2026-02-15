@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { ParseResult, TranscriptSegment, TranscriptMetadata, VTTDocument } from '../types/schema'
+import type { ParseResult, TranscriptSegment, TranscriptMetadata, CaptionsDocument } from '../types/schema'
 import { stableJsonStringify } from './stableJson'
 
 function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
@@ -72,7 +72,7 @@ export function parseCaptionsJSON(content: string): ParseResult {
     const unique = validateUniqueSegmentIds(typedSegments)
     if (!unique.ok) return { success: false, error: unique.error }
 
-    const document: VTTDocument = {
+    const document: CaptionsDocument = {
       metadata,
       segments: sortSegments(typedSegments),
       history: Array.isArray(obj.history) ? (obj.history as any) : undefined,
@@ -96,7 +96,7 @@ export function parseCaptionsJSON(content: string): ParseResult {
  * - `filePath` is runtime-only and is never persisted.
  * - Keys are deep-sorted for stable diffs.
  */
-export function serializeCaptionsJSON(document: VTTDocument): string {
+export function serializeCaptionsJSON(document: CaptionsDocument): string {
   const { filePath: _filePath, ...persisted } = document as any
   return stableJsonStringify(persisted)
 }
@@ -104,9 +104,9 @@ export function serializeCaptionsJSON(document: VTTDocument): string {
 /**
  * Create a minimal document from segments (used for imports like SRT).
  */
-export function createDocumentFromSegments(segments: readonly Omit<TranscriptSegment, 'id'>[], metadata?: Partial<TranscriptMetadata>): VTTDocument {
+export function createDocumentFromSegments(segments: readonly Omit<TranscriptSegment, 'id'>[], metadata?: Partial<TranscriptMetadata>): CaptionsDocument {
   const withIds: TranscriptSegment[] = segments.map(s => ({ ...s, id: uuidv4() }))
-  const doc: VTTDocument = {
+  const doc: CaptionsDocument = {
     metadata: {
       id: metadata?.id || uuidv4(),
       mediaFilePath: metadata?.mediaFilePath

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { TranscriptSegment } from '../types/schema'
-import { getCurrentTimestamp } from './vttParser'
+import { getCurrentTimestamp } from './captionsUtils'
 
 /**
  * Result of splitting a segment at a word boundary

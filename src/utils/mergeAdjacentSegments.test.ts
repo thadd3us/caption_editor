@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { mergeAdjacentSegments } from './vttParser'
-import type { VTTDocument, TranscriptSegment } from '../types/schema'
+import { mergeAdjacentSegments } from './captionsUtils'
+import type { CaptionsDocument, TranscriptSegment } from '../types/schema'
 
 describe('mergeAdjacentSegments', () => {
   // Helper function to create a test document with segments
-  function createTestDocument(segments: TranscriptSegment[]): VTTDocument {
+  function createTestDocument(segments: TranscriptSegment[]): CaptionsDocument {
     // Sort segments (ordinals are computed at runtime, not stored)
     const sortedSegments = [...segments].sort((a, b) => {
       if (a.startTime !== b.startTime) {

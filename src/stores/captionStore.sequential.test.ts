@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useCaptionStore, PlaybackMode } from './captionStore'
-// import type { VTTDocument } from '../types/schema'
+// import type { CaptionsDocument } from '../types/schema'
 
 describe('Playlist Playback Store', () => {
   beforeEach(() => {

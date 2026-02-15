@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import type { VTTDocument, TranscriptSegment } from '../types/schema'
+import type { CaptionsDocument, TranscriptSegment } from '../types/schema'
 import {
   createEmptyDocument,
   addCue as addCueToDoc,
@@ -11,7 +11,7 @@ import {
   splitSegment as splitSegmentInDoc,
   mergeAdjacentSegments as mergeAdjacentSegmentsInDoc,
   getCurrentTimestamp
-} from '../utils/vttParser'
+} from '../utils/captionsUtils'
 import { parseCaptionsJSON, serializeCaptionsJSON } from '../utils/captionsJson'
 import { createDocumentFromSrtContent } from '../utils/srt'
 
@@ -29,7 +29,7 @@ export enum PlaybackMode {
 
 export const useCaptionStore = defineStore('captions', () => {
   // State - all state lives in memory only, persisted by saving `.captions.json` files
-  const document = ref<VTTDocument>(createEmptyDocument())
+  const document = ref<CaptionsDocument>(createEmptyDocument())
 
   // Media URL - always a media:// URL in Electron mode
   // Example: media:///Users/name/path/to/audio.wav

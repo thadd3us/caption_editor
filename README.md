@@ -253,7 +253,7 @@ console.log(JSON.stringify($store.document.cues[0], null, 2))
 }
 ```
 
-This outputs the complete TypeScript `VTTDocument` structure including all cues with their IDs, timestamps, text, and ratings.
+This outputs the complete TypeScript `CaptionsDocument` structure including all segments with their IDs, timestamps, text, and ratings.
 
 **Note:** The store is only exposed in development mode (`npm run dev`). In production builds, use Vue DevTools extension for state inspection.
 

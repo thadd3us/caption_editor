@@ -1,13 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
-import { serializeVTT } from '../../src/utils/vttParser'
-import type { VTTDocument } from '../../src/types/schema'
 import * as fs from 'fs'
 import * as path from 'path'
 
-// Generate 100 one-second cues numbered 0-99
-const cues = []
+// Generate 100 one-second segments numbered 0-99
+const segments = []
 for (let i = 0; i < 100; i++) {
-  cues.push({
+  segments.push({
     id: uuidv4(),
     startTime: i,
     endTime: i + 1,
@@ -16,16 +14,15 @@ for (let i = 0; i < 100; i++) {
   })
 }
 
-const document: VTTDocument = {
-  cues,
+const doc = {
+  metadata: { id: uuidv4() },
+  segments,
   filePath: undefined
 }
 
-const vttContent = serializeVTT(document)
+const outputPath = path.join(process.cwd(), 'test_data', '100-cues.captions.json')
+fs.writeFileSync(outputPath, JSON.stringify(doc, null, 2) + '\n', 'utf-8')
 
-const outputPath = path.join(process.cwd(), 'test_data', '100-cues.vtt')
-fs.writeFileSync(outputPath, vttContent, 'utf-8')
-
-console.log(`Generated VTT file with 100 cues: ${outputPath}`)
-console.log(`Total cues: ${cues.length}`)
+console.log(`Generated captions JSON with 100 segments: ${outputPath}`)
+console.log(`Total segments: ${segments.length}`)
 console.log(`Duration: 0:00 to 1:40`)
