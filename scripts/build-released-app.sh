@@ -20,6 +20,7 @@ npm install
 
 # Run the package script
 echo "Running package:mac..."
+echo "(Note: Code signing can take several minutes — this is normal.)"
 npm run package:mac
 
 echo "Build complete! Check release/ directory for artifacts."
