@@ -111,7 +111,7 @@ test.describe('Full E2E Pipeline @expensive', () => {
     test.setTimeout(30000)
 
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'words-fixture-'))
-    const captionsPath = path.join(tmpDir, 'sample_with_words.captions.json')
+    const captionsPath = path.join(tmpDir, 'sample_with_words.captions_json')
 
     fs.writeFileSync(
       captionsPath,

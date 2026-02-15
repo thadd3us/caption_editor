@@ -47,10 +47,10 @@ describe('captionStore', () => {
         segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
       })
 
-      store.loadFromFile(captionsJson, '/test/file.captions.json')
+      store.loadFromFile(captionsJson, '/test/file.captions_json')
       expect(store.document.segments).toHaveLength(1)
       expect(store.document.segments[0].text).toBe('Test caption')
-      expect(store.document.filePath).toBe('/test/file.captions.json')
+      expect(store.document.filePath).toBe('/test/file.captions_json')
     })
 
     it('should throw error on invalid captions content', () => {

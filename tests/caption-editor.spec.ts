@@ -25,7 +25,7 @@ test.describe('Caption Editor', () => {
           metadata: { id: 'drag-drop-doc' },
           segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test caption' }]
         }, null, 2)],
-        'test.captions.json',
+        'test.captions_json',
         { type: 'application/json' }
       )
       dt.items.add(file)

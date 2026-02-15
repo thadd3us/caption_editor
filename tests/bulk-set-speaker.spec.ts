@@ -26,7 +26,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
       }, null, 2)
 
       try {
-        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        store.loadFromFile(captionsContent, '/test/file.captions_json')
         return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -106,7 +106,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello' }]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -150,7 +150,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello' }]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -201,7 +201,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
           { id: 'seg3', startTime: 9, endTime: 12, text: 'Third message', speakerName: 'Speaker3' }
         ]
       }, null, 2)
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     // Wait for rows
@@ -276,7 +276,7 @@ test.describe('Caption Editor - Bulk Set Speaker', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {

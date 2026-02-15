@@ -33,7 +33,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
       }, null, 2)
 
       try {
-        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        store.loadFromFile(captionsContent, '/test/file.captions_json')
         return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -119,7 +119,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -188,7 +188,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -248,7 +248,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
 
       // Select the first segment
       store.selectSegment('seg1')

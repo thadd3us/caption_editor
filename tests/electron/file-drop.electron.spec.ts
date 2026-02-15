@@ -10,7 +10,7 @@ test.describe('File Drop', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
 
   test('should handle captions JSON file drops', async ({ page }) => {
-    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions.json')
+    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions_json')
     const captionsJson = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [
@@ -84,7 +84,7 @@ test.describe('File Drop', () => {
   })
 
   test('should handle dropping both captions and WAV files together', async ({ page }) => {
-    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions.json')
+    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions_json')
     const wavFilePath = path.resolve(__dirname, '../../test_data/test-audio-10s.wav')
 
     await fs.writeFile(

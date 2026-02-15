@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Media transcription tool using NVIDIA Parakeet TDT model.
-Converts media files to the caption editor native `.captions.json` format with segment-level transcription.
+Converts media files to the caption editor native `.captions_json` format with segment-level transcription.
 """
 
 import hashlib
@@ -211,7 +211,7 @@ def main(
         None,
         "--output",
         "-o",
-        help="Output captions JSON file path (.captions.json)",
+        help="Output captions JSON file path (.captions_json)",
         exists=False,
         file_okay=True,
         dir_okay=False,
@@ -261,14 +261,14 @@ def main(
     ),
 ):
     """
-    Transcribe media files to the caption editor `.captions.json` format using NVIDIA Parakeet TDT model.
+    Transcribe media files to the caption editor `.captions_json` format using NVIDIA Parakeet TDT model.
 
     Supports long media files by processing in chunks with overlap to avoid
     cutting off words at boundaries.
     """
     # Determine output path
     if output is None:
-        output = media_file.with_suffix(".captions.json")
+        output = media_file.with_suffix(".captions_json")
 
     typer.echo(f"Transcribing: {media_file}")
     typer.echo(f"Output: {output}")

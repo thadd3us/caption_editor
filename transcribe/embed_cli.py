@@ -1,4 +1,4 @@
-"""Command-line interface for computing speaker embeddings for `.captions.json` files."""
+"""Command-line interface for computing speaker embeddings for `.captions_json` files."""
 
 import os
 import tempfile
@@ -15,7 +15,7 @@ from audio_utils import extract_audio_to_wav, load_audio_segment
 from captions_json_lib import parse_captions_json_file, write_captions_json_file
 from schema import SegmentSpeakerEmbedding
 
-app = typer.Typer(help="Compute speaker embeddings for .captions.json files")
+app = typer.Typer(help="Compute speaker embeddings for .captions_json files")
 
 
 def get_hf_token() -> Optional[str]:
@@ -60,7 +60,7 @@ def main(
         file_okay=True,
         dir_okay=False,
         readable=True,
-        help="Path to the .captions.json file",
+        help="Path to the .captions_json file",
     ),
     model: str = typer.Option(
         "pyannote/wespeaker-voxceleb-resnet34-LM",

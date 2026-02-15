@@ -54,7 +54,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForTimeout(200)
@@ -99,7 +99,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForTimeout(200)
@@ -202,7 +202,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForTimeout(200)
@@ -240,7 +240,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForTimeout(200)
@@ -286,7 +286,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     const captionCount = window.locator('h2', { hasText: 'Captions' })

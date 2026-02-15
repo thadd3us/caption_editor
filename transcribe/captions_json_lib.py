@@ -1,4 +1,4 @@
-"""Shared `.captions.json` parsing and serialization utilities."""
+"""Shared `.captions_json` parsing and serialization utilities."""
 
 from __future__ import annotations
 

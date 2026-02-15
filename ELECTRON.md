@@ -143,7 +143,7 @@ if (result.success) {
 // Renderer side
 const result = await window.electronAPI.saveFile({
   content: captionsJsonContent,
-  suggestedName: 'captions.captions.json'
+  suggestedName: 'captions.captions_json'
 })
 ```
 

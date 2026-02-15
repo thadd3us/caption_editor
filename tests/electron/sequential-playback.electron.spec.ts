@@ -65,7 +65,7 @@ test.describe('Sequential Playback', () => {
 
   test('should show sequential play button in table header', async ({ electronApp, page }) => {
     // Load a captions file with multiple segments
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -82,7 +82,7 @@ test.describe('Sequential Playback', () => {
 
   test('should start sequential playback from top when no row selected', async ({ electronApp, page }) => {
     console.log('[Test] Loading captions file...')
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -134,7 +134,7 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load a captions file
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -211,7 +211,7 @@ test.describe('Sequential Playback', () => {
 
   test('should stop sequential playback when pause button clicked', async ({ electronApp, page }) => {
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -240,7 +240,7 @@ test.describe('Sequential Playback', () => {
 
   test('should play segments in table order respecting sort', async ({ electronApp, page }) => {
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -284,7 +284,7 @@ test.describe('Sequential Playback', () => {
 
   test('should preserve playlist order even if table is resorted', async ({ electronApp, page }) => {
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -325,7 +325,7 @@ test.describe('Sequential Playback', () => {
 
   test('should disable sequential button when no media loaded', async ({ electronApp, page }) => {
     // Load captions file without loading media
-    const captionsPath = await writeTestCaptionsFile('no-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('no-media-reference.captions_json', {
       metadata: { id: 'seq-no-media' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -343,7 +343,7 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions.json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },

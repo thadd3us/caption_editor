@@ -8,7 +8,7 @@ test.describe('File Save - Save captions files correctly', () => {
     // Create a temporary captions file
     const tempDir = path.join(getProjectRoot(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
-    const tempCaptionsPath = path.join(tempDir, 'test-media-save.captions.json')
+    const tempCaptionsPath = path.join(tempDir, 'test-media-save.captions_json')
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     const initialCaptions = JSON.stringify({

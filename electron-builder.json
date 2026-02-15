@@ -23,7 +23,7 @@
       "icon": "assets/packaging/icon.icns"
     },
     {
-      "ext": "caption_editor.json",
+      "ext": "captions_json",
       "name": "Caption Editor Project",
       "description": "Caption Editor project file",
       "role": "Editor",
@@ -33,6 +33,7 @@
       "ext": [
         "mp4",
         "mp3",
+        "aac",
         "m4a",
         "wav",
         "mov"

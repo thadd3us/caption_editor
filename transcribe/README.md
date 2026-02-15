@@ -1,13 +1,13 @@
 # Media Transcription and Speaker Diarization
 
 A unified Python environment providing:
-- **Transcription**: Convert media files to the caption editor native `.captions.json` format using NVIDIA's Parakeet TDT ASR model
+- **Transcription**: Convert media files to the caption editor native `.captions_json` format using NVIDIA's Parakeet TDT ASR model
 - **Speaker Diarization**: Identify and label different speakers in audio using pyannote.audio
 
 ## Features
 
 ### Transcription
-- **Multi-format support**: Converts nearly any media format to `.captions.json` using ffmpeg
+- **Multi-format support**: Converts nearly any media format to `.captions_json` using ffmpeg
 - **Chunked processing**: Handles long audio files (hours) by processing in configurable chunks
 - **Overlap handling**: Prevents word cutoffs at chunk boundaries with intelligent overlap resolution
 - **Segment-level transcripts**: Produces sentence-level segments with timestamps
@@ -42,7 +42,7 @@ uvx --from . transcribe --help
 uv run python transcribe_cli.py input.mp4
 
 # Specify output location
-uv run python transcribe_cli.py input.mp4 --output output.captions.json
+uv run python transcribe_cli.py input.mp4 --output output.captions_json
 
 # Adjust chunk size and overlap
 uv run python transcribe_cli.py long_audio.wav --chunk-size 120 --overlap 10
@@ -82,11 +82,11 @@ SPEAKER_00 speaks between t=7.200s and t=10.000s
 
 ### Speaker Embeddings
 
-Compute speaker embedding vectors for each segment in a `.captions.json` file. This is useful for speaker clustering, comparison, and identification tasks.
+Compute speaker embedding vectors for each segment in a `.captions_json` file. This is useful for speaker clustering, comparison, and identification tasks.
 
 **Prerequisites:**
 
-1. **Have a `.captions.json` file with media metadata:**
+1. **Have a `.captions_json` file with media metadata:**
    - Captions file must include `metadata.mediaFilePath` pointing to the media file
    - Media file path is relative to the captions file directory
 
@@ -94,15 +94,15 @@ Compute speaker embedding vectors for each segment in a `.captions.json` file. T
 
 ```bash
 # Basic usage (writes embeddings into `embeddings[]` in the captions JSON file)
-uv run embed_cli path/to/transcript.captions.json
+uv run embed_cli path/to/transcript.captions_json
 
 # Use a different model
-uv run embed_cli transcript.captions.json --model pyannote/embedding
+uv run embed_cli transcript.captions_json --model pyannote/embedding
 ```
 
 **Output format:**
 
-The embeddings are written back to the `.captions.json` file in the `embeddings[]` array. Each embedding contains:
+The embeddings are written back to the `.captions_json` file in the `embeddings[]` array. Each embedding contains:
 - `segmentId`: UUID of the segment
 - `speakerEmbedding`: 512-dimensional vector (for default wespeaker model)
 
@@ -111,7 +111,7 @@ The embeddings are written back to the `.captions.json` file in the `embeddings[
 ### Options
 
 - `media_file`: Input media file to transcribe (required)
-- `--output`, `-o`: Output captions JSON file path (default: input file with `.captions.json` extension)
+- `--output`, `-o`: Output captions JSON file path (default: input file with `.captions_json` extension)
 - `--chunk-size`, `-c`: Chunk size in seconds (default: 60)
 - `--overlap`, `-v`: Overlap interval in seconds (default: 5)
 - `--model`, `-m`: Hugging Face model name (default: nvidia/parakeet-tdt-0.6b-v3)
@@ -120,7 +120,7 @@ The embeddings are written back to the `.captions.json` file in the `embeddings[
 
 ```bash
 # Transcribe a 2-hour podcast with 2-minute chunks and 10-second overlap
-python transcribe_cli.py podcast.mp3 --chunk-size 120 --overlap 10 --output podcast_transcript.captions.json
+python transcribe_cli.py podcast.mp3 --chunk-size 120 --overlap 10 --output podcast_transcript.captions_json
 ```
 
 ## How It Works

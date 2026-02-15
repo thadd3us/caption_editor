@@ -86,7 +86,7 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
     assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
     # Create captions json + copy audio to temp directory.
-    test_captions = tmp_path / "test.captions.json"
+    test_captions = tmp_path / "test.captions_json"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
 
     test_audio.write_bytes(TEST_AUDIO.read_bytes())

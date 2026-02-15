@@ -12,7 +12,7 @@ test.describe('Electron Media Auto-loading', () => {
     // Use the actual media fixture and a generated captions fixture
     const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-media-autoload')
     await fs.mkdir(tempDir, { recursive: true })
-    const captionsPath = path.join(tempDir, 'with-media-reference.captions.json')
+    const captionsPath = path.join(tempDir, 'with-media-reference.captions_json')
     const mediaPath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     // Verify both files exist
@@ -128,7 +128,7 @@ test.describe('Electron Media Auto-loading', () => {
     await page.waitForTimeout(200)
 
     // Create a captions file with a non-existent media reference
-    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/missing-media-ref.captions.json')
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/missing-media-ref.captions_json')
     const captionsContent = JSON.stringify({
       metadata: { id: 'missing-media', mediaFilePath: 'nonexistent-file.wav' },
       segments: [{ id: 'cue1', startTime: 0, endTime: 3, text: 'Test caption' }]
@@ -202,7 +202,7 @@ test.describe('Electron Media Auto-loading', () => {
     // Now load captions file with media reference
     const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-media-autoload')
     await fs.mkdir(tempDir, { recursive: true })
-    const captionsPath = path.join(tempDir, 'with-media-reference-2.captions.json')
+    const captionsPath = path.join(tempDir, 'with-media-reference-2.captions_json')
     await fs.writeFile(
       captionsPath,
       JSON.stringify({

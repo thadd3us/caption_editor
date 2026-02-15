@@ -55,7 +55,7 @@ test.describe('Electron App', () => {
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store?.loadFromFile) {
-        store.loadFromFile(content, 'test.captions.json')
+        store.loadFromFile(content, 'test.captions_json')
       }
     }, captionsJson)
 
@@ -80,7 +80,7 @@ test.describe('Electron App', () => {
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test-export.captions.json')
+        store.loadFromFile(content, 'test-export.captions_json')
       }
     }, captionsJson)
 
@@ -111,7 +111,7 @@ test.describe('Electron App', () => {
 
   test('should handle file drops', async ({ page }) => {
     // Create a test captions file
-    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions.json')
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions_json')
     const captionsJson = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 0, endTime: 5, text: 'Dropped caption' }]

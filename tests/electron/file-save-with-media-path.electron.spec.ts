@@ -15,10 +15,10 @@ test.describe('File Save with Media Path - Relative path updates', () => {
   test.beforeEach(async () => {
     // Create a temporary directory structure:
     // temp-media-test/
-    //   ├── test.captions.json (original captions file)
+    //   ├── test.captions_json (original captions file)
     //   ├── audio.wav (media file in same directory)
     //   └── subdir/
-    //       └── saved.captions.json (save-as location)
+    //       └── saved.captions_json (save-as location)
 
     tempDir = path.join(getProjectRoot(), 'test_data/temp-media-test')
     await fs.mkdir(tempDir, { recursive: true })
@@ -26,9 +26,9 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     subdirPath = path.join(tempDir, 'subdir')
     await fs.mkdir(subdirPath, { recursive: true })
 
-    testCaptionsPath = path.join(tempDir, 'test.captions.json')
+    testCaptionsPath = path.join(tempDir, 'test.captions_json')
     mediaFilePath = path.join(tempDir, 'audio.wav')
-    saveAsPath = path.join(subdirPath, 'saved.captions.json')
+    saveAsPath = path.join(subdirPath, 'saved.captions_json')
 
     // Copy media file to temp directory
     const sourceMedia = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
@@ -115,7 +115,7 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     console.log('  mediaFilePath:', savedDoc.metadata.mediaFilePath)
 
     // THIS IS THE KEY ASSERTION:
-    // When saving from temp-media-test/test.captions.json to temp-media-test/subdir/saved.captions.json,
+    // When saving from temp-media-test/test.captions_json to temp-media-test/subdir/saved.captions_json,
     // the media file at temp-media-test/audio.wav should now be referenced as ../audio.wav
     expect(savedDoc.metadata.mediaFilePath).toBe('../audio.wav')
     console.log('✓ Media path correctly updated to relative path from new location!')

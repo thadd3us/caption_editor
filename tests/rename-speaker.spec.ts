@@ -24,7 +24,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
       })
 
       try {
-        store.loadFromFile(captionsContent, '/test/file.captions.json')
+        store.loadFromFile(captionsContent, '/test/file.captions_json')
         return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -113,7 +113,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
           { id: 'seg2', startTime: 5, endTime: 8, text: 'Another caption without speaker' }
         ]
       })
-      store.loadFromFile(captionsContent, '/test/no-speakers.captions.json')
+      store.loadFromFile(captionsContent, '/test/no-speakers.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -169,7 +169,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello', speakerName: 'Alice' }]
       })
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -208,7 +208,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
         ]
       })
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {

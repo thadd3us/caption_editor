@@ -26,7 +26,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             const sourceAudioPath = path.join(projectRoot, 'test_data/full_pipeline/OSR_us_000_0010_8k.wav')
 
             const destAudioPath = path.join(tmpDir, 'test_audio.wav')
-            const destCaptionsPath = path.join(tmpDir, 'test_audio.captions.json')
+            const destCaptionsPath = path.join(tmpDir, 'test_audio.captions_json')
 
             fs.copyFileSync(sourceAudioPath, destAudioPath)
             fs.writeFileSync(destCaptionsPath, JSON.stringify({

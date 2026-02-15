@@ -56,7 +56,7 @@ describe('CaptionTable - Speaker Similarity', () => {
 
   it('should parse captions JSON with partial embeddings', () => {
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
 
     // Verify document loaded correctly
     expect(store.document.segments.length).toBe(5)
@@ -90,7 +90,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(pinia)
 
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -159,7 +159,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(pinia)
 
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -208,7 +208,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(pinia)
 
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions.json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {

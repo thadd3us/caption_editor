@@ -2,7 +2,7 @@
 
 * A caption editor with media playback support, including synchronizing the selected caption segment with the current position of media playback.
 * Browser-based UI, packaged as an electron app.
-* Persists documents as a native JSON format (`*.captions.json`) with UUIDs and edit history.
+* Persists documents as a native JSON format (`*.captions_json`) with UUIDs and edit history.
 
 ### Quick Start (Desktop)
 
@@ -42,7 +42,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Core Functionality
 
-- **Captions JSON Support**: Open and edit `*.captions.json` documents (primary save/load format)
+- **Captions JSON Support**: Open and edit `*.captions_json` documents (primary save/load format)
 - **SRT Import/Export**: Import `*.srt` files and export to standard SRT
 - **Media Playback**: Load and play video or audio files alongside captions
 - **Drag & Drop**: Intuitive file loading - drop captions JSON/SRT and media files together or separately
@@ -64,7 +64,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Data Persistence
 
-- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions.json`
+- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions_json`
 
 ### Technical Details
 
@@ -190,7 +190,7 @@ WEBVTT
 NOTE {"id":"2ea43707-088b-c4fe-c7ff-b59f4a1232a0","mediaFilePath":"video.mp4"}
 ```
 
-**Note:** When using the Python transcription tool (`transcribe/transcribe_cli.py`), the output is a `.captions.json` file. The document’s `metadata.mediaFilePath` is written relative to the captions file directory when possible.
+**Note:** When using the Python transcription tool (`transcribe/transcribe_cli.py`), the output is a `.captions_json` file. The document’s `metadata.mediaFilePath` is written relative to the captions file directory when possible.
 
 #### Cue Metadata
 Each caption can have metadata stored in a NOTE comment immediately before it:
@@ -249,7 +249,7 @@ console.log(JSON.stringify($store.document.segments[0], null, 2))
       "rating": 5
     }
   ],
-  "filePath": "example.captions.json"
+  "filePath": "example.captions_json"
 }
 ```
 

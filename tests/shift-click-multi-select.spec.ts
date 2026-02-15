@@ -20,7 +20,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
       }, null, 2)
 
       try {
-        vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+        vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
         return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -136,7 +136,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     // Wait for rows to render

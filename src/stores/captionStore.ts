@@ -28,7 +28,7 @@ export enum PlaybackMode {
 }
 
 export const useCaptionStore = defineStore('captions', () => {
-  // State - all state lives in memory only, persisted by saving `.captions.json` files
+  // State - all state lives in memory only, persisted by saving `.captions_json` files
   const document = ref<CaptionsDocument>(createEmptyDocument())
 
   // Media URL - always a media:// URL in Electron mode

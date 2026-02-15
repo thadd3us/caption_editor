@@ -38,7 +38,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -104,7 +104,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -157,7 +157,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -201,7 +201,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -246,7 +246,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -352,7 +352,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
         ]
       })
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions.json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {

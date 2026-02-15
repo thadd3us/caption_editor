@@ -23,7 +23,7 @@ test.describe('Media Element Seek Test', () => {
         segments: [
           { id: 'seg1', startTime: 2.9, endTime: 3.2, text: 'At three seconds' }
         ]
-      }), '/test/seek-doc.captions.json')
+      }), '/test/seek-doc.captions_json')
     })
 
     await window.waitForFunction(() => {
