@@ -15,8 +15,12 @@ def extract_audio_to_wav(media_file: Path, output_path: Path) -> Path:
     Raises:
         ValueError: If ffmpeg conversion fails.
     """
+    import imageio_ffmpeg
+
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+
     cmd = [
-        "ffmpeg",
+        ffmpeg_exe,
         "-i",
         str(media_file),
         "-ar",

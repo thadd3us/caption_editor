@@ -20,7 +20,7 @@ const doc = {
   filePath: undefined
 }
 
-const outputPath = path.join(process.cwd(), 'test_data', '100-segments.captions.json')
+const outputPath = path.join(process.cwd(), 'test_data', '100-segments.captions_json')
 fs.writeFileSync(outputPath, JSON.stringify(doc, null, 2) + '\n', 'utf-8')
 
 console.log(`Generated captions JSON with 100 segments: ${outputPath}`)

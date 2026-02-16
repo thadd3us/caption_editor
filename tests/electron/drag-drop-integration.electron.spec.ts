@@ -27,7 +27,7 @@ test.describe('Drag-and-Drop IPC Integration', () => {
     })
 
     test('should process files-dropped IPC message correctly', async () => {
-        const testFilePath = '/path/to/fake.captions.json'
+        const testFilePath = '/path/to/fake.captions_json'
 
         // 1. Mock processDroppedFiles in the main process to return a fake result
         // so we don't actually hit the filesystem in this test
@@ -37,8 +37,8 @@ test.describe('Drag-and-Drop IPC Integration', () => {
             ipcMain.handle('file:processDroppedFiles', async () => {
                 return [{
                     type: 'captions_json',
-                    filePath: '/path/to/fake.captions.json',
-                    fileName: 'fake.captions.json',
+                    filePath: '/path/to/fake.captions_json',
+                    fileName: 'fake.captions_json',
                     content: JSON.stringify({
                         metadata: { id: 'drag-drop-integration' },
                         segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Integration test successful' }]

@@ -12,7 +12,7 @@ test.describe('Caption Editor - User Interactions', () => {
   async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedSegmentCount: number): Promise<void> {
     await window.evaluate((content) => {
       const store = (window as any).$store
-      store.loadFromFile(content, '/test/file.captions.json')
+      store.loadFromFile(content, '/test/file.captions_json')
     }, captionsContent)
 
     await window.waitForFunction((expected) => {
@@ -67,7 +67,7 @@ test.describe('Caption Editor - User Interactions', () => {
     await window.evaluate((content) => {
       const store = (window as any).$store
       try {
-        store.loadFromFile(content, '/test/file.captions.json')
+        store.loadFromFile(content, '/test/file.captions_json')
       } catch {
         // Expected parse error
       }

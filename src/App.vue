@@ -469,7 +469,7 @@ async function handleMenuSaveAs() {
 
     const result = await window.electronAPI.saveFile({
       content,
-      suggestedName: store.document.filePath || 'captions.captions.json'
+      suggestedName: store.document.filePath || 'captions.captions_json'
     })
 
     if (result.success) {

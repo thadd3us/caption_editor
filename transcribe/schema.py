@@ -2,7 +2,7 @@
 Pydantic schema definitions for the caption editor document structure.
 
 This module defines the data models used by the caption editor for its native
-`.captions.json` document format, including segments, metadata, history entries,
+`.captions_json` document format, including segments, metadata, history entries,
 and speaker embeddings. These models are shared between the Python transcription
 tools and the Electron app.
 
@@ -128,7 +128,7 @@ class SegmentSpeakerEmbedding(BaseModel):
 
 
 class CaptionsDocument(BaseModel):
-    """Complete captions document (native .captions.json format)."""
+    """Complete captions document (native .captions_json format)."""
 
     model_config = ConfigDict(populate_by_name=True)
 

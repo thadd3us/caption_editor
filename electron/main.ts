@@ -13,14 +13,15 @@ const execAsync = promisify(exec)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const CAPTIONS_JSON_SUFFIX = '.captions.json'
-const captions_json_files = ['json'] // dialog filter limitation (multi-dot suffix handled by runtime checks)
+const CAPTIONS_JSON_SUFFIX = '.captions_json'
+const captions_json_files = ['captions_json']
 const srt_files = ['srt']
 const MIME_TYPES: Record<string, string> = {
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',
   '.ogg': 'video/ogg',
   '.mp3': 'audio/mpeg',
+  '.aac': 'audio/aac',
   '.wav': 'audio/wav',
   '.mov': 'video/quicktime',
   '.m4a': 'audio/mp4',
@@ -440,7 +441,7 @@ ipcMain.handle('dialog:openFile', async (_event, options?: {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
       { name: 'All Supported Files', extensions: all_files },
-      { name: 'Captions Files (*.captions.json)', extensions: captions_json_files },
+      { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
       { name: 'SRT Files', extensions: srt_files },
       { name: 'Media Files', extensions: media_files }
     ]
@@ -490,7 +491,7 @@ ipcMain.handle('file:save', async (_event, options: {
     const result = await dialog.showSaveDialog(mainWindow, {
       defaultPath: options.suggestedName || `captions${CAPTIONS_JSON_SUFFIX}`,
       filters: [
-        { name: 'Captions Files (*.captions.json)', extensions: captions_json_files },
+        { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
         { name: 'All Files', extensions: ['*'] }
       ]
     })
@@ -500,13 +501,8 @@ ipcMain.handle('file:save', async (_event, options: {
     }
 
     let targetPath = result.filePath
-    const lower = targetPath.toLowerCase()
-    if (!lower.endsWith(CAPTIONS_JSON_SUFFIX)) {
-      if (lower.endsWith('.json')) {
-        targetPath = targetPath.slice(0, -'.json'.length) + CAPTIONS_JSON_SUFFIX
-      } else {
-        targetPath = targetPath + CAPTIONS_JSON_SUFFIX
-      }
+    if (!targetPath.toLowerCase().endsWith(CAPTIONS_JSON_SUFFIX)) {
+      targetPath = targetPath + CAPTIONS_JSON_SUFFIX
     }
 
     await fs.writeFile(targetPath, options.content, 'utf-8')
@@ -906,7 +902,7 @@ async function runAsrTool(options: {
     proc.on('close', (code) => {
       activeProcesses.delete(processId)
       if (tempOverridesPath) {
-        fs.unlink(tempOverridesPath).catch(() => {})
+        fs.unlink(tempOverridesPath).catch(() => { })
       }
       if (code === 0) {
         resolve({ success: true, script, processId })
@@ -924,7 +920,7 @@ async function runAsrTool(options: {
     proc.on('error', (err) => {
       activeProcesses.delete(processId)
       if (tempOverridesPath) {
-        fs.unlink(tempOverridesPath).catch(() => {})
+        fs.unlink(tempOverridesPath).catch(() => { })
       }
       if (canceled) {
         resolve({ success: false, error: 'Canceled', canceled: true })

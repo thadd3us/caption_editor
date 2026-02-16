@@ -16,10 +16,31 @@
   },
   "fileAssociations": [
     {
-      "ext": "vtt",
-      "name": "WebVTT Caption File",
-      "description": "WebVTT caption and subtitle file",
+      "ext": "srt",
+      "name": "SubRip Caption File",
+      "description": "SubRip caption and subtitle file",
       "role": "Editor",
+      "icon": "assets/packaging/icon.icns"
+    },
+    {
+      "ext": "captions_json",
+      "name": "Caption Editor Project",
+      "description": "Caption Editor project file",
+      "role": "Editor",
+      "icon": "assets/packaging/icon.icns"
+    },
+    {
+      "ext": [
+        "mp4",
+        "mp3",
+        "aac",
+        "m4a",
+        "wav",
+        "mov"
+      ],
+      "name": "Media File",
+      "description": "Media file for captioning",
+      "role": "Viewer",
       "icon": "assets/packaging/icon.icns"
     }
   ],

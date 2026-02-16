@@ -35,13 +35,13 @@ def _round_floats_deep(value, *, ndigits: int):
 def test_transcribe_osr_audio(
     repo_root: Path, tmp_path: Path, snapshot, model_name: str
 ):
-    """Test transcribing the OSR audio file and writing `.captions.json`."""
+    """Test transcribing the OSR audio file and writing `.captions_json`."""
     # Copy audio file to tmp_path to avoid absolute path in snapshots
     source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
     test_audio.write_bytes(source_audio.read_bytes())
 
-    output_path = tmp_path / "output.captions.json"
+    output_path = tmp_path / "output.captions_json"
 
     # Use tighter gap threshold for Whisper to split on sentence boundaries
     gap_threshold = "0.2" if "whisper" in model_name.lower() else "2.0"
@@ -77,13 +77,13 @@ def test_transcribe_osr_audio(
 
 @pytest.mark.expensive
 def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
-    """Test that `--embed` triggers embedding and updates `.captions.json`."""
+    """Test that `--embed` triggers embedding and updates `.captions_json`."""
     # Copy audio file to tmp_path
     source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
     test_audio.write_bytes(source_audio.read_bytes())
 
-    output_path = tmp_path / "output.captions.json"
+    output_path = tmp_path / "output.captions_json"
 
     # We want to mock the embedding model to avoid downloading it and slow tests
     # We can mock the Inference class in embed_cli.py or the compute_embedding function

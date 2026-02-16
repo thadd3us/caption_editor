@@ -4,7 +4,7 @@ import type { Locator, Page } from '@playwright/test'
 async function loadCaptionsAndWaitForFirstRow(page: Page, captionsContent: string): Promise<void> {
   await page.evaluate((content) => {
     const store = (window as any).$store
-    store.loadFromFile(content, '/test/test.captions.json')
+    store.loadFromFile(content, '/test/test.captions_json')
   }, captionsContent)
 
   // Wait for store + grid to reflect the new document (avoid race vs AG Grid render).

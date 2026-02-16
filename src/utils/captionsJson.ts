@@ -91,7 +91,7 @@ export function parseCaptionsJSON(content: string): ParseResult {
 }
 
 /**
- * Serialize a document to the on-disk `.captions.json` format.
+ * Serialize a document to the on-disk `.captions_json` format.
  *
  * Notes:
  * - `filePath` is runtime-only and is never persisted.

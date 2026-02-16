@@ -24,7 +24,7 @@ test.describe('Caption Editor - Context Menu', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -83,7 +83,7 @@ test.describe('Caption Editor - Context Menu', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Test' }]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -128,7 +128,7 @@ test.describe('Caption Editor - Context Menu', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Test' }]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -176,7 +176,7 @@ test.describe('Caption Editor - Context Menu', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {

@@ -1,9 +1,19 @@
+* Why was embedding so slow for a long file, were we re-loading the audio for disk every time?
+* The checked button isn't present in the table.
+* JSON file: "text": "\u00c8 solo che le cibchiera", -- crappy UTF, can it be better?
+* embeddings inline with the segments in a serialized float form?  don't like having them at the beginning.
+
+
+
+
+
 * move all python tests adjacent to code under test.
 * switch all dataclasses to pydantic.
 
 * open a new wav should clear the document model.
 
 
+* ASR crashes if you don't have ffmpeg installed.
 * Bring all framework and library dependencies up to date, and get test suite running again.
 * The E2E tests are kind of slow -- are there redundancies there that could be removed?  Are there sleeps in there?  Could some coverage be moved to smaller tests?  Could the ASR test me marked as "manual only", so that it doesn't run as part of "run-all-tests.sh"?
 * Replace waitForTimeout() calls in E2E tests with proper waitForSelector/expect patterns. merge-adjacent-segments.spec.ts has 11 such sleeps.

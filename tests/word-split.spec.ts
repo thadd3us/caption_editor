@@ -13,7 +13,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
     await window.evaluate(({ content }) => {
       const vttStore = (window as any).$store
       if (!vttStore) return
-      vttStore.loadFromFile(content, '/test/file.captions.json')
+      vttStore.loadFromFile(content, '/test/file.captions_json')
     }, { content: captionsContent })
 
     await window.waitForFunction((count) => {

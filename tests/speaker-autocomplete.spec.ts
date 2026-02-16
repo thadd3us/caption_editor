@@ -17,7 +17,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -80,7 +80,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -123,7 +123,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'First', speakerName: 'Alice' }]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -189,7 +189,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     await window.waitForFunction(() => {
@@ -233,7 +233,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions.json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json')
     })
 
     // Wait for grid to render

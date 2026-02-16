@@ -24,7 +24,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
     await page.waitForSelector('.app', { timeout: 10000 })
 
     // Create a test captions JSON file
-    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/sample.captions.json.copy')
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/sample.captions_json.copy')
     const content = JSON.stringify({
       metadata: { id: 'webutils-doc' },
       segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test caption' }]
@@ -46,7 +46,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
         // In real drag-and-drop, this File object comes from dataTransfer.files
         const response = await fetch(`file://${filePath}`)
         const blob = await response.blob()
-        const file = new File([blob], filePath.split('/').pop() || 'test.captions.json', {
+        const file = new File([blob], filePath.split('/').pop() || 'test.captions_json', {
           type: 'application/json'
         })
 
@@ -101,8 +101,8 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
 
       // Simulate multiple File objects
       const files = [
-        new File([JSON.stringify({ metadata: { id: 'doc1' }, segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test 1' }] }, null, 2)], 'test1.captions.json', { type: 'application/json' }),
-        new File([JSON.stringify({ metadata: { id: 'doc2' }, segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test 2' }] }, null, 2)], 'test2.captions.json', { type: 'application/json' })
+        new File([JSON.stringify({ metadata: { id: 'doc1' }, segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test 1' }] }, null, 2)], 'test1.captions_json', { type: 'application/json' }),
+        new File([JSON.stringify({ metadata: { id: 'doc2' }, segments: [{ id: 'cue1', startTime: 1, endTime: 2, text: 'Test 2' }] }, null, 2)], 'test2.captions_json', { type: 'application/json' })
       ]
 
       const paths = files.map(file => {
