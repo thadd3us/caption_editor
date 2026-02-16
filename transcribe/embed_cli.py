@@ -1,4 +1,8 @@
-"""Command-line interface for computing speaker embeddings for `.captions_json` files."""
+"""Command-line interface for computing speaker embeddings for `.captions_json` files.
+
+Example usage:
+uv run embed_cli path/to/captions.captions_json
+"""
 
 import os
 import tempfile
