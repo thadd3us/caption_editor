@@ -1,0 +1,1597 @@
+# serializer version: 1
+# name: test_transcribe_apollo_11
+  dict({
+    'metadata': dict({
+      'id': 'doc_id',
+      'mediaFilePath': 'Apollo-11_Day-05-Highlights_700s.mp3',
+    }),
+    'segments': list([
+      dict({
+        'endTime': 0.48,
+        'id': 'id_00000',
+        'startTime': 0.24,
+        'text': 'uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 0.48,
+            'startTime': 0.24,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 1.92,
+        'id': 'id_00001',
+        'startTime': 1.6,
+        'text': 'uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 1.92,
+            'startTime': 1.6,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 4.96,
+        'id': 'id_00002',
+        'startTime': 2.48,
+        'text': 'depressed in the surface about uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 3.2,
+            'startTime': 2.48,
+            'text': 'depressed',
+          }),
+          dict({
+            'endTime': 3.36,
+            'startTime': 3.2,
+            'text': 'in',
+          }),
+          dict({
+            'endTime': 3.52,
+            'startTime': 3.36,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 4.0,
+            'startTime': 3.52,
+            'text': 'surface',
+          }),
+          dict({
+            'endTime': 4.48,
+            'startTime': 4.24,
+            'text': 'about',
+          }),
+          dict({
+            'endTime': 4.96,
+            'startTime': 4.64,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 6.96,
+        'id': 'id_00003',
+        'startTime': 5.52,
+        'text': 'one or two inches.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 5.84,
+            'startTime': 5.52,
+            'text': 'one',
+          }),
+          dict({
+            'endTime': 6.16,
+            'startTime': 5.84,
+            'text': 'or',
+          }),
+          dict({
+            'endTime': 6.4,
+            'startTime': 6.16,
+            'text': 'two',
+          }),
+          dict({
+            'endTime': 6.96,
+            'startTime': 6.4,
+            'text': 'inches.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 9.84,
+        'id': 'id_00004',
+        'startTime': 7.12,
+        'text': 'Uh although the surface appears to be',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 7.2,
+            'startTime': 7.12,
+            'text': 'Uh',
+          }),
+          dict({
+            'endTime': 7.84,
+            'startTime': 7.36,
+            'text': 'although',
+          }),
+          dict({
+            'endTime': 8.08,
+            'startTime': 7.84,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 8.64,
+            'startTime': 8.08,
+            'text': 'surface',
+          }),
+          dict({
+            'endTime': 9.2,
+            'startTime': 8.64,
+            'text': 'appears',
+          }),
+          dict({
+            'endTime': 9.52,
+            'startTime': 9.2,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 9.84,
+            'startTime': 9.52,
+            'text': 'be',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 10.72,
+        'id': 'id_00005',
+        'startTime': 10.4,
+        'text': 'uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 10.72,
+            'startTime': 10.4,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 12.0,
+        'id': 'id_00006',
+        'startTime': 11.68,
+        'text': 'very',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 12.0,
+            'startTime': 11.68,
+            'text': 'very',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 14.88,
+        'id': 'id_00007',
+        'startTime': 12.88,
+        'text': 'fine grained as you get close to it.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 13.28,
+            'startTime': 12.88,
+            'text': 'fine',
+          }),
+          dict({
+            'endTime': 13.92,
+            'startTime': 13.44,
+            'text': 'grained',
+          }),
+          dict({
+            'endTime': 14.08,
+            'startTime': 13.92,
+            'text': 'as',
+          }),
+          dict({
+            'endTime': 14.16,
+            'startTime': 14.08,
+            'text': 'you',
+          }),
+          dict({
+            'endTime': 14.32,
+            'startTime': 14.16,
+            'text': 'get',
+          }),
+          dict({
+            'endTime': 14.64,
+            'startTime': 14.32,
+            'text': 'close',
+          }),
+          dict({
+            'endTime': 14.72,
+            'startTime': 14.64,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 14.88,
+            'startTime': 14.72,
+            'text': 'it.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 16.8,
+        'id': 'id_00008',
+        'startTime': 14.96,
+        'text': "It's almost like a powder.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 15.36,
+            'startTime': 14.96,
+            'text': "It's",
+          }),
+          dict({
+            'endTime': 15.76,
+            'startTime': 15.36,
+            'text': 'almost',
+          }),
+          dict({
+            'endTime': 15.92,
+            'startTime': 15.76,
+            'text': 'like',
+          }),
+          dict({
+            'endTime': 16.16,
+            'startTime': 15.92,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 16.8,
+            'startTime': 16.16,
+            'text': 'powder.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 20.16,
+        'id': 'id_00009',
+        'startTime': 17.44,
+        'text': "Brown mass uh it's very fine.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 17.76,
+            'startTime': 17.44,
+            'text': 'Brown',
+          }),
+          dict({
+            'endTime': 18.4,
+            'startTime': 18.08,
+            'text': 'mass',
+          }),
+          dict({
+            'endTime': 18.8,
+            'startTime': 18.56,
+            'text': 'uh',
+          }),
+          dict({
+            'endTime': 19.28,
+            'startTime': 18.96,
+            'text': "it's",
+          }),
+          dict({
+            'endTime': 19.6,
+            'startTime': 19.28,
+            'text': 'very',
+          }),
+          dict({
+            'endTime': 20.16,
+            'startTime': 19.6,
+            'text': 'fine.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 33.84,
+        'id': 'id_00010',
+        'startTime': 32.0,
+        'text': "I'm gonna step off the lamb now.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 32.16,
+            'startTime': 32.0,
+            'text': "I'm",
+          }),
+          dict({
+            'endTime': 32.4,
+            'startTime': 32.16,
+            'text': 'gonna',
+          }),
+          dict({
+            'endTime': 32.72,
+            'startTime': 32.4,
+            'text': 'step',
+          }),
+          dict({
+            'endTime': 32.88,
+            'startTime': 32.72,
+            'text': 'off',
+          }),
+          dict({
+            'endTime': 33.04,
+            'startTime': 32.88,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 33.36,
+            'startTime': 33.04,
+            'text': 'lamb',
+          }),
+          dict({
+            'endTime': 33.84,
+            'startTime': 33.52,
+            'text': 'now.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 45.6,
+        'id': 'id_00011',
+        'startTime': 43.12,
+        'text': "It's one small step per man",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 43.68,
+            'startTime': 43.12,
+            'text': "It's",
+          }),
+          dict({
+            'endTime': 43.92,
+            'startTime': 43.68,
+            'text': 'one',
+          }),
+          dict({
+            'endTime': 44.4,
+            'startTime': 43.92,
+            'text': 'small',
+          }),
+          dict({
+            'endTime': 44.8,
+            'startTime': 44.4,
+            'text': 'step',
+          }),
+          dict({
+            'endTime': 45.28,
+            'startTime': 44.96,
+            'text': 'per',
+          }),
+          dict({
+            'endTime': 45.6,
+            'startTime': 45.28,
+            'text': 'man',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 50.48,
+        'id': 'id_00012',
+        'startTime': 49.2,
+        'text': 'giant leap per man.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 49.68,
+            'startTime': 49.2,
+            'text': 'giant',
+          }),
+          dict({
+            'endTime': 50.16,
+            'startTime': 49.84,
+            'text': 'leap',
+          }),
+          dict({
+            'endTime': 50.32,
+            'startTime': 50.16,
+            'text': 'per',
+          }),
+          dict({
+            'endTime': 50.48,
+            'startTime': 50.32,
+            'text': 'man.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 57.86,
+        'id': 'id_00013',
+        'startTime': 57.18,
+        'text': 'The uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 57.42,
+            'startTime': 57.18,
+            'text': 'The',
+          }),
+          dict({
+            'endTime': 57.86,
+            'startTime': 57.58,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 61.96,
+        'id': 'id_00014',
+        'startTime': 59.96,
+        'text': 'surface is fine and powdery.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 60.52,
+            'startTime': 59.96,
+            'text': 'surface',
+          }),
+          dict({
+            'endTime': 60.68,
+            'startTime': 60.52,
+            'text': 'is',
+          }),
+          dict({
+            'endTime': 60.92,
+            'startTime': 60.68,
+            'text': 'fine',
+          }),
+          dict({
+            'endTime': 61.16,
+            'startTime': 60.92,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 61.96,
+            'startTime': 61.16,
+            'text': 'powdery.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 66.36,
+        'id': 'id_00015',
+        'startTime': 62.12,
+        'text': 'I can I can pick it up loosely with my toe.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 62.44,
+            'startTime': 62.12,
+            'text': 'I',
+          }),
+          dict({
+            'endTime': 62.68,
+            'startTime': 62.44,
+            'text': 'can',
+          }),
+          dict({
+            'endTime': 63.48,
+            'startTime': 63.16,
+            'text': 'I',
+          }),
+          dict({
+            'endTime': 63.8,
+            'startTime': 63.48,
+            'text': 'can',
+          }),
+          dict({
+            'endTime': 64.28,
+            'startTime': 63.8,
+            'text': 'pick',
+          }),
+          dict({
+            'endTime': 64.44,
+            'startTime': 64.28,
+            'text': 'it',
+          }),
+          dict({
+            'endTime': 64.68,
+            'startTime': 64.44,
+            'text': 'up',
+          }),
+          dict({
+            'endTime': 65.16,
+            'startTime': 64.68,
+            'text': 'loosely',
+          }),
+          dict({
+            'endTime': 65.4,
+            'startTime': 65.16,
+            'text': 'with',
+          }),
+          dict({
+            'endTime': 65.72,
+            'startTime': 65.4,
+            'text': 'my',
+          }),
+          dict({
+            'endTime': 66.36,
+            'startTime': 65.72,
+            'text': 'toe.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 74.6,
+        'id': 'id_00016',
+        'startTime': 67.16,
+        'text': 'It does adhere t in fine layers, uh like uh powdered charcoal to the uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 67.48,
+            'startTime': 67.16,
+            'text': 'It',
+          }),
+          dict({
+            'endTime': 68.12,
+            'startTime': 67.48,
+            'text': 'does',
+          }),
+          dict({
+            'endTime': 69.0,
+            'startTime': 68.36,
+            'text': 'adhere',
+          }),
+          dict({
+            'endTime': 69.16,
+            'startTime': 69.0,
+            'text': 't',
+          }),
+          dict({
+            'endTime': 69.48,
+            'startTime': 69.32,
+            'text': 'in',
+          }),
+          dict({
+            'endTime': 70.12,
+            'startTime': 69.64,
+            'text': 'fine',
+          }),
+          dict({
+            'endTime': 70.76,
+            'startTime': 70.12,
+            'text': 'layers,',
+          }),
+          dict({
+            'endTime': 71.32,
+            'startTime': 71.0,
+            'text': 'uh',
+          }),
+          dict({
+            'endTime': 71.96,
+            'startTime': 71.64,
+            'text': 'like',
+          }),
+          dict({
+            'endTime': 72.12,
+            'startTime': 71.96,
+            'text': 'uh',
+          }),
+          dict({
+            'endTime': 72.84,
+            'startTime': 72.28,
+            'text': 'powdered',
+          }),
+          dict({
+            'endTime': 73.64,
+            'startTime': 72.84,
+            'text': 'charcoal',
+          }),
+          dict({
+            'endTime': 74.12,
+            'startTime': 73.88,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 74.28,
+            'startTime': 74.12,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 74.6,
+            'startTime': 74.36,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 78.44,
+        'id': 'id_00017',
+        'startTime': 75.24,
+        'text': 'to the spool and and sides of my boots.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 75.56,
+            'startTime': 75.24,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 75.88,
+            'startTime': 75.56,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 76.52,
+            'startTime': 75.88,
+            'text': 'spool',
+          }),
+          dict({
+            'endTime': 76.76,
+            'startTime': 76.52,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 77.0,
+            'startTime': 76.76,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 77.4,
+            'startTime': 77.0,
+            'text': 'sides',
+          }),
+          dict({
+            'endTime': 77.48,
+            'startTime': 77.4,
+            'text': 'of',
+          }),
+          dict({
+            'endTime': 77.8,
+            'startTime': 77.48,
+            'text': 'my',
+          }),
+          dict({
+            'endTime': 78.44,
+            'startTime': 77.8,
+            'text': 'boots.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 87.48,
+        'id': 'id_00018',
+        'startTime': 84.84,
+        'text': 'Making sure not to lock it on my way up.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 85.08,
+            'startTime': 84.84,
+            'text': 'Making',
+          }),
+          dict({
+            'endTime': 85.56,
+            'startTime': 85.32,
+            'text': 'sure',
+          }),
+          dict({
+            'endTime': 85.72,
+            'startTime': 85.56,
+            'text': 'not',
+          }),
+          dict({
+            'endTime': 85.88,
+            'startTime': 85.72,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 86.2,
+            'startTime': 85.88,
+            'text': 'lock',
+          }),
+          dict({
+            'endTime': 86.36,
+            'startTime': 86.2,
+            'text': 'it',
+          }),
+          dict({
+            'endTime': 86.52,
+            'startTime': 86.36,
+            'text': 'on',
+          }),
+          dict({
+            'endTime': 86.84,
+            'startTime': 86.52,
+            'text': 'my',
+          }),
+          dict({
+            'endTime': 87.16,
+            'startTime': 86.84,
+            'text': 'way',
+          }),
+          dict({
+            'endTime': 87.48,
+            'startTime': 87.16,
+            'text': 'up.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 95.0,
+        'id': 'id_00019',
+        'startTime': 93.08,
+        'text': "That's our home for the next couple hours.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 93.56,
+            'startTime': 93.08,
+            'text': "That's",
+          }),
+          dict({
+            'endTime': 93.8,
+            'startTime': 93.56,
+            'text': 'our',
+          }),
+          dict({
+            'endTime': 94.04,
+            'startTime': 93.8,
+            'text': 'home',
+          }),
+          dict({
+            'endTime': 94.2,
+            'startTime': 94.04,
+            'text': 'for',
+          }),
+          dict({
+            'endTime': 94.28,
+            'startTime': 94.2,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 94.52,
+            'startTime': 94.28,
+            'text': 'next',
+          }),
+          dict({
+            'endTime': 94.76,
+            'startTime': 94.52,
+            'text': 'couple',
+          }),
+          dict({
+            'endTime': 95.0,
+            'startTime': 94.84,
+            'text': 'hours.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 96.92,
+        'id': 'id_00020',
+        'startTime': 95.16,
+        'text': 'We want to take good care of it.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 95.32,
+            'startTime': 95.16,
+            'text': 'We',
+          }),
+          dict({
+            'endTime': 95.48,
+            'startTime': 95.32,
+            'text': 'want',
+          }),
+          dict({
+            'endTime': 95.56,
+            'startTime': 95.48,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 95.8,
+            'startTime': 95.56,
+            'text': 'take',
+          }),
+          dict({
+            'endTime': 96.04,
+            'startTime': 95.8,
+            'text': 'good',
+          }),
+          dict({
+            'endTime': 96.28,
+            'startTime': 96.04,
+            'text': 'care',
+          }),
+          dict({
+            'endTime': 96.6,
+            'startTime': 96.28,
+            'text': 'of',
+          }),
+          dict({
+            'endTime': 96.92,
+            'startTime': 96.6,
+            'text': 'it.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 103.72,
+        'id': 'id_00021',
+        'startTime': 99.88,
+        'text': "Okay, I'm on the top step and I can look down over the RCU and s",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 100.2,
+            'startTime': 99.88,
+            'text': 'Okay,',
+          }),
+          dict({
+            'endTime': 100.6,
+            'startTime': 100.36,
+            'text': "I'm",
+          }),
+          dict({
+            'endTime': 100.76,
+            'startTime': 100.6,
+            'text': 'on',
+          }),
+          dict({
+            'endTime': 100.84,
+            'startTime': 100.76,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 101.08,
+            'startTime': 100.84,
+            'text': 'top',
+          }),
+          dict({
+            'endTime': 101.32,
+            'startTime': 101.08,
+            'text': 'step',
+          }),
+          dict({
+            'endTime': 101.56,
+            'startTime': 101.4,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 101.72,
+            'startTime': 101.56,
+            'text': 'I',
+          }),
+          dict({
+            'endTime': 101.88,
+            'startTime': 101.72,
+            'text': 'can',
+          }),
+          dict({
+            'endTime': 102.12,
+            'startTime': 101.88,
+            'text': 'look',
+          }),
+          dict({
+            'endTime': 102.28,
+            'startTime': 102.12,
+            'text': 'down',
+          }),
+          dict({
+            'endTime': 102.44,
+            'startTime': 102.28,
+            'text': 'over',
+          }),
+          dict({
+            'endTime': 102.68,
+            'startTime': 102.44,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 103.4,
+            'startTime': 102.68,
+            'text': 'RCU',
+          }),
+          dict({
+            'endTime': 103.56,
+            'startTime': 103.4,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 103.72,
+            'startTime': 103.64,
+            'text': 's',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 105.64,
+        'id': 'id_00022',
+        'startTime': 104.6,
+        'text': 'find the gear pad.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 104.92,
+            'startTime': 104.6,
+            'text': 'find',
+          }),
+          dict({
+            'endTime': 105.16,
+            'startTime': 105.0,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 105.48,
+            'startTime': 105.16,
+            'text': 'gear',
+          }),
+          dict({
+            'endTime': 105.64,
+            'startTime': 105.48,
+            'text': 'pad.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 113.52,
+        'id': 'id_00023',
+        'startTime': 109.48,
+        'text': "That's a very simple matter to hop down from one step to the next.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 109.88,
+            'startTime': 109.48,
+            'text': "That's",
+          }),
+          dict({
+            'endTime': 110.12,
+            'startTime': 109.88,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 110.34,
+            'startTime': 110.18,
+            'text': 'very',
+          }),
+          dict({
+            'endTime': 110.66,
+            'startTime': 110.34,
+            'text': 'simple',
+          }),
+          dict({
+            'endTime': 110.94,
+            'startTime': 110.66,
+            'text': 'matter',
+          }),
+          dict({
+            'endTime': 111.18,
+            'startTime': 110.94,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 111.54,
+            'startTime': 111.18,
+            'text': 'hop',
+          }),
+          dict({
+            'endTime': 111.74,
+            'startTime': 111.54,
+            'text': 'down',
+          }),
+          dict({
+            'endTime': 111.94,
+            'startTime': 111.74,
+            'text': 'from',
+          }),
+          dict({
+            'endTime': 112.18,
+            'startTime': 111.94,
+            'text': 'one',
+          }),
+          dict({
+            'endTime': 112.5,
+            'startTime': 112.18,
+            'text': 'step',
+          }),
+          dict({
+            'endTime': 112.66,
+            'startTime': 112.5,
+            'text': 'to',
+          }),
+          dict({
+            'endTime': 112.9,
+            'startTime': 112.66,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 113.5,
+            'startTime': 112.9,
+            'text': 'next.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 114.52,
+        'id': 'id_00024',
+        'startTime': 113.82,
+        'text': "Yeah, it's not that's about",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 114.06,
+            'startTime': 113.82,
+            'text': 'Yeah,',
+          }),
+          dict({
+            'endTime': 114.28,
+            'startTime': 114.12,
+            'text': "it's",
+          }),
+          dict({
+            'endTime': 114.36,
+            'startTime': 114.28,
+            'text': 'not',
+          }),
+          dict({
+            'endTime': 114.72,
+            'startTime': 114.32,
+            'text': "that's",
+          }),
+          dict({
+            'endTime': 114.52,
+            'startTime': 114.44,
+            'text': 'about',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 116.72,
+        'id': 'id_00025',
+        'startTime': 115.2,
+        'text': 'be very comfortable and uh',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 115.44,
+            'startTime': 115.2,
+            'text': 'be',
+          }),
+          dict({
+            'endTime': 115.6,
+            'startTime': 115.44,
+            'text': 'very',
+          }),
+          dict({
+            'endTime': 116.16,
+            'startTime': 115.6,
+            'text': 'comfortable',
+          }),
+          dict({
+            'endTime': 116.4,
+            'startTime': 116.24,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 116.72,
+            'startTime': 116.48,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 119.36,
+        'id': 'id_00026',
+        'startTime': 117.28,
+        'text': 'and walking is also very comfortable.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 117.6,
+            'startTime': 117.28,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 118.24,
+            'startTime': 117.6,
+            'text': 'walking',
+          }),
+          dict({
+            'endTime': 118.4,
+            'startTime': 118.24,
+            'text': 'is',
+          }),
+          dict({
+            'endTime': 118.64,
+            'startTime': 118.4,
+            'text': 'also',
+          }),
+          dict({
+            'endTime': 118.88,
+            'startTime': 118.64,
+            'text': 'very',
+          }),
+          dict({
+            'endTime': 119.36,
+            'startTime': 118.88,
+            'text': 'comfortable.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 127.92,
+        'id': 'id_00027',
+        'startTime': 119.44,
+        'text': "You're on you've got three more steps and then a long one.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 125.12,
+            'startTime': 119.44,
+            'text': "You're",
+          }),
+          dict({
+            'endTime': 125.36,
+            'startTime': 125.12,
+            'text': 'on',
+          }),
+          dict({
+            'endTime': 125.76,
+            'startTime': 125.44,
+            'text': "you've",
+          }),
+          dict({
+            'endTime': 125.92,
+            'startTime': 125.76,
+            'text': 'got',
+          }),
+          dict({
+            'endTime': 126.16,
+            'startTime': 125.92,
+            'text': 'three',
+          }),
+          dict({
+            'endTime': 126.4,
+            'startTime': 126.16,
+            'text': 'more',
+          }),
+          dict({
+            'endTime': 126.72,
+            'startTime': 126.4,
+            'text': 'steps',
+          }),
+          dict({
+            'endTime': 126.88,
+            'startTime': 126.72,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 127.12,
+            'startTime': 126.88,
+            'text': 'then',
+          }),
+          dict({
+            'endTime': 127.28,
+            'startTime': 127.12,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 127.6,
+            'startTime': 127.28,
+            'text': 'long',
+          }),
+          dict({
+            'endTime': 127.92,
+            'startTime': 127.6,
+            'text': 'one.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 141.76,
+        'id': 'id_00028',
+        'startTime': 139.2,
+        'text': "Okay, I'm gonna leave that one foot up there and uh",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 139.36,
+            'startTime': 139.2,
+            'text': 'Okay,',
+          }),
+          dict({
+            'endTime': 139.76,
+            'startTime': 139.6,
+            'text': "I'm",
+          }),
+          dict({
+            'endTime': 139.92,
+            'startTime': 139.76,
+            'text': 'gonna',
+          }),
+          dict({
+            'endTime': 140.16,
+            'startTime': 140.0,
+            'text': 'leave',
+          }),
+          dict({
+            'endTime': 140.4,
+            'startTime': 140.24,
+            'text': 'that',
+          }),
+          dict({
+            'endTime': 140.64,
+            'startTime': 140.4,
+            'text': 'one',
+          }),
+          dict({
+            'endTime': 140.88,
+            'startTime': 140.64,
+            'text': 'foot',
+          }),
+          dict({
+            'endTime': 141.04,
+            'startTime': 140.88,
+            'text': 'up',
+          }),
+          dict({
+            'endTime': 141.2,
+            'startTime': 141.04,
+            'text': 'there',
+          }),
+          dict({
+            'endTime': 141.44,
+            'startTime': 141.28,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 141.76,
+            'startTime': 141.52,
+            'text': 'uh',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 145.52,
+        'id': 'id_00029',
+        'startTime': 142.72,
+        'text': 'both hands down about the fourth rung up.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 143.2,
+            'startTime': 142.72,
+            'text': 'both',
+          }),
+          dict({
+            'endTime': 143.52,
+            'startTime': 143.2,
+            'text': 'hands',
+          }),
+          dict({
+            'endTime': 143.76,
+            'startTime': 143.52,
+            'text': 'down',
+          }),
+          dict({
+            'endTime': 144.16,
+            'startTime': 143.92,
+            'text': 'about',
+          }),
+          dict({
+            'endTime': 144.32,
+            'startTime': 144.16,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 144.72,
+            'startTime': 144.32,
+            'text': 'fourth',
+          }),
+          dict({
+            'endTime': 145.04,
+            'startTime': 144.72,
+            'text': 'rung',
+          }),
+          dict({
+            'endTime': 145.52,
+            'startTime': 145.2,
+            'text': 'up.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 148.24,
+        'id': 'id_00030',
+        'startTime': 147.28,
+        'text': 'There you go.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 147.68,
+            'startTime': 147.28,
+            'text': 'There',
+          }),
+          dict({
+            'endTime': 147.92,
+            'startTime': 147.68,
+            'text': 'you',
+          }),
+          dict({
+            'endTime': 148.24,
+            'startTime': 147.92,
+            'text': 'go.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 152.64,
+        'id': 'id_00031',
+        'startTime': 150.24,
+        'text': "Okay now I think I'll do the same.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 150.4,
+            'startTime': 150.24,
+            'text': 'Okay',
+          }),
+          dict({
+            'endTime': 151.04,
+            'startTime': 150.88,
+            'text': 'now',
+          }),
+          dict({
+            'endTime': 151.2,
+            'startTime': 151.12,
+            'text': 'I',
+          }),
+          dict({
+            'endTime': 151.36,
+            'startTime': 151.2,
+            'text': 'think',
+          }),
+          dict({
+            'endTime': 151.68,
+            'startTime': 151.36,
+            'text': "I'll",
+          }),
+          dict({
+            'endTime': 151.84,
+            'startTime': 151.68,
+            'text': 'do',
+          }),
+          dict({
+            'endTime': 152.0,
+            'startTime': 151.84,
+            'text': 'the',
+          }),
+          dict({
+            'endTime': 152.64,
+            'startTime': 152.0,
+            'text': 'same.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 162.48,
+        'id': 'id_00032',
+        'startTime': 161.28,
+        'text': 'There you got it?',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 161.6,
+            'startTime': 161.28,
+            'text': 'There',
+          }),
+          dict({
+            'endTime': 161.92,
+            'startTime': 161.76,
+            'text': 'you',
+          }),
+          dict({
+            'endTime': 162.16,
+            'startTime': 161.92,
+            'text': 'got',
+          }),
+          dict({
+            'endTime': 162.48,
+            'startTime': 162.16,
+            'text': 'it?',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 163.92,
+        'id': 'id_00033',
+        'startTime': 162.88,
+        'text': "That's a good step.",
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 163.28,
+            'startTime': 162.88,
+            'text': "That's",
+          }),
+          dict({
+            'endTime': 163.44,
+            'startTime': 163.28,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 163.68,
+            'startTime': 163.44,
+            'text': 'good',
+          }),
+          dict({
+            'endTime': 163.92,
+            'startTime': 163.68,
+            'text': 'step.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 164.72,
+        'id': 'id_00034',
+        'startTime': 164.08,
+        'text': 'Yep.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 164.72,
+            'startTime': 164.08,
+            'text': 'Yep.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 166.76,
+        'id': 'id_00035',
+        'startTime': 165.16,
+        'text': 'About a three-footer.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 165.4,
+            'startTime': 165.16,
+            'text': 'About',
+          }),
+          dict({
+            'endTime': 165.64,
+            'startTime': 165.48,
+            'text': 'a',
+          }),
+          dict({
+            'endTime': 166.76,
+            'startTime': 165.64,
+            'text': 'three-footer.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 174.12,
+        'id': 'id_00036',
+        'startTime': 173.0,
+        'text': 'Beautiful view.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 173.8,
+            'startTime': 173.0,
+            'text': 'Beautiful',
+          }),
+          dict({
+            'endTime': 174.12,
+            'startTime': 173.8,
+            'text': 'view.',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 175.32,
+        'id': 'id_00037',
+        'startTime': 174.28,
+        'text': 'Is that something?',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 174.36,
+            'startTime': 174.28,
+            'text': 'Is',
+          }),
+          dict({
+            'endTime': 174.76,
+            'startTime': 174.68,
+            'text': 'that',
+          }),
+          dict({
+            'endTime': 175.32,
+            'startTime': 174.92,
+            'text': 'something?',
+          }),
+        ]),
+      }),
+      dict({
+        'endTime': 178.28,
+        'id': 'id_00038',
+        'startTime': 176.28,
+        'text': 'Magnus and flight out here.',
+        'timestamp': '2025-01-01T00:00:00.000000+00:00',
+        'verified': False,
+        'words': list([
+          dict({
+            'endTime': 177.0,
+            'startTime': 176.28,
+            'text': 'Magnus',
+          }),
+          dict({
+            'endTime': 177.24,
+            'startTime': 177.16,
+            'text': 'and',
+          }),
+          dict({
+            'endTime': 177.72,
+            'startTime': 177.32,
+            'text': 'flight',
+          }),
+          dict({
+            'endTime': 177.96,
+            'startTime': 177.72,
+            'text': 'out',
+          }),
+          dict({
+            'endTime': 178.28,
+            'startTime': 177.96,
+            'text': 'here.',
+          }),
+        ]),
+      }),
+    ]),
+    'title': 'Apollo-11_Day-05-Highlights_700s',
+  })
+# ---
