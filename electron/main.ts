@@ -341,44 +341,65 @@ app.whenReady().then(() => {
       const ext = path.extname(filePath).toLowerCase()
       const contentType = MIME_TYPES[ext] || 'application/octet-stream'
 
-      // IMPORTANT: For large media files (movies, etc.), we MUST support streaming.
-      // 1. We pass the original request headers (which may contain 'Range') to net.fetch.
-      // 2. net.fetch returns a ReadableStream which is piped directly to the renderer.
-      // 3. This ensures that only the requested bytes are read from disk, allowing
-      //    the media player to seek and load metadata efficiently without fetching 
-      //    the entire file into memory.
-      console.log(`[main] media:// request: ${request.url}`, {
-        method: request.method,
-        range: request.headers.get('Range')
-      })
-
-      const response = await net.fetch(pathToFileURL(filePath).toString(), {
-        bypassCustomProtocolHandlers: true,
-        method: request.method,
-        headers: request.headers
-      })
-
-      // Get file size to ensure Content-Length is present
       const stats = await fs.stat(filePath)
       const fileSize = stats.size
 
-      // We must return a new Response to ensure headers like Content-Type 
-      // are correctly set for the browser to detect duration/metadata.
+      // Parse Range header for byte-range serving.
+      // We handle ranges manually instead of relying on net.fetch because
+      // Electron's net.fetch on file:// URLs throws ERR_REQUEST_RANGE_NOT_SATISFIABLE
+      // for requests near EOF, causing Chromium to retry in an infinite loop.
+      const rangeHeader = request.headers.get('Range')
+
+      if (rangeHeader) {
+        const match = rangeHeader.match(/bytes=(\d+)-(\d*)/)
+        if (match) {
+          const start = parseInt(match[1], 10)
+          const end = match[2] ? parseInt(match[2], 10) : fileSize - 1
+
+          // Validate range
+          if (start >= fileSize) {
+            const headers = new Headers()
+            headers.set('Content-Range', `bytes */${fileSize}`)
+            headers.set('Accept-Ranges', 'bytes')
+            return new Response(null, { status: 416, statusText: 'Range Not Satisfiable', headers })
+          }
+
+          const clampedEnd = Math.min(end, fileSize - 1)
+          const contentLength = clampedEnd - start + 1
+
+          const { createReadStream } = await import('fs')
+          const stream = createReadStream(filePath, { start, end: clampedEnd })
+          const readable = new ReadableStream({
+            start(controller) {
+              stream.on('data', (chunk: Buffer) => controller.enqueue(chunk))
+              stream.on('end', () => controller.close())
+              stream.on('error', (err) => controller.error(err))
+            },
+            cancel() { stream.destroy() }
+          })
+
+          const headers = new Headers()
+          headers.set('Content-Type', contentType)
+          headers.set('Content-Length', contentLength.toString())
+          headers.set('Content-Range', `bytes ${start}-${clampedEnd}/${fileSize}`)
+          headers.set('Accept-Ranges', 'bytes')
+
+          return new Response(readable, { status: 206, statusText: 'Partial Content', headers })
+        }
+      }
+
+      // Non-range request: serve the full file
+      const response = await net.fetch(pathToFileURL(filePath).toString(), {
+        bypassCustomProtocolHandlers: true,
+        method: request.method,
+      })
+
       const headers = new Headers(response.headers)
       headers.set('Content-Type', contentType)
       headers.set('Accept-Ranges', 'bytes')
-
-      // If it's not a partial response, ensure Content-Length is set correctly
-      if (response.status !== 206 && !headers.has('Content-Length')) {
+      if (!headers.has('Content-Length')) {
         headers.set('Content-Length', fileSize.toString())
       }
-
-      console.log(`[main] media:// response: ${response.status}`, {
-        contentType: headers.get('Content-Type'),
-        contentLength: headers.get('Content-Length'),
-        contentRange: headers.get('Content-Range'),
-        acceptRanges: headers.get('Accept-Ranges')
-      })
 
       return new Response(response.body, {
         status: response.status,

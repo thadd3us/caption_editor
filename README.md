@@ -1,5 +1,7 @@
 # Caption Editor
 
+WARNING: This is a vibe-coded project -- use at your own risk!
+
 I built this because I wanted these features
 * Local-first app for running multilingual Automatic Speech Recognition  (ASR) and speaker ID
 * Multi-lingual ASR
@@ -8,7 +10,15 @@ I built this because I wanted these features
 * Synchronized seek and playback between the media playhead and caption table
 * Caption segments with UUIDs
 
-WARNING: This is a vibe-coded project -- use at your own risk!
+## My Workflow
+
+1. Cmd-O to open a media file.
+2. Menu item: "AI Annotations ... Caption with Speech Recognizer" (this also runs speaker ID embeddings on each segment)
+   * This is quite complex and may or may not work on your system.
+   * It download uvx, then `uvx run`s a Python program which uses HuggingFace to download:
+      * [parakeet-tdt-0.6b-v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3)
+      * [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM)
+3. Merge adjacent segments (if necessary):
 
 Here's a video showing how it works:
 
