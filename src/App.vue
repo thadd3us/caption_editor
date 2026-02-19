@@ -59,6 +59,11 @@
       :message="alertState.message"
       @close="alertState.resolve()"
     />
+    <LicenseAgreementDialog
+      :is-open="isLicenseDialogOpen"
+      @agree="handleLicenseAgree"
+      @exit="handleLicenseExit"
+    />
   </div>
 </template>
 
@@ -75,6 +80,7 @@ import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
 import AsrModal from './components/AsrModal.vue'
 import GenericConfirmDialog from './components/GenericConfirmDialog.vue'
 import GenericAlertDialog from './components/GenericAlertDialog.vue'
+import LicenseAgreementDialog from './components/LicenseAgreementDialog.vue'
 import packageJson from '../package.json'
 import { exportDocumentToSrt } from './utils/srt'
 
@@ -85,6 +91,10 @@ console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' 
 console.log(`========================================`)
 
 const store = useCaptionStore()
+
+// License agreement
+const LICENSE_ACCEPTED_KEY = 'caption-editor-license-accepted'
+const isLicenseDialogOpen = ref(false)
 
 const leftPanelWidth = ref(60)
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
@@ -179,6 +189,20 @@ function openRenameSpeakerDialog() {
   // Only open the dialog if there are speakers to rename
   if (hasSpeakers) {
     isRenameSpeakerDialogOpen.value = true
+  }
+}
+
+function handleLicenseAgree() {
+  localStorage.setItem(LICENSE_ACCEPTED_KEY, 'true')
+  isLicenseDialogOpen.value = false
+}
+
+function handleLicenseExit() {
+  const electronAPI = (window as any).electronAPI
+  if (electronAPI?.quitApp) {
+    electronAPI.quitApp()
+  } else {
+    window.close()
   }
 }
 
@@ -726,6 +750,11 @@ async function handleAsrCancel() {
 
 // Also attempt auto-load on mount (for localStorage recovery)
 onMounted(() => {
+  // Show license agreement on first run
+  if (!localStorage.getItem(LICENSE_ACCEPTED_KEY)) {
+    isLicenseDialogOpen.value = true
+  }
+
   setTimeout(() => {
     attemptMediaAutoLoad()
   }, 200)
