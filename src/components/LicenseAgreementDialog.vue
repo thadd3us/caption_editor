@@ -26,8 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import BaseModal from './BaseModal.vue'
+import { LICENSE_TEXT } from '../utils/licenseText'
 
 defineProps<{
   isOpen: boolean
@@ -38,20 +38,7 @@ const emit = defineEmits<{
   exit: []
 }>()
 
-const licenseText = ref('')
-
-onMounted(async () => {
-  try {
-    const response = await fetch('/LICENSE.txt')
-    if (response.ok) {
-      licenseText.value = await response.text()
-    } else {
-      licenseText.value = 'Unable to load license text.'
-    }
-  } catch {
-    licenseText.value = 'Unable to load license text.'
-  }
-})
+const licenseText = LICENSE_TEXT
 
 function handleAgree() {
   emit('agree')

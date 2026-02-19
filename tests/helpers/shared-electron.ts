@@ -15,6 +15,7 @@
 import { test as base, _electron as electron, ElectronApplication, Page } from '@playwright/test'
 import { getElectronMainPath, getProjectRoot } from './project-root'
 import { enableConsoleCapture } from './console'
+import { acceptLicenseIfVisible } from './license'
 
 // Shared state across all tests in a worker
 let sharedApp: ElectronApplication | null = null
@@ -93,6 +94,9 @@ export const sharedElectronTest = base.extend<{
                 () => (window as any).$store || (window as any).store,
                 { timeout: 10000 }
             )
+            
+            // Accept license dialog on first launch
+            await acceptLicenseIfVisible(sharedPage)
         }
         
         // Reset state before each test
