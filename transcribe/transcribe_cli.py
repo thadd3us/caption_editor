@@ -17,22 +17,12 @@ from typing import List, Optional
 import soundfile as sf
 
 
+import logging
+
 import numpy as np
 import torch
 import typer
 from tqdm import tqdm
-
-import logging
-logger = logging.getLogger(__name__)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    stream=sys.stdout,
-)
-logging.info("Starting transcription...")
-
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
 from asr_results_to_captions import (
@@ -53,6 +43,16 @@ from schema import (
 from constants import MODEL_PARAKEET, MODEL_VOXCELEB
 from embed_cli import main as embed_main
 from captions_json_lib import write_captions_json_file
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout,
+)
+logging.info("Starting transcription...")
 
 
 try:
@@ -123,7 +123,9 @@ def transcribe_chunk(
     Returns:
         List of ASRSegment objects with word-level timestamps
     """
-    logger.info(f"Transcribing chunk {chunk_start} of {audio.shape[0] / sample_rate} seconds")
+    logger.info(
+        f"Transcribing chunk {chunk_start} of {audio.shape[0] / sample_rate} seconds"
+    )
     if len(audio) == 0:
         return []
 
@@ -134,11 +136,13 @@ def transcribe_chunk(
 
         # Get transcription with word-level timestamps
         if is_nemo:
-            assert isinstance(asr_pipeline, nemo_asr.models.ASRModel)
-            nemo_model: nemo_asr.models.ASRModel = asr_pipeline
+            assert isinstance(asr_pipeline, nemo_asr.models.ASRModel)  # type: ignore[union-attr]
+            nemo_model: nemo_asr.models.ASRModel = asr_pipeline  # type: ignore[union-attr]
             # transcribe/.venv/lib/python3.11/site-packages/nemo/collections/asr/models/rnnt_models.py
             result = nemo_model.transcribe([tmp_path], timestamps=True, verbose=True)
-            segments: List[ASRSegment] = parse_nemo_result_with_words(result, chunk_start)
+            segments: List[ASRSegment] = parse_nemo_result_with_words(
+                result, chunk_start
+            )
         else:
             # HuggingFace transformers pipeline with word-level timestamps
             result = asr_pipeline(tmp_path, return_timestamps="word")
@@ -253,7 +257,10 @@ def main(
         writable=True,
     ),
     chunk_size: int = typer.Option(
-        60, "--chunk-size", "-c", help="Chunk size in seconds.  Too large a value and NeMo/parakeet get confused and return a single segment for the entire chunk."
+        60,
+        "--chunk-size",
+        "-c",
+        help="Chunk size in seconds.  Too large a value and NeMo/parakeet get confused and return a single segment for the entire chunk.",
     ),
     overlap: int = typer.Option(
         5, "--overlap", "-v", help="Overlap interval in seconds"
@@ -349,12 +356,12 @@ def main(
             )
 
             # Re-suppress NeMo logging after model load (from_pretrained resets it)
-            nemo_logging.setLevel(logging.ERROR)
+            nemo_logging.setLevel(logging.ERROR)  # type: ignore[possibly-unbound]
 
             # Disable pretokenize for inference — it's a training optimization
             # (tokenize during data sampling for 2D bucketing) that's irrelevant
             # when transcribing and triggers a spurious NeMo warning.
-            _orig_setup_dl = asr_pipeline._setup_dataloader_from_config
+            _orig_setup_dl = asr_pipeline._setup_dataloader_from_config  # type: ignore[union-attr]
 
             def _patched_setup_dl(config, _orig=_orig_setup_dl):
                 from omegaconf import OmegaConf, open_dict

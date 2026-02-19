@@ -8,6 +8,8 @@ from asr_results_to_captions import (
     split_segments_by_word_gap,
     zip_words_in_overlapping_segments,
 )
+from asr_results_to_captions import resolve_overlap_conflicts
+
 
 
 def test_split_segments_by_word_gap_no_split():
@@ -389,8 +391,12 @@ def test_zip_words_in_overlapping_segments():
         words=[
             WordTimestamp("The", 0.0, 1.0),
             WordTimestamp("birch", 10.0, 11.0),
-            WordTimestamp("canoe", 26.0, 27.0),   # before midpoint 27.5 -> kept from seg1
-            WordTimestamp("slid", 28.0, 29.0),     # after midpoint 27.5 -> discarded from seg1
+            WordTimestamp(
+                "canoe", 26.0, 27.0
+            ),  # before midpoint 27.5 -> kept from seg1
+            WordTimestamp(
+                "slid", 28.0, 29.0
+            ),  # after midpoint 27.5 -> discarded from seg1
         ],
         chunk_start=0.0,
     )
@@ -399,8 +405,10 @@ def test_zip_words_in_overlapping_segments():
         start=25.5,
         end=40.0,
         words=[
-            WordTimestamp("canoe", 25.5, 26.5),    # before midpoint 27.5 -> discarded from seg2
-            WordTimestamp("slid", 27.5, 28.5),     # at midpoint 27.5 -> kept from seg2
+            WordTimestamp(
+                "canoe", 25.5, 26.5
+            ),  # before midpoint 27.5 -> discarded from seg2
+            WordTimestamp("slid", 27.5, 28.5),  # at midpoint 27.5 -> kept from seg2
             WordTimestamp("on", 35.0, 36.0),
         ],
         chunk_start=25.0,
@@ -445,3 +453,97 @@ def test_zip_words_in_overlapping_segments_fallback():
         WordTimestamp("world", 7.0, 8.0),
         WordTimestamp("foo", 12.0, 13.0),
     ]
+
+def test_resolve_overlap_preserves_words_only_in_second_chunk():
+    """Regression: words near a chunk boundary that appear only in the second
+    chunk (because the first chunk's audio ended too early to capture them)
+    must not be dropped during overlap dedup.
+
+    Real scenario from Apollo-11 audio at chunk boundary 60s with overlap 10:
+    - Chunk 1 (start=0)  produces: "The uh" at 57.20–57.92
+    - Chunk 2 (start=50) produces: "The uh surface is fine and powdery." at 57.16–61.96
+    The words "surface is fine and powdery." only exist in chunk 2.
+    """
+    chunk_size = 60
+    overlap = 10
+
+    # Chunk 1 ends at 60s — ASR only captured "The uh" before the audio ran out
+    seg_chunk1 = ASRSegment(
+        text="The uh",
+        start=57.20,
+        end=57.92,
+        words=[
+            WordTimestamp("The", 57.20, 57.42),
+            WordTimestamp("uh", 57.58, 57.92),
+        ],
+        chunk_start=0,
+    )
+
+    # Chunk 2 starts at 50s — ASR captured the full phrase including "surface is fine and powdery."
+    seg_chunk2 = ASRSegment(
+        text="The uh surface is fine and powdery.",
+        start=57.16,
+        end=61.96,
+        words=[
+            WordTimestamp("The", 57.20, 57.36),
+            WordTimestamp("uh", 57.60, 57.92),
+            WordTimestamp("surface", 59.96, 60.52),
+            WordTimestamp("is", 60.52, 60.68),
+            WordTimestamp("fine", 60.68, 60.92),
+            WordTimestamp("and", 60.92, 61.16),
+            WordTimestamp("powdery.", 61.16, 61.96),
+        ],
+        chunk_start=50,
+    )
+
+    result = resolve_overlap_conflicts(
+        [seg_chunk1, seg_chunk2], chunk_size, overlap
+    )
+
+    merged_text = " ".join(seg.text for seg in result)
+    assert "surface" in merged_text, (
+        f"'surface is fine and powdery' was dropped during overlap dedup. "
+        f"Got segments: {[(s.start, s.end, s.text) for s in result]}"
+    )
+    assert "powdery" in merged_text
+
+
+def test_zip_words_preserves_words_only_in_second_chunk():
+    """zip_words_in_overlapping_segments must keep words from seg2 that have
+    no counterpart in seg1 (i.e. words past the first chunk's audio boundary)."""
+    chunk_size = 60
+    overlap = 10
+
+    seg1 = ASRSegment(
+        text="The uh",
+        start=57.20,
+        end=57.92,
+        words=[
+            WordTimestamp("The", 57.20, 57.42),
+            WordTimestamp("uh", 57.58, 57.92),
+        ],
+        chunk_start=0,
+    )
+
+    seg2 = ASRSegment(
+        text="The uh surface is fine and powdery.",
+        start=57.16,
+        end=61.96,
+        words=[
+            WordTimestamp("The", 57.20, 57.36),
+            WordTimestamp("uh", 57.60, 57.92),
+            WordTimestamp("surface", 59.96, 60.52),
+            WordTimestamp("is", 60.52, 60.68),
+            WordTimestamp("fine", 60.68, 60.92),
+            WordTimestamp("and", 60.92, 61.16),
+            WordTimestamp("powdery.", 61.16, 61.96),
+        ],
+        chunk_start=50,
+    )
+
+    result = zip_words_in_overlapping_segments(seg1, seg2, chunk_size, overlap)
+
+    assert "surface is fine and powdery" in result.text, (
+        f"Words only present in second chunk were dropped. Got: {result.text!r}"
+    )
+

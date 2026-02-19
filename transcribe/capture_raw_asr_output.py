@@ -18,6 +18,7 @@ import soundfile as sf
 import typer
 
 # Import production code
+from asr_results_to_captions import ASRSegment
 from transcribe_cli import (
     load_audio_chunk,
     transcribe_chunk,

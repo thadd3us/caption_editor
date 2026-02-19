@@ -650,8 +650,8 @@ async function startAsrTranscription() {
       console.log('[ASR] Using model override:', model)
     }
 
-    // Use chunk size of 300 seconds (5 minutes) for better handling of long audio files
-    const chunkSize = 300
+    // Use chunk size of 60 seconds -- longer can mess up NeMo's segmentation.
+    const chunkSize = 60
 
     // Start ASR transcription
     const result = await window.electronAPI.asr.transcribe({

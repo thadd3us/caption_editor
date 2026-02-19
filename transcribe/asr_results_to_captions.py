@@ -435,9 +435,19 @@ def zip_words_in_overlapping_segments(
 ) -> ASRSegment:
     """Merge two overlapping segments by splitting at the midpoint of the chunk overlap region.
 
-    For the earlier segment (seg1), keep words whose start time is before the midpoint.
-    For the later segment (seg2), keep words whose start time is at or after the midpoint.
+    For the earlier-chunk segment, keep words whose start time is before the midpoint.
+    For the later-chunk segment, keep words whose start time is at or after the midpoint.
     """
+    # Ensure seg1 is from the earlier chunk so the midpoint calculation is correct.
+    # resolve_overlap_conflicts sorts by segment start time, which can differ from
+    # chunk order when two chunks produce segments with similar start times.
+    if (
+        seg1.chunk_start is not None
+        and seg2.chunk_start is not None
+        and seg1.chunk_start > seg2.chunk_start
+    ):
+        seg1, seg2 = seg2, seg1
+
     # The overlap region spans [seg2.chunk_start, seg1.chunk_start + chunk_size].
     # Its midpoint is seg2.chunk_start + overlap / 2.
     if seg1.chunk_start is not None and seg2.chunk_start is not None:

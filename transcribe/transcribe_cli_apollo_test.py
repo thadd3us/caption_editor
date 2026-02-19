@@ -22,9 +22,7 @@ def _round_floats_deep(value, *, ndigits: int):
 
 
 @pytest.mark.expensive
-def test_transcribe_apollo_11(
-    repo_root: Path, tmp_path: Path, snapshot
-):
+def test_transcribe_apollo_11(repo_root: Path, tmp_path: Path, snapshot):
     """Test transcribing a 180s Apollo-11 clip with chunk-size 60."""
     source_audio = repo_root / "test_data" / "Apollo-11_Day-05-Highlights_700s.mp3"
     test_audio = tmp_path / "Apollo-11_Day-05-Highlights_700s.mp3"
