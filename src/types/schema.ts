@@ -97,9 +97,10 @@ export interface SegmentHistoryEntry {
 }
 
 /**
- * Speaker embedding vector for a segment
+ * Speaker embedding vector for a segment.
+ * speakerEmbedding is a base64-encoded little-endian float32 byte string.
  */
 export interface SegmentSpeakerEmbedding {
   readonly segmentId: string // UUID of the segment this embedding belongs to
-  readonly speakerEmbedding: readonly number[] // Speaker embedding vector
+  readonly speakerEmbedding: string // Base64-encoded little-endian float32 vector
 }

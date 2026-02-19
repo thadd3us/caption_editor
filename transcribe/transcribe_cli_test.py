@@ -6,6 +6,7 @@ from unittest.mock import patch
 from constants import MODEL_PARAKEET, MODEL_WHISPER_TINY
 from typer.testing import CliRunner
 from captions_json_lib import parse_captions_json_file
+from schema import decode_embedding
 from transcribe_cli import app
 
 import pytest
@@ -118,5 +119,11 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
     doc = parse_captions_json_file(output_path)
     assert doc.embeddings is not None
     assert len(doc.embeddings) > 0
-    assert all(len(e.speaker_embedding) == 192 for e in doc.embeddings)
-    assert doc.embeddings[0].speaker_embedding[:3] == [0.1, 0.1, 0.1]
+    assert all(
+        len(decode_embedding(e.speaker_embedding)) == 192 for e in doc.embeddings
+    )
+    assert decode_embedding(doc.embeddings[0].speaker_embedding)[:3] == [
+        pytest.approx(0.1),
+        pytest.approx(0.1),
+        pytest.approx(0.1),
+    ]

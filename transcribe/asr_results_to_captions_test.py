@@ -11,7 +11,6 @@ from asr_results_to_captions import (
 from asr_results_to_captions import resolve_overlap_conflicts
 
 
-
 def test_split_segments_by_word_gap_no_split():
     """Test that segments with small gaps are not split."""
     segments = [
@@ -454,6 +453,7 @@ def test_zip_words_in_overlapping_segments_fallback():
         WordTimestamp("foo", 12.0, 13.0),
     ]
 
+
 def test_resolve_overlap_preserves_words_only_in_second_chunk():
     """Regression: words near a chunk boundary that appear only in the second
     chunk (because the first chunk's audio ended too early to capture them)
@@ -496,9 +496,7 @@ def test_resolve_overlap_preserves_words_only_in_second_chunk():
         chunk_start=50,
     )
 
-    result = resolve_overlap_conflicts(
-        [seg_chunk1, seg_chunk2], chunk_size, overlap
-    )
+    result = resolve_overlap_conflicts([seg_chunk1, seg_chunk2], chunk_size, overlap)
 
     merged_text = " ".join(seg.text for seg in result)
     assert "surface" in merged_text, (
@@ -546,4 +544,3 @@ def test_zip_words_preserves_words_only_in_second_chunk():
     assert "surface is fine and powdery" in result.text, (
         f"Words only present in second chunk were dropped. Got: {result.text!r}"
     )
-

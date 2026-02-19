@@ -86,6 +86,7 @@ import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import VerifiedCheckCell from './VerifiedCheckCell.vue'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
+import { decodeEmbedding } from '../utils/embeddingCodec'
 
 const store = useCaptionStore()
 const gridApi = ref<GridApi | null>(null)
@@ -446,7 +447,7 @@ function toggleSequentialPlayback() {
 }
 
 // Calculate cosine similarity between two vectors
-function cosineSimilarity(vecA: readonly number[], vecB: readonly number[]): number {
+function cosineSimilarity(vecA: ArrayLike<number>, vecB: ArrayLike<number>): number {
   if (vecA.length !== vecB.length) {
     throw new Error('Vectors must have the same length')
   }
@@ -483,11 +484,18 @@ function computeSpeakerSimilarity() {
 
   console.log('Computing speaker similarity for', selectedRows.length, 'selected rows')
 
+  // Build lookup from segmentId -> decoded Float32Array
+  const embeddingLookup = new Map<string, Float32Array>()
+  for (const entry of store.document.embeddings ?? []) {
+    if (entry.speakerEmbedding) {
+      embeddingLookup.set(entry.segmentId, decodeEmbedding(entry.speakerEmbedding))
+    }
+  }
+
   // Check if any selected rows are missing embeddings
   const rowsWithoutEmbeddings: string[] = []
   for (const row of selectedRows) {
-    const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
-    if (!embedding || embedding.speakerEmbedding.length === 0) {
+    if (!embeddingLookup.has(row.id)) {
       rowsWithoutEmbeddings.push(row.id)
     }
   }
@@ -503,12 +511,12 @@ function computeSpeakerSimilarity() {
     return
   }
 
-  // Get embeddings for selected rows (all should have embeddings at this point)
-  const selectedEmbeddings: Array<{ id: string, embedding: readonly number[] }> = []
+  // Get embeddings for selected rows
+  const selectedEmbeddings: Array<{ id: string, embedding: Float32Array }> = []
   for (const row of selectedRows) {
-    const embedding = store.document.embeddings?.find(e => e.segmentId === row.id)
-    if (embedding && embedding.speakerEmbedding.length > 0) {
-      selectedEmbeddings.push({ id: row.id, embedding: embedding.speakerEmbedding })
+    const vec = embeddingLookup.get(row.id)
+    if (vec) {
+      selectedEmbeddings.push({ id: row.id, embedding: vec })
     }
   }
 
@@ -518,8 +526,8 @@ function computeSpeakerSimilarity() {
   const newScores = new Map<string, number>()
 
   for (const segment of store.document.segments) {
-    const embedding = store.document.embeddings?.find(e => e.segmentId === segment.id)
-    if (!embedding || embedding.speakerEmbedding.length === 0) {
+    const vec = embeddingLookup.get(segment.id)
+    if (!vec) {
       // No embedding for this row - assign 0 similarity
       newScores.set(segment.id, 0)
       continue
@@ -528,7 +536,7 @@ function computeSpeakerSimilarity() {
     // Compute maximum cosine similarity to any selected row
     let maxSimilarity = -1
     for (const selected of selectedEmbeddings) {
-      const similarity = cosineSimilarity(embedding.speakerEmbedding, selected.embedding)
+      const similarity = cosineSimilarity(vec, selected.embedding)
       maxSimilarity = Math.max(maxSimilarity, similarity)
     }
 

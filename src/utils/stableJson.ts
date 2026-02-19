@@ -1,23 +1,27 @@
 /**
  * Stable JSON utilities.
  *
- * We use a stable key ordering + 2-space indentation so that:
- * - Node/Electron writers produce consistent diffs
- * - Python tools can match formatting via json.dumps(sort_keys=True, indent=2)
+ * We preserve field declaration order (matching the schema) with 2-space
+ * indentation so that:
+ * - Node/Electron writers produce consistent, readable output
+ * - Python tools can match formatting via json.dumps(indent=2)
  */
-export function stableSortKeysDeep(value: unknown): unknown {
+
+/**
+ * Strip undefined values deeply so JSON.stringify produces clean output.
+ */
+export function stripUndefinedDeep(value: unknown): unknown {
   if (Array.isArray(value)) {
-    return value.map(stableSortKeysDeep)
+    return value.map(stripUndefinedDeep)
   }
 
   if (value && typeof value === 'object') {
     const obj = value as Record<string, unknown>
     const out: Record<string, unknown> = {}
-    for (const key of Object.keys(obj).sort()) {
+    for (const key of Object.keys(obj)) {
       const v = obj[key]
-      // JSON.stringify drops undefined values, but we avoid copying them anyway.
       if (v !== undefined) {
-        out[key] = stableSortKeysDeep(v)
+        out[key] = stripUndefinedDeep(v)
       }
     }
     return out
@@ -27,7 +31,7 @@ export function stableSortKeysDeep(value: unknown): unknown {
 }
 
 export function stableJsonStringify(value: unknown, indentSpaces = 2): string {
-  const sorted = stableSortKeysDeep(value)
-  return JSON.stringify(sorted, null, indentSpaces) + '\n'
+  const cleaned = stripUndefinedDeep(value)
+  return JSON.stringify(cleaned, null, indentSpaces) + '\n'
 }
 

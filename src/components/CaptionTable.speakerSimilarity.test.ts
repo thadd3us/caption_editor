@@ -15,9 +15,9 @@ function getPartialEmbeddingsCaptionsJson(): string {
       { id: 'segment-with-embedding-3', startTime: 4, endTime: 5, text: 'E' }
     ],
     embeddings: [
-      { segmentId: 'segment-with-embedding-1', speakerEmbedding: [1, 0, 0] },
-      { segmentId: 'segment-with-embedding-2', speakerEmbedding: [0.9, 0.1, 0] },
-      { segmentId: 'segment-with-embedding-3', speakerEmbedding: [0.8, 0.2, 0] }
+      { segmentId: 'segment-with-embedding-1', speakerEmbedding: 'AACAPwAAAAAAAAAA' },
+      { segmentId: 'segment-with-embedding-2', speakerEmbedding: 'ZmZmP83MzD0AAAAA' },
+      { segmentId: 'segment-with-embedding-3', speakerEmbedding: 'zcxMP83MTD4AAAAA' }
     ]
   })
 }

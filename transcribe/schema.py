@@ -20,11 +20,26 @@ When adding or modifying fields:
 5. Run both Python and TypeScript tests to verify compatibility
 """
 
+import base64
+import struct
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.aliases import AliasChoices
+
+
+def encode_embedding(values: list[float]) -> str:
+    """Pack a float32 vector into a base64 string (little-endian)."""
+    raw = struct.pack(f"<{len(values)}f", *values)
+    return base64.b64encode(raw).decode("ascii")
+
+
+def decode_embedding(b64: str) -> list[float]:
+    """Unpack a base64 string back to a list of float32 values."""
+    raw = base64.b64decode(b64)
+    count = len(raw) // 4
+    return list(struct.unpack(f"<{count}f", raw))
 
 
 class HistoryAction(str, Enum):
@@ -115,15 +130,16 @@ class SegmentHistoryEntry(BaseModel):
 
 
 class SegmentSpeakerEmbedding(BaseModel):
-    """Speaker embedding vector for a segment."""
+    """Speaker embedding vector for a segment, stored as base64-encoded little-endian float32."""
 
     model_config = ConfigDict(populate_by_name=True)
 
     segment_id: str = Field(
         description="UUID of the segment this embedding belongs to", alias="segmentId"
     )
-    speaker_embedding: list[float] = Field(
-        description="Speaker embedding vector", alias="speakerEmbedding"
+    speaker_embedding: str = Field(
+        description="Base64-encoded little-endian float32 speaker embedding vector",
+        alias="speakerEmbedding",
     )
 
 

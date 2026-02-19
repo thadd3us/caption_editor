@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
 from captions_json_lib import parse_captions_json_file, write_captions_json_file
-from schema import SegmentSpeakerEmbedding
+from schema import SegmentSpeakerEmbedding, encode_embedding
 
 app = typer.Typer(help="Compute speaker embeddings for .captions_json files")
 
@@ -176,14 +176,13 @@ def main(
         )
         typer.echo(f"Computed {len(segment_id_to_embedding)} embeddings")
 
-        # Create SegmentSpeakerEmbedding objects
+        # Create SegmentSpeakerEmbedding objects with base64-encoded vectors
         embeddings = []
         for segment_id, embedding in segment_id_to_embedding.items():
-            # Convert numpy array to list of floats
-            embedding_list = embedding.tolist()
+            embedding_b64 = encode_embedding(embedding.tolist())
             embeddings.append(
                 SegmentSpeakerEmbedding(
-                    segmentId=segment_id, speakerEmbedding=embedding_list
+                    segmentId=segment_id, speakerEmbedding=embedding_b64
                 )
             )
 

@@ -10,6 +10,7 @@ from typer.testing import CliRunner
 from repo_root import REPO_ROOT
 from captions_json_lib import parse_captions_json_file
 from embed_cli import app
+from schema import decode_embedding
 
 import numpy as np
 import pytest
@@ -146,8 +147,10 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
     embeddings = [
         {
             "segment_id": e.segment_id,
-            "embedding": np.round(np.array(e.speaker_embedding), 2).tolist()[:10],
-            "shape": len(e.speaker_embedding),
+            "embedding": np.round(
+                np.array(decode_embedding(e.speaker_embedding)), 2
+            ).tolist()[:10],
+            "shape": len(decode_embedding(e.speaker_embedding)),
         }
         for e in doc.embeddings
     ]

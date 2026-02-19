@@ -90,10 +90,11 @@ test.describe('Full E2E Pipeline @expensive', () => {
       expect(anyWords).toBe(true)
 
       // Embeddings live at the document level (array of { segmentId, speakerEmbedding }).
+      // speakerEmbedding is a base64-encoded little-endian float32 string.
       expect(Array.isArray(parsed.embeddings)).toBe(true)
       expect(parsed.embeddings.length).toBeGreaterThan(0)
       const anyEmbeddings = parsed.embeddings.some(
-        (e: any) => typeof e.segmentId === 'string' && Array.isArray(e.speakerEmbedding) && e.speakerEmbedding.length > 0
+        (e: any) => typeof e.segmentId === 'string' && typeof e.speakerEmbedding === 'string' && e.speakerEmbedding.length > 0
       )
       expect(anyEmbeddings).toBe(true)
     } finally {

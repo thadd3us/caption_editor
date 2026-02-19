@@ -34,7 +34,7 @@ def _convert_media_path_to_relative_if_possible(
 
 
 def _stable_json_dumps(obj: Any) -> str:
-    return json.dumps(obj, sort_keys=True, indent=2) + "\n"
+    return json.dumps(obj, indent=2) + "\n"
 
 
 def parse_captions_json_file(path: Path) -> CaptionsDocument:
