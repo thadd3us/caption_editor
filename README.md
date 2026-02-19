@@ -6,8 +6,15 @@ I built this because I wanted these features:
 
 * A pure-local app for running multi-lingual Automatic Speech Recognition (ASR) and speaker ID
 * Time-aligned captions for media files (both audio and video)
-* The ability to edit and annotate captions and speaker names (correct ASR and speaker ID output)
-* Synchronized seek and playback between the media playhead and caption table
+* A format to persist this data that I could easily index and import elsewhere.
+* The ability to edit and annotate both captions and speaker names, to correct ASR and speaker ID output.
+* Bi-directionally synchronized scrubbing between the media playback and captions.
+
+This project is driven by the philosophy that 90+% of data labeling should be done "in flow",
+using the same tools you'd be using for other useful work, which in this case means:
+media playback, indexing and curating.  I wanted to combine AI-assisted labeling with
+the ability to easily correct the labels when I saw something wrong.
+
 
 ## My Workflow
 
