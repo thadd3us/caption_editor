@@ -101,7 +101,7 @@ VTTCue = TranscriptSegment
 class TranscriptMetadata(BaseModel):
     """Metadata for the transcript document."""
 
-    model_config = ConfigDict(populate_by_nqame=True)
+    model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(description="UUID for the document")
     media_file_path: Optional[str] = Field(

@@ -2,25 +2,53 @@
 
 WARNING: This is a vibe-coded project -- use at your own risk!
 
-I built this because I wanted these features
-* Local-first app for running multilingual Automatic Speech Recognition  (ASR) and speaker ID
-* Multi-lingual ASR
-* Time-aligned captions for my media files (both audio and video)
+I built this because I wanted these features:
+
+* A pure-local app for running multi-lingual Automatic Speech Recognition (ASR) and speaker ID
+* Time-aligned captions for media files (both audio and video)
 * The ability to edit and annotate captions and speaker names (correct ASR and speaker ID output)
 * Synchronized seek and playback between the media playhead and caption table
-* Caption segments with UUIDs
 
 ## My Workflow
 
 1. Cmd-O to open a media file.
-2. Menu item: "AI Annotations ... Caption with Speech Recognizer" (this also runs speaker ID embeddings on each segment)
+
+2. Menu item: "AI Annotations ... Caption with Speech Recognizer" (this also computes speaker ID embeddings on each ASR segment)
    * This is quite complex and may or may not work on your system.
-   * It download uvx, then `uvx run`s a Python program which uses HuggingFace to download:
+   * The first run will be slow and download a lot (~GBs).
+   * It downloads [uvx](https://docs.astral.sh/uv/) for your platform, then uses `uvx run` to:
+      * Download part of this repo.
+      * Download a large Python environment, including PyTorch and NumPy.
+      * Run a Python program from this repo, which uses HuggingFace to download models and run them.
+   * The models are:
       * [parakeet-tdt-0.6b-v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3)
       * [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM)
-3. Merge adjacent segments (if necessary):
 
-Here's a video showing how it works:
+3. Select multiple adjacent segments to merge (if necessary).
+![Merge adjacent segments](docs/merge_segments.png)
+
+4. Split segments that should be separate (if necessary).
+You do this by right-clicking the words in the selected caption on the bottom right:
+![Split segments](docs/split_segments.png)
+
+5. Edit captions by double-clicking in table.
+![edit_caption](docs/edit_caption.png)
+
+6. Pick a segment, then sort segments by similarity to that speaker.
+![sort_by_speaker_similarity](docs/sort_by_speaker_similarity.png)
+
+7. Bulk set speaker names.
+![bulk_set_speaker](docs/bulk_set_speaker.png)
+
+The play button above the table plays segments in the table order, jumping around the audio file, so you can listen to all segments with similar speaker embeddedings.
+
+
+## Other tips
+
+* `.captions_json` files contain a relative path pointing to their media file.
+* This app associates with the `.captions_json` extension, so double-clicking this file opens the captions and the media file.
+* Each caption segment has a UUID.
+
 
 ### Quick Start (Desktop)
 
