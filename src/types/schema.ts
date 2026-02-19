@@ -103,4 +103,5 @@ export interface SegmentHistoryEntry {
 export interface SegmentSpeakerEmbedding {
   readonly segmentId: string // UUID of the segment this embedding belongs to
   readonly speakerEmbedding: string // Base64-encoded little-endian float32 vector
+  readonly model?: string // Name of the embedding model that produced this vector
 }

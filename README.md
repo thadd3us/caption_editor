@@ -1,8 +1,16 @@
 # Caption Editor
 
-* A caption editor with media playback support, including synchronizing the selected caption segment with the current position of media playback.
-* Browser-based UI, packaged as an electron app.
-* Persists documents as a native JSON format (`*.captions_json`) with UUIDs and edit history.
+I built this because I wanted these features
+* Local-first app for running multilingual Automatic Speech Recognition  (ASR) and speaker ID
+* Multi-lingual ASR
+* Time-aligned captions for my media files (both audio and video)
+* The ability to edit and annotate captions and speaker names (correct ASR and speaker ID output)
+* Synchronized seek and playback between the media playhead and caption table
+* Caption segments with UUIDs
+
+WARNING: This is a vibe-coded project -- use at your own risk!
+
+Here's a video showing how it works:
 
 ### Quick Start (Desktop)
 
@@ -165,55 +173,6 @@ DISPLAY=:99 npx playwright test tests/electron/
 - During development: `npm run test:unit` (fast feedback)
 - Before committing: `npm run test:all` (complete verification)
 - For debugging: Use the UI modes (`test:unit:ui` or `test:e2e:ui`)
-
-
-## VTT File Format
-
-### Standard Elements
-
-- **Header**: `WEBVTT` (required first line)
-- **Cue Identifier**: UUID for each caption (preserved across edits)
-- **Timestamps**: Format `HH:MM:SS.mmm --> HH:MM:SS.mmm`
-- **Caption Text**: Multi-line text content
-
-### Extended Metadata
-
-This editor stores additional metadata in NOTE comments:
-
-#### Document Metadata (Top of File)
-The first NOTE comment contains document-level metadata including a UUID for the transcript and the relative path to the associated media file:
-
-```
-WEBVTT
-
--- TODO: This has gotten out of date, please update!
-NOTE {"id":"2ea43707-088b-c4fe-c7ff-b59f4a1232a0","mediaFilePath":"video.mp4"}
-```
-
-**Note:** When using the Python transcription tool (`transcribe/transcribe_cli.py`), the output is a `.captions_json` file. The document’s `metadata.mediaFilePath` is written relative to the captions file directory when possible.
-
-#### Cue Metadata
-Each caption can have metadata stored in a NOTE comment immediately before it:
-
-```
--- TODO: This has gotten out of date, please update!
-NOTE {"id":"550e8400-e29b-41d4-a716-446655440000","rating":4,"timestamp":"2025-10-29T..."}
-
-550e8400-e29b-41d4-a716-446655440000
-00:00:01.000 --> 00:00:05.000
-Caption text with 4-star rating
-```
-
-#### Transcript History (End of File)
-Changes to captions are tracked in a history NOTE at the end of the file, preserving the original state of modified or deleted segments.
-
-### Key Technologies
-
-- **Vue 3**: Modern reactive framework with TypeScript support
-- **Pinia**: Lightweight, type-safe state management
-- **AG Grid**: Enterprise-grade data grid with inline editing
-- **Vite**: Fast build tool and dev server
-- **Playwright**: Reliable end-to-end testing
 
 ## Debugging
 

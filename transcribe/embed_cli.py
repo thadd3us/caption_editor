@@ -182,7 +182,9 @@ def main(
             embedding_b64 = encode_embedding(embedding.tolist())
             embeddings.append(
                 SegmentSpeakerEmbedding(
-                    segmentId=segment_id, speakerEmbedding=embedding_b64
+                    segmentId=segment_id,
+                    speakerEmbedding=embedding_b64,
+                    model=model,
                 )
             )
 
