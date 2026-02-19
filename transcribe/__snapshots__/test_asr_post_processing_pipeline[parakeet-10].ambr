@@ -37,13 +37,13 @@
         'duration': 2.84,
         'end_time': 19.8,
         'start_time': 16.96,
-        'text': 'The juice of lemons makes fine punch punch.',
+        'text': 'The juice of lemons makes makes fine punch.',
       }),
       dict({
         'duration': 2.759999999999998,
         'end_time': 22.88,
         'start_time': 20.12,
-        'text': 'The box was thrown beside the parked park truck.',
+        'text': 'The box was thrown beside the parked truck.',
       }),
       dict({
         'duration': 2.919999999999998,
@@ -55,7 +55,7 @@
         'duration': 2.5599999999999987,
         'end_time': 29.32,
         'start_time': 26.76,
-        'text': 'Four hours of steady work faced us.',
+        'text': 'Four hours of steady work work faced us.',
       }),
       dict({
         'duration': 2.639999999999997,

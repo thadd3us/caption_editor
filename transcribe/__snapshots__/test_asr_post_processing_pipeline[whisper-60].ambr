@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_asr_post_processing_pipeline[whisper-60]
   dict({
-    'num_segments': 8,
+    'num_segments': 7,
     'segments': list([
       dict({
         'duration': 4.02,
@@ -34,22 +34,16 @@
         'text': 'Rice is often served in round bowls. The juice of lemons makes fine punch.',
       }),
       dict({
-        'duration': 4.959999999999997,
-        'end_time': 25.4,
+        'duration': 9.86,
+        'end_time': 30.3,
         'start_time': 20.44,
-        'text': 'The box was thrown beside the pork chuck. The hogs were fed chopped corn and',
+        'text': 'The box was thrown beside the pork chuck. The hogs were fed chopped corn and garbage. hours of steady work faced us, a',
       }),
       dict({
-        'duration': 4.940000000000001,
-        'end_time': 31.96,
-        'start_time': 27.02,
-        'text': 'For hours of steady work faced us, a large size in stockings is hard to',
-      }),
-      dict({
-        'duration': 5.479999999999997,
+        'duration': 7.139999999999997,
         'end_time': 37.44,
-        'start_time': 31.96,
-        'text': 'sell.',
+        'start_time': 30.3,
+        'text': 'large size in stockings is hard to sell.',
       }),
     ]),
   })

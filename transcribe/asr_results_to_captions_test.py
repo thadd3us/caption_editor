@@ -375,31 +375,73 @@ def test_asr_segments_to_transcript_segments_empty_text():
 
 
 def test_zip_words_in_overlapping_segments():
-    """Test that words in overlapping segments are zipped correctly."""
+    """Test that words in overlapping segments are split at the chunk overlap midpoint.
+
+    Scenario: chunk_size=30, overlap=5.
+    Chunk 0 starts at 0, chunk 1 starts at 25.
+    Overlap region is [25, 30], midpoint is 27.5.
+    Words before 27.5 come from seg1, words at/after 27.5 come from seg2.
+    """
     seg1 = ASRSegment(
         text="The birch canoe slid",
         start=0.0,
-        end=10.0,
+        end=29.0,
         words=[
             WordTimestamp("The", 0.0, 1.0),
-            WordTimestamp("birch", 1.1, 2.0),
-            WordTimestamp("canoe", 2.0, 3.0)])
+            WordTimestamp("birch", 10.0, 11.0),
+            WordTimestamp("canoe", 26.0, 27.0),   # before midpoint 27.5 -> kept from seg1
+            WordTimestamp("slid", 28.0, 29.0),     # after midpoint 27.5 -> discarded from seg1
+        ],
+        chunk_start=0.0,
+    )
     seg2 = ASRSegment(
-        text="The birch canoe slid",
+        text="canoe slid on",
+        start=25.5,
+        end=40.0,
+        words=[
+            WordTimestamp("canoe", 25.5, 26.5),    # before midpoint 27.5 -> discarded from seg2
+            WordTimestamp("slid", 27.5, 28.5),     # at midpoint 27.5 -> kept from seg2
+            WordTimestamp("on", 35.0, 36.0),
+        ],
+        chunk_start=25.0,
+    )
+    result = zip_words_in_overlapping_segments(seg1, seg2, chunk_size=30.0, overlap=5.0)
+    assert result.words == [
+        WordTimestamp("The", 0.0, 1.0),
+        WordTimestamp("birch", 10.0, 11.0),
+        WordTimestamp("canoe", 26.0, 27.0),
+        WordTimestamp("slid", 27.5, 28.5),
+        WordTimestamp("on", 35.0, 36.0),
+    ]
+    assert result.start == 0.0
+    assert result.end == 40.0
+    assert result.text == "The birch canoe slid on"
+
+
+def test_zip_words_in_overlapping_segments_fallback():
+    """Test fallback when chunk_start is not set (uses segment overlap midpoint)."""
+    seg1 = ASRSegment(
+        text="hello world",
         start=0.0,
         end=10.0,
         words=[
-            WordTimestamp("birch", 0.9, 2.0),
-            WordTimestamp("canoe", 2.0, 3.0),
-            WordTimestamp("slid", 3.0, 4.0)])
-    result = zip_words_in_overlapping_segments(seg1, seg2)
-    print(result)
+            WordTimestamp("hello", 0.0, 1.0),
+            WordTimestamp("world", 7.0, 8.0),
+        ],
+    )
+    seg2 = ASRSegment(
+        text="world foo",
+        start=6.0,
+        end=15.0,
+        words=[
+            WordTimestamp("world", 6.5, 7.5),
+            WordTimestamp("foo", 12.0, 13.0),
+        ],
+    )
+    # midpoint = (6.0 + 10.0) / 2 = 8.0
+    result = zip_words_in_overlapping_segments(seg1, seg2, chunk_size=30.0, overlap=5.0)
     assert result.words == [
-        WordTimestamp("The", 0.0, 1.0),
-        WordTimestamp("birch", 1.0, 2.0),
-        WordTimestamp("canoe", 2.0, 3.0),
-        WordTimestamp("slid", 3.0, 4.0),
+        WordTimestamp("hello", 0.0, 1.0),
+        WordTimestamp("world", 7.0, 8.0),
+        WordTimestamp("foo", 12.0, 13.0),
     ]
-    assert result.start == 0.0
-    assert result.end == 10.0
-    assert result.text == "The birch canoe slid"

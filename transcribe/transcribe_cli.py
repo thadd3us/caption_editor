@@ -57,6 +57,17 @@ from captions_json_lib import write_captions_json_file
 
 try:
     import nemo.collections.asr as nemo_asr
+    from nemo.utils import logging as nemo_logging
+
+    # Suppress noisy NeMo info/warning logs (RNNT loss config, CUDA graphs,
+    # Lhotse dataloader keys, etc.) — our CLI has its own progress output.
+    # NeMo's transcribe() resets verbosity to WARNING internally, so setLevel
+    # alone isn't sufficient.  We install a permanent filter on all handlers.
+    nemo_logging.setLevel(logging.ERROR)
+    _nemo_error_filter = logging.Filter()
+    _nemo_error_filter.filter = lambda record: record.levelno >= logging.ERROR  # type: ignore[assignment]
+    for _h in nemo_logging._logger.handlers:  # type: ignore[union-attr]
+        _h.addFilter(_nemo_error_filter)
 
     NEMO_AVAILABLE = True
 except ImportError:
@@ -134,6 +145,7 @@ def transcribe_chunk(
             segments = parse_transformers_result_with_words(result, chunk_start)
 
         for segment in segments:
+            segment.chunk_start = chunk_start
             logger.info(f"Segment {segment.start} to {segment.end}: {segment.text}")
         return segments
 
@@ -241,7 +253,7 @@ def main(
         writable=True,
     ),
     chunk_size: int = typer.Option(
-        180, "--chunk-size", "-c", help="Chunk size in seconds"
+        60, "--chunk-size", "-c", help="Chunk size in seconds.  Too large a value and NeMo/parakeet get confused and return a single segment for the entire chunk."
     ),
     overlap: int = typer.Option(
         5, "--overlap", "-v", help="Overlap interval in seconds"
@@ -336,13 +348,17 @@ def main(
                 model_name=model_name
             )
 
-            # Suppress spurious "non-tarred dataset … pretokenize=True" warning
-            # from NeMo's BPE _setup_transcribe_dataloader (which hardcodes
-            # use_lhotse=True but omits pretokenize, defaulting it to True).
+            # Re-suppress NeMo logging after model load (from_pretrained resets it)
+            nemo_logging.setLevel(logging.ERROR)
+
+            # Disable pretokenize for inference — it's a training optimization
+            # (tokenize during data sampling for 2D bucketing) that's irrelevant
+            # when transcribing and triggers a spurious NeMo warning.
             _orig_setup_dl = asr_pipeline._setup_dataloader_from_config
 
             def _patched_setup_dl(config, _orig=_orig_setup_dl):
                 from omegaconf import OmegaConf, open_dict
+
                 if OmegaConf.is_config(config) and config.get("use_lhotse", False):
                     with open_dict(config):
                         config.pretokenize = False

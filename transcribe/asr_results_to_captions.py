@@ -36,6 +36,7 @@ class ASRSegment:
     start: float
     end: float
     words: List[WordTimestamp]
+    chunk_start: Optional[float] = None
 
 
 def parse_nemo_segment(segment_data: dict, word_data: List[dict]) -> ASRSegment:
@@ -419,42 +420,41 @@ def resolve_overlap_conflicts(
         if prev_segment.end <= segment.start:
             result.append(segment)
         else:
-            result[-1] = zip_words_in_overlapping_segments(result[-1], segment)
+            result[-1] = zip_words_in_overlapping_segments(
+                result[-1], segment, chunk_size, overlap
+            )
 
     return result
+
 
 def zip_words_in_overlapping_segments(
     seg1: ASRSegment,
     seg2: ASRSegment,
+    chunk_size: float,
+    overlap: float,
 ) -> ASRSegment:
-    """Zip two overlapping segments into a single segment by looking at word timestamps."""
-    all_words = seg1.words + seg2.words
-    all_words = sorted(all_words, key=lambda x: x.start)
-    result = []
-    for w1 in all_words:
-        if not result:
-            result.append(w1)
-            continue
-        w0 = result[-1]
-        if w0.word == "served":
-            print("hello")
-        if w0.word.lower() != w1.word.lower():
-            result.append(w1)
-            continue
-        intersection = min(w0.end, w1.end) - max(w0.start, w1.start)
-        # union = max(w0.end, w1.end) - min(w0.start, w1.start)
-        if intersection > 0:
-            w0.start = (w0.start + w1.start) / 2
-            w0.end = (w0.end + w1.end) / 2
-        else:
-            result.append(w1)
-        
+    """Merge two overlapping segments by splitting at the midpoint of the chunk overlap region.
+
+    For the earlier segment (seg1), keep words whose start time is before the midpoint.
+    For the later segment (seg2), keep words whose start time is at or after the midpoint.
+    """
+    # The overlap region spans [seg2.chunk_start, seg1.chunk_start + chunk_size].
+    # Its midpoint is seg2.chunk_start + overlap / 2.
+    if seg1.chunk_start is not None and seg2.chunk_start is not None:
+        midpoint = seg2.chunk_start + overlap / 2
+    else:
+        # Fallback if chunk info unavailable: use segment overlap midpoint
+        midpoint = (seg2.start + seg1.end) / 2
+
+    words_from_seg1 = [w for w in seg1.words if w.start < midpoint]
+    words_from_seg2 = [w for w in seg2.words if w.start >= midpoint]
+    merged_words = words_from_seg1 + words_from_seg2
 
     return ASRSegment(
-        text=" ".join(w.word for w in result).strip(),
+        text=" ".join(w.word for w in merged_words).strip(),
         start=min(seg1.start, seg2.start),
         end=max(seg1.end, seg2.end),
-        words=result,
+        words=merged_words,
     )
 
 
