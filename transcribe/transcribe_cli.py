@@ -2,9 +2,13 @@
 """
 Media transcription tool using NVIDIA Parakeet TDT model.
 Converts media files to the caption editor native `.captions_json` format with segment-level transcription.
+
+Example usage:
+uv run transcribe_cli path/to/media.mp4
 """
 
 import hashlib
+import sys
 import tempfile
 import uuid
 from datetime import datetime
@@ -18,8 +22,21 @@ import torch
 import typer
 from tqdm import tqdm
 
+import logging
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout,
+)
+logging.info("Starting transcription...")
+
+
 from audio_utils import extract_audio_to_wav, load_audio_segment
 from asr_results_to_captions import (
+    ASRSegment,
     asr_segments_to_transcript_segments,
     group_segments_by_gap,
     parse_nemo_result_with_words,
@@ -80,7 +97,7 @@ def transcribe_chunk(
     chunk_start: float,
     sample_rate: int,
     is_nemo: bool = False,
-):
+) -> List[ASRSegment]:
     """Transcribe a single audio chunk and return ASR segments with word-level timestamps.
 
     Both NEMO and HuggingFace models now use a unified file-based input approach.
@@ -95,6 +112,7 @@ def transcribe_chunk(
     Returns:
         List of ASRSegment objects with word-level timestamps
     """
+    logger.info(f"Transcribing chunk {chunk_start} of {audio.shape[0] / sample_rate} seconds")
     if len(audio) == 0:
         return []
 
@@ -105,13 +123,18 @@ def transcribe_chunk(
 
         # Get transcription with word-level timestamps
         if is_nemo:
-            result = asr_pipeline.transcribe([tmp_path], timestamps=True)
-            segments = parse_nemo_result_with_words(result, chunk_start)
+            assert isinstance(asr_pipeline, nemo_asr.models.ASRModel)
+            nemo_model: nemo_asr.models.ASRModel = asr_pipeline
+            # transcribe/.venv/lib/python3.11/site-packages/nemo/collections/asr/models/rnnt_models.py
+            result = nemo_model.transcribe([tmp_path], timestamps=True, verbose=True)
+            segments: List[ASRSegment] = parse_nemo_result_with_words(result, chunk_start)
         else:
             # HuggingFace transformers pipeline with word-level timestamps
             result = asr_pipeline(tmp_path, return_timestamps="word")
             segments = parse_transformers_result_with_words(result, chunk_start)
 
+        for segment in segments:
+            logger.info(f"Segment {segment.start} to {segment.end}: {segment.text}")
         return segments
 
 
@@ -312,6 +335,20 @@ def main(
             asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(
                 model_name=model_name
             )
+
+            # Suppress spurious "non-tarred dataset … pretokenize=True" warning
+            # from NeMo's BPE _setup_transcribe_dataloader (which hardcodes
+            # use_lhotse=True but omits pretokenize, defaulting it to True).
+            _orig_setup_dl = asr_pipeline._setup_dataloader_from_config
+
+            def _patched_setup_dl(config, _orig=_orig_setup_dl):
+                from omegaconf import OmegaConf, open_dict
+                if OmegaConf.is_config(config) and config.get("use_lhotse", False):
+                    with open_dict(config):
+                        config.pretokenize = False
+                return _orig(config)
+
+            asr_pipeline._setup_dataloader_from_config = _patched_setup_dl  # type: ignore[assignment]
 
             # Move to appropriate device
             if device == "cuda":

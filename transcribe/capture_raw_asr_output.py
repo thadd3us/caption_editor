@@ -28,7 +28,7 @@ from transcribe_cli import (
 app = typer.Typer()
 
 
-def serialize_asr_segments(segments: list) -> dict:
+def serialize_asr_segments(segments: list[ASRSegment]) -> dict:
     """Convert ASRSegment objects to JSON-serializable format."""
     if not segments:
         return {"segments": [], "words": []}

@@ -6,6 +6,7 @@ from asr_results_to_captions import (
     asr_segments_to_transcript_segments,
     split_long_segments,
     split_segments_by_word_gap,
+    zip_words_in_overlapping_segments,
 )
 
 
@@ -371,3 +372,34 @@ def test_asr_segments_to_transcript_segments_empty_text():
     assert len(transcript_segments) == 2
     assert transcript_segments[0].text == "Valid text"
     assert transcript_segments[1].text == "More valid text"
+
+
+def test_zip_words_in_overlapping_segments():
+    """Test that words in overlapping segments are zipped correctly."""
+    seg1 = ASRSegment(
+        text="The birch canoe slid",
+        start=0.0,
+        end=10.0,
+        words=[
+            WordTimestamp("The", 0.0, 1.0),
+            WordTimestamp("birch", 1.1, 2.0),
+            WordTimestamp("canoe", 2.0, 3.0)])
+    seg2 = ASRSegment(
+        text="The birch canoe slid",
+        start=0.0,
+        end=10.0,
+        words=[
+            WordTimestamp("birch", 0.9, 2.0),
+            WordTimestamp("canoe", 2.0, 3.0),
+            WordTimestamp("slid", 3.0, 4.0)])
+    result = zip_words_in_overlapping_segments(seg1, seg2)
+    print(result)
+    assert result.words == [
+        WordTimestamp("The", 0.0, 1.0),
+        WordTimestamp("birch", 1.0, 2.0),
+        WordTimestamp("canoe", 2.0, 3.0),
+        WordTimestamp("slid", 3.0, 4.0),
+    ]
+    assert result.start == 0.0
+    assert result.end == 10.0
+    assert result.text == "The birch canoe slid"

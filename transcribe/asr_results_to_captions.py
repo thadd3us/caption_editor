@@ -406,9 +406,6 @@ def resolve_overlap_conflicts(
     Returns:
         List of segments with overlaps resolved
     """
-    if not segments:
-        return []
-
     # Sort by start time
     sorted_segments = sorted(segments, key=lambda s: s.start)
     result = []
@@ -419,36 +416,46 @@ def resolve_overlap_conflicts(
             continue
 
         prev_segment = result[-1]
-
-        # Check if they overlap
-        if segment.start < prev_segment.end:
-            # Determine which chunk each segment belongs to
-            prev_chunk_idx = int(prev_segment.start / (chunk_size - overlap))
-            curr_chunk_idx = int(segment.start / (chunk_size - overlap))
-
-            prev_chunk_start = prev_chunk_idx * (chunk_size - overlap)
-            curr_chunk_start = curr_chunk_idx * (chunk_size - overlap)
-
-            prev_chunk_end = prev_chunk_start + chunk_size
-            curr_chunk_end = curr_chunk_start + chunk_size
-
-            # Calculate distance to edges
-            prev_dist = min(
-                prev_segment.start - prev_chunk_start,
-                prev_chunk_end - prev_segment.end,
-            )
-            curr_dist = min(
-                segment.start - curr_chunk_start,
-                curr_chunk_end - segment.end,
-            )
-
-            # Keep the one with greater distance (more reliable)
-            if curr_dist > prev_dist:
-                result[-1] = segment
-        else:
+        if prev_segment.end <= segment.start:
             result.append(segment)
+        else:
+            result[-1] = zip_words_in_overlapping_segments(result[-1], segment)
 
     return result
+
+def zip_words_in_overlapping_segments(
+    seg1: ASRSegment,
+    seg2: ASRSegment,
+) -> ASRSegment:
+    """Zip two overlapping segments into a single segment by looking at word timestamps."""
+    all_words = seg1.words + seg2.words
+    all_words = sorted(all_words, key=lambda x: x.start)
+    result = []
+    for w1 in all_words:
+        if not result:
+            result.append(w1)
+            continue
+        w0 = result[-1]
+        if w0.word == "served":
+            print("hello")
+        if w0.word.lower() != w1.word.lower():
+            result.append(w1)
+            continue
+        intersection = min(w0.end, w1.end) - max(w0.start, w1.start)
+        # union = max(w0.end, w1.end) - min(w0.start, w1.start)
+        if intersection > 0:
+            w0.start = (w0.start + w1.start) / 2
+            w0.end = (w0.end + w1.end) / 2
+        else:
+            result.append(w1)
+        
+
+    return ASRSegment(
+        text=" ".join(w.word for w in result).strip(),
+        start=min(seg1.start, seg2.start),
+        end=max(seg1.end, seg2.end),
+        words=result,
+    )
 
 
 def asr_segments_to_transcript_segments(
