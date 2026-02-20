@@ -37,14 +37,32 @@ def _stable_json_dumps(obj: Any) -> str:
     return json.dumps(obj, indent=2) + "\n"
 
 
+def _migrate_embedding_model(data: dict[str, Any]) -> dict[str, Any]:
+    """Migrate old per-embedding ``model`` field to document-level ``embeddingModel``."""
+    if data.get("embeddingModel") or data.get("embedding_model"):
+        return data
+    embeddings = data.get("embeddings")
+    if not embeddings or not isinstance(embeddings, list):
+        return data
+    for emb in embeddings:
+        if isinstance(emb, dict) and emb.get("model"):
+            data["embeddingModel"] = emb["model"]
+            break
+    # Strip per-embedding model so Pydantic doesn't warn / future code doesn't see stale data
+    for emb in embeddings:
+        if isinstance(emb, dict):
+            emb.pop("model", None)
+    return data
+
+
 def parse_captions_json_file(path: Path) -> CaptionsDocument:
     data = json.loads(path.read_text())
-    return CaptionsDocument.model_validate(data)
+    return CaptionsDocument.model_validate(_migrate_embedding_model(data))
 
 
 def parse_captions_json_string(content: str) -> CaptionsDocument:
     data = json.loads(content)
-    return CaptionsDocument.model_validate(data)
+    return CaptionsDocument.model_validate(_migrate_embedding_model(data))
 
 
 def serialize_captions_json(

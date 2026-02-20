@@ -72,12 +72,28 @@ export function parseCaptionsJSON(content: string): ParseResult {
     const unique = validateUniqueSegmentIds(typedSegments)
     if (!unique.ok) return { success: false, error: unique.error }
 
+    // Migrate old per-embedding "model" to document-level "embeddingModel"
+    let embeddingModel = typeof obj.embeddingModel === 'string' ? obj.embeddingModel : undefined
+    let embeddings = Array.isArray(obj.embeddings) ? (obj.embeddings as any[]) : undefined
+    if (!embeddingModel && embeddings) {
+      for (const emb of embeddings) {
+        if (emb && typeof emb.model === 'string') {
+          embeddingModel = emb.model
+          break
+        }
+      }
+      if (embeddingModel) {
+        embeddings = embeddings.map(({ model: _, ...rest }) => rest)
+      }
+    }
+
     const document: CaptionsDocument = {
       metadata,
       title: typeof obj.title === 'string' ? obj.title : undefined,
       segments: sortSegments(typedSegments),
       history: Array.isArray(obj.history) ? (obj.history as any) : undefined,
-      embeddings: Array.isArray(obj.embeddings) ? (obj.embeddings as any) : undefined
+      embeddings,
+      embeddingModel
       // filePath is intentionally not persisted; it’s attached by caller
     }
 
