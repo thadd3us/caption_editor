@@ -48,7 +48,7 @@ const preRef = ref<HTMLElement | null>(null)
 // on new chunks (stream mode), and we append HTML rather than
 // replacing the entire innerHTML.
 
-let convert = new Ansi({ newline: true, escapeXML: true, stream: true })
+let convert = new Ansi({ newline: false, escapeXML: true, stream: true })
 let pendingChunks: string[] = []
 let rafId: number | null = null
 let totalRawLength = 0
@@ -113,7 +113,7 @@ function clearOutput() {
     cancelAnimationFrame(rafId)
     rafId = null
   }
-  convert = new Ansi({ newline: true, escapeXML: true, stream: true })
+  convert = new Ansi({ newline: false, escapeXML: true, stream: true })
   if (preRef.value) {
     preRef.value.innerHTML = ''
   }
