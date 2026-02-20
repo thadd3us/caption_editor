@@ -102,7 +102,7 @@ def main(
             raise ValueError("No media file path found in document metadata")
 
         captions_dir = captions_path.parent
-        media_path = captions_dir / metadata.media_file_path
+        media_path = (captions_dir / metadata.media_file_path).resolve()
 
         if not media_path.exists():
             raise ValueError(f"Media file not found: {media_path}")
