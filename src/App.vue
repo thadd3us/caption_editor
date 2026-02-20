@@ -34,6 +34,11 @@
       @confirm="handleAsrConfirmed"
       @cancel="closeAsrConfirmDialog"
     />
+    <RemuxMp3Dialog
+      :is-visible="isRemuxMp3DialogVisible"
+      @remux="handleRemuxMp3Confirmed"
+      @skip="handleRemuxMp3Skipped"
+    />
     <AsrModal
       ref="asrModal"
       :is-visible="isAsrModalVisible"
@@ -77,6 +82,7 @@ import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
 import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
 import ConfirmDeleteDialog from './components/ConfirmDeleteDialog.vue'
 import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
+import RemuxMp3Dialog from './components/RemuxMp3Dialog.vue'
 import AsrModal from './components/AsrModal.vue'
 import GenericConfirmDialog from './components/GenericConfirmDialog.vue'
 import GenericAlertDialog from './components/GenericAlertDialog.vue'
@@ -109,6 +115,8 @@ let isResizing = false
 
 // ASR state
 const isAsrConfirmDialogVisible = ref(false)
+const isRemuxMp3DialogVisible = ref(false)
+const pendingRemuxMp3 = ref(false)
 const isAsrModalVisible = ref(false)
 const isAsrRunning = ref(false)
 const asrFailed = ref(false)
@@ -548,7 +556,7 @@ async function handleMenuAsrCaption() {
   if (store.document.segments.length > 0) {
     isAsrConfirmDialogVisible.value = true
   } else {
-    startAsrTranscription()
+    maybeShowRemuxDialog()
   }
 }
 
@@ -592,6 +600,31 @@ function closeAsrConfirmDialog() {
 
 function handleAsrConfirmed() {
   isAsrConfirmDialogVisible.value = false
+  maybeShowRemuxDialog()
+}
+
+function isMp3File(): boolean {
+  return !!store.mediaFilePath && store.mediaFilePath.toLowerCase().endsWith('.mp3')
+}
+
+function maybeShowRemuxDialog() {
+  if (isMp3File()) {
+    isRemuxMp3DialogVisible.value = true
+  } else {
+    pendingRemuxMp3.value = false
+    startAsrTranscription()
+  }
+}
+
+function handleRemuxMp3Confirmed() {
+  isRemuxMp3DialogVisible.value = false
+  pendingRemuxMp3.value = true
+  startAsrTranscription()
+}
+
+function handleRemuxMp3Skipped() {
+  isRemuxMp3DialogVisible.value = false
+  pendingRemuxMp3.value = false
   startAsrTranscription()
 }
 
@@ -678,10 +711,13 @@ async function startAsrTranscription() {
     const chunkSize = 60
 
     // Start ASR transcription
+    const remuxMp3 = pendingRemuxMp3.value
+    pendingRemuxMp3.value = false
     const result = await window.electronAPI.asr.transcribe({
       mediaFilePath: store.mediaFilePath,
       model,
-      chunkSize
+      chunkSize,
+      remuxMp3
     })
 
     if (result.canceled) {

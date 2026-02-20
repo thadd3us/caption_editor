@@ -141,7 +141,7 @@ export interface ElectronAPI {
    * ASR transcription APIs
    */
   asr: {
-    transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number }) => Promise<{
+    transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number, remuxMp3?: boolean }) => Promise<{
       success: boolean
       captionsPath: string
       processId: string

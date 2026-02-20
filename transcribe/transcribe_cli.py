@@ -85,6 +85,54 @@ except ImportError:
 app = typer.Typer()
 
 
+def remux_mp3_with_seek_table(mp3_path: Path) -> Path:
+    """Remux an MP3 file to add a Xing seek table for accurate browser seeking.
+
+    MP3 files without a Xing/VBRI header cause progressive seek drift in
+    browser <audio> elements because the browser must estimate byte offsets.
+    This function creates a remuxed copy with an accurate seek table.
+
+    The remuxed file is written next to the original with a `.seekable.mp3`
+    suffix. The audio data is copied without re-encoding.
+
+    Returns:
+        Path to the remuxed MP3 file.
+    """
+    import imageio_ffmpeg
+
+    remuxed_path = mp3_path.with_suffix(".seekable.mp3")
+    if remuxed_path.exists():
+        typer.echo(f"Remuxed MP3 already exists: {remuxed_path}")
+        return remuxed_path
+
+    typer.echo(f"Remuxing MP3 to add seek table: {remuxed_path}")
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+
+    import subprocess
+
+    cmd = [
+        ffmpeg_exe,
+        "-i",
+        str(mp3_path),
+        "-c",
+        "copy",  # No re-encoding — stream copy only
+        "-write_xing",
+        "1",  # Write Xing header with seek table
+        "-y",
+        str(remuxed_path),
+    ]
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.decode() if e.stderr else "Unknown error"
+        typer.echo(f"Warning: Failed to remux MP3: {stderr}", err=True)
+        return mp3_path  # Fall back to original
+
+    typer.echo(f"Remuxed MP3 written: {remuxed_path}")
+    return remuxed_path
+
+
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
     """Extract audio from media file using ffmpeg."""
     output_path = temp_dir / "audio.wav"
@@ -301,6 +349,11 @@ def main(
         "--min-segment-duration",
         help="Shortest segment to embed (in seconds)",
     ),
+    remux_mp3: bool = typer.Option(
+        False,
+        "--remux-mp3/--no-remux-mp3",
+        help="Remux MP3 files to add a Xing seek table for accurate playback seeking in browsers",
+    ),
 ):
     """
     Transcribe media files to the caption editor `.captions_json` format using NVIDIA Parakeet TDT model.
@@ -462,9 +515,14 @@ def main(
             final_segments_list, audio_hash, deterministic_ids=deterministic_ids
         )
 
+        # Remux MP3 if requested (adds Xing seek table for accurate browser seeking)
+        actual_media_path = media_file
+        if remux_mp3 and media_file.suffix.lower() == ".mp3":
+            actual_media_path = remux_mp3_with_seek_table(media_file)
+
         # Generate document metadata
         doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
-        metadata = TranscriptMetadata(id=doc_id, mediaFilePath=str(media_file))
+        metadata = TranscriptMetadata(id=doc_id, mediaFilePath=str(actual_media_path))
 
         # Copy media file to output directory to keep VTT and media together
         output_dir = output.resolve().parent

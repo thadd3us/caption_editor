@@ -780,9 +780,10 @@ async function runAsrTool(options: {
   script: 'transcribe_cli.py' | 'embed_cli.py',
   inputPath: string,
   model?: string,
-  chunkSize?: number
+  chunkSize?: number,
+  remuxMp3?: boolean
 }): Promise<AsrResult> {
-  const { script, inputPath, model, chunkSize } = options
+  const { script, inputPath, model, chunkSize, remuxMp3 } = options
 
   // Store process for cancellation
   const processId = Date.now().toString()
@@ -835,6 +836,7 @@ async function runAsrTool(options: {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
+    if (script === 'transcribe_cli.py' && remuxMp3) pythonArgs.push('--remux-mp3')
 
     const scriptPath = path.join(cwd, script)
     if (!existsSync(scriptPath)) {
@@ -863,6 +865,7 @@ async function runAsrTool(options: {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
+    if (script === 'transcribe_cli.py' && remuxMp3) pythonArgs.push('--remux-mp3')
 
     if (!existsSync(pythonCommand)) throw new Error(`UV/UVX binary not found at ${pythonCommand}`)
     if (!existsSync(overridesPath)) throw new Error(`overrides.txt not found at ${overridesPath}`)
@@ -959,13 +962,15 @@ async function runAsrTool(options: {
 ipcMain.handle('asr:transcribe', async (_event, options: {
   mediaFilePath: string,
   model?: string,
-  chunkSize?: number
+  chunkSize?: number,
+  remuxMp3?: boolean
 }) => {
   const result = await runAsrTool({
     script: 'transcribe_cli.py',
     inputPath: options.mediaFilePath,
     model: options.model,
-    chunkSize: options.chunkSize
+    chunkSize: options.chunkSize,
+    remuxMp3: options.remuxMp3
   })
 
   if (result.success) {

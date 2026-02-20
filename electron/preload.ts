@@ -126,7 +126,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * ASR transcription APIs
    */
   asr: {
-    transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number }) =>
+    transcribe: (options: { mediaFilePath: string, model?: string, chunkSize?: number, remuxMp3?: boolean }) =>
       ipcRenderer.invoke('asr:transcribe', options),
     embed: (options: { captionsPath: string, model?: string }) =>
       ipcRenderer.invoke('asr:embed', options),
