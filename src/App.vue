@@ -823,7 +823,6 @@ onMounted(() => {
       const asr = window.electronAPI.asr
       if (typeof asr.onOutput === 'function') {
         asr.onOutput((data: { processId: string, type: 'stdout' | 'stderr', data: string }) => {
-          console.log('[ASR] Output:', data.type, data.data)
           if (asrModal.value) {
             asrModal.value.appendOutput(data.data)
           }

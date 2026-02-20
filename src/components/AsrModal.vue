@@ -7,7 +7,7 @@
       </div>
 
       <div class="asr-terminal" ref="terminalRef">
-        <pre v-html="formattedTerminalOutput"></pre>
+        <pre ref="preRef"></pre>
       </div>
 
       <div class="asr-modal-footer">
@@ -23,14 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import Ansi from 'ansi-to-html'
 
-const convert = new Ansi({
-  newline: true,
-  escapeXML: true,
-  stream: true
-})
+const MAX_SCROLLBACK_CHARS = 200_000 // ~200KB of raw text before trimming
 
 const props = defineProps<{
   isVisible: boolean
@@ -43,12 +39,85 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const terminalOutput = ref('')
 const terminalRef = ref<HTMLElement | null>(null)
+const preRef = ref<HTMLElement | null>(null)
 
-const formattedTerminalOutput = computed(() => {
-  return convert.toHtml(terminalOutput.value)
-})
+// --- Batched, incremental output rendering ---
+// We accumulate raw chunks in a buffer and flush them to the DOM
+// at most once per animation frame. ANSI conversion is only done
+// on new chunks (stream mode), and we append HTML rather than
+// replacing the entire innerHTML.
+
+let convert = new Ansi({ newline: true, escapeXML: true, stream: true })
+let pendingChunks: string[] = []
+let rafId: number | null = null
+let totalRawLength = 0
+
+function scheduleFlush() {
+  if (rafId !== null) return
+  rafId = requestAnimationFrame(flushOutput)
+}
+
+function flushOutput() {
+  rafId = null
+  if (pendingChunks.length === 0) return
+
+  const raw = pendingChunks.join('')
+  pendingChunks = []
+  totalRawLength += raw.length
+
+  const html = convert.toHtml(raw)
+
+  const pre = preRef.value
+  if (!pre) return
+
+  // Append the new HTML fragment (no full re-render)
+  pre.insertAdjacentHTML('beforeend', html)
+
+  // Trim scrollback if it's grown too large: remove early child nodes
+  if (totalRawLength > MAX_SCROLLBACK_CHARS) {
+    trimScrollback(pre)
+  }
+
+  // Auto-scroll
+  const terminal = terminalRef.value
+  if (terminal) {
+    terminal.scrollTop = terminal.scrollHeight
+  }
+}
+
+function trimScrollback(pre: HTMLElement) {
+  // Remove roughly the first half of content by removing child nodes
+  // until we've removed ~half the text. This is cheap because we're
+  // removing from the start of the DOM (no reflow of later nodes).
+  const target = pre.innerHTML.length / 2
+  let removed = 0
+  while (pre.firstChild && removed < target) {
+    const len = (pre.firstChild as Element).outerHTML?.length
+      ?? pre.firstChild.textContent?.length ?? 0
+    pre.removeChild(pre.firstChild)
+    removed += len
+  }
+  totalRawLength = pre.textContent?.length ?? 0
+}
+
+function appendOutput(data: string) {
+  pendingChunks.push(data)
+  scheduleFlush()
+}
+
+function clearOutput() {
+  pendingChunks = []
+  totalRawLength = 0
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
+  convert = new Ansi({ newline: true, escapeXML: true, stream: true })
+  if (preRef.value) {
+    preRef.value.innerHTML = ''
+  }
+}
 
 const statusText = computed(() => {
   if (props.failed) return 'Process failed'
@@ -61,24 +130,16 @@ const cancelButtonText = computed(() => {
   return 'Cancel'
 })
 
-// Auto-scroll terminal to bottom when output is added
-watch(() => terminalOutput.value, async () => {
-  await nextTick()
-  if (terminalRef.value) {
-    terminalRef.value.scrollTop = terminalRef.value.scrollHeight
-  }
-})
-
 // Clear output when modal is hidden
 watch(() => props.isVisible, (visible) => {
   if (!visible) {
-    terminalOutput.value = ''
+    clearOutput()
   }
 })
 
-function appendOutput(data: string) {
-  terminalOutput.value += data
-}
+onBeforeUnmount(() => {
+  if (rafId !== null) cancelAnimationFrame(rafId)
+})
 
 function handleCancel() {
   emit('cancel')
