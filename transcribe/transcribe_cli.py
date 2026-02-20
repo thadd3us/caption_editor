@@ -312,6 +312,14 @@ def main(
     if output is None:
         output = media_file.with_suffix(".captions_json")
 
+    if output.exists():
+        typer.echo(
+            f"Error: Output file already exists: {output}\n"
+            "Refusing to overwrite. Please remove it or specify a different output path with --output.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
     typer.echo(f"Transcribing: {media_file}")
     typer.echo(f"Output: {output}")
     typer.echo(f"Chunk size: {chunk_size}s, Overlap: {overlap}s")
