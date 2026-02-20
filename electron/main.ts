@@ -427,8 +427,9 @@ app.whenReady().then(() => {
   if (process.argv.length >= 2) {
     const filePath = process.argv[process.argv.length - 1]
     const lower = (filePath || '').toLowerCase()
-    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.srt'))) {
-      fileToOpen = filePath
+    const ext = path.extname(lower)
+    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.srt') || ext in MIME_TYPES)) {
+      fileToOpen = path.resolve(filePath)
     }
   }
 
