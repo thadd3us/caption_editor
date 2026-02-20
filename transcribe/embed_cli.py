@@ -184,13 +184,13 @@ def main(
                 SegmentSpeakerEmbedding(
                     segmentId=segment_id,
                     speakerEmbedding=embedding_b64,
-                    model=model,
                 )
             )
 
         # Write updated document with embeddings
         typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
         document.embeddings = embeddings
+        document.embedding_model = model
         write_captions_json_file(captions_path, document)
         typer.echo(f"Done! Wrote {len(embeddings)} embeddings to captions JSON")
 

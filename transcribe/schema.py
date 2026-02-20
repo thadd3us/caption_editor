@@ -141,10 +141,7 @@ class SegmentSpeakerEmbedding(BaseModel):
         description="Base64-encoded little-endian float32 speaker embedding vector",
         alias="speakerEmbedding",
     )
-    model: Optional[str] = Field(
-        None,
-        description="Name of the embedding model that produced this vector",
-    )
+
 
 
 class CaptionsDocument(BaseModel):
@@ -162,4 +159,9 @@ class CaptionsDocument(BaseModel):
     )
     embeddings: Optional[list[SegmentSpeakerEmbedding]] = Field(
         None, description="Speaker embeddings for segments"
+    )
+    embedding_model: Optional[str] = Field(
+        None,
+        description="Name of the embedding model that produced the speaker embeddings",
+        alias="embeddingModel",
     )
