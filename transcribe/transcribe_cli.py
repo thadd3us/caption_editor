@@ -478,7 +478,7 @@ def main(
             segments=final_segments_list,
             history=None,
             embeddings=None,
-            embedding_model=None,
+            embeddingModel=None,
         )
         write_captions_json_file(output, document)
         typer.echo(f"Transcription complete: {output}")
