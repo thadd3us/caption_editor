@@ -26,7 +26,8 @@ npx eslint . --quiet
 echo "🐍 Checking Python with ruff..."
 cd transcribe
 uv run ruff check .
-uv run ruff format --check .
+uv run ruff format .
+git add -u .
 
 echo "🐍 Running pyright..."
 uv run pyright
