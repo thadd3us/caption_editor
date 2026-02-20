@@ -143,7 +143,6 @@ class SegmentSpeakerEmbedding(BaseModel):
     )
 
 
-
 class CaptionsDocument(BaseModel):
     """Complete captions document (native .captions_json format)."""
 
