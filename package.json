@@ -27,7 +27,8 @@
     "test:coverage": "npm run test:unit:coverage && npm run test:e2e --reporter=html && npx nyc report --reporter=text --reporter=html",
     "test:build": "vue-tsc && vite build",
     "test:all": "npm run test:unit && npm run test:e2e && npm run test:build",
-    "test:all:complete": "./scripts/run-all-tests.sh"
+    "test:all:complete": "./scripts/run-all-tests.sh",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@qgustavor/srt-parser": "^2.0.0",
@@ -39,6 +40,7 @@
     "vue": "^3.5.27"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.57.0",
     "@types/node": "^25.0.9",
@@ -56,6 +58,7 @@
     "happy-dom": "^20.3.3",
     "jsdom": "^27.4.0",
     "nyc": "^17.1.0",
+    "patch-package": "^8.0.1",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",

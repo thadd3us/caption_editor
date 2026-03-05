@@ -1,4 +1,12 @@
-* Why was embedding so slow for a long file, were we re-loading the audio for disk every time?
+
+* I want integeral segment indices in the table, and to be able to sort by them.
+* When sorting by the start time, it seems to be treating it as a string, not a number.
+* Right click on a row to
+* Better preservation of which rows are selected.
+* Do we need the play button in the table?  Maybe just use the one at the top?
+  - Esecially b/c once you click it, you have to click somewhere else to go pause it.
+
+
 * The checked button isn't present in the table.
 * JSON file: "text": "\u00c8 solo che le cibchiera", -- crappy UTF, can it be better?
 * embeddings inline with the segments in a serialized float form?  don't like having them at the beginning.
@@ -53,6 +61,7 @@ Low:
 * Export SRT files.
 
 # Done
+* Why was embedding so slow for a long file, were we re-loading the audio for disk every time? -- Was the web UI terminal being slow actually
 
 * Delete the media file duration that's displayed to the right of media filepath.
 * Delete the "VTT File: " text that's displayed to the left of VTT filepath.

@@ -1,0 +1,15 @@
+diff --git a/node_modules/@electron/notarize/lib/notarytool.js b/node_modules/@electron/notarize/lib/notarytool.js
+index 6328fae..a1b2c3d 100644
+--- a/node_modules/@electron/notarize/lib/notarytool.js
++++ b/node_modules/@electron/notarize/lib/notarytool.js
+@@ -114,7 +114,9 @@ function notarizeAndWaitForNotaryTool(opts) {
+             else {
+                 filePath = path.resolve(dir, `${path.parse(opts.appPath).name}.zip`);
+                 d('zipping application to:', filePath);
+-                const zipResult = yield (0, spawn_1.spawn)('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', path.basename(opts.appPath), filePath], {
++                // Use zip -r -y (not ditto) so the archive matches the on-disk app for stapling.
++                // ditto can cause staple Error 65 (cdhash mismatch); zip -y preserves symlinks.
++                const zipResult = yield (0, spawn_1.spawn)('zip', ['-r', '-y', filePath, path.basename(opts.appPath)], {
+                     cwd: path.dirname(opts.appPath),
+                 });
+                 if (zipResult.code !== 0) {

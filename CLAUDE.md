@@ -141,3 +141,8 @@ Writes speaker embeddings into the `.captions_json` document `embeddings[]`.
 Package for distribution: `./scripts/package-for-uvx.sh`
 - Creates wheel, source dist, and `overrides.txt` in `dist-uvx/`
 - `overrides.txt` needed to bypass nemo-toolkit's overly conservative numpy constraint
+
+### macOS release build (notarization)
+Use `./scripts/build-released-app.sh` for a distributable Mac build. It signs and notarizes so Gatekeeper allows the app when users download it. Config: `mac.notarize: true` in electron-builder.json. Requires in `.envrc.private`: `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` (app-specific password from appleid.apple.com). Script exports `APPLE_TEAM_ID`. Without the Apple ID vars, notarization is skipped and the app may be quarantined on download.
+
+**Staple Error 65 fix:** We patch `@electron/notarize` (see `patches/`) to use `zip -r -y` instead of `ditto` when creating the notarization archive, so the submitted zip matches the on-disk app and stapling succeeds. `postinstall` runs `patch-package` to reapply the patch after npm install.
