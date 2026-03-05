@@ -62,13 +62,66 @@ fi
 echo "Installing dependencies..."
 npm install
 
-# Run the package script
+# Run the package script (signs the app, but notarization is handled below)
 echo ""
 echo "Running package:mac..."
 echo "(Note: Code signing can take 3-5 minutes — this is normal.)"
-echo "(Notarization runs when APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD are set; can take 5–10 min.)"
 echo ""
 npm run package:mac
+
+# --- Manual notarization ---
+# electron-builder's built-in notarization (via @electron/notarize) is disabled
+# because it causes Error 65 (cdhash mismatch) during stapling. Instead, we
+# notarize the DMG directly using xcrun, which is simpler and more reliable.
+
+if [[ -n "$APPLE_ID" && -n "$APPLE_APP_SPECIFIC_PASSWORD" ]]; then
+  # Find the DMG that electron-builder just created
+  APP_VERSION=$(node -p "require('fs').readFileSync('electron/constants.ts','utf8').match(/APP_VERSION = '(.+)'/)[1]")
+  DMG_PATH="release/Caption Editor-${APP_VERSION}-arm64.dmg"
+  APP_PATH="release/mac-arm64/Caption Editor.app"
+
+  if [[ ! -f "$DMG_PATH" ]]; then
+    echo "Error: DMG not found at: $DMG_PATH"
+    echo "Available files in release/:"
+    ls -la release/
+    exit 1
+  fi
+
+  echo ""
+  echo "=============================================="
+  echo "  Notarizing DMG..."
+  echo "  (This can take 5-10 minutes.)"
+  echo "=============================================="
+  echo ""
+
+  xcrun notarytool submit "$DMG_PATH" \
+    --apple-id "$APPLE_ID" \
+    --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+    --team-id "$APPLE_TEAM_ID" \
+    --wait
+
+  echo ""
+  echo "Stapling notarization ticket to DMG..."
+  xcrun stapler staple "$DMG_PATH"
+
+  echo ""
+  echo "Stapling notarization ticket to .app..."
+  xcrun stapler staple "$APP_PATH"
+
+  echo ""
+  echo "Validating..."
+  xcrun stapler validate "$DMG_PATH"
+  xcrun stapler validate "$APP_PATH"
+
+  echo ""
+  echo "=============================================="
+  echo "  Notarization and stapling complete!"
+  echo "=============================================="
+else
+  echo ""
+  echo "Skipping notarization (APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD not set)."
+  echo "The app is signed but NOT notarized — Gatekeeper may block it on download."
+fi
 
 echo ""
 echo "Build complete! Check release/ directory for artifacts."

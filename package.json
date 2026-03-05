@@ -28,7 +28,7 @@
     "test:build": "vue-tsc && vite build",
     "test:all": "npm run test:unit && npm run test:e2e && npm run test:build",
     "test:all:complete": "./scripts/run-all-tests.sh",
-    "postinstall": "patch-package"
+    "postinstall": "echo 'postinstall complete'"
   },
   "dependencies": {
     "@qgustavor/srt-parser": "^2.0.0",
@@ -58,7 +58,6 @@
     "happy-dom": "^20.3.3",
     "jsdom": "^27.4.0",
     "nyc": "^17.1.0",
-    "patch-package": "^8.0.1",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",

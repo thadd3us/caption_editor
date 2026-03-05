@@ -55,7 +55,7 @@
     "entitlementsInherit": "assets/packaging/entitlements.mac.plist",
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
-    "notarize": true
+    "notarize": false
   },
   "dmg": {
     "contents": [
