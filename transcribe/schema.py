@@ -156,6 +156,8 @@ class CaptionsDocument(BaseModel):
     history: Optional[list[SegmentHistoryEntry]] = Field(
         None, description="Historical record of segment changes"
     )
+
+    # FIXME: Put the next two thigns into a sigle EmbeddingData class.  No need for backwards compatibility.  Fix the typescript schema, too.
     embeddings: Optional[list[SegmentSpeakerEmbedding]] = Field(
         None, description="Speaker embeddings for segments"
     )
