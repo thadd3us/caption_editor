@@ -70,6 +70,7 @@ class TranscriptSegment(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(description="UUID - segment identifier")
+    # FIXME: Add an integer index for this, with 0-based indexing.  When a segment is deleted, the indices should be adjusted.  It's just the order in which this segment appears in the list.  Fix typescript as well.  Show this field in the AG Grid table UI on the left.
     start_time: float = Field(description="Start time in seconds", alias="startTime")
     end_time: float = Field(description="End time in seconds", alias="endTime")
     text: str = Field(description="Segment text")
