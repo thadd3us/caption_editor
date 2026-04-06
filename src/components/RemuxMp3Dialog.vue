@@ -12,8 +12,9 @@
         making captions appear out of sync.
       </p>
       <p>
-        A seekable copy of the MP3 can be created (lossless, no re-encoding)
-        that the caption editor will use for accurate playback.
+        The MP3 can be fixed in-place (lossless, no re-encoding) to add a
+        seek table for accurate playback. The original file will be backed up
+        with a <code>.original.mp3</code> extension.
       </p>
     </div>
 
@@ -22,7 +23,7 @@
         Skip
       </button>
       <button class="dialog-button dialog-button-primary" @click="handleRemux">
-        Create Seekable Copy
+        Fix MP3
       </button>
     </template>
   </BaseModal>

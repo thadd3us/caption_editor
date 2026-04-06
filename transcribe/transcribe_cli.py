@@ -8,6 +8,7 @@ uv run transcribe_cli path/to/media.mp4
 """
 
 import hashlib
+import os
 import sys
 import tempfile
 import uuid
@@ -85,27 +86,37 @@ except ImportError:
 app = typer.Typer()
 
 
-def remux_mp3_with_seek_table(mp3_path: Path) -> Path:
+def remux_mp3_with_seek_table(mp3_path: Path, *, in_place: bool = False) -> Path:
     """Remux an MP3 file to add a Xing seek table for accurate browser seeking.
 
     MP3 files without a Xing/VBRI header cause progressive seek drift in
     browser <audio> elements because the browser must estimate byte offsets.
     This function creates a remuxed copy with an accurate seek table.
 
-    The remuxed file is written next to the original with a `.seekable.mp3`
-    suffix. The audio data is copied without re-encoding.
+    When ``in_place`` is True the original file is replaced (via a temp file
+    and atomic rename).  Otherwise a ``.seekable.mp3`` sibling is created.
 
     Returns:
         Path to the remuxed MP3 file.
     """
     import imageio_ffmpeg
 
-    remuxed_path = mp3_path.with_suffix(".seekable.mp3")
-    if remuxed_path.exists():
-        typer.echo(f"Remuxed MP3 already exists: {remuxed_path}")
-        return remuxed_path
+    if in_place:
+        # Write to a temp file next to the original, then replace it.
+        import tempfile
 
-    typer.echo(f"Remuxing MP3 to add seek table: {remuxed_path}")
+        tmp_fd, tmp_path_str = tempfile.mkstemp(suffix=".mp3", dir=str(mp3_path.parent))
+        os.close(tmp_fd)
+        remuxed_path = Path(tmp_path_str)
+    else:
+        remuxed_path = mp3_path.with_suffix(".seekable.mp3")
+        if remuxed_path.exists():
+            typer.echo(f"Remuxed MP3 already exists: {remuxed_path}")
+            return remuxed_path
+
+    typer.echo(
+        f"Remuxing MP3 to add seek table{' (in-place)' if in_place else ''}: {mp3_path}"
+    )
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 
     import subprocess
@@ -127,10 +138,22 @@ def remux_mp3_with_seek_table(mp3_path: Path) -> Path:
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.decode() if e.stderr else "Unknown error"
         typer.echo(f"Warning: Failed to remux MP3: {stderr}", err=True)
+        if in_place:
+            os.unlink(remuxed_path)
         return mp3_path  # Fall back to original
 
-    typer.echo(f"Remuxed MP3 written: {remuxed_path}")
-    return remuxed_path
+    if in_place:
+        import shutil
+
+        backup_path = mp3_path.with_suffix(".original.mp3")
+        shutil.copy2(mp3_path, backup_path)
+        typer.echo(f"Original MP3 backed up to: {backup_path}")
+        os.replace(remuxed_path, mp3_path)
+        typer.echo(f"Remuxed MP3 in-place: {mp3_path}")
+        return mp3_path
+    else:
+        typer.echo(f"Remuxed MP3 written: {remuxed_path}")
+        return remuxed_path
 
 
 def extract_audio(media_file: Path, temp_dir: Path) -> Path:
@@ -354,6 +377,11 @@ def main(
         "--remux-mp3/--no-remux-mp3",
         help="Remux MP3 files to add a Xing seek table for accurate playback seeking in browsers",
     ),
+    remux_mp3_in_place: bool = typer.Option(
+        False,
+        "--remux-mp3-in-place/--no-remux-mp3-in-place",
+        help="When remuxing MP3, replace the original file instead of creating a .seekable.mp3 copy",
+    ),
 ):
     """
     Transcribe media files to the caption editor `.captions_json` format using NVIDIA Parakeet TDT model.
@@ -518,7 +546,9 @@ def main(
         # Remux MP3 if requested (adds Xing seek table for accurate browser seeking)
         actual_media_path = media_file
         if remux_mp3 and media_file.suffix.lower() == ".mp3":
-            actual_media_path = remux_mp3_with_seek_table(media_file)
+            actual_media_path = remux_mp3_with_seek_table(
+                media_file, in_place=remux_mp3_in_place
+            )
 
         # Generate document metadata
         doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)

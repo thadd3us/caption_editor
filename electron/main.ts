@@ -836,7 +836,7 @@ async function runAsrTool(options: {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
-    if (script === 'transcribe_cli.py' && remuxMp3) pythonArgs.push('--remux-mp3')
+    if (script === 'transcribe_cli.py' && remuxMp3) pythonArgs.push('--remux-mp3', '--remux-mp3-in-place')
 
     const scriptPath = path.join(cwd, script)
     if (!existsSync(scriptPath)) {
@@ -865,7 +865,7 @@ async function runAsrTool(options: {
       pythonArgs.push('--chunk-size', chunkSize.toString())
     }
     if (model) pythonArgs.push('--model', model)
-    if (script === 'transcribe_cli.py' && remuxMp3) pythonArgs.push('--remux-mp3')
+    if (script === 'transcribe_cli.py' && remuxMp3) pythonArgs.push('--remux-mp3', '--remux-mp3-in-place')
 
     if (!existsSync(pythonCommand)) throw new Error(`UV/UVX binary not found at ${pythonCommand}`)
     if (!existsSync(overridesPath)) throw new Error(`overrides.txt not found at ${overridesPath}`)
