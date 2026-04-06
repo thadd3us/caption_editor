@@ -70,6 +70,19 @@ try:
     for _h in nemo_logging._logger.handlers:  # type: ignore[union-attr]
         _h.addFilter(_nemo_error_filter)
 
+    # Monkeypatch: torch 2.10 removed the deprecated `data_source` param from
+    # Sampler.__init__(), but lhotse 1.31.1 CutSampler still passes it, causing:
+    #   TypeError: object.__init__() takes exactly one argument
+    # We patch torch.utils.data.Sampler to accept and ignore the kwarg.
+    # TODO: Remove this once lhotse releases a fix (check lhotse > 1.31.1).
+    import torch.utils.data as _torch_data
+    if not hasattr(_torch_data.Sampler.__init__, '__code__') or \
+       "data_source" not in _torch_data.Sampler.__init__.__code__.co_varnames:
+        def _compat_sampler_init(self, data_source=None):
+            pass  # no-op, just like the old torch Sampler.__init__
+
+        _torch_data.Sampler.__init__ = _compat_sampler_init  # type: ignore[assignment]
+
     NEMO_AVAILABLE = True
 except ImportError:
     nemo_asr = None  # type: ignore[assignment]
