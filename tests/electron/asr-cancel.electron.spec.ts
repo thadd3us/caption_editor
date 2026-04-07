@@ -71,7 +71,10 @@ test.describe('ASR Cancellation Reproduction', () => {
             await page.waitForSelector('.asr-modal-overlay', { timeout: 5000 })
             console.log('[Test] ASR modal appeared')
 
-            // Wait for the cancel button to be visible, then click it
+            // Wait for the cancel button to be visible, then click it.
+            // Flaky: the ASR process may finish (or the modal may start closing)
+            // before we click, causing the overlay to intercept pointer events or
+            // the button to detach from the DOM mid-click. The retry handles this.
             const cancelButton = page.locator('.asr-button-cancel')
             await cancelButton.waitFor({ state: 'visible', timeout: 3000 })
             console.log('[Test] Clicking cancel button')
