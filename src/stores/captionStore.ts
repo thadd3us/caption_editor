@@ -49,12 +49,24 @@ export const useCaptionStore = defineStore('captions', () => {
   const isDirty = ref(false) // Track unsaved changes
 
   // Computed
+  // If the playhead is not inside any segment but is within this many seconds
+  // before the next segment's start, show that upcoming segment instead.
+  const PLAYHEAD_FORWARD_EPSILON_SECONDS = 1.0
+
   const currentSegment = computed(() => {
     const time = currentTime.value
+    const segments = document.value.segments
     // document.segments is always kept sorted
-    return document.value.segments.find(
+    const exact = segments.find(
       segment => segment.startTime <= time && time < segment.endTime
     )
+    if (exact) return exact
+
+    // Look for the nearest upcoming segment within the epsilon window
+    const upcoming = segments.find(
+      segment => segment.startTime > time && segment.startTime - time <= PLAYHEAD_FORWARD_EPSILON_SECONDS
+    )
+    return upcoming ?? undefined
   })
 
   // Computed property for mediaFilePath - single source of truth from document.metadata

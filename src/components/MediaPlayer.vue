@@ -127,14 +127,7 @@ const mediaFileName = computed(() => {
 })
 
 const currentCaptionText = computed(() => {
-  const segments = store.document.segments
-  const time = store.currentTime
-
-  // Find the segment that contains the current time (startTime <= time < endTime)
-  const seg = segments.find(seg =>
-    seg.startTime <= time && time < seg.endTime
-  )
-
+  const seg = store.currentSegment
   return seg ? seg.text : 'No caption at current time'
 })
 
