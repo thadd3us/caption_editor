@@ -1,240 +1,268 @@
-# Media Transcription and Speaker Diarization
+# Caption Editor
 
-A unified Python environment providing:
-- **Transcription**: Convert media files to the caption editor native `.captions_json` format using NVIDIA's Parakeet TDT ASR model
-- **Speaker Diarization**: Identify and label different speakers in audio using pyannote.audio
+WARNING: This is a vibe-coded project -- use at your own risk!
 
-## Features
+I built this because I wanted these features:
 
-### Transcription
-- **Multi-format support**: Converts nearly any media format to `.captions_json` using ffmpeg
-- **Chunked processing**: Handles long audio files (hours) by processing in configurable chunks
-- **Overlap handling**: Prevents word cutoffs at chunk boundaries with intelligent overlap resolution
-- **Segment-level transcripts**: Produces sentence-level segments with timestamps
-- **Deterministic UUIDs**: Generates consistent segment IDs based on audio hash and timestamps
-- **Multi-language support**: Uses NVIDIA Parakeet TDT 0.6b v3 with multi-language capabilities
+* A pure-local app for running multi-lingual Automatic Speech Recognition (ASR) and speaker ID
+* Time-aligned captions for media files (both audio and video)
+* A format to persist this data that I could easily index and import elsewhere.
+* The ability to edit and annotate both captions and speaker names, to correct ASR and speaker ID output.
+* Bi-directionally synchronized scrubbing between the media playback and captions.
 
-### Speaker Diarization
-- **Speaker identification**: Detects and labels different speakers in audio
-- **Speaker embeddings**: Compute embedding vectors for each segment in a VTT file
-- **Powered by pyannote.audio v4**: State-of-the-art speaker diarization
-- **Simple CLI interface**: Easy to use command-line tools
+This project is driven by the philosophy that 90+% of data labeling should be done "in flow",
+using the same tools you'd be using for other useful work, which in this case means:
+media playback, indexing and curating.  I wanted to combine AI-assisted labeling with
+the ability to easily correct the labels when I saw something wrong.
 
-## Installation
 
-This project uses `uv` for fast Python dependency management.
+## My Workflow
 
+1. Cmd-O to open a media file.
+
+2. Menu item: "AI Annotations ... Caption with Speech Recognizer" (this also computes speaker ID embeddings on each ASR segment)
+   * This is quite complex and may or may not work on your system.
+   * The first run will be slow and download a lot (~GBs).
+   * It downloads [uvx](https://docs.astral.sh/uv/) for your platform, then uses `uvx run` to:
+      * Download part of this repo.
+      * Download a large Python environment, including PyTorch and NumPy.
+      * Run a Python program from this repo, which uses HuggingFace to download models and run them.
+   * The models are:
+      * [parakeet-tdt-0.6b-v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3)
+      * [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM)
+
+3. Select multiple adjacent segments to merge (if necessary).
+![Merge adjacent segments](docs/merge_segments.png)
+
+4. Split segments that should be separate (if necessary).
+You do this by right-clicking the words in the selected caption on the bottom right:
+![Split segments](docs/split_segments.png)
+
+5. Edit captions by double-clicking in table.
+![edit_caption](docs/edit_caption.png)
+
+6. Pick a segment, then sort segments by similarity to that speaker.
+![sort_by_speaker_similarity](docs/sort_by_speaker_similarity.png)
+
+7. Bulk set speaker names.
+![bulk_set_speaker](docs/bulk_set_speaker.png)
+
+The play button above the table plays segments in the table order, jumping around the audio file, so you can listen to all segments with similar speaker embeddedings.
+
+
+## Other tips
+
+* `.captions_json` files contain a relative path pointing to their media file.
+* This app associates with the `.captions_json` extension, so double-clicking this file opens the captions and the media file.
+* Each caption segment has a UUID.
+
+
+### Quick Start (Desktop)
+
+#### Development Mode
 ```bash
 # Install dependencies
-cd transcribe
-uv sync
+npm install
 
-# Or run directly with uvx
-uvx --from . transcribe --help
+# Build the Electron app (must be done first)
+npm run build:all
+
+# Run in development mode (with hot reload)
+npm run dev:electron
+
+# Or run the built app directly
+npm start
 ```
 
-## Usage
+#### Production / Packaged Mode
+```bash
+# Build everything
+npm run build:all
 
-### Transcription
+# Package for your platform (creates distributable app)
+npm run package:mac     # macOS (.app bundle)
+npm run package:win     # Windows (.exe installer)
+npm run package:linux   # Linux (AppImage)
+
+# The packaged app will be in the dist/ directory
+# Note: Python environment bundling is not yet implemented
+```
+
+**Note on Python ASR Integration:**
+- In **development mode**, the app uses `uv run python` to execute transcription scripts from `transcribe/`
+- In **production mode** (packaged app), Python environment bundling is planned but not yet implemented
+- The app will validate that required Python scripts exist before attempting to run ASR
+
+### Core Functionality
+
+- **Captions JSON Support**: Open and edit `*.captions_json` documents (primary save/load format)
+- **SRT Import/Export**: Import `*.srt` files and export to standard SRT
+- **Media Playback**: Load and play video or audio files alongside captions
+- **Drag & Drop**: Intuitive file loading - drop captions JSON/SRT and media files together or separately
+- **Dual Panel Layout**: Resizable split view with caption table (left, 60% default) and media player (right)
+
+### Caption Management
+
+- **Rich Editing**: Edit timestamps, caption text, and metadata directly in the table
+- **Star Ratings**: Rate captions 1-5 stars with click-to-rate interface
+- **UUID Tracking**: Automatic UUID generation and persistence for each caption
+- **Temporal Sorting**: Captions automatically sort by start time, then end time
+- **Validation**: Timestamp and duration validation prevents invalid edits
+
+### Media Controls
+
+- **Standard Playback**: Play, pause, and scrub through media
+- **Snippet Playback**: Play individual caption segments with auto-stop
+- **Seek to Caption**: Jump to any caption's start time
+
+### Data Persistence
+
+- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions_json`
+
+### Technical Details
+
+- **Framework**: Vue 3 with TypeScript and Composition API
+- **State Management**: Pinia for reactive document state
+- **UI Components**: AG Grid for high-performance caption table
+- **Immutable Data**: Caption entries are immutable for efficient state management
+- **Testing**: Playwright end-to-end tests for all operations
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm/pnpm/yarn
+- For testing: Playwright browsers (installed via `npx playwright install`)
+
+### Development Container
+
+This project includes a complete devcontainer setup with all dependencies pre-installed:
 
 ```bash
-# Transcribe a media file
-uv run python transcribe_cli.py input.mp4
+# Using VS Code
+1. Install the "Dev Containers" extension
+2. Open the project in VS Code
+3. Click "Reopen in Container" when prompted
+   (or use Command Palette: "Dev Containers: Reopen in Container")
 
-# Specify output location
-uv run python transcribe_cli.py input.mp4 --output output.captions_json
-
-# Adjust chunk size and overlap
-uv run python transcribe_cli.py long_audio.wav --chunk-size 120 --overlap 10
+# Using GitHub Codespaces
+1. Click "Code" → "Codespaces" → "Create codespace on main"
+2. Everything is pre-configured!
 ```
 
-### Speaker Diarization
+The devcontainer includes:
+- Node.js 20
+- All npm dependencies pre-installed
+- Playwright browsers and system dependencies
+- VS Code extensions for Vue, TypeScript, and Playwright
+- Port forwarding for dev server (3000) and test reports (9323)
 
-**Prerequisites:**
 
-1. **Accept the model terms on HuggingFace:**
-   - Visit https://huggingface.co/pyannote/speaker-diarization-community-1
-   - Click "Agree and access repository"
-   - Accept the user agreement
-   - Wait a few minutes for access to propagate
+### Testing
 
-2. **Set your HuggingFace token:**
-   ```bash
-   export HF_TOKEN=your_huggingface_token_here
-   ```
+This project has comprehensive test coverage including unit tests, end-to-end tests, and build verification.
 
-**Run diarization:**
+#### Quick Test Commands
 
 ```bash
-# Basic usage
-uv run diarize path/to/audio.wav
+# Run ALL tests (unit + e2e + build verification) - recommended for CI/pre-commit
+npm run test:all
 
-# Use a specific model
-uv run diarize audio.wav --model pyannote/speaker-diarization-3.1
+# Run unit tests only (Vitest)
+npm run test:unit
+
+# Run E2E tests only (Playwright)
+npm run test:e2e
+
+# Run TypeScript build verification only
+npm run test:build
+
+# Interactive test UIs
+npm run test:unit:ui      # Vitest UI
+npm run test:e2e:ui       # Playwright UI
+
+# Coverage reports
+npm run test:coverage     # Generate combined coverage report
+npx playwright show-report # View Playwright HTML report
+
+# First-time setup
+npx playwright install    # Install Playwright browsers
 ```
 
-**Output example:**
-```
-SPEAKER_00 speaks between t=0.000s and t=3.500s
-SPEAKER_01 speaks between t=3.500s and t=7.200s
-SPEAKER_00 speaks between t=7.200s and t=10.000s
-```
+#### Platform-Specific Testing (Linux/Docker)
 
-### Speaker Embeddings
-
-Compute speaker embedding vectors for each segment in a `.captions_json` file. This is useful for speaker clustering, comparison, and identification tasks.
-
-**Prerequisites:**
-
-1. **Have a `.captions_json` file with media metadata:**
-   - Captions file must include `metadata.mediaFilePath` pointing to the media file
-   - Media file path is relative to the captions file directory
-
-**Run embedding computation:**
+On Linux containers without a display server (like the devcontainer), you need Xvfb for Electron tests:
 
 ```bash
-# Basic usage (writes embeddings into `embeddings[]` in the captions JSON file)
-uv run embed_cli path/to/transcript.captions_json
+# Start Xvfb (only needed once per container session)
+start-xvfb.sh
 
-# Use a different model
-uv run embed_cli transcript.captions_json --model pyannote/embedding
+# Run Electron tests with DISPLAY set
+# Note: DISPLAY=:99 is set by default in the devcontainer
+npm run test:e2e
+
+# Or manually with DISPLAY:
+DISPLAY=:99 npx playwright test tests/electron/
 ```
 
-**Output format:**
+**Troubleshooting Xvfb:**
+- If tests fail with "Missing X server", run `start-xvfb.sh`
+- Check if running: `ps aux | grep "[X]vfb"`
+- For more debugging tips, see `CLAUDE.md` → "Why Xvfb Keeps Dying"
 
-The embeddings are written back to the `.captions_json` file in the `embeddings[]` array. Each embedding contains:
-- `segmentId`: UUID of the segment
-- `speakerEmbedding`: 512-dimensional vector (for default wespeaker model)
+**macOS/Windows:**
+- Xvfb is not needed - tests work natively
+- Just run `npm run test:e2e` directly
 
-**Note:** The default model (`pyannote/wespeaker-voxceleb-resnet34-LM`) is publicly accessible and doesn't require a HuggingFace token. Some alternative models (like `pyannote/embedding`) are gated and require accepting terms and setting `HF_TOKEN`.
+**Recommended workflow:**
+- During development: `npm run test:unit` (fast feedback)
+- Before committing: `npm run test:all` (complete verification)
+- For debugging: Use the UI modes (`test:unit:ui` or `test:e2e:ui`)
 
-### Options
+## Debugging
 
-- `media_file`: Input media file to transcribe (required)
-- `--output`, `-o`: Output captions JSON file path (default: input file with `.captions_json` extension)
-- `--chunk-size`, `-c`: Chunk size in seconds (default: 60)
-- `--overlap`, `-v`: Overlap interval in seconds (default: 5)
-- `--model`, `-m`: Hugging Face model name (default: nvidia/parakeet-tdt-0.6b-v3)
+### Inspecting Document State
 
-### Example
+In development mode, the Pinia store is exposed on `window.$store` for easy debugging. Open the browser console and use:
 
-```bash
-# Transcribe a 2-hour podcast with 2-minute chunks and 10-second overlap
-python transcribe_cli.py podcast.mp3 --chunk-size 120 --overlap 10 --output podcast_transcript.captions_json
+```javascript
+// View the complete document structure as formatted JSON
+console.log(JSON.stringify($store.document, null, 2))
+
+// Access individual properties
+console.log($store.document.segments.length)      // Number of segments
+console.log($store.document.segments)             // Segments (always sorted by time)
+console.log($store.currentSegment)                // Current segment at playhead
+console.log($store.currentTime)                   // Current playback position
+console.log($store.mediaPath)                     // Loaded media file path
+
+// View a specific segment
+console.log(JSON.stringify($store.document.segments[0], null, 2))
 ```
 
-## How It Works
+**Example output:**
 
-1. **Audio Extraction**: Uses ffmpeg to extract audio from the input media file to WAV format (16kHz mono)
-
-2. **Chunked Processing**: Splits long audio into overlapping chunks to avoid cutting off words at boundaries
-
-3. **Transcription**: Uses ASR model (NeMo for Parakeet, Transformers for others)
-   - For NeMo models: Gets segment-level timestamps directly from the model
-   - For Transformers models: Uses the pipeline with return_timestamps=True
-   - Automatically handles framework-specific output formats
-
-4. **Overlap Resolution**: For segments in overlapping regions between chunks:
-   - Calculates each segment's distance to the nearest chunk edge
-   - Keeps the segment with greater distance (more reliable transcription)
-
-5. **VTT Generation**:
-   - Converts segments to WebVTT format
-   - Assigns deterministic UUIDs based on audio hash + timestamp
-   - Formats timestamps as `HH:MM:SS.mmm`
-
-## Output Format
-
-The tool generates WebVTT files with the following structure:
-
-```vtt
-WEBVTT
-
-uuid-for-segment-1
-00:00:00.000 --> 00:00:03.500
-First sentence of transcription.
-
-uuid-for-segment-2
-00:00:03.500 --> 00:00:07.200
-Second sentence continues here.
+```json
+{
+  "segments": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "startTime": 1.5,
+      "endTime": 4.25,
+      "text": "First caption",
+      "rating": 5
+    }
+  ],
+  "filePath": "example.captions_json"
+}
 ```
 
-Each segment has:
-- A unique, deterministic UUID (consistent across runs for same audio)
-- Start and end timestamps
-- Transcribed text
+This outputs the complete TypeScript `CaptionsDocument` structure including all segments with their IDs, timestamps, text, and ratings.
 
-## Testing
+**Note:** The store is only exposed in development mode (`npm run dev`). In production builds, use Vue DevTools extension for state inspection.
 
-```bash
-# Run all tests
-uv run pytest -v
+## References
 
-# Update snapshots after intentional changes
-uv run pytest tests/ -v --snapshot-update
-```
-
-## Requirements
-
-- Python 3.11+
-- ffmpeg (for audio extraction)
-- CUDA-compatible GPU (optional, for faster processing)
-
-## TODO
-
-- [ ] Integrate diarization with transcription (speaker-attributed transcripts)
-- [ ] Support custom vocabulary or language hints
-- [ ] Add confidence scores to segments
-- [ ] Batch processing of multiple files
-- [ ] Progress bar for long transcriptions
-
-## Model Information
-
-This tool supports two types of ASR models:
-
-### 1. NVIDIA NeMo Models (Default)
-
-The default model is [NVIDIA Parakeet TDT 0.6b v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3), a state-of-the-art multilingual ASR model that supports:
-
-- **25 European languages** with automatic language detection
-- **600M parameters** with FastConformer-TDT architecture
-- **Segment-level timestamps** for accurate timing
-- **Automatic punctuation and capitalization**
-- **Average WER of 6.34%** on HuggingFace Open ASR Leaderboard
-
-The tool automatically detects NeMo models (models containing "parakeet" or "nvidia" in the name) and loads them using the NeMo toolkit.
-
-**Example:**
-```bash
-python transcribe_cli.py audio.wav --model nvidia/parakeet-tdt-0.6b-v3
-```
-
-### 2. Hugging Face Transformers Models
-
-The tool also supports any model compatible with the Hugging Face `automatic-speech-recognition` pipeline, such as:
-
-- `openai/whisper-tiny` - Fast, lightweight model
-- `openai/whisper-base` - Good balance of speed and accuracy
-- `openai/whisper-small` - Better accuracy
-- `openai/whisper-medium` - High accuracy
-- `openai/whisper-large-v3` - Best accuracy
-
-**Example:**
-```bash
-python transcribe_cli.py audio.wav --model openai/whisper-small
-```
-
-### Model Selection
-
-The tool automatically determines which framework to use:
-- **NeMo models**: Loaded via `nemo_toolkit` (for Parakeet and other NVIDIA models)
-- **Other models**: Loaded via Hugging Face `transformers` pipeline
-
-To use a different model, simply specify it with the `--model` flag:
-```bash
-python transcribe_cli.py input.mp4 --model your/favorite-model
-```
-
-## License
-
-See the main project LICENSE file.
+- [WebVTT Specification](https://www.w3.org/TR/webvtt1/)
+- [WebVTT Data Model](https://www.w3.org/TR/webvtt1/#data-model)
+- [UT Austin WebVTT Guide](https://sites.utexas.edu/cofawebteam/requirements/ada/captions/webvtt-files-for-video-subtitling/)

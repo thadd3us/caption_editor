@@ -1,0 +1,68 @@
+# serializer version: 1
+# name: test_asr_post_processing_pipeline[parakeet-10]
+  dict({
+    'num_segments': 10,
+    'segments': list([
+      dict({
+        'duration': 3.2,
+        'end_time': 3.44,
+        'start_time': 0.24,
+        'text': 'The birch canoe slid on the smooth planks.',
+      }),
+      dict({
+        'duration': 3.2,
+        'end_time': 7.2,
+        'start_time': 4.0,
+        'text': 'Glue the sheet to the dark blue background.',
+      }),
+      dict({
+        'duration': 2.3199999999999994,
+        'end_time': 9.76,
+        'start_time': 7.44,
+        'text': 'It is easy to tell the depth of a well.',
+      }),
+      dict({
+        'duration': 3.039999999999999,
+        'end_time': 13.52,
+        'start_time': 10.48,
+        'text': 'These days a chicken leg is a rare dish.',
+      }),
+      dict({
+        'duration': 2.799999999999999,
+        'end_time': 16.72,
+        'start_time': 13.92,
+        'text': 'Rice is often served in round bowls.',
+      }),
+      dict({
+        'duration': 2.84,
+        'end_time': 19.8,
+        'start_time': 16.96,
+        'text': 'The juice of lemons makes makes fine punch.',
+      }),
+      dict({
+        'duration': 2.759999999999998,
+        'end_time': 22.88,
+        'start_time': 20.12,
+        'text': 'The box was thrown beside the parked truck.',
+      }),
+      dict({
+        'duration': 2.919999999999998,
+        'end_time': 26.36,
+        'start_time': 23.44,
+        'text': 'The hogs were fed chopped corn and garbage.',
+      }),
+      dict({
+        'duration': 2.5599999999999987,
+        'end_time': 29.32,
+        'start_time': 26.76,
+        'text': 'Four hours of steady work work faced us.',
+      }),
+      dict({
+        'duration': 2.639999999999997,
+        'end_time': 32.44,
+        'start_time': 29.8,
+        'text': 'A large size in stockings is hard to sell.',
+      }),
+    ]),
+  })
+# ---

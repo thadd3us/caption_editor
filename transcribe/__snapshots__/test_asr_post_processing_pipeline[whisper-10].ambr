@@ -1,0 +1,32 @@
+# serializer version: 1
+# name: test_asr_post_processing_pipeline[whisper-10]
+  dict({
+    'num_segments': 4,
+    'segments': list([
+      dict({
+        'duration': 8.94,
+        'end_time': 8.94,
+        'start_time': 0.0,
+        'text': 'The birch can use lid on the smooth planks. Glue the sheet blue easy the',
+      }),
+      dict({
+        'duration': 6.32,
+        'end_time': 15.86,
+        'start_time': 9.54,
+        'text': 'well. days chicken leg is a rare is often round',
+      }),
+      dict({
+        'duration': 9.64,
+        'end_time': 28.64,
+        'start_time': 19.0,
+        'text': 'punch. box beside pork fed corn steady faced',
+      }),
+      dict({
+        'duration': 1.759999999999998,
+        'end_time': 32.0,
+        'start_time': 30.240000000000002,
+        'text': 'A large size in stockings is hard to',
+      }),
+    ]),
+  })
+# ---

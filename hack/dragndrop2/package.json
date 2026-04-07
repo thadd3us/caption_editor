@@ -1,0 +1,13 @@
+{
+  "name": "dragndrop-test-v2",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "electron": "^39.0.0"
+  }
+}

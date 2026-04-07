@@ -1,0 +1,77 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+dist-electron
+*.local
+
+# Electron packaging
+release
+out
+
+# Docker build metadata
+build.metadata.json
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test results
+/test-results/
+/playwright-report/
+/playwright/.cache/
+test-results.json
+tests/electron/screenshots/
+test_data/temp/
+test_data/temp-*/
+*.embeddings.jsonl
+*.embeddings.db
+test_data/*.db
+test_data/*_with_clusters.vtt
+
+# Coverage
+.nyc_output/
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+*.egg-info/
+dist/
+dist-uvx/
+build/
+.uv/
+.python-version
+
+# NeMo toolkit artifacts
+*.err
+onelogger.err
+nemo_experiments/
+
+# ML Models cache (optional - comment out if you want to track models)
+models/
+.cache/huggingface/
+.envrc.private

@@ -1,0 +1,3 @@
+# Include uv.lock for reproducible builds with uvx
+include uv.lock
+include README.md

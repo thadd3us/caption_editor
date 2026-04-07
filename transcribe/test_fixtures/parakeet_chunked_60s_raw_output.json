@@ -1,0 +1,464 @@
+[
+  {
+    "text": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It is easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the park truck. The hogs were fed chopped corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell.",
+    "segments": [
+      {
+        "text": "The birch canoe slid on the smooth planks.",
+        "start": 0.24,
+        "end": 3.44
+      },
+      {
+        "text": "Glue the sheet to the dark blue background.",
+        "start": 4.0,
+        "end": 7.12
+      },
+      {
+        "text": "It is easy to tell the depth of a well.",
+        "start": 7.44,
+        "end": 9.92
+      },
+      {
+        "text": "These days a chicken leg is a rare dish.",
+        "start": 10.56,
+        "end": 13.44
+      },
+      {
+        "text": "Rice is often served in round bowls.",
+        "start": 14.0,
+        "end": 16.72
+      },
+      {
+        "text": "The juice of lemons makes fine punch.",
+        "start": 17.04,
+        "end": 19.76
+      },
+      {
+        "text": "The box was thrown beside the park truck.",
+        "start": 20.16,
+        "end": 22.88
+      },
+      {
+        "text": "The hogs were fed chopped corn and garbage.",
+        "start": 23.44,
+        "end": 26.240000000000002
+      },
+      {
+        "text": "Four hours of steady work faced us.",
+        "start": 26.8,
+        "end": 29.28
+      },
+      {
+        "text": "A large size in stockings is hard to sell.",
+        "start": 29.84,
+        "end": 32.480000000000004
+      }
+    ],
+    "words": [
+      {
+        "word": "The",
+        "start": 0.24,
+        "end": 0.56
+      },
+      {
+        "word": "birch",
+        "start": 0.56,
+        "end": 1.12
+      },
+      {
+        "word": "canoe",
+        "start": 1.12,
+        "end": 1.6
+      },
+      {
+        "word": "slid",
+        "start": 1.6,
+        "end": 2.0
+      },
+      {
+        "word": "on",
+        "start": 2.0,
+        "end": 2.16
+      },
+      {
+        "word": "the",
+        "start": 2.16,
+        "end": 2.24
+      },
+      {
+        "word": "smooth",
+        "start": 2.24,
+        "end": 2.8000000000000003
+      },
+      {
+        "word": "planks.",
+        "start": 2.8000000000000003,
+        "end": 3.44
+      },
+      {
+        "word": "Glue",
+        "start": 4.0,
+        "end": 4.5600000000000005
+      },
+      {
+        "word": "the",
+        "start": 4.5600000000000005,
+        "end": 4.72
+      },
+      {
+        "word": "sheet",
+        "start": 4.72,
+        "end": 5.04
+      },
+      {
+        "word": "to",
+        "start": 5.04,
+        "end": 5.2
+      },
+      {
+        "word": "the",
+        "start": 5.2,
+        "end": 5.28
+      },
+      {
+        "word": "dark",
+        "start": 5.28,
+        "end": 5.5200000000000005
+      },
+      {
+        "word": "blue",
+        "start": 5.5200000000000005,
+        "end": 6.0
+      },
+      {
+        "word": "background.",
+        "start": 6.0,
+        "end": 7.12
+      },
+      {
+        "word": "It",
+        "start": 7.44,
+        "end": 7.76
+      },
+      {
+        "word": "is",
+        "start": 7.76,
+        "end": 7.92
+      },
+      {
+        "word": "easy",
+        "start": 7.92,
+        "end": 8.24
+      },
+      {
+        "word": "to",
+        "start": 8.24,
+        "end": 8.4
+      },
+      {
+        "word": "tell",
+        "start": 8.4,
+        "end": 8.64
+      },
+      {
+        "word": "the",
+        "start": 8.64,
+        "end": 8.8
+      },
+      {
+        "word": "depth",
+        "start": 8.8,
+        "end": 9.200000000000001
+      },
+      {
+        "word": "of",
+        "start": 9.200000000000001,
+        "end": 9.36
+      },
+      {
+        "word": "a",
+        "start": 9.36,
+        "end": 9.6
+      },
+      {
+        "word": "well.",
+        "start": 9.6,
+        "end": 9.92
+      },
+      {
+        "word": "These",
+        "start": 10.56,
+        "end": 10.88
+      },
+      {
+        "word": "days",
+        "start": 10.88,
+        "end": 11.200000000000001
+      },
+      {
+        "word": "a",
+        "start": 11.28,
+        "end": 11.36
+      },
+      {
+        "word": "chicken",
+        "start": 11.36,
+        "end": 11.84
+      },
+      {
+        "word": "leg",
+        "start": 11.84,
+        "end": 12.08
+      },
+      {
+        "word": "is",
+        "start": 12.08,
+        "end": 12.24
+      },
+      {
+        "word": "a",
+        "start": 12.24,
+        "end": 12.32
+      },
+      {
+        "word": "rare",
+        "start": 12.32,
+        "end": 12.8
+      },
+      {
+        "word": "dish.",
+        "start": 12.8,
+        "end": 13.44
+      },
+      {
+        "word": "Rice",
+        "start": 14.0,
+        "end": 14.48
+      },
+      {
+        "word": "is",
+        "start": 14.48,
+        "end": 14.64
+      },
+      {
+        "word": "often",
+        "start": 14.64,
+        "end": 14.96
+      },
+      {
+        "word": "served",
+        "start": 14.96,
+        "end": 15.280000000000001
+      },
+      {
+        "word": "in",
+        "start": 15.280000000000001,
+        "end": 15.52
+      },
+      {
+        "word": "round",
+        "start": 15.52,
+        "end": 15.92
+      },
+      {
+        "word": "bowls.",
+        "start": 15.92,
+        "end": 16.72
+      },
+      {
+        "word": "The",
+        "start": 17.04,
+        "end": 17.28
+      },
+      {
+        "word": "juice",
+        "start": 17.28,
+        "end": 17.6
+      },
+      {
+        "word": "of",
+        "start": 17.6,
+        "end": 17.76
+      },
+      {
+        "word": "lemons",
+        "start": 17.76,
+        "end": 18.32
+      },
+      {
+        "word": "makes",
+        "start": 18.32,
+        "end": 18.64
+      },
+      {
+        "word": "fine",
+        "start": 18.64,
+        "end": 19.12
+      },
+      {
+        "word": "punch.",
+        "start": 19.12,
+        "end": 19.76
+      },
+      {
+        "word": "The",
+        "start": 20.16,
+        "end": 20.400000000000002
+      },
+      {
+        "word": "box",
+        "start": 20.400000000000002,
+        "end": 20.8
+      },
+      {
+        "word": "was",
+        "start": 20.8,
+        "end": 20.96
+      },
+      {
+        "word": "thrown",
+        "start": 20.96,
+        "end": 21.28
+      },
+      {
+        "word": "beside",
+        "start": 21.28,
+        "end": 21.6
+      },
+      {
+        "word": "the",
+        "start": 21.6,
+        "end": 21.76
+      },
+      {
+        "word": "park",
+        "start": 21.76,
+        "end": 22.16
+      },
+      {
+        "word": "truck.",
+        "start": 22.32,
+        "end": 22.88
+      },
+      {
+        "word": "The",
+        "start": 23.44,
+        "end": 23.68
+      },
+      {
+        "word": "hogs",
+        "start": 23.68,
+        "end": 24.080000000000002
+      },
+      {
+        "word": "were",
+        "start": 24.080000000000002,
+        "end": 24.240000000000002
+      },
+      {
+        "word": "fed",
+        "start": 24.240000000000002,
+        "end": 24.64
+      },
+      {
+        "word": "chopped",
+        "start": 24.64,
+        "end": 24.96
+      },
+      {
+        "word": "corn",
+        "start": 24.96,
+        "end": 25.28
+      },
+      {
+        "word": "and",
+        "start": 25.28,
+        "end": 25.44
+      },
+      {
+        "word": "garbage.",
+        "start": 25.44,
+        "end": 26.240000000000002
+      },
+      {
+        "word": "Four",
+        "start": 26.8,
+        "end": 27.2
+      },
+      {
+        "word": "hours",
+        "start": 27.2,
+        "end": 27.52
+      },
+      {
+        "word": "of",
+        "start": 27.52,
+        "end": 27.68
+      },
+      {
+        "word": "steady",
+        "start": 27.68,
+        "end": 28.080000000000002
+      },
+      {
+        "word": "work",
+        "start": 28.080000000000002,
+        "end": 28.400000000000002
+      },
+      {
+        "word": "faced",
+        "start": 28.400000000000002,
+        "end": 28.96
+      },
+      {
+        "word": "us.",
+        "start": 28.96,
+        "end": 29.28
+      },
+      {
+        "word": "A",
+        "start": 29.84,
+        "end": 30.080000000000002
+      },
+      {
+        "word": "large",
+        "start": 30.080000000000002,
+        "end": 30.48
+      },
+      {
+        "word": "size",
+        "start": 30.48,
+        "end": 30.72
+      },
+      {
+        "word": "in",
+        "start": 30.72,
+        "end": 30.88
+      },
+      {
+        "word": "stockings",
+        "start": 30.88,
+        "end": 31.44
+      },
+      {
+        "word": "is",
+        "start": 31.44,
+        "end": 31.6
+      },
+      {
+        "word": "hard",
+        "start": 31.6,
+        "end": 31.84
+      },
+      {
+        "word": "to",
+        "start": 31.84,
+        "end": 32.160000000000004
+      },
+      {
+        "word": "sell.",
+        "start": 32.160000000000004,
+        "end": 32.480000000000004
+      }
+    ]
+  }
+]
