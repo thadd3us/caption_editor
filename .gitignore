@@ -75,3 +75,4 @@ nemo_experiments/
 models/
 .cache/huggingface/
 .envrc.private
+.DS_Store

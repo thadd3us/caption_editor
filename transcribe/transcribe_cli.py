@@ -76,8 +76,12 @@ try:
     # We patch torch.utils.data.Sampler to accept and ignore the kwarg.
     # TODO: Remove this once lhotse releases a fix (check lhotse > 1.31.1).
     import torch.utils.data as _torch_data
-    if not hasattr(_torch_data.Sampler.__init__, '__code__') or \
-       "data_source" not in _torch_data.Sampler.__init__.__code__.co_varnames:
+
+    if (
+        not hasattr(_torch_data.Sampler.__init__, "__code__")
+        or "data_source" not in _torch_data.Sampler.__init__.__code__.co_varnames
+    ):
+
         def _compat_sampler_init(self, data_source=None):
             pass  # no-op, just like the old torch Sampler.__init__
 
