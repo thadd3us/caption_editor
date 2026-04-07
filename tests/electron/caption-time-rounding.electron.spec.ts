@@ -87,10 +87,10 @@ test.describe('Caption time rounding', () => {
     await expect(row).toBeVisible({ timeout: 5000 })
     await row.click()
 
-    // Wait for the media element to seek and fire timeupdate, which overwrites
-    // the store's currentTime with the media element's (potentially rounded) value.
-    // We detect this by waiting for currentTime to differ from the exact startTime
-    // we set, indicating the media's timeupdate callback has fired.
+    // Wait for the media element's timeupdate to fire back into the store.
+    // The click sets store.currentTime to the exact startTime (90.03999999999999),
+    // then the media element seeks and fires timeupdate with its own (rounded) value.
+    // We wait for currentTime to differ from the exact startTime we set.
     const startTime = 90.03999999999999
     await page.waitForFunction(
       (st) => {
