@@ -965,6 +965,28 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   chunkSize?: number,
   remuxMp3?: boolean
 }) => {
+  // If the output captions file already exists, back it up instead of letting the CLI fail
+  const captionsPath = options.mediaFilePath.replace(path.extname(options.mediaFilePath), CAPTIONS_JSON_SUFFIX)
+  try {
+    await fs.access(captionsPath)
+    // File exists — find a backup name that doesn't collide
+    let backupPath = captionsPath + '.bak'
+    let suffix = 2
+    while (true) {
+      try {
+        await fs.access(backupPath)
+        backupPath = captionsPath + `.bak${suffix}`
+        suffix++
+      } catch {
+        break // doesn't exist, we can use it
+      }
+    }
+    console.log(`[main] Backing up existing captions file: ${captionsPath} -> ${backupPath}`)
+    await fs.rename(captionsPath, backupPath)
+  } catch {
+    // File doesn't exist, nothing to back up
+  }
+
   const result = await runAsrTool({
     script: 'transcribe_cli.py',
     inputPath: options.mediaFilePath,
@@ -974,7 +996,6 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   })
 
   if (result.success) {
-    const captionsPath = options.mediaFilePath.replace(path.extname(options.mediaFilePath), CAPTIONS_JSON_SUFFIX)
     try {
       const content = await fs.readFile(captionsPath, 'utf-8')
       return {

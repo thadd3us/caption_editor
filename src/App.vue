@@ -489,6 +489,16 @@ async function handleMenuSaveFile() {
   }
 }
 
+
+/** Build a sidecar filename from the loaded media path (e.g. video.mp4 -> video.captions_json) */
+function sidecarName(): string | null {
+  const mp = store.mediaFilePath
+  if (!mp) return null
+  const dot = mp.lastIndexOf('.')
+  if (dot <= 0) return null
+  return mp.substring(0, dot) + '.captions_json'
+}
+
 async function handleMenuSaveAs() {
   if (!window.electronAPI) {
     console.error('Electron API not available')
@@ -501,7 +511,7 @@ async function handleMenuSaveAs() {
 
     const result = await window.electronAPI.saveFile({
       content,
-      suggestedName: store.document.filePath || 'captions.captions_json'
+      suggestedName: store.document.filePath || sidecarName() || 'captions.captions_json'
     })
 
     if (result.success) {
