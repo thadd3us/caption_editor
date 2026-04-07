@@ -40,11 +40,10 @@ test.describe('ASR Cancellation Reproduction', () => {
                 (window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
             })
 
-            // Wait for app to be ready
-            await page.waitForLoadState('domcontentloaded')
-            await page.waitForTimeout(1000)
+            // Wait for app to be ready - wait for the store to be available
+            await page.waitForFunction(() => !!(window as any).$store, { timeout: 5000 })
 
-            // Load the audio file
+            // Load the audio file and wait for mediaFilePath to be set
             await page.evaluate((audioPath) => {
                 const store = (window as any).$store
                 const electronAPI = (window as any).electronAPI
@@ -57,8 +56,11 @@ test.describe('ASR Cancellation Reproduction', () => {
                 })
             }, destAudioPath)
 
-            // Wait for media to be loaded
-            await page.waitForTimeout(1000)
+            // Wait for media to actually be loaded in the store
+            await page.waitForFunction(
+                () => !!(window as any).$store?.mediaFilePath,
+                { timeout: 5000 }
+            )
 
             // Trigger ASR menu action
             await page.evaluate(() => {
@@ -66,18 +68,17 @@ test.describe('ASR Cancellation Reproduction', () => {
             })
 
             // Wait for ASR modal to appear
-            await page.waitForSelector('.asr-modal-overlay', { timeout: 10000 })
+            await page.waitForSelector('.asr-modal-overlay', { timeout: 5000 })
             console.log('[Test] ASR modal appeared')
 
-            // Wait for ASR to actually start
-            await page.waitForTimeout(2000)
-
-            // Click cancel
+            // Wait for the cancel button to be visible, then click it
+            const cancelButton = page.locator('.asr-button-cancel')
+            await cancelButton.waitFor({ state: 'visible', timeout: 3000 })
             console.log('[Test] Clicking cancel button')
-            await page.locator('.asr-button-cancel').click()
+            await cancelButton.click()
 
             // Wait for modal to disappear
-            await page.waitForSelector('.asr-modal-overlay', { state: 'hidden', timeout: 5000 })
+            await page.waitForSelector('.asr-modal-overlay', { state: 'hidden', timeout: 3000 })
             console.log('[Test] ASR modal closed')
 
             // VERIFY APP IS STILL RESPONSIVE
