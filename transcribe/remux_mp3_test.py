@@ -51,39 +51,15 @@ def mp3_without_toc(tmp_path: Path) -> Path:
 
 
 def test_remux_adds_xing_header(mp3_without_toc: Path) -> None:
-    """Remuxing an MP3 without a TOC should produce one with a Xing header."""
-    result_path = remux_mp3_with_seek_table(mp3_without_toc)
-
-    assert result_path.exists()
-    assert result_path.suffix == ".mp3"
-    assert result_path != mp3_without_toc  # Should create a .seekable.mp3
-    assert result_path.name == "no_toc.seekable.mp3"
-    assert _has_xing_header(result_path), "Remuxed MP3 should have a Xing header"
-
-
-def test_remux_in_place_adds_xing_header(mp3_without_toc: Path) -> None:
-    """Remuxing in-place should replace the file and add a Xing header."""
+    """Remuxing an MP3 without a TOC should replace it in-place with a Xing header."""
     original_size = mp3_without_toc.stat().st_size
 
-    result_path = remux_mp3_with_seek_table(mp3_without_toc, in_place=True)
+    result_path = remux_mp3_with_seek_table(mp3_without_toc)
 
     assert result_path == mp3_without_toc  # Should be the same path
-    assert _has_xing_header(result_path), (
-        "In-place remuxed MP3 should have a Xing header"
-    )
+    assert _has_xing_header(result_path), "Remuxed MP3 should have a Xing header"
 
     # A backup should have been created
     backup_path = mp3_without_toc.with_suffix(".original.mp3")
     assert backup_path.exists(), "Original file should be backed up"
     assert backup_path.stat().st_size == original_size
-
-
-def test_remux_skips_if_seekable_exists(mp3_without_toc: Path) -> None:
-    """If .seekable.mp3 already exists, remux should return it without re-running."""
-    seekable_path = mp3_without_toc.with_suffix(".seekable.mp3")
-    seekable_path.write_bytes(b"dummy")
-
-    result_path = remux_mp3_with_seek_table(mp3_without_toc)
-
-    assert result_path == seekable_path
-    assert result_path.read_bytes() == b"dummy"  # Unchanged
