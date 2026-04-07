@@ -12,7 +12,22 @@
 
 **IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version!**
 
-Update `APP_VERSION` in `electron/constants.ts` (e.g., `1.3.6`). This is the single source of truth.
+Both constants live in `electron/constants.ts`:
+
+1. **`APP_VERSION`** — Bump this (e.g., `1.4.0`). Single source of truth for the app version.
+2. **`ASR_COMMIT_HASH`** — After bumping the version, commit and **push**, then update this hash to point to that pushed commit. This is the commit that `uvx` fetches from GitHub for production ASR. It must be a pushed commit that includes the `transcribe` packaging config.
+
+The two-step workflow:
+```bash
+# 1. Bump APP_VERSION, commit, and push
+git add -A && git commit -m "Bump version to X.Y.Z"
+git push
+# 2. Update ASR_COMMIT_HASH to the commit hash from step 1, commit, and push
+git rev-parse HEAD  # copy this hash
+# edit ASR_COMMIT_HASH in electron/constants.ts
+git add -A && git commit -m "Update ASR_COMMIT_HASH to vX.Y.Z"
+git push
+```
 
 ### Committing Work
 
