@@ -89,6 +89,7 @@ import GenericAlertDialog from './components/GenericAlertDialog.vue'
 import LicenseAgreementDialog from './components/LicenseAgreementDialog.vue'
 import packageJson from '../package.json'
 import { exportDocumentToSrt } from './utils/srt'
+import { sidecarName } from './utils/fileUtils'
 
 // Log version on startup
 console.log(`========================================`)
@@ -491,12 +492,8 @@ async function handleMenuSaveFile() {
 
 
 /** Build a sidecar filename from the loaded media path (e.g. video.mp4 -> video.captions_json) */
-function sidecarName(): string | null {
-  const mp = store.mediaFilePath
-  if (!mp) return null
-  const dot = mp.lastIndexOf('.')
-  if (dot <= 0) return null
-  return mp.substring(0, dot) + '.captions_json'
+function mediaSidecarName(): string | null {
+  return sidecarName(store.mediaFilePath)
 }
 
 async function handleMenuSaveAs() {
@@ -511,7 +508,7 @@ async function handleMenuSaveAs() {
 
     const result = await window.electronAPI.saveFile({
       content,
-      suggestedName: store.document.filePath || sidecarName() || 'captions.captions_json'
+      suggestedName: store.document.filePath || mediaSidecarName() || 'captions.captions_json'
     })
 
     if (result.success) {

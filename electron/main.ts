@@ -7,6 +7,7 @@ import { exec, type ChildProcess } from 'child_process'
 import { promisify } from 'util'
 import * as os from 'os'
 import { APP_VERSION, UV_VERSION, ASR_COMMIT_HASH, ASR_GITHUB_REPO } from './constants'
+import { findBackupPath } from '../src/utils/fileUtils'
 
 const execAsync = promisify(exec)
 
@@ -970,17 +971,9 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
   try {
     await fs.access(captionsPath)
     // File exists — find a backup name that doesn't collide
-    let backupPath = captionsPath + '.bak'
-    let suffix = 2
-    while (true) {
-      try {
-        await fs.access(backupPath)
-        backupPath = captionsPath + `.bak${suffix}`
-        suffix++
-      } catch {
-        break // doesn't exist, we can use it
-      }
-    }
+    const backupPath = await findBackupPath(captionsPath, async (p) => {
+      try { await fs.access(p); return true } catch { return false }
+    })
     console.log(`[main] Backing up existing captions file: ${captionsPath} -> ${backupPath}`)
     await fs.rename(captionsPath, backupPath)
   } catch {
