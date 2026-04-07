@@ -79,7 +79,7 @@ import { AgGridVue } from 'ag-grid-vue3'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
 import { themeAlpine } from 'ag-grid-community'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
-import { formatTimestampSimple } from '../utils/captionsUtils'
+
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
 import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
@@ -114,8 +114,7 @@ const rowData = computed(() => {
     id: segment.id,
     startTime: segment.startTime,
     endTime: segment.endTime,
-    startTimeFormatted: formatTimestampSimple(segment.startTime),
-    endTimeFormatted: formatTimestampSimple(segment.endTime),
+
     text: segment.text,
     speakerName: segment.speakerName,
     rating: segment.rating,
@@ -216,12 +215,12 @@ const columnDefs = ref<ColDef[]>([
     sortable: true,
   },
   {
-    field: 'startTimeFormatted',
-    colId: 'startTime',
+    field: 'startTime',
     headerName: 'Start',
     width: 120,
     editable: true,
     sortable: true,
+    valueFormatter: (params) => params.value != null ? Number(params.value).toFixed(3) : '',
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
@@ -241,11 +240,7 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('Start time edited:', params.newValue)
       try {
-        // Parse and validate - accept simple format (ssss.000)
-        const timestamp = params.newValue.trim()
-
-        // Try to parse as float (simple format)
-        const seconds = parseFloat(timestamp)
+        const seconds = parseFloat(String(params.newValue).trim())
 
         if (isNaN(seconds) || seconds < 0) {
           throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
@@ -259,17 +254,17 @@ const columnDefs = ref<ColDef[]>([
             message: 'Invalid format: ' + (err instanceof Error ? err.message : 'Unknown error')
           })
         }
-        params.node?.setDataValue('startTimeFormatted', formatTimestampSimple(params.data.startTime))
+        params.node?.setDataValue('startTime', params.data.startTime)
       }
     }
   },
   {
-    field: 'endTimeFormatted',
-    colId: 'endTime',
+    field: 'endTime',
     headerName: 'End',
     width: 120,
     editable: true,
     sortable: true,
+    valueFormatter: (params) => params.value != null ? Number(params.value).toFixed(3) : '',
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
       // Single click seeks to this timestamp
@@ -289,11 +284,7 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('End time edited:', params.newValue)
       try {
-        // Parse and validate - accept simple format (ssss.000)
-        const timestamp = params.newValue.trim()
-
-        // Try to parse as float (simple format)
-        const seconds = parseFloat(timestamp)
+        const seconds = parseFloat(String(params.newValue).trim())
 
         if (isNaN(seconds) || seconds < 0) {
           throw new Error('Invalid format. Use ssss.000 (seconds with 3 decimal places)')
@@ -307,7 +298,7 @@ const columnDefs = ref<ColDef[]>([
             message: 'Invalid format: ' + (err instanceof Error ? err.message : 'Unknown error')
           })
         }
-        params.node?.setDataValue('endTimeFormatted', formatTimestampSimple(params.data.endTime))
+        params.node?.setDataValue('endTime', params.data.endTime)
       }
     }
   }
