@@ -737,6 +737,11 @@ function onCellContextMenu(event: CellContextMenuEvent) {
   const segmentIds = selectedRows.map(row => row.id)
   const isAdjacent = areSegmentsAdjacent(segmentIds)
 
+  // Check if any selected row has a speaker embedding
+  const hasAnyEmbedding = selectedRows.some(row =>
+    (store.document.embeddings ?? []).some(e => e.segmentId === row.id && e.speakerEmbedding)
+  )
+
   // Build context menu items
   contextMenuItems.value = [
     {
@@ -759,6 +764,13 @@ function onCellContextMenu(event: CellContextMenuEvent) {
         store.mergeAdjacentSegments(segmentIds)
       },
       disabled: !isAdjacent || selectedRows.length < 2
+    },
+    {
+      label: 'Sort Rows by Speaker Similarity',
+      action: () => {
+        computeSpeakerSimilarity()
+      },
+      disabled: !hasAnyEmbedding
     },
     {
       label: 'Delete Selected',
