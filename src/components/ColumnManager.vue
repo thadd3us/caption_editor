@@ -64,7 +64,6 @@ const props = defineProps<{
 
 const isPanelOpen = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
-const panelRef = ref<HTMLElement | null>(null)
 
 // Reactive snapshot of column state from grid
 const columnStates = ref<any[]>([])
@@ -134,15 +133,13 @@ function getFilterValue(colId: string): string {
 
 function onFilterInput(colId: string, value: string) {
   if (!props.gridApi) return
-  const filterInstance = props.gridApi.getFilterInstance(colId)
-  if (!filterInstance) return
-
+  const newModel = { ...props.gridApi.getFilterModel() }
   if (value) {
-    filterInstance.setModel({ type: 'contains', filter: value })
+    newModel[colId] = { type: 'contains', filter: value, filterType: 'text' }
   } else {
-    filterInstance.setModel(null)
+    delete newModel[colId]
   }
-  props.gridApi.onFilterChanged()
+  props.gridApi.setFilterModel(newModel)
   // Update local state
   filterModel.value = props.gridApi.getFilterModel() || {}
 }
