@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import type { CaptionsDocument, TranscriptSegment } from '../types/schema'
+import type { CaptionsDocument, TranscriptSegment, UIState } from '../types/schema'
 import {
   createEmptyDocument,
   addSegment as addSegmentToDoc,
@@ -47,6 +47,9 @@ export const useCaptionStore = defineStore('captions', () => {
   const playlistIndex = ref(0)  // Current position in the playlist
   const playlistStartIndex = ref(0)  // Starting position (for returning after completion)
   const isDirty = ref(false) // Track unsaved changes
+
+  // Grid state provider: CaptionTable registers a callback that returns current grid UI state
+  const gridStateProvider = ref<(() => UIState | undefined) | null>(null)
 
   // Computed
   // If the playhead is not inside any segment but is within this many seconds
@@ -209,6 +212,14 @@ export const useCaptionStore = defineStore('captions', () => {
       } catch (error) {
         console.error('Error converting media path to relative:', error)
         // Fall back to original document
+      }
+    }
+
+    // Inject current grid UI state if available
+    if (gridStateProvider.value) {
+      const uiState = gridStateProvider.value()
+      if (uiState) {
+        documentToExport = { ...documentToExport, uiState }
       }
     }
 
@@ -510,6 +521,7 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistIndex,
     playlistStartIndex,
     isDirty,
+    gridStateProvider,
 
     // Computed
     currentSegment,

@@ -144,6 +144,33 @@ class SegmentSpeakerEmbedding(BaseModel):
     )
 
 
+class GridColumnState(BaseModel):
+    """AG Grid column state for persistence."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    col_id: str = Field(description="Column identifier", alias="colId")
+    width: Optional[int] = None
+    hide: Optional[bool] = None
+    sort: Optional[str] = None
+    sort_index: Optional[int] = Field(None, alias="sortIndex")
+    flex: Optional[float] = None
+    pinned: Optional[str] = None
+
+
+class UIState(BaseModel):
+    """UI state persisted with the document (grid column layout, filters, etc.)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    column_state: Optional[list[GridColumnState]] = Field(
+        None, description="AG Grid column state", alias="columnState"
+    )
+    filter_model: Optional[dict] = Field(
+        None, description="AG Grid filter model", alias="filterModel"
+    )
+
+
 class CaptionsDocument(BaseModel):
     """Complete captions document (native .captions_json format)."""
 
@@ -166,4 +193,9 @@ class CaptionsDocument(BaseModel):
         None,
         description="Name of the embedding model that produced the speaker embeddings",
         alias="embeddingModel",
+    )
+    ui_state: Optional[UIState] = Field(
+        None,
+        description="Persisted UI state (grid column layout, filters)",
+        alias="uiState",
     )

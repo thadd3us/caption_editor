@@ -558,6 +558,7 @@ def main(
             history=None,
             embeddings=None,
             embeddingModel=None,
+            uiState=None,
         )
         write_captions_json_file(output, document)
         typer.echo(f"Transcription complete: {output}")

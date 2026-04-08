@@ -60,6 +60,34 @@ export interface TranscriptMetadata {
 }
 
 /**
+ * AG Grid column state for persistence
+ */
+export interface GridColumnState {
+  readonly colId: string
+  readonly width?: number
+  readonly hide?: boolean
+  readonly sort?: 'asc' | 'desc' | null
+  readonly sortIndex?: number | null
+  readonly flex?: number | null
+  readonly pinned?: 'left' | 'right' | null
+}
+
+/**
+ * AG Grid filter model (column ID → filter config)
+ */
+export interface GridFilterModel {
+  readonly [colId: string]: any
+}
+
+/**
+ * UI state persisted with the document (grid column layout, filters, etc.)
+ */
+export interface UIState {
+  readonly columnState?: readonly GridColumnState[]
+  readonly filterModel?: GridFilterModel
+}
+
+/**
  * Complete captions document with metadata
  */
 export interface CaptionsDocument {
@@ -70,6 +98,7 @@ export interface CaptionsDocument {
   readonly history?: readonly SegmentHistoryEntry[] // Historical record of segment changes
   readonly embeddings?: readonly SegmentSpeakerEmbedding[] // Speaker embeddings for segments
   readonly embeddingModel?: string // Name of the embedding model that produced the speaker embeddings
+  readonly uiState?: UIState // Persisted UI state (grid column layout, filters)
 }
 
 /**

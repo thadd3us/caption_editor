@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { ParseResult, TranscriptSegment, TranscriptMetadata, CaptionsDocument } from '../types/schema'
+import type { ParseResult, TranscriptSegment, TranscriptMetadata, CaptionsDocument, UIState } from '../types/schema'
 import { stableJsonStringify } from './stableJson'
 
 function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
@@ -87,13 +87,17 @@ export function parseCaptionsJSON(content: string): ParseResult {
       }
     }
 
+    // Parse uiState if present
+    const uiState = (obj.uiState && typeof obj.uiState === 'object') ? obj.uiState as UIState : undefined
+
     const document: CaptionsDocument = {
       metadata,
       title: typeof obj.title === 'string' ? obj.title : undefined,
       segments: sortSegments(typedSegments),
       history: Array.isArray(obj.history) ? (obj.history as any) : undefined,
       embeddings,
-      embeddingModel
+      embeddingModel,
+      uiState
       // filePath is intentionally not persisted; it’s attached by caller
     }
 

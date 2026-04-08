@@ -47,6 +47,9 @@
         </label>
       </div>
     </div>
+    <div class="grid-toolbar">
+      <ColumnManager :grid-api="gridApi" :column-defs="columnDefs" />
+    </div>
     <ag-grid-vue
       class="ag-theme-alpine"
       :theme="gridTheme"
@@ -76,7 +79,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
-import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent } from 'ag-grid-community'
+import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent, ColumnState } from 'ag-grid-community'
 import { themeAlpine } from 'ag-grid-community'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 
@@ -85,7 +88,9 @@ import ActionButtonsCell from './ActionButtonsCell.vue'
 import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import VerifiedCheckCell from './VerifiedCheckCell.vue'
 import ContextMenu from './ContextMenu.vue'
+import ColumnManager from './ColumnManager.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
+import type { UIState } from '../types/schema'
 import { decodeEmbedding } from '../utils/embeddingCodec'
 
 const store = useCaptionStore()
@@ -307,6 +312,7 @@ const columnDefs = ref<ColDef[]>([
 const defaultColDef = ref<ColDef>({
   sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
+  suppressHeaderFilterButton: true,  // Hide per-column filter icons; use ColumnManager instead
   resizable: true,
   cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }
 })
@@ -329,6 +335,9 @@ function onGridReady(params: GridReadyEvent) {
 
   // Expose grid API to window for testing
   ;(window as any).__agGridApi = params.api
+
+  // Restore grid state if document was loaded before grid was ready
+  setTimeout(restoreGridState, 0)
 }
 
 function onRowClicked(event: RowClickedEvent) {
@@ -785,11 +794,62 @@ function closeContextMenu() {
   isContextMenuVisible.value = false
 }
 
+// --- Grid state persistence ---
+
+/** Get current grid UI state for saving */
+function getGridState(): UIState | undefined {
+  if (!gridApi.value) return undefined
+  const columnState = gridApi.value.getColumnState()
+  const filterModel = gridApi.value.getFilterModel()
+  // Only persist if there's meaningful state
+  const hasFilters = filterModel && Object.keys(filterModel).length > 0
+  if (!columnState && !hasFilters) return undefined
+  return {
+    columnState: columnState as UIState['columnState'],
+    filterModel: hasFilters ? filterModel : undefined
+  }
+}
+
+// Register grid state provider with the store so exportToString() can capture it
+store.gridStateProvider = getGridState
+
+// Track document ID to restore state only once per file open
+let lastRestoredDocumentId: string | null = null
+
+/** Restore grid state from document if present */
+function restoreGridState() {
+  if (!gridApi.value) return
+  const docId = store.document.metadata.id
+  if (docId === lastRestoredDocumentId) return
+  lastRestoredDocumentId = docId
+
+  const uiState = store.document.uiState
+  if (!uiState) return
+
+  if (uiState.columnState) {
+    gridApi.value.applyColumnState({
+      state: uiState.columnState as ColumnState[],
+      applyOrder: true
+    })
+  }
+  if (uiState.filterModel) {
+    gridApi.value.setFilterModel(uiState.filterModel)
+  }
+  console.log('Restored grid state from document')
+}
+
+// Restore grid state when document changes (file open)
+watch(() => store.document.metadata.id, () => {
+  // Use nextTick-like delay to ensure grid has processed new rowData
+  setTimeout(restoreGridState, 0)
+})
+
 onMounted(() => {
   window.addEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 
 onUnmounted(() => {
+  store.gridStateProvider = null
   window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
 })
 </script>
@@ -986,6 +1046,12 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+.grid-toolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
 }
 
 .ag-theme-alpine {
