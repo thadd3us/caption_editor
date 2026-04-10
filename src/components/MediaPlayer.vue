@@ -55,7 +55,7 @@
       </div>
 
       <div class="caption-resizer" @mousedown="startCaptionResize"></div>
-      <div class="current-caption-display" :style="{ height: captionHeight + 'px' }">
+      <div class="current-caption-display" :style="{ height: store.captionHeight + 'px' }">
         <div class="caption-label">Current Caption:</div>
         <div
           class="caption-text"
@@ -107,17 +107,15 @@ const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
 const currentSegment = computed(() => store.currentSegment)
 
-// Resizable caption area
-const captionHeight = ref(120)
-
+// Resizable caption area (backed by store for persistence)
 function startCaptionResize(event: MouseEvent) {
   event.preventDefault()
   const startY = event.clientY
-  const startHeight = captionHeight.value
+  const startHeight = store.captionHeight
 
   function onMouseMove(e: MouseEvent) {
     const delta = startY - e.clientY
-    captionHeight.value = Math.max(60, Math.min(400, startHeight + delta))
+    store.captionHeight = Math.max(60, Math.min(400, startHeight + delta))
   }
 
   function onMouseUp() {
