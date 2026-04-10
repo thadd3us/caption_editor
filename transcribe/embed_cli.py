@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
 from captions_json_lib import parse_captions_json_file, write_captions_json_file
-from schema import SegmentSpeakerEmbedding, encode_embedding
+from schema import CaptionsDocument, SegmentSpeakerEmbedding, encode_embedding
 
 app = typer.Typer(help="Compute speaker embeddings for .captions_json files")
 
@@ -56,6 +56,95 @@ def compute_embedding(
     return embedding
 
 
+def load_embedding_model(model_name: str) -> Inference:
+    """Load a speaker embedding model and return an Inference wrapper.
+
+    Checks HuggingFace cache first for fast local loading.
+    Extracted from main() so bulk processing can load once and reuse.
+
+    Args:
+        model_name: Pyannote/wespeaker model name.
+
+    Returns:
+        pyannote Inference object ready for embedding computation.
+    """
+    token = get_hf_token()
+
+    model_path = (
+        Path.home() / f".cache/huggingface/hub/models--{model_name.replace('/', '--')}"
+    )
+    snapshots = list((model_path / "snapshots").rglob("pytorch_model.bin"))
+    if len(snapshots) == 1:
+        embedding_model = Model.from_pretrained(snapshots[0].parent)
+    else:
+        if token:
+            embedding_model = Model.from_pretrained(model_name, use_auth_token=token)
+        else:
+            embedding_model = Model.from_pretrained(model_name)
+
+    if not embedding_model:
+        raise ValueError(f"Failed to load embedding model: {model_name}")
+
+    return Inference(embedding_model, window="whole")
+
+
+def embed_document(
+    document: CaptionsDocument,
+    audio_path: Path,
+    inference: Inference,
+    model_name: str,
+    min_segment_duration: float = 0.3,
+) -> CaptionsDocument:
+    """Compute speaker embeddings for all segments in a document.
+
+    Uses a pre-loaded Inference model. The audio_path should be a WAV file
+    (caller handles conversion).
+    Extracted from main() so bulk processing can reuse a loaded model.
+
+    Args:
+        document: CaptionsDocument with segments to embed.
+        audio_path: Path to 16kHz mono WAV file.
+        inference: Pre-loaded pyannote Inference object.
+        model_name: Embedding model name (stored in document).
+        min_segment_duration: Skip segments shorter than this (seconds).
+
+    Returns:
+        Updated CaptionsDocument with embeddings populated.
+    """
+    segment_id_to_embedding: dict[str, np.ndarray] = {}
+    skipped_count = 0
+
+    for segment in tqdm(document.segments, desc="Embedding segments", unit="seg"):
+        duration = segment.end_time - segment.start_time
+        if duration < min_segment_duration:
+            skipped_count += 1
+            continue
+
+        audio, sample_rate = load_audio_segment(
+            audio_path, segment.start_time, segment.end_time
+        )
+
+        if len(audio) == 0:
+            continue
+
+        embedding = compute_embedding(inference, audio, sample_rate)
+        segment_id_to_embedding[segment.id] = embedding
+
+    embeddings = []
+    for segment_id, embedding in segment_id_to_embedding.items():
+        embedding_b64 = encode_embedding(embedding.tolist())
+        embeddings.append(
+            SegmentSpeakerEmbedding(
+                segmentId=segment_id,
+                speakerEmbedding=embedding_b64,
+            )
+        )
+
+    document.embeddings = embeddings
+    document.embedding_model = model_name
+    return document
+
+
 @app.command()
 def main(
     captions_path: Path = typer.Argument(
@@ -83,21 +172,14 @@ def main(
     HF_TOKEN environment variable is optional (only needed for gated models).
     Writes embeddings into the `embeddings` field of the captions JSON document.
     """
-    # Use a temporary directory that persists through the whole function
     temp_dir_obj = tempfile.TemporaryDirectory()
     temp_dir = Path(temp_dir_obj.name)
 
     try:
-        # Get HuggingFace token (optional for public models)
-        token = get_hf_token()
-
-        # Parse captions JSON file
         typer.echo(f"Parsing captions JSON: {captions_path}")
         document = parse_captions_json_file(captions_path)
         metadata = document.metadata
-        segments = document.segments
 
-        # Get media file path (relative to captions file directory)
         if not metadata.media_file_path:
             raise ValueError("No media file path found in document metadata")
 
@@ -108,97 +190,30 @@ def main(
             raise ValueError(f"Media file not found: {media_path}")
 
         typer.echo(f"Media file: {media_path}")
-        typer.echo(f"Found {len(segments)} segments")
+        typer.echo(f"Found {len(document.segments)} segments")
 
-        # Check if media file needs conversion
+        # Convert to WAV if needed
         audio_path = media_path
         if media_path.suffix.lower() not in [".wav", ".wave"]:
             typer.echo(f"Converting {media_path.suffix} to WAV format...")
-            try:
-                audio_path = extract_audio_to_wav(media_path, temp_dir / "audio.wav")
-                typer.echo("Conversion complete")
-            except ValueError as e:
-                raise ValueError(f"Failed to convert audio file: {e}")
+            audio_path = extract_audio_to_wav(media_path, temp_dir / "audio.wav")
+            typer.echo("Conversion complete")
 
-        # Load embedding model
         typer.echo(f"Loading embedding model: {model}")
-        model_path = (
-            Path.home() / f".cache/huggingface/hub/models--{model.replace('/', '--')}"
-        )
-        snapshots = list((model_path / "snapshots").rglob("pytorch_model.bin"))
-        if len(snapshots) == 1:
-            typer.echo(f"Loading model from {snapshots[0]=}")
-            embedding_model = Model.from_pretrained(snapshots[0].parent)
-        else:
-            typer.echo(f"Downloading {model=}")
-            # Use token if available, otherwise download public model without auth
-            if token:
-                embedding_model = Model.from_pretrained(model, use_auth_token=token)
-            else:
-                embedding_model = Model.from_pretrained(model)
-        if not embedding_model:
-            raise ValueError(f"Failed to load embedding model: {model}")
-        inference = Inference(embedding_model, window="whole")
+        inference = load_embedding_model(model)
 
-        # Process each segment
         typer.echo("Computing embeddings...")
-        # Map from segment ID to embedding
-        segment_id_to_embedding = {}
-        skipped_count = 0
+        embed_document(document, audio_path, inference, model, min_segment_duration)
 
-        for segment in tqdm(segments, desc="Processing segments", unit="segment"):
-            # Skip segments shorter than 0.5 seconds
-            duration = segment.end_time - segment.start_time
-            if duration < min_segment_duration:
-                tqdm.write(
-                    f"Skipping short segment {segment.id} (duration: {duration:.3f}s)"
-                )
-                skipped_count += 1
-                continue
-
-            # Extract audio segment
-            audio, sample_rate = load_audio_segment(
-                audio_path, segment.start_time, segment.end_time
-            )
-
-            if len(audio) == 0:
-                tqdm.write(f"Warning: Empty audio for segment {segment.id}")
-                continue
-
-            # Compute embedding
-            embedding = compute_embedding(inference, audio, sample_rate)
-
-            # Store in map
-            segment_id_to_embedding[segment.id] = embedding
-
-        typer.echo(
-            f"Skipped {skipped_count} segments shorter than {min_segment_duration}s"
-        )
-        typer.echo(f"Computed {len(segment_id_to_embedding)} embeddings")
-
-        # Create SegmentSpeakerEmbedding objects with base64-encoded vectors
-        embeddings = []
-        for segment_id, embedding in segment_id_to_embedding.items():
-            embedding_b64 = encode_embedding(embedding.tolist())
-            embeddings.append(
-                SegmentSpeakerEmbedding(
-                    segmentId=segment_id,
-                    speakerEmbedding=embedding_b64,
-                )
-            )
-
-        # Write updated document with embeddings
         typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
-        document.embeddings = embeddings
-        document.embedding_model = model
         write_captions_json_file(captions_path, document)
-        typer.echo(f"Done! Wrote {len(embeddings)} embeddings to captions JSON")
+        n = len(document.embeddings) if document.embeddings else 0
+        typer.echo(f"Done! Wrote {n} embeddings to captions JSON")
 
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=1)
     finally:
-        # Clean up temporary directory
         temp_dir_obj.cleanup()
 
 

@@ -34,6 +34,7 @@ dependencies = [
 transcribe_cli = "transcribe_cli:app"
 diarize = "diarize:app"
 embed_cli = "embed_cli:app"
+bulk_cli = "bulk_cli:app"
 
 [dependency-groups]
 dev = [
@@ -64,12 +65,14 @@ override-dependencies = [
 # Use find_packages to discover Python modules, exclude test directories
 py-modules = [
     "audio_utils",
+    "bulk_cli",
     "transcribe_cli",
     "embed_cli",
     "asr_results_to_captions",
     "captions_json_lib",
     "capture_raw_asr_output",
     "constants",
+    "recognizer",
     "repo_root",
     "schema",
 ]

@@ -305,6 +305,192 @@ def compute_audio_hash(audio_path: Path) -> str:
     return hasher.hexdigest()
 
 
+def load_asr_model(model_name: str, device: Optional[str] = None):
+    """Load an ASR model and return (model, is_nemo).
+
+    Handles NeMo (Parakeet/NVIDIA) and HuggingFace Transformers models.
+    Extracted from main() so bulk processing can load once and reuse.
+
+    Args:
+        model_name: HuggingFace model name (e.g. 'nvidia/parakeet-tdt-0.6b-v3')
+        device: 'cuda' or 'cpu'. Auto-detected if None.
+
+    Returns:
+        Tuple of (asr_pipeline, is_nemo).
+    """
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    is_nemo = "parakeet" in model_name.lower() or "nvidia" in model_name.lower()
+
+    if is_nemo:
+        if not NEMO_AVAILABLE:
+            raise RuntimeError(
+                "NeMo toolkit not installed. Install with: pip install nemo_toolkit['asr']"
+            )
+
+        assert nemo_asr is not None
+        asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(
+            model_name=model_name
+        )
+
+        # Re-suppress NeMo logging after model load (from_pretrained resets it)
+        nemo_logging.setLevel(logging.ERROR)  # type: ignore[possibly-unbound]
+
+        # Disable pretokenize for inference — it's a training optimization
+        # (tokenize during data sampling for 2D bucketing) that's irrelevant
+        # when transcribing and triggers a spurious NeMo warning.
+        _orig_setup_dl = asr_pipeline._setup_dataloader_from_config  # type: ignore[union-attr]
+
+        def _patched_setup_dl(config, _orig=_orig_setup_dl):
+            from omegaconf import OmegaConf, open_dict
+
+            if OmegaConf.is_config(config) and config.get("use_lhotse", False):
+                with open_dict(config):
+                    config.pretokenize = False
+            return _orig(config)
+
+        asr_pipeline._setup_dataloader_from_config = _patched_setup_dl  # type: ignore[assignment]
+
+        if device == "cuda":
+            asr_pipeline = asr_pipeline.to(device)  # type: ignore[union-attr]
+    else:
+        if not TRANSFORMERS_AVAILABLE:
+            raise RuntimeError(
+                "Transformers library not installed. Install with: pip install transformers"
+            )
+
+        assert pipeline is not None
+        asr_pipeline = pipeline(
+            "automatic-speech-recognition",
+            model=model_name,
+            device=0 if device == "cuda" else -1,
+        )
+
+    return asr_pipeline, is_nemo
+
+
+def transcribe_audio_file(
+    audio_path: Path,
+    asr_pipeline,
+    is_nemo: bool,
+    model_name: str,
+    chunk_size: int = 60,
+    overlap: int = 5,
+    max_intra_segment_gap_seconds: float = 0.50,
+    max_segment_duration_seconds: float = 10.0,
+) -> List[ASRSegment]:
+    """Run chunked ASR on a WAV file with a pre-loaded model.
+
+    Performs the full three-pass post-processing pipeline (overlap resolution,
+    gap-based grouping/splitting, long-segment splitting).
+    Extracted from main() so bulk processing can reuse a loaded model.
+
+    Args:
+        audio_path: Path to 16kHz mono WAV file.
+        asr_pipeline: Pre-loaded ASR model.
+        is_nemo: Whether asr_pipeline is a NeMo model.
+        model_name: Model name string (used for Whisper vs Parakeet branching).
+        chunk_size: Chunk size in seconds.
+        overlap: Overlap between chunks in seconds.
+        max_intra_segment_gap_seconds: Max gap before splitting a segment.
+        max_segment_duration_seconds: Max segment duration before splitting.
+
+    Returns:
+        Post-processed list of ASRSegment objects.
+    """
+    info = sf.info(audio_path)
+    duration = info.duration
+
+    # Process chunks
+    all_segments: List[ASRSegment] = []
+    num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
+
+    for i in tqdm(range(num_chunks), desc="Transcribing chunks", unit="chunk"):
+        chunk_start = i * (chunk_size - overlap)
+        chunk_duration = min(chunk_size, duration - chunk_start)
+
+        if chunk_duration <= 0:
+            break
+
+        audio, sr = load_audio_chunk(audio_path, chunk_start, chunk_duration)
+
+        if len(audio) == 0:
+            continue
+
+        chunk_segments = transcribe_chunk(
+            audio, asr_pipeline, chunk_start, sr, is_nemo=is_nemo
+        )
+        all_segments.extend(chunk_segments)
+
+    # Three-pass segment processing pipeline:
+    # 1. Resolve overlaps from chunked processing
+    after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
+
+    # 2. Gap-based grouping (Whisper) or splitting (Parakeet)
+    if "whisper" in model_name.lower():
+        after_grouping = group_segments_by_gap(
+            after_overlap, max_intra_segment_gap_seconds
+        )
+    else:
+        after_grouping = split_segments_by_word_gap(
+            after_overlap, max_intra_segment_gap_seconds
+        )
+
+    # 3. Split long segments
+    final_segments = split_long_segments(
+        after_grouping, max_segment_duration_seconds
+    )
+
+    return final_segments
+
+
+def build_captions_document(
+    media_path: Path,
+    audio_path: Path,
+    asr_segments: List[ASRSegment],
+    model_name: str,
+    deterministic_ids: bool = False,
+) -> CaptionsDocument:
+    """Convert ASR segments into a complete CaptionsDocument.
+
+    Handles segment conversion, ID/timestamp assignment, and document metadata.
+    Extracted from main() so bulk processing can build documents independently.
+
+    Args:
+        media_path: Path to the original media file (stored in metadata).
+        audio_path: Path to the WAV file (used for audio hash).
+        asr_segments: Post-processed ASR segments from transcribe_audio_file().
+        model_name: ASR model name (stored per-segment).
+        deterministic_ids: Use simple incremental IDs for testing.
+
+    Returns:
+        Complete CaptionsDocument ready for serialization.
+    """
+    audio_hash = compute_audio_hash(audio_path)
+
+    final_segments_list = asr_segments_to_transcript_segments(
+        asr_segments, asr_model=model_name
+    )
+
+    assign_cue_ids_and_timestamps(
+        final_segments_list, audio_hash, deterministic_ids=deterministic_ids
+    )
+
+    doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
+    metadata = TranscriptMetadata(id=doc_id, mediaFilePath=str(media_path))
+
+    return CaptionsDocument(
+        metadata=metadata,
+        title=media_path.stem,
+        segments=final_segments_list,
+        history=None,
+        embeddings=None,
+        embeddingModel=None,
+        uiState=None,
+    )
+
+
 @app.command()
 def main(
     media_file: Path = typer.Argument(
@@ -398,144 +584,34 @@ def main(
     typer.echo(f"Output: {output}")
     typer.echo(f"Chunk size: {chunk_size}s, Overlap: {overlap}s")
 
-    # Set device
     device = "cuda" if torch.cuda.is_available() else "cpu"
     typer.echo(f"Using device: {device}")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
 
-        # Extract audio
         typer.echo("Extracting audio...")
         audio_path = extract_audio(media_file, temp_path)
 
-        # Get audio info
-        info = sf.info(audio_path)
-        duration = info.duration
-        typer.echo(f"Audio duration: {duration:.2f}s")
+        typer.echo(f"Audio duration: {sf.info(audio_path).duration:.2f}s")
 
-        # Compute audio hash
-        audio_hash = compute_audio_hash(audio_path)
-
-        # Detect if this is a NeMo model (Parakeet models use NeMo)
-        is_nemo = "parakeet" in model_name.lower() or "nvidia" in model_name.lower()
-
-        # Load model
         typer.echo(f"Loading model: {model_name}")
+        try:
+            asr_pipeline, is_nemo = load_asr_model(model_name, device)
+        except RuntimeError as e:
+            typer.echo(f"Error: {e}", err=True)
+            raise typer.Exit(1)
 
-        if is_nemo:
-            if not NEMO_AVAILABLE:
-                typer.echo(
-                    "Error: NeMo toolkit not installed. Install with: pip install nemo_toolkit['asr']",
-                    err=True,
-                )
-                raise typer.Exit(1)
-
-            typer.echo("Using NeMo ASR model...")
-            assert nemo_asr is not None  # Checked via NEMO_AVAILABLE above
-            asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(
-                model_name=model_name
-            )
-
-            # Re-suppress NeMo logging after model load (from_pretrained resets it)
-            nemo_logging.setLevel(logging.ERROR)  # type: ignore[possibly-unbound]
-
-            # Disable pretokenize for inference — it's a training optimization
-            # (tokenize during data sampling for 2D bucketing) that's irrelevant
-            # when transcribing and triggers a spurious NeMo warning.
-            _orig_setup_dl = asr_pipeline._setup_dataloader_from_config  # type: ignore[union-attr]
-
-            def _patched_setup_dl(config, _orig=_orig_setup_dl):
-                from omegaconf import OmegaConf, open_dict
-
-                if OmegaConf.is_config(config) and config.get("use_lhotse", False):
-                    with open_dict(config):
-                        config.pretokenize = False
-                return _orig(config)
-
-            asr_pipeline._setup_dataloader_from_config = _patched_setup_dl  # type: ignore[assignment]
-
-            # Move to appropriate device
-            if device == "cuda":
-                asr_pipeline = asr_pipeline.to(device)  # type: ignore[union-attr]
-        else:
-            if not TRANSFORMERS_AVAILABLE:
-                typer.echo(
-                    "Error: Transformers library not installed. Install with: pip install transformers",
-                    err=True,
-                )
-                raise typer.Exit(1)
-
-            typer.echo("Using Hugging Face Transformers model...")
-            assert pipeline is not None  # Checked via TRANSFORMERS_AVAILABLE above
-            asr_pipeline = pipeline(
-                "automatic-speech-recognition",
-                model=model_name,
-                device=0 if device == "cuda" else -1,
-            )
-
-        # Process chunks - get ASR segments with word-level timestamps
-        all_segments = []
-        num_chunks = int(np.ceil((duration - overlap) / (chunk_size - overlap)))
-
-        typer.echo(f"Processing {num_chunks} chunks...")
-        for i in tqdm(range(num_chunks), desc="Transcribing chunks", unit="chunk"):
-            chunk_start = i * (chunk_size - overlap)
-            chunk_duration = min(chunk_size, duration - chunk_start)
-
-            if chunk_duration <= 0:
-                break
-
-            # Load audio chunk
-            audio, sr = load_audio_chunk(audio_path, chunk_start, chunk_duration)
-
-            if len(audio) == 0:
-                continue
-
-            # Transcribe - returns ASRSegment objects with word-level timestamps
-            chunk_segments = transcribe_chunk(
-                audio, asr_pipeline, chunk_start, sr, is_nemo=is_nemo
-            )
-            all_segments.extend(chunk_segments)
-
-        # Three-pass segment processing pipeline:
-        # 1. Resolve overlaps from chunked processing (deduplicate at word level)
-        typer.echo("Resolving overlaps from chunked processing...")
-        after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
-
-        # 2a. For Whisper (word-level segments), group by gaps to form sentences
-        # 2b. For Parakeet (sentence-level segments), split by word gaps if needed
-        if "whisper" in model_name.lower():
-            typer.echo(
-                f"Grouping word segments with gaps < {max_intra_segment_gap_seconds}s..."
-            )
-            after_grouping = group_segments_by_gap(
-                after_overlap, max_intra_segment_gap_seconds
-            )
-        else:
-            typer.echo(
-                f"Splitting segments with gaps > {max_intra_segment_gap_seconds}s..."
-            )
-            after_grouping = split_segments_by_word_gap(
-                after_overlap, max_intra_segment_gap_seconds
-            )
-
-        # 3. Split long segments
-        typer.echo(f"Splitting segments longer than {max_segment_duration_seconds}s...")
-        final_segments = split_long_segments(
-            after_grouping, max_segment_duration_seconds
-        )
-
-        # Convert ASRSegments to TranscriptSegments
-        typer.echo("Converting segments to transcript segments...")
-        final_segments_list = asr_segments_to_transcript_segments(
-            final_segments, asr_model=model_name
-        )
-
-        # Assign IDs and timestamps to segments
-        typer.echo("Assigning IDs and timestamps...")
-        assign_cue_ids_and_timestamps(
-            final_segments_list, audio_hash, deterministic_ids=deterministic_ids
+        typer.echo("Transcribing...")
+        asr_segments = transcribe_audio_file(
+            audio_path,
+            asr_pipeline,
+            is_nemo,
+            model_name,
+            chunk_size=chunk_size,
+            overlap=overlap,
+            max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
+            max_segment_duration_seconds=max_segment_duration_seconds,
         )
 
         # Remux MP3 if requested (adds Xing seek table for accurate browser seeking)
@@ -543,28 +619,19 @@ def main(
         if remux_mp3 and media_file.suffix.lower() == ".mp3":
             actual_media_path = remux_mp3_with_seek_table(media_file)
 
-        # Generate document metadata
-        doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
-        metadata = TranscriptMetadata(id=doc_id, mediaFilePath=str(actual_media_path))
+        document = build_captions_document(
+            actual_media_path,
+            audio_path,
+            asr_segments,
+            model_name,
+            deterministic_ids=deterministic_ids,
+        )
 
-        # Copy media file to output directory to keep VTT and media together
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Build document and write output
-        # (history/embeddings are optional but pass explicitly for type-checkers)
-        document = CaptionsDocument(
-            metadata=metadata,
-            title=media_file.stem,
-            segments=final_segments_list,
-            history=None,
-            embeddings=None,
-            embeddingModel=None,
-            uiState=None,
-        )
         write_captions_json_file(output, document)
         typer.echo(f"Transcription complete: {output}")
-        typer.echo(f"Generated {len(final_segments_list)} segments")
+        typer.echo(f"Generated {len(document.segments)} segments")
 
         # Run embedding if requested
         if embed:
