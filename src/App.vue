@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useCaptionStore } from './stores/captionStore'
 import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
@@ -103,7 +103,10 @@ const store = useCaptionStore()
 const LICENSE_ACCEPTED_KEY = 'caption-editor-license-accepted'
 const isLicenseDialogOpen = ref(false)
 
-const leftPanelWidth = ref(60)
+const leftPanelWidth = computed({
+  get: () => store.leftPanelWidth,
+  set: (v: number) => { store.leftPanelWidth = v }
+})
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
 const isBulkSetSpeakerDialogOpen = ref(false)

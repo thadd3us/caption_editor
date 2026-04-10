@@ -55,7 +55,7 @@
       </div>
 
       <div class="caption-resizer" @mousedown="startCaptionResize"></div>
-      <div class="current-caption-display" :style="{ height: captionHeight + 'px' }">
+      <div class="current-caption-display" :style="{ height: store.captionHeight + 'px' }">
         <div class="caption-label">Current Caption:</div>
         <div
           class="caption-text"
@@ -66,6 +66,7 @@
               v-for="(word, index) in currentSegment.words"
               :key="index"
               class="word-span"
+              :class="{ 'word-active': index === currentWordIndex }"
               :data-word-index="index"
               :data-has-timestamp="word.startTime !== undefined"
             >{{ word.text }}</span>{{ ' ' }}
@@ -107,17 +108,29 @@ const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
 const currentSegment = computed(() => store.currentSegment)
 
-// Resizable caption area
-const captionHeight = ref(120)
+const currentWordIndex = computed(() => {
+  const seg = currentSegment.value
+  if (!seg?.words) return -1
+  const t = store.currentTime
+  for (let i = seg.words.length - 1; i >= 0; i--) {
+    const w = seg.words[i]
+    if (w.startTime != null && w.startTime <= t) {
+      if (w.endTime != null && t >= w.endTime) return -1
+      return i
+    }
+  }
+  return -1
+})
 
+// Resizable caption area (backed by store for persistence)
 function startCaptionResize(event: MouseEvent) {
   event.preventDefault()
   const startY = event.clientY
-  const startHeight = captionHeight.value
+  const startHeight = store.captionHeight
 
   function onMouseMove(e: MouseEvent) {
     const delta = startY - e.clientY
-    captionHeight.value = Math.max(60, Math.min(400, startHeight + delta))
+    store.captionHeight = Math.max(60, Math.min(400, startHeight + delta))
   }
 
   function onMouseUp() {
@@ -545,6 +558,10 @@ video, audio {
   padding: 1px 2px;
   border-radius: 2px;
   transition: background 0.15s;
+}
+
+.word-span.word-active {
+  background-color: rgba(66, 133, 244, 0.35);
 }
 
 .word-span:hover {

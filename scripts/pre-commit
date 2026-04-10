@@ -27,7 +27,11 @@ echo "🐍 Checking Python with ruff..."
 cd transcribe
 uv run ruff check .
 uv run ruff format .
-git add -u .
+# Only stage files that ruff actually reformatted (dirty in the working tree).
+# Avoid `git add -u .` which, in sparse worktrees (e.g. Mux), marks every
+# file not present on disk as a deletion and silently folds those deletions
+# into the commit.
+git diff --name-only . | xargs -r git add --
 
 echo "🐍 Running pyright..."
 uv run pyright

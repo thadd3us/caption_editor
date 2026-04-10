@@ -51,6 +51,10 @@ export const useCaptionStore = defineStore('captions', () => {
   // Grid state provider: CaptionTable registers a callback that returns current grid UI state
   const gridStateProvider = ref<(() => UIState | undefined) | null>(null)
 
+  // Layout state (persisted in uiState)
+  const leftPanelWidth = ref(60)  // Percentage width of left (table) panel
+  const captionHeight = ref(120)  // Pixel height of caption display area
+
   // Computed
   // If the playhead is not inside any segment but is within this many seconds
   // before the next segment's start, show that upcoming segment instead.
@@ -122,6 +126,15 @@ export const useCaptionStore = defineStore('captions', () => {
 
       document.value = loadedDoc
       isDirty.value = false // Reset dirty flag on load
+
+      // Restore layout dimensions from persisted uiState
+      if (loadedDoc.uiState?.leftPanelWidth != null) {
+        leftPanelWidth.value = loadedDoc.uiState.leftPanelWidth
+      }
+      if (loadedDoc.uiState?.captionHeight != null) {
+        captionHeight.value = loadedDoc.uiState.captionHeight
+      }
+
       console.log('Loaded document with', document.value.segments.length, 'segments')
     } else {
       console.error('Failed to load captions:', result.error)
@@ -215,13 +228,14 @@ export const useCaptionStore = defineStore('captions', () => {
       }
     }
 
-    // Inject current grid UI state if available
-    if (gridStateProvider.value) {
-      const uiState = gridStateProvider.value()
-      if (uiState) {
-        documentToExport = { ...documentToExport, uiState }
-      }
+    // Inject current UI state (grid state + layout dimensions)
+    const gridUiState = gridStateProvider.value ? gridStateProvider.value() : undefined
+    const uiState: UIState = {
+      ...gridUiState,
+      leftPanelWidth: leftPanelWidth.value,
+      captionHeight: captionHeight.value,
     }
+    documentToExport = { ...documentToExport, uiState }
 
     return serializeCaptionsJSON(documentToExport)
   }
@@ -544,6 +558,8 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistStartIndex,
     isDirty,
     gridStateProvider,
+    leftPanelWidth,
+    captionHeight,
 
     // Computed
     currentSegment,
@@ -585,6 +601,8 @@ export const useCaptionStore = defineStore('captions', () => {
       playlistIndex.value = 0
       playlistStartIndex.value = 0
       isDirty.value = false
+      leftPanelWidth.value = 60
+      captionHeight.value = 120
     }
   }
 })

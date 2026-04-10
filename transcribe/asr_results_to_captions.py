@@ -515,6 +515,7 @@ def asr_segments_to_transcript_segments(
                 timestamp=None,
                 verified=False,
                 asrModel=asr_model,
+                notes=None,
             )
         )
 
