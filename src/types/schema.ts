@@ -47,6 +47,7 @@ export interface TranscriptSegment {
   readonly timestamp?: string // ISO 8601 timestamp of when the segment was created/last modified
   readonly verified?: boolean // Whether a human has reviewed/checked off this segment
   readonly asrModel?: string // Name of the ASR model that generated this segment (e.g. 'nvidia/parakeet-tdt-0.6b-v3')
+  readonly notes?: string // Optional free-text notes (no time sync)
 }
 
 /**
