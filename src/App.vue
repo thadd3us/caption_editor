@@ -58,6 +58,29 @@
       @confirm="confirmState.resolve(true)"
       @cancel="confirmState.resolve(false)"
     />
+    <!-- Unsaved Changes 3-option dialog -->
+    <BaseModal
+      :is-open="unsavedChangesState.isOpen"
+      title="Unsaved Changes"
+      max-width="450px"
+      @close="unsavedChangesState.resolve('cancel')"
+    >
+      <div class="confirm-content">
+        <p>You have unsaved changes. What would you like to do?</p>
+      </div>
+      <template #footer>
+        <button class="dialog-button dialog-button-secondary" @click="unsavedChangesState.resolve('cancel')">
+          {{ unsavedChangesState.context === 'quit' ? 'Keep working' : 'Cancel' }}
+        </button>
+        <button class="dialog-button dialog-button-danger" @click="unsavedChangesState.resolve('discard')">
+          {{ unsavedChangesState.context === 'quit' ? 'Discard and Quit' : 'Discard changes' }}
+        </button>
+        <button class="dialog-button dialog-button-success" @click="unsavedChangesState.resolve('save')">
+          {{ unsavedChangesState.context === 'quit' ? 'Save and Quit' : 'Save' }}
+        </button>
+      </template>
+    </BaseModal>
+
     <GenericAlertDialog
       :is-open="alertState.isOpen"
       :title="alertState.title"
@@ -85,6 +108,7 @@ import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
 import RemuxMp3Dialog from './components/RemuxMp3Dialog.vue'
 import AsrModal from './components/AsrModal.vue'
 import GenericConfirmDialog from './components/GenericConfirmDialog.vue'
+import BaseModal from './components/BaseModal.vue'
 import GenericAlertDialog from './components/GenericAlertDialog.vue'
 import LicenseAgreementDialog from './components/LicenseAgreementDialog.vue'
 import packageJson from '../package.json'
@@ -143,6 +167,14 @@ const alertState = ref({
   title: '',
   message: '',
   resolve: () => {}
+})
+
+// Unsaved changes 3-option dialog state
+type UnsavedChangesResult = 'save' | 'discard' | 'cancel'
+const unsavedChangesState = ref({
+  isOpen: false,
+  context: 'quit' as 'quit' | 'continue',
+  resolve: (_value: UnsavedChangesResult) => {}
 })
 
 async function showConfirm(options: { 
@@ -432,22 +464,26 @@ watch(
 /**
  * Menu action handlers
  */
-async function confirmDiscardChanges(): Promise<boolean> {
+async function confirmDiscardChanges(context: 'quit' | 'continue' = 'continue'): Promise<UnsavedChangesResult> {
   if (store.isDirty && store.document.segments.length > 0) {
-    return await showConfirm({
-      title: 'Unsaved Changes',
-      message: 'You have unsaved changes. Are you sure you want to discard them?',
-      confirmText: 'Discard changes',
-      cancelText: 'Keep changes'
+    return new Promise((resolve) => {
+      unsavedChangesState.value = {
+        isOpen: true,
+        context,
+        resolve: (value) => {
+          unsavedChangesState.value.isOpen = false
+          resolve(value)
+        }
+      }
     })
   }
-  return true
+  return 'discard' // No unsaved changes, proceed
 }
 
 async function handleMenuOpenFile() {
-  if (await confirmDiscardChanges()) {
-    fileDropZone.value?.triggerFileInput()
-  }
+  const result = await confirmDiscardChanges('continue')
+  if (result === 'save') await handleMenuSaveFile()
+  if (result !== 'cancel') fileDropZone.value?.triggerFileInput()
 }
 
 async function handleMenuSaveFile() {
@@ -561,7 +597,9 @@ async function handleMenuExportSrt() {
 // ASR menu handler
 async function handleMenuAsrCaption() {
   console.log('[ASR] Caption menu item clicked')
-  if (!(await confirmDiscardChanges())) return
+  const discardResult = await confirmDiscardChanges('continue')
+  if (discardResult === 'save') await handleMenuSaveFile()
+  if (discardResult === 'cancel') return
 
   if (store.document.segments.length > 0) {
     isAsrConfirmDialogVisible.value = true
@@ -821,20 +859,14 @@ onMounted(() => {
     
     api.onAppClose?.(async () => {
       console.log('[App] Received app-close request')
-      if (store.isDirty && store.document.segments.length > 0) {
-        const confirmed = await showConfirm({
-          title: 'Unsaved Changes',
-          message: 'You have unsaved changes. Are you sure you want to quit and discard them?',
-          confirmText: 'Discard and Quit',
-          cancelText: 'Keep working'
-        })
-        
-        if (confirmed) {
-          api.quitApp()
-        }
-      } else {
+      const result = await confirmDiscardChanges('quit')
+      if (result === 'save') {
+        await handleMenuSaveFile()
+        api.quitApp()
+      } else if (result === 'discard') {
         api.quitApp()
       }
+      // 'cancel' → do nothing, stay open
     })
   }
 
@@ -887,7 +919,9 @@ onMounted(() => {
   // Listen for files dropped via IPC
   if ((window as any).electronAPI?.ipcRenderer) {
     (window as any).electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
-      if (await confirmDiscardChanges()) {
+      const dropResult = await confirmDiscardChanges('continue')
+      if (dropResult === 'save') await handleMenuSaveFile()
+      if (dropResult !== 'cancel') {
         try {
           const { failures } = await store.processFilePaths(filePaths)
           if (failures > 0) {
@@ -975,5 +1009,47 @@ html, body, #app {
   height: 100%;
   overflow: auto;
   background: var(--surface-2);
+}
+
+/* Unsaved changes dialog buttons */
+.confirm-content {
+  color: var(--text-1);
+}
+
+.dialog-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dialog-button-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+}
+
+.dialog-button-secondary:hover {
+  background: var(--btn-secondary-hover-bg);
+}
+
+.dialog-button-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.dialog-button-danger:hover {
+  background: #dc2626;
+}
+
+.dialog-button-success {
+  background: #22c55e;
+  color: #fff;
+}
+
+.dialog-button-success:hover {
+  background: #16a34a;
 }
 </style>
