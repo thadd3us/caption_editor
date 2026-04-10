@@ -133,7 +133,9 @@ def get_audio_duration_seconds(media_path: Path) -> float:
     return 0.0
 
 
-def atomic_write_captions_json(path: Path, document, *, captions_path: Optional[Path] = None) -> None:
+def atomic_write_captions_json(
+    path: Path, document, *, captions_path: Optional[Path] = None
+) -> None:
     """Write a CaptionsDocument to *path* via atomic rename.
 
     Writes to a temp file in the same directory then ``os.replace()``s it
@@ -201,9 +203,7 @@ def main(
     max_segment_duration_seconds: float = typer.Option(
         10.0, "--max-segment-duration-seconds"
     ),
-    min_segment_duration: float = typer.Option(
-        0.3, "--min-segment-duration"
-    ),
+    min_segment_duration: float = typer.Option(0.3, "--min-segment-duration"),
     recognizer_kind: str = typer.Option(
         "auto",
         "--recognizer",
@@ -221,8 +221,8 @@ def main(
         raise typer.Exit(0)
 
     # ── 2. Partition into work lists ──────────────────────────────────
-    needs_asr: list[Path] = []          # full ASR + embedding
-    needs_embed_only: list[Path] = []   # already have captions, re-embed
+    needs_asr: list[Path] = []  # full ASR + embedding
+    needs_embed_only: list[Path] = []  # already have captions, re-embed
 
     for media in all_media:
         cp = captions_path_for(media)
@@ -292,7 +292,6 @@ def main(
             unit="min",
             bar_format="{l_bar}{bar}| {n:.1f}/{total:.1f} min [{elapsed}<{remaining}]",
         ) as pbar:
-
             # ── ASR pass ──────────────────────────────────────────────
             for media in needs_asr:
                 if _shutdown_requested:
@@ -303,9 +302,7 @@ def main(
 
                 try:
                     with tempfile.TemporaryDirectory() as td:
-                        wav_path = extract_audio_to_wav(
-                            media, Path(td) / "audio.wav"
-                        )
+                        wav_path = extract_audio_to_wav(media, Path(td) / "audio.wav")
 
                         assert recognizer is not None
                         asr_segments = recognizer.transcribe(
@@ -356,9 +353,7 @@ def main(
                     document = parse_captions_json_file(cp)
 
                     with tempfile.TemporaryDirectory() as td:
-                        wav_path = extract_audio_to_wav(
-                            media, Path(td) / "audio.wav"
-                        )
+                        wav_path = extract_audio_to_wav(media, Path(td) / "audio.wav")
 
                         if embed_inference is not None:
                             from embed_cli import embed_document

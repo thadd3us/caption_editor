@@ -5,9 +5,7 @@ fast without downloading any model weights.
 """
 
 import json
-import os
 from pathlib import Path
-from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -211,9 +209,7 @@ class TestBulkCLI:
     def test_skips_existing_captions(self, tmp_path: Path):
         """Files with existing .captions_json are skipped."""
         make_silent_wav(tmp_path / "done.wav", 3.0)
-        make_minimal_captions_json(
-            tmp_path / "done.captions_json", "done.wav"
-        )
+        make_minimal_captions_json(tmp_path / "done.captions_json", "done.wav")
 
         make_silent_wav(tmp_path / "new.wav", 3.0)
 
@@ -248,9 +244,7 @@ class TestBulkCLI:
     def test_always_update_embeddings(self, tmp_path: Path):
         """--always-update-speaker-embeddings re-embeds existing files."""
         make_silent_wav(tmp_path / "audio.wav", 3.0)
-        make_minimal_captions_json(
-            tmp_path / "audio.captions_json", "audio.wav"
-        )
+        make_minimal_captions_json(tmp_path / "audio.captions_json", "audio.wav")
 
         result = runner.invoke(
             app,

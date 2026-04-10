@@ -330,9 +330,7 @@ def load_asr_model(model_name: str, device: Optional[str] = None):
             )
 
         assert nemo_asr is not None
-        asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(
-            model_name=model_name
-        )
+        asr_pipeline = nemo_asr.models.ASRModel.from_pretrained(model_name=model_name)
 
         # Re-suppress NeMo logging after model load (from_pretrained resets it)
         nemo_logging.setLevel(logging.ERROR)  # type: ignore[possibly-unbound]
@@ -438,9 +436,7 @@ def transcribe_audio_file(
         )
 
     # 3. Split long segments
-    final_segments = split_long_segments(
-        after_grouping, max_segment_duration_seconds
-    )
+    final_segments = split_long_segments(after_grouping, max_segment_duration_seconds)
 
     return final_segments
 
