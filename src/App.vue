@@ -737,16 +737,10 @@ async function startAsrTranscription() {
     if (result.success) {
       console.log('[ASR] Transcription completed successfully:', result.captionsPath)
 
-      // Load the generated captions JSON using the content returned directly from the main process
-      if (result.content && result.captionsPath) {
-        store.loadFromFile(result.content, result.captionsPath)
-        // Stamp ASR model name onto all segments so we know which model generated them
-        const asrModel = model || 'nvidia/parakeet-tdt-0.6b-v3'
-        for (const segment of store.document.segments) {
-          store.updateSegment(segment.id, { asrModel })
-        }
-        store.setIsDirty(false) // Reset dirty flag since this is a fresh ASR load
-        console.log('[ASR] Captions file loaded successfully, model:', asrModel)
+      // Merge ASR results into current document (preserves UUID, title, history, etc.)
+      if (result.content) {
+        store.mergeAsrResult(result.content)
+        console.log('[ASR] ASR results merged into document')
       } else {
         throw new Error('Transcription succeeded but no captions content was returned')
       }

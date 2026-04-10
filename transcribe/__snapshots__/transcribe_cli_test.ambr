@@ -7,6 +7,7 @@
     }),
     'segments': list([
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 3.44,
         'id': 'id_00000',
         'index': 0,
@@ -58,6 +59,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 7.2,
         'id': 'id_00001',
         'index': 0,
@@ -109,6 +111,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 9.76,
         'id': 'id_00002',
         'index': 0,
@@ -170,6 +173,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 13.52,
         'id': 'id_00003',
         'index': 0,
@@ -226,6 +230,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 16.72,
         'id': 'id_00004',
         'index': 0,
@@ -272,6 +277,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 19.8,
         'id': 'id_00005',
         'index': 0,
@@ -318,6 +324,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 23.0,
         'id': 'id_00006',
         'index': 0,
@@ -369,6 +376,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 26.36,
         'id': 'id_00007',
         'index': 0,
@@ -420,6 +428,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 29.32,
         'id': 'id_00008',
         'index': 0,
@@ -466,6 +475,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 32.44,
         'id': 'id_00009',
         'index': 0,
@@ -533,6 +543,7 @@
     }),
     'segments': list([
       dict({
+        'asrModel': 'openai/whisper-tiny',
         'endTime': 8.96,
         'id': 'id_00000',
         'index': 0,
@@ -619,6 +630,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'openai/whisper-tiny',
         'endTime': 15.86,
         'id': 'id_00001',
         'index': 0,
@@ -680,6 +692,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'openai/whisper-tiny',
         'endTime': 28.62,
         'id': 'id_00002',
         'index': 0,
@@ -736,6 +749,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'openai/whisper-tiny',
         'endTime': 32.0,
         'id': 'id_00003',
         'index': 0,

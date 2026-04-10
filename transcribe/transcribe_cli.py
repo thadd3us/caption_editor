@@ -528,7 +528,9 @@ def main(
 
         # Convert ASRSegments to TranscriptSegments
         typer.echo("Converting segments to transcript segments...")
-        final_segments_list = asr_segments_to_transcript_segments(final_segments)
+        final_segments_list = asr_segments_to_transcript_segments(
+            final_segments, asr_model=model_name
+        )
 
         # Assign IDs and timestamps to segments
         typer.echo("Assigning IDs and timestamps...")

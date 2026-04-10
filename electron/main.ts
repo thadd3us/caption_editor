@@ -48,7 +48,15 @@ console.log(`[main] ========================================`)
 // Store security-scoped bookmarks for macOS
 const fileBookmarks = new Map<string, Buffer>()
 
-let mainWindow: BrowserWindow | null = null
+/** Helper: get the BrowserWindow that sent an IPC event, or the focused window as fallback. */
+function windowForEvent(event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent): BrowserWindow | null {
+  return BrowserWindow.fromWebContents(event.sender) || BrowserWindow.getFocusedWindow()
+}
+
+/** Helper: get the focused window (for menu clicks which have no event). */
+function focusedWindow(): BrowserWindow | null {
+  return BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0] || null
+}
 
 function createMenu() {
   const isMac = process.platform === 'darwin'
@@ -73,24 +81,30 @@ function createMenu() {
       label: 'File',
       submenu: [
         {
+          label: 'New Window',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => { createWindow() }
+        },
+        { type: 'separator' as const },
+        {
           label: 'Open File...',
           accelerator: 'CmdOrCtrl+O',
           click: () => {
-            mainWindow?.webContents.send('menu-open-file')
+            focusedWindow()?.webContents.send('menu-open-file')
           }
         },
         {
           label: 'Save',
           accelerator: 'CmdOrCtrl+S',
           click: () => {
-            mainWindow?.webContents.send('menu-save-file')
+            focusedWindow()?.webContents.send('menu-save-file')
           }
         },
         {
           label: 'Save As...',
           accelerator: 'CmdOrCtrl+Shift+S',
           click: () => {
-            mainWindow?.webContents.send('menu-save-as')
+            focusedWindow()?.webContents.send('menu-save-as')
           }
         },
         {
@@ -99,7 +113,7 @@ function createMenu() {
             {
               label: 'SRT...',
               click: () => {
-                mainWindow?.webContents.send('menu-export-srt')
+                focusedWindow()?.webContents.send('menu-export-srt')
               }
             }
           ]
@@ -146,13 +160,13 @@ function createMenu() {
         {
           label: 'Rename Speaker...',
           click: () => {
-            mainWindow?.webContents.send('menu-rename-speaker')
+            focusedWindow()?.webContents.send('menu-rename-speaker')
           }
         },
         {
           label: 'Sort Rows by Speaker Similarity',
           click: () => {
-            mainWindow?.webContents.send('menu-compute-speaker-similarity')
+            focusedWindow()?.webContents.send('menu-compute-speaker-similarity')
           }
         }
       ]
@@ -167,7 +181,7 @@ function createMenu() {
           enabled: false,  // Will be enabled when media is loaded
           id: 'asr-caption',
           click: () => {
-            mainWindow?.webContents.send('menu-asr-caption')
+            focusedWindow()?.webContents.send('menu-asr-caption')
           }
         },
         {
@@ -175,7 +189,7 @@ function createMenu() {
           enabled: false,  // Will be enabled when media is loaded and segments exist
           id: 'asr-embed',
           click: () => {
-            mainWindow?.webContents.send('menu-asr-embed')
+            focusedWindow()?.webContents.send('menu-asr-embed')
           }
         }
       ]
@@ -230,8 +244,8 @@ function createMenu() {
   Menu.setApplicationMenu(menu)
 }
 
-function createWindow() {
-  mainWindow = new BrowserWindow({
+function createWindow(): BrowserWindow {
+  const win = new BrowserWindow({
     width: 1200,
     height: 800,
     show: process.env.HEADLESS !== 'true',
@@ -248,7 +262,7 @@ function createWindow() {
   })
 
   // Set up Content Security Policy
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval is needed for Vite in dev, unsafe-inline for some libraries
@@ -269,42 +283,50 @@ function createWindow() {
 
   // In development, load from Vite dev server
   if (process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
-    mainWindow.webContents.openDevTools()
+    win.loadURL(process.env.VITE_DEV_SERVER_URL)
+    win.webContents.openDevTools()
   } else {
     // In production, load from built files
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
+    win.loadFile(path.join(__dirname, '../dist/index.html'))
   }
 
-  let isQuitting = false
-
-  mainWindow.on('close', (e) => {
+  win.on('close', (e) => {
     // In test environment, allow direct closing to avoid hanging E2E tests.
     // In production/dev, we intercept to allow "unsaved changes" confirmation.
     if (!isQuitting && process.env.NODE_ENV !== 'test') {
       e.preventDefault()
-      mainWindow?.webContents.send('app-close')
+      win.webContents.send('app-close')
     }
-  })
-
-  // IPC handler to actually quit the app after confirmation
-  ipcMain.on('app:quit', () => {
-    isQuitting = true
-    app.quit()
-  })
-
-  mainWindow.on('closed', () => {
-    mainWindow = null
   })
 
   // Send any pending file to open once the window is ready
-  mainWindow.webContents.on('did-finish-load', () => {
-    if (fileToOpen && mainWindow) {
-      mainWindow.webContents.send('open-file', fileToOpen)
+  win.webContents.on('did-finish-load', () => {
+    if (fileToOpen) {
+      win.webContents.send('open-file', fileToOpen)
       fileToOpen = null
     }
   })
+
+  return win
 }
+
+// Track quit state for close-handler
+let isQuitting = false
+
+// IPC handler to actually quit/close after confirmation
+ipcMain.on('app:quit', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (win) {
+    if (BrowserWindow.getAllWindows().length <= 1) {
+      isQuitting = true
+      app.quit()
+    } else {
+      isQuitting = true
+      win.close()
+      isQuitting = false
+    }
+  }
+})
 
 // Handle file opening from OS (macOS)
 let fileToOpen: string | null = null
@@ -312,9 +334,10 @@ let fileToOpen: string | null = null
 app.on('open-file', (event, filePath) => {
   event.preventDefault()
 
-  if (mainWindow && mainWindow.webContents) {
-    // Window is ready, send the file path
-    mainWindow.webContents.send('open-file', filePath)
+  const windows = BrowserWindow.getAllWindows()
+  if (windows.length > 0) {
+    const win = BrowserWindow.getFocusedWindow() || windows[0]
+    win.webContents.send('open-file', filePath)
   } else {
     // Window not ready yet, store for later
     fileToOpen = filePath
@@ -434,10 +457,11 @@ app.whenReady().then(() => {
     }
   }
 
-  // Handle files dropped from preload
-  ipcMain.on('files-dropped', (_event, filePaths: string[]) => {
-    if (mainWindow && mainWindow.webContents) {
-      mainWindow.webContents.send('files-dropped', filePaths)
+  // Handle files dropped from preload — relay back to the sender window
+  ipcMain.on('files-dropped', (event, filePaths: string[]) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) {
+      win.webContents.send('files-dropped', filePaths)
     }
   })
 })
@@ -453,14 +477,14 @@ app.on('window-all-closed', () => {
 /**
  * Open file picker dialog and return file info
  */
-ipcMain.handle('dialog:openFile', async (_event, options?: {
+ipcMain.handle('dialog:openFile', async (event, options?: {
   filters?: Array<{ name: string; extensions: string[] }>,
   properties?: Array<'openFile' | 'multiSelections'>
 }) => {
-  if (!mainWindow) return null
+  const win = windowForEvent(event)
+  if (!win) return null
 
-
-  const result = await dialog.showOpenDialog(mainWindow, {
+  const result = await dialog.showOpenDialog(win, {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
       { name: 'All Supported Files', extensions: all_files },
@@ -503,15 +527,16 @@ ipcMain.handle('file:read', async (_event, filePath: string) => {
 /**
  * Write file contents - prompts for save location
  */
-ipcMain.handle('file:save', async (_event, options: {
+ipcMain.handle('file:save', async (event, options: {
   content: string,
   defaultPath?: string,
   suggestedName?: string
 }) => {
-  if (!mainWindow) return { success: false, error: 'No window available' }
+  const win = windowForEvent(event)
+  if (!win) return { success: false, error: 'No window available' }
 
   try {
-    const result = await dialog.showSaveDialog(mainWindow, {
+    const result = await dialog.showSaveDialog(win, {
       defaultPath: options.suggestedName || `captions${CAPTIONS_JSON_SUFFIX}`,
       filters: [
         { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
@@ -543,14 +568,15 @@ ipcMain.handle('file:save', async (_event, options: {
 /**
  * Write SRT file contents - prompts for save location
  */
-ipcMain.handle('file:saveSrt', async (_event, options: {
+ipcMain.handle('file:saveSrt', async (event, options: {
   content: string,
   suggestedName?: string
 }) => {
-  if (!mainWindow) return { success: false, error: 'No window available' }
+  const win = windowForEvent(event)
+  if (!win) return { success: false, error: 'No window available' }
 
   try {
-    const result = await dialog.showSaveDialog(mainWindow, {
+    const result = await dialog.showSaveDialog(win, {
       defaultPath: options.suggestedName || 'captions.srt',
       filters: [
         { name: 'SRT Files', extensions: srt_files },
@@ -782,7 +808,8 @@ async function runAsrTool(options: {
   inputPath: string,
   model?: string,
   chunkSize?: number,
-  remuxMp3?: boolean
+  remuxMp3?: boolean,
+  senderWebContents?: Electron.WebContents
 }): Promise<AsrResult> {
   const { script, inputPath, model, chunkSize, remuxMp3 } = options
 
@@ -803,7 +830,7 @@ async function runAsrTool(options: {
   let stderrTail = ''
 
   const sendOutput = (type: 'stdout' | 'stderr', data: string) => {
-    mainWindow?.webContents.send('asr:output', { processId, type, data })
+    options.senderWebContents?.send('asr:output', { processId, type, data })
 
     if (shouldMirrorAsrOutputToMainStdio) {
       const prefix = `[asr:${processId}:${type}] `
@@ -874,7 +901,7 @@ async function runAsrTool(options: {
     tempOverridesPath = overridesPathForUvx
   }
 
-  mainWindow?.webContents.send('asr:started', { processId })
+  options.senderWebContents?.send('asr:started', { processId })
 
   const { spawn } = await import('child_process')
   const binDir = path.join(os.homedir(), '.cache', 'caption_editor', 'bin')
@@ -960,7 +987,7 @@ async function runAsrTool(options: {
 /**
  * Run ASR transcription on media file
  */
-ipcMain.handle('asr:transcribe', async (_event, options: {
+ipcMain.handle('asr:transcribe', async (event, options: {
   mediaFilePath: string,
   model?: string,
   chunkSize?: number,
@@ -985,7 +1012,8 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
     inputPath: options.mediaFilePath,
     model: options.model,
     chunkSize: options.chunkSize,
-    remuxMp3: options.remuxMp3
+    remuxMp3: options.remuxMp3,
+    senderWebContents: event.sender
   })
 
   if (result.success) {
@@ -1011,14 +1039,15 @@ ipcMain.handle('asr:transcribe', async (_event, options: {
 /**
  * Run speaker embedding on captions JSON file
  */
-ipcMain.handle('asr:embed', async (_event, options: {
+ipcMain.handle('asr:embed', async (event, options: {
   captionsPath: string,
   model?: string
 }) => {
   const result = await runAsrTool({
     script: 'embed_cli.py',
     inputPath: options.captionsPath,
-    model: options.model
+    model: options.model,
+    senderWebContents: event.sender
   })
 
   if (result.success) {

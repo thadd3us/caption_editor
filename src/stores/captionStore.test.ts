@@ -295,4 +295,61 @@ describe('captionStore', () => {
     })
   })
 
+  describe('mergeAsrResult', () => {
+    it('replaces segments but preserves document identity', () => {
+      const store = useCaptionStore()
+
+      // Set up a document with identity
+      const originalContent = JSON.stringify({
+        metadata: { id: 'original-uuid-123', mediaFilePath: '/path/to/media.wav' },
+        title: 'My Custom Title',
+        segments: [
+          { id: 'seg-1', index: 0, startTime: 0, endTime: 1, text: 'Old segment' }
+        ],
+        history: [
+          { id: 'hist-1', action: 'modified', actionTimestamp: '2024-01-01T00:00:00Z', segment: { id: 'seg-1', index: 0, startTime: 0, endTime: 1, text: 'Original' } }
+        ],
+        embeddings: [
+          { segmentId: 'seg-1', speakerEmbedding: 'base64data' }
+        ],
+        embeddingModel: 'wespeaker-v1'
+      })
+      store.loadFromFile(originalContent, '/path/to/doc.captions_json')
+      store.updateTitle('My Custom Title')
+      store.setIsDirty(false)
+
+      // Now merge ASR results (which have a different UUID and segments)
+      const asrContent = JSON.stringify({
+        metadata: { id: 'asr-generated-uuid' },
+        title: 'auto-generated-title',
+        segments: [
+          { id: 'asr-seg-1', index: 0, startTime: 0, endTime: 2, text: 'New ASR segment 1', asrModel: 'nvidia/parakeet-tdt-0.6b-v3' },
+          { id: 'asr-seg-2', index: 1, startTime: 2, endTime: 4, text: 'New ASR segment 2', asrModel: 'nvidia/parakeet-tdt-0.6b-v3' }
+        ]
+      })
+
+      store.mergeAsrResult(asrContent)
+
+      // Document identity preserved
+      expect(store.document.metadata.id).toBe('original-uuid-123')
+      expect(store.document.title).toBe('My Custom Title')
+      expect(store.document.metadata.mediaFilePath).toBe('/path/to/media.wav')
+      expect(store.document.filePath).toBe('/path/to/doc.captions_json')
+      expect(store.document.history).toHaveLength(1)
+
+      // Segments replaced
+      expect(store.document.segments).toHaveLength(2)
+      expect(store.document.segments[0].text).toBe('New ASR segment 1')
+      expect(store.document.segments[0].asrModel).toBe('nvidia/parakeet-tdt-0.6b-v3')
+      expect(store.document.segments[1].text).toBe('New ASR segment 2')
+
+      // Embeddings cleared (invalidated by new segments)
+      expect(store.document.embeddings).toBeUndefined()
+      expect(store.document.embeddingModel).toBeUndefined()
+
+      // Dirty flag set
+      expect(store.isDirty).toBe(true)
+    })
+  })
+
 })

@@ -470,6 +470,7 @@ def zip_words_in_overlapping_segments(
 
 def asr_segments_to_transcript_segments(
     segments: List[ASRSegment],
+    asr_model: Optional[str] = None,
 ) -> List[TranscriptSegment]:
     """Convert ASRSegment list to TranscriptSegment list.
 
@@ -513,7 +514,7 @@ def asr_segments_to_transcript_segments(
                 rating=None,
                 timestamp=None,
                 verified=False,
-                asrModel=None,
+                asrModel=asr_model,
             )
         )
 

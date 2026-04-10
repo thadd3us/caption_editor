@@ -458,6 +458,27 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistStartIndex.value = 0
   }
 
+  /**
+   * Merge ASR transcription results into the current document.
+   * Replaces segments (and clears embeddings) but preserves document identity
+   * (metadata.id, title, history, uiState, filePath, mediaFilePath).
+   */
+  function mergeAsrResult(content: string) {
+    const result = parseCaptionsJSON(content)
+    if (!result.success || !result.document) {
+      throw new Error(result.error || 'Failed to parse ASR result')
+    }
+    const asrDoc = result.document
+    document.value = {
+      ...document.value,
+      segments: asrDoc.segments,
+      // Clear embeddings — they're invalidated by new segments
+      embeddings: undefined,
+      embeddingModel: undefined,
+    }
+    isDirty.value = true
+  }
+
   function setIsDirty(value: boolean) {
     isDirty.value = value
   }
@@ -531,6 +552,7 @@ export const useCaptionStore = defineStore('captions', () => {
     // Actions
     loadFromFile,
     loadMediaFile,
+    mergeAsrResult,
     exportToString,
     updateTitle,
     updateFilePath,

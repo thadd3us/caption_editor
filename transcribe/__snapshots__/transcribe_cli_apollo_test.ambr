@@ -7,6 +7,7 @@
     }),
     'segments': list([
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 0.48,
         'id': 'id_00000',
         'index': 0,
@@ -23,6 +24,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 1.92,
         'id': 'id_00001',
         'index': 0,
@@ -39,6 +41,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 4.96,
         'id': 'id_00002',
         'index': 0,
@@ -80,6 +83,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 6.96,
         'id': 'id_00003',
         'index': 0,
@@ -111,6 +115,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 9.84,
         'id': 'id_00004',
         'index': 0,
@@ -157,6 +162,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 10.72,
         'id': 'id_00005',
         'index': 0,
@@ -173,6 +179,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 12.0,
         'id': 'id_00006',
         'index': 0,
@@ -189,6 +196,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 14.88,
         'id': 'id_00007',
         'index': 0,
@@ -240,6 +248,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 16.8,
         'id': 'id_00008',
         'index': 0,
@@ -276,6 +285,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 20.16,
         'id': 'id_00009',
         'index': 0,
@@ -317,6 +327,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 33.84,
         'id': 'id_00010',
         'index': 0,
@@ -363,6 +374,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 45.6,
         'id': 'id_00011',
         'index': 0,
@@ -404,6 +416,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 50.48,
         'id': 'id_00012',
         'index': 0,
@@ -435,6 +448,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 57.8,
         'id': 'id_00013',
         'index': 0,
@@ -456,6 +470,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 61.96,
         'id': 'id_00014',
         'index': 0,
@@ -492,6 +507,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 66.36,
         'id': 'id_00015',
         'index': 0,
@@ -558,6 +574,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 74.6,
         'id': 'id_00016',
         'index': 0,
@@ -644,6 +661,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 78.44,
         'id': 'id_00017',
         'index': 0,
@@ -700,6 +718,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 87.48,
         'id': 'id_00018',
         'index': 0,
@@ -761,6 +780,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 95.0,
         'id': 'id_00019',
         'index': 0,
@@ -812,6 +832,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 96.92,
         'id': 'id_00020',
         'index': 0,
@@ -863,6 +884,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 103.72,
         'id': 'id_00021',
         'index': 0,
@@ -954,6 +976,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 105.64,
         'id': 'id_00022',
         'index': 0,
@@ -985,6 +1008,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 113.52,
         'id': 'id_00023',
         'index': 0,
@@ -1061,6 +1085,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 116.72,
         'id': 'id_00024',
         'index': 0,
@@ -1107,6 +1132,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 119.36,
         'id': 'id_00025',
         'index': 0,
@@ -1148,6 +1174,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 127.92,
         'id': 'id_00026',
         'index': 0,
@@ -1219,6 +1246,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 141.76,
         'id': 'id_00027',
         'index': 0,
@@ -1285,6 +1313,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 145.52,
         'id': 'id_00028',
         'index': 0,
@@ -1336,6 +1365,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 148.24,
         'id': 'id_00029',
         'index': 0,
@@ -1362,6 +1392,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 152.64,
         'id': 'id_00030',
         'index': 0,
@@ -1413,6 +1444,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 162.48,
         'id': 'id_00031',
         'index': 0,
@@ -1444,6 +1476,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 163.92,
         'id': 'id_00032',
         'index': 0,
@@ -1475,6 +1508,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 164.72,
         'id': 'id_00033',
         'index': 0,
@@ -1491,6 +1525,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 166.76,
         'id': 'id_00034',
         'index': 0,
@@ -1517,6 +1552,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 174.12,
         'id': 'id_00035',
         'index': 0,
@@ -1538,6 +1574,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 175.32,
         'id': 'id_00036',
         'index': 0,
@@ -1564,6 +1601,7 @@
         ]),
       }),
       dict({
+        'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',
         'endTime': 178.28,
         'id': 'id_00037',
         'index': 0,
