@@ -50,6 +50,20 @@ You do this by right-clicking the words in the selected caption on the bottom ri
 The play button above the table plays segments in the table order, jumping around the audio file, so you can listen to all segments with similar speaker embeddedings.
 
 
+## Bulk Processing
+
+To run ASR and speaker embedding on an entire directory tree from the project root:
+
+```bash
+cd transcribe && uv run python bulk_cli.py /path/to/media/
+```
+
+Options:
+- `--recognizer mock` — dry run with a fast deterministic stub (no model download)
+- `--always-update-speaker-embeddings` — re-embed files that already have embeddings
+
+Files with an existing `.captions_json` sidecar are skipped, so you can Ctrl-C and resume at any time.
+
 ## Other tips
 
 * `.captions_json` files contain a relative path pointing to their media file.
