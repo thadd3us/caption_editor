@@ -233,6 +233,25 @@ const columnDefs = ref<ColDef[]>([
     sortable: true,
   },
   {
+    field: 'notes',
+    headerName: 'Notes',
+    flex: 1,
+    minWidth: 150,
+    hide: true,
+    editable: true,
+    cellEditor: 'agLargeTextCellEditor',
+    cellEditorParams: {
+      maxLength: 1000,
+      rows: 4,
+      cols: 50
+    },
+    wrapText: true,
+    autoHeight: true,
+    onCellValueChanged: (params) => {
+      store.updateSegment(params.data.id, { notes: params.newValue })
+    }
+  },
+  {
     field: 'startTime',
     headerName: 'Start',
     width: 120,

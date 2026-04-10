@@ -96,6 +96,9 @@ class TranscriptSegment(BaseModel):
         description="Name of the ASR model that generated this segment",
         alias="asrModel",
     )
+    notes: Optional[str] = Field(
+        None, description="Optional free-text notes (no time sync)"
+    )
 
 
 # Legacy alias for backwards compatibility during migration
