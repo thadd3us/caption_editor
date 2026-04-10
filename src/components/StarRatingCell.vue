@@ -61,16 +61,16 @@ function handleClick(star: number) {
 .star {
   cursor: pointer;
   font-size: 20px;
-  color: #999;
+  color: #999 !important;
   transition: color 0.2s;
   user-select: none;
 }
 
 .star.filled {
-  color: #ffd700;
+  color: #ffd700 !important;
 }
 
 .star:hover {
-  color: #ffed4e;
+  color: #ffed4e !important;
 }
 </style>
