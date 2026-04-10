@@ -9,6 +9,7 @@
       dict({
         'endTime': 0.48,
         'id': 'id_00000',
+        'index': 0,
         'startTime': 0.24,
         'text': 'uh',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -24,6 +25,7 @@
       dict({
         'endTime': 1.92,
         'id': 'id_00001',
+        'index': 0,
         'startTime': 1.6,
         'text': 'uh',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -39,6 +41,7 @@
       dict({
         'endTime': 4.96,
         'id': 'id_00002',
+        'index': 0,
         'startTime': 2.48,
         'text': 'depressed in the surface about uh',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -79,6 +82,7 @@
       dict({
         'endTime': 6.96,
         'id': 'id_00003',
+        'index': 0,
         'startTime': 5.52,
         'text': 'one or two inches.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -109,6 +113,7 @@
       dict({
         'endTime': 9.84,
         'id': 'id_00004',
+        'index': 0,
         'startTime': 7.12,
         'text': 'Uh although the surface appears to be',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -154,6 +159,7 @@
       dict({
         'endTime': 10.72,
         'id': 'id_00005',
+        'index': 0,
         'startTime': 10.4,
         'text': 'uh',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -169,6 +175,7 @@
       dict({
         'endTime': 12.0,
         'id': 'id_00006',
+        'index': 0,
         'startTime': 11.68,
         'text': 'very',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -184,6 +191,7 @@
       dict({
         'endTime': 14.88,
         'id': 'id_00007',
+        'index': 0,
         'startTime': 12.88,
         'text': 'fine grained as you get close to it.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -234,6 +242,7 @@
       dict({
         'endTime': 16.8,
         'id': 'id_00008',
+        'index': 0,
         'startTime': 14.96,
         'text': "It's almost like a powder.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -269,6 +278,7 @@
       dict({
         'endTime': 20.16,
         'id': 'id_00009',
+        'index': 0,
         'startTime': 17.44,
         'text': "Brown mass uh it's very fine.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -309,6 +319,7 @@
       dict({
         'endTime': 33.84,
         'id': 'id_00010',
+        'index': 0,
         'startTime': 32.0,
         'text': "I'm gonna step off the lamb now.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -354,6 +365,7 @@
       dict({
         'endTime': 45.6,
         'id': 'id_00011',
+        'index': 0,
         'startTime': 43.12,
         'text': "It's one small step per man",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -394,6 +406,7 @@
       dict({
         'endTime': 50.48,
         'id': 'id_00012',
+        'index': 0,
         'startTime': 49.2,
         'text': 'giant leap per man.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -424,6 +437,7 @@
       dict({
         'endTime': 57.8,
         'id': 'id_00013',
+        'index': 0,
         'startTime': 57.2,
         'text': 'The uh',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -444,6 +458,7 @@
       dict({
         'endTime': 61.96,
         'id': 'id_00014',
+        'index': 0,
         'startTime': 59.96,
         'text': 'surface is fine and powdery.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -479,6 +494,7 @@
       dict({
         'endTime': 66.36,
         'id': 'id_00015',
+        'index': 0,
         'startTime': 62.12,
         'text': 'I can I can pick it up loosely with my toe.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -544,6 +560,7 @@
       dict({
         'endTime': 74.6,
         'id': 'id_00016',
+        'index': 0,
         'startTime': 67.16,
         'text': 'It does adhere t in fine layers, uh like uh powdered charcoal to the uh',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -629,6 +646,7 @@
       dict({
         'endTime': 78.44,
         'id': 'id_00017',
+        'index': 0,
         'startTime': 75.24,
         'text': 'to the spool and and sides of my boots.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -684,6 +702,7 @@
       dict({
         'endTime': 87.48,
         'id': 'id_00018',
+        'index': 0,
         'startTime': 84.84,
         'text': 'Making sure not to lock it on my way up.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -744,6 +763,7 @@
       dict({
         'endTime': 95.0,
         'id': 'id_00019',
+        'index': 0,
         'startTime': 93.08,
         'text': "That's our home for the next couple hours.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -794,6 +814,7 @@
       dict({
         'endTime': 96.92,
         'id': 'id_00020',
+        'index': 0,
         'startTime': 95.16,
         'text': 'We want to take good care of it.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -844,6 +865,7 @@
       dict({
         'endTime': 103.72,
         'id': 'id_00021',
+        'index': 0,
         'startTime': 99.88,
         'text': "Okay, I'm on the top step and I can look down over the RCU and s",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -934,6 +956,7 @@
       dict({
         'endTime': 105.64,
         'id': 'id_00022',
+        'index': 0,
         'startTime': 104.6,
         'text': 'find the gear pad.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -964,6 +987,7 @@
       dict({
         'endTime': 113.52,
         'id': 'id_00023',
+        'index': 0,
         'startTime': 109.48,
         'text': "That's a very simple matter to hop down from one step the next.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1039,6 +1063,7 @@
       dict({
         'endTime': 116.72,
         'id': 'id_00024',
+        'index': 0,
         'startTime': 113.84,
         'text': "Yeah, that's be very comfortable and uh",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1084,6 +1109,7 @@
       dict({
         'endTime': 119.36,
         'id': 'id_00025',
+        'index': 0,
         'startTime': 117.28,
         'text': 'and walking is also very comfortable.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1124,6 +1150,7 @@
       dict({
         'endTime': 127.92,
         'id': 'id_00026',
+        'index': 0,
         'startTime': 119.44,
         'text': "You're on you've got three more steps and then a long one.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1194,6 +1221,7 @@
       dict({
         'endTime': 141.76,
         'id': 'id_00027',
+        'index': 0,
         'startTime': 139.2,
         'text': "Okay, I'm gonna leave that one foot up there and uh",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1259,6 +1287,7 @@
       dict({
         'endTime': 145.52,
         'id': 'id_00028',
+        'index': 0,
         'startTime': 142.72,
         'text': 'both hands down about the fourth rung up.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1309,6 +1338,7 @@
       dict({
         'endTime': 148.24,
         'id': 'id_00029',
+        'index': 0,
         'startTime': 147.28,
         'text': 'There you go.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1334,6 +1364,7 @@
       dict({
         'endTime': 152.64,
         'id': 'id_00030',
+        'index': 0,
         'startTime': 150.24,
         'text': "Okay now I think I'll do the same.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1384,6 +1415,7 @@
       dict({
         'endTime': 162.48,
         'id': 'id_00031',
+        'index': 0,
         'startTime': 161.28,
         'text': 'There you got it?',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1414,6 +1446,7 @@
       dict({
         'endTime': 163.92,
         'id': 'id_00032',
+        'index': 0,
         'startTime': 162.88,
         'text': "That's a good step.",
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1444,6 +1477,7 @@
       dict({
         'endTime': 164.72,
         'id': 'id_00033',
+        'index': 0,
         'startTime': 164.08,
         'text': 'Yep.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1459,6 +1493,7 @@
       dict({
         'endTime': 166.76,
         'id': 'id_00034',
+        'index': 0,
         'startTime': 165.16,
         'text': 'About a three-footer.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1484,6 +1519,7 @@
       dict({
         'endTime': 174.12,
         'id': 'id_00035',
+        'index': 0,
         'startTime': 173.0,
         'text': 'Beautiful view.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1504,6 +1540,7 @@
       dict({
         'endTime': 175.32,
         'id': 'id_00036',
+        'index': 0,
         'startTime': 174.28,
         'text': 'Is that something?',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -1529,6 +1566,7 @@
       dict({
         'endTime': 178.28,
         'id': 'id_00037',
+        'index': 0,
         'startTime': 176.28,
         'text': 'Magnus and flight out here.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',

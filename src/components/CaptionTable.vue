@@ -689,6 +689,12 @@ function onCellEditingStarted(event: any) {
     setTimeout(() => {
       const input = document.querySelector(`.ag-cell[col-id="${colId}"] input`) as HTMLInputElement
       if (input) {
+        // Format to 3 decimal places so the display matches valueFormatter
+        const numVal = parseFloat(input.value)
+        if (!isNaN(numVal)) {
+          input.value = numVal.toFixed(3)
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+        }
         console.log('Attached +/- key handler to', colId, 'input')
         const keyHandler = (keyEvent: KeyboardEvent) => {
           if (keyEvent.key === '+' || keyEvent.key === '=') {

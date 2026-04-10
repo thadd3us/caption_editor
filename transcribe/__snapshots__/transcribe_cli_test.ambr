@@ -9,6 +9,7 @@
       dict({
         'endTime': 3.44,
         'id': 'id_00000',
+        'index': 0,
         'startTime': 0.24,
         'text': 'The birch canoe slid on the smooth planks.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -59,6 +60,7 @@
       dict({
         'endTime': 7.2,
         'id': 'id_00001',
+        'index': 0,
         'startTime': 4.0,
         'text': 'Glue the sheet to the dark blue background.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -109,6 +111,7 @@
       dict({
         'endTime': 9.76,
         'id': 'id_00002',
+        'index': 0,
         'startTime': 7.44,
         'text': 'It is easy to tell the depth of a well.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -169,6 +172,7 @@
       dict({
         'endTime': 13.52,
         'id': 'id_00003',
+        'index': 0,
         'startTime': 10.48,
         'text': 'These days a chicken leg is a rare dish.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -224,6 +228,7 @@
       dict({
         'endTime': 16.72,
         'id': 'id_00004',
+        'index': 0,
         'startTime': 14.0,
         'text': 'Rice is often served in round bowls.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -269,6 +274,7 @@
       dict({
         'endTime': 19.8,
         'id': 'id_00005',
+        'index': 0,
         'startTime': 16.96,
         'text': 'The juice of lemons makes fine punch.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -314,6 +320,7 @@
       dict({
         'endTime': 23.0,
         'id': 'id_00006',
+        'index': 0,
         'startTime': 20.12,
         'text': 'The box was thrown beside the park truck.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -364,6 +371,7 @@
       dict({
         'endTime': 26.36,
         'id': 'id_00007',
+        'index': 0,
         'startTime': 23.44,
         'text': 'The hogs were fed chopped corn and garbage.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -414,6 +422,7 @@
       dict({
         'endTime': 29.32,
         'id': 'id_00008',
+        'index': 0,
         'startTime': 26.76,
         'text': 'Four hours of steady work faced us.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -459,6 +468,7 @@
       dict({
         'endTime': 32.44,
         'id': 'id_00009',
+        'index': 0,
         'startTime': 29.8,
         'text': 'A large size in stockings is hard to sell.',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -525,6 +535,7 @@
       dict({
         'endTime': 8.96,
         'id': 'id_00000',
+        'index': 0,
         'startTime': 0.0,
         'text': 'The  birch  can  use  lid  on  the  smooth  planks.  Glue  the  sheet  blue  easy  the',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -610,6 +621,7 @@
       dict({
         'endTime': 15.86,
         'id': 'id_00001',
+        'index': 0,
         'startTime': 9.54,
         'text': 'well.  days  chicken  leg  is  a  rare  is  often  round',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -670,6 +682,7 @@
       dict({
         'endTime': 28.62,
         'id': 'id_00002',
+        'index': 0,
         'startTime': 19.0,
         'text': 'punch.  box  beside  pork  fed  corn  garbage.  steady  faced',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
@@ -725,6 +738,7 @@
       dict({
         'endTime': 32.0,
         'id': 'id_00003',
+        'index': 0,
         'startTime': 30.24,
         'text': 'A  large  size  in  stockings  is  hard  to',
         'timestamp': '2025-01-01T00:00:00.000000+00:00',
