@@ -44,6 +44,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -284,6 +285,8 @@ def main(
     # ── 6. Process ────────────────────────────────────────────────────
     completed = 0
     failed = 0
+    processing_start = time.monotonic()
+    audio_seconds_processed = 0.0
 
     try:
         with tqdm(
@@ -336,6 +339,7 @@ def main(
                         atomic_write_captions_json(cp, document)
 
                     completed += 1
+                    audio_seconds_processed += durations[media]
                     tqdm.write(f"✓ {media.name}")
 
                 except Exception as e:
@@ -374,6 +378,7 @@ def main(
                         atomic_write_captions_json(cp, document)
 
                     completed += 1
+                    audio_seconds_processed += durations[media]
                     tqdm.write(f"✓ (embed) {media.name}")
 
                 except Exception as e:
@@ -386,8 +391,16 @@ def main(
         signal.signal(signal.SIGINT, prev_handler)
 
     # ── 7. Summary ────────────────────────────────────────────────────
+    processing_elapsed = time.monotonic() - processing_start
     total = len(needs_asr) + len(needs_embed_only)
     typer.echo(f"\nDone: {completed}/{total} succeeded, {failed} failed.")
+    if audio_seconds_processed > 0 and processing_elapsed > 0:
+        rtf = audio_seconds_processed / processing_elapsed
+        typer.echo(
+            f"Processed {audio_seconds_processed / 60:.1f} min of audio "
+            f"in {processing_elapsed:.1f}s wall-clock — "
+            f"{rtf:.1f}x realtime"
+        )
     if _shutdown_requested:
         typer.echo("(interrupted — re-run to process remaining files)")
 
