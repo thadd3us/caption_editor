@@ -172,6 +172,16 @@ class UIState(BaseModel):
     filter_model: Optional[dict] = Field(
         None, description="AG Grid filter model", alias="filterModel"
     )
+    left_panel_width: Optional[float] = Field(
+        None,
+        description="Percentage width of the left (table) panel (20-80)",
+        alias="leftPanelWidth",
+    )
+    caption_height: Optional[float] = Field(
+        None,
+        description="Pixel height of the current-caption display area",
+        alias="captionHeight",
+    )
 
 
 class CaptionsDocument(BaseModel):

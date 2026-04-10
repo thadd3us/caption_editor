@@ -86,6 +86,8 @@ export interface GridFilterModel {
 export interface UIState {
   readonly columnState?: readonly GridColumnState[]
   readonly filterModel?: GridFilterModel
+  readonly leftPanelWidth?: number // Percentage width of the left (table) panel (20–80)
+  readonly captionHeight?: number // Pixel height of the current-caption display area
 }
 
 /**
