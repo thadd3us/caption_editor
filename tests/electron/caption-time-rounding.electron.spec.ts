@@ -101,8 +101,8 @@ test.describe('Caption time rounding', () => {
       { timeout: 5000 }
     )
 
-    // The caption display should show the segment text, NOT "No caption at current time"
+    // The caption display should show the segment text, not be empty
     const captionDisplay = page.locator('.caption-text')
-    await expect(captionDisplay).not.toHaveText('No caption at current time', { timeout: 3000 })
+    await expect(captionDisplay).not.toHaveText('', { timeout: 3000 })
   })
 })

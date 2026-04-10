@@ -145,13 +145,13 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'index',
     headerName: '#',
-    width: 60,
+    width: 75,
     sortable: true,
     sort: 'asc',
     pinned: 'left',
     editable: false,
     filter: false,
-    resizable: false,
+    resizable: true,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
   },
   {
@@ -169,6 +169,7 @@ const columnDefs = ref<ColDef[]>([
     wrapText: true,
     autoHeight: true,
     sortable: true,
+    floatingFilter: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateSegment(params.data.id, { text: params.newValue, verified: true })
@@ -189,6 +190,7 @@ const columnDefs = ref<ColDef[]>([
     width: 150,
     editable: true,
     sortable: true,
+    floatingFilter: true,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
@@ -231,6 +233,7 @@ const columnDefs = ref<ColDef[]>([
     cellRenderer: StarRatingCell,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     sortable: true,
+    floatingFilter: true,
   },
   {
     field: 'notes',
@@ -247,6 +250,7 @@ const columnDefs = ref<ColDef[]>([
     },
     wrapText: true,
     autoHeight: true,
+    floatingFilter: true,
     onCellValueChanged: (params) => {
       store.updateSegment(params.data.id, { notes: params.newValue })
     }

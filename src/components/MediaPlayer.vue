@@ -164,7 +164,7 @@ const mediaFileName = computed(() => {
 
 const currentCaptionText = computed(() => {
   const seg = store.currentSegment
-  return seg ? seg.text : 'No caption at current time'
+  return seg ? seg.text : ''
 })
 
 function onCaptionContextMenu(event: MouseEvent) {
