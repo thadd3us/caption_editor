@@ -8,7 +8,7 @@ describe('updateSegment - word realignment (captionsUtils)', () => {
     let doc: CaptionsDocument = createEmptyDocument()
 
     const segment: TranscriptSegment = {
-      id: 'test-1',
+      id: 'test-1', index: 0,
       startTime: 59.84,
       endTime: 66.8,
       text: 'the courtesy of your home is somewhat listened of late fair little king',
@@ -69,7 +69,7 @@ describe('updateSegment - word realignment (captionsUtils)', () => {
     let doc: CaptionsDocument = createEmptyDocument()
 
     const segment: TranscriptSegment = {
-      id: 'test-1',
+      id: 'test-1', index: 0,
       startTime: 10,
       endTime: 15,
       text: 'original text',
@@ -95,7 +95,7 @@ describe('updateSegment - word realignment (captionsUtils)', () => {
     let doc: CaptionsDocument = createEmptyDocument()
 
     const segment: TranscriptSegment = {
-      id: 'test-1',
+      id: 'test-1', index: 0,
       startTime: 10,
       endTime: 15,
       text: 'hello world',

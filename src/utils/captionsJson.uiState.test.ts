@@ -6,8 +6,8 @@ describe('captionsJson uiState round-trip', () => {
   const baseDocument: CaptionsDocument = {
     metadata: { id: 'test-doc-1' },
     segments: [
-      { id: 'seg-1', startTime: 0, endTime: 5, text: 'Hello' },
-      { id: 'seg-2', startTime: 5, endTime: 10, text: 'World' }
+      { id: 'seg-1', index: 0, startTime: 0, endTime: 5, text: 'Hello' },
+      { id: 'seg-2', index: 1, startTime: 5, endTime: 10, text: 'World' }
     ]
   }
 

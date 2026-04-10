@@ -5,7 +5,7 @@ import type { TranscriptSegment } from '../types/schema'
 describe('splitSegmentAtWord', () => {
   it('should split a segment at the specified word index', () => {
     const segment: TranscriptSegment = {
-      id: 'original-id',
+      id: 'original-id', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world how are you',
@@ -60,7 +60,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if segment has no words', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world'
@@ -72,7 +72,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if words array is empty', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -85,7 +85,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if wordIndex is 0 (cannot split before first word)', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -101,7 +101,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if wordIndex is out of range', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -117,7 +117,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if word at index has no startTime', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -133,7 +133,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should handle split at first word with timestamp', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello beautiful world',
@@ -155,7 +155,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should handle split at last word with timestamp', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello beautiful world',
@@ -177,7 +177,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should preserve speaker metadata in both segments', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -200,7 +200,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if split time is at segment start boundary', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -216,7 +216,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should return null if split time is at segment end boundary', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello world',
@@ -232,7 +232,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should handle words with only some timestamps', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 5.0,
       text: 'Hello beautiful world today',
@@ -262,7 +262,7 @@ describe('splitSegmentAtWord', () => {
 
   it('should handle single-word segments (cannot split)', () => {
     const segment: TranscriptSegment = {
-      id: 'seg-1',
+      id: 'seg-1', index: 0,
       startTime: 1.0,
       endTime: 2.0,
       text: 'Hello',

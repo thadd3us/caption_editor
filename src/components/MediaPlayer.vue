@@ -54,7 +54,8 @@
         <span class="time-display">{{ formatTime(duration) }}</span>
       </div>
 
-      <div class="current-caption-display">
+      <div class="caption-resizer" @mousedown="startCaptionResize"></div>
+      <div class="current-caption-display" :style="{ height: captionHeight + 'px' }">
         <div class="caption-label">Current Caption:</div>
         <div
           class="caption-text"
@@ -105,6 +106,28 @@ const isContextMenuVisible = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
 const currentSegment = computed(() => store.currentSegment)
+
+// Resizable caption area
+const captionHeight = ref(120)
+
+function startCaptionResize(event: MouseEvent) {
+  event.preventDefault()
+  const startY = event.clientY
+  const startHeight = captionHeight.value
+
+  function onMouseMove(e: MouseEvent) {
+    const delta = startY - e.clientY
+    captionHeight.value = Math.max(60, Math.min(400, startHeight + delta))
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+  }
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
 
 const mediaElement = computed(() => videoElement.value || audioElement.value)
 const hasMedia = computed(() => !!store.mediaPath)
@@ -478,12 +501,26 @@ video, audio {
   cursor: pointer;
 }
 
+.caption-resizer {
+  height: 6px;
+  cursor: ns-resize;
+  background: var(--border-1);
+  border-radius: 3px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.caption-resizer:hover {
+  background: var(--text-3);
+}
+
 .current-caption-display {
   padding: 16px;
   background: var(--surface-1);
   border: 1px solid var(--border-1);
   border-radius: 6px;
-  min-height: 80px;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .caption-label {

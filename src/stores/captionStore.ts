@@ -247,6 +247,7 @@ export const useCaptionStore = defineStore('captions', () => {
     console.log('Adding new segment at', startTime, 'with duration', duration)
     const newSegment: TranscriptSegment = {
       id: uuidv4(),
+      index: 0, // placeholder; will be corrected by reindexSegments
       startTime,
       endTime: startTime + duration,
       text: 'New caption',

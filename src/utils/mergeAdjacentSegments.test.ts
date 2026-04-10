@@ -22,14 +22,14 @@ describe('mergeAdjacentSegments', () => {
   it('should merge two adjacent segments', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'Hello',
         rating: 3
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'world',
@@ -49,19 +49,19 @@ describe('mergeAdjacentSegments', () => {
   it('should merge three adjacent segments', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'Two'
       },
       {
-        id: 'seg3',
+        id: 'seg3', index: 0,
         startTime: 10,
         endTime: 15,
         text: 'Three'
@@ -79,19 +79,19 @@ describe('mergeAdjacentSegments', () => {
   it('should not merge non-adjacent segments', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'Two'
       },
       {
-        id: 'seg3',
+        id: 'seg3', index: 0,
         startTime: 10,
         endTime: 15,
         text: 'Three'
@@ -108,7 +108,7 @@ describe('mergeAdjacentSegments', () => {
   it('should preserve word-level timestamps when merging', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'Hello',
@@ -117,7 +117,7 @@ describe('mergeAdjacentSegments', () => {
         ]
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'world',
@@ -138,21 +138,21 @@ describe('mergeAdjacentSegments', () => {
   it('should use first non-empty speaker name', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'Hello',
         speakerName: undefined
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'world',
         speakerName: 'Alice'
       },
       {
-        id: 'seg3',
+        id: 'seg3', index: 0,
         startTime: 10,
         endTime: 15,
         text: 'everyone',
@@ -169,21 +169,21 @@ describe('mergeAdjacentSegments', () => {
   it('should take highest rating among all segments', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One',
         rating: 2
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'Two',
         rating: 5
       },
       {
-        id: 'seg3',
+        id: 'seg3', index: 0,
         startTime: 10,
         endTime: 15,
         text: 'Three',
@@ -200,13 +200,13 @@ describe('mergeAdjacentSegments', () => {
   it('should handle segments without ratings', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'Two'
@@ -222,7 +222,7 @@ describe('mergeAdjacentSegments', () => {
   it('should return original document if less than 2 segments provided', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
@@ -238,7 +238,7 @@ describe('mergeAdjacentSegments', () => {
   it('should return original document if segment not found', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
@@ -253,13 +253,13 @@ describe('mergeAdjacentSegments', () => {
   it('should add history entries for all merged segments', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'Two'
@@ -276,19 +276,19 @@ describe('mergeAdjacentSegments', () => {
   it('should work with segments in any order', () => {
     const doc = createTestDocument([
       {
-        id: 'seg1',
+        id: 'seg1', index: 0,
         startTime: 0,
         endTime: 5,
         text: 'One'
       },
       {
-        id: 'seg2',
+        id: 'seg2', index: 0,
         startTime: 5,
         endTime: 10,
         text: 'Two'
       },
       {
-        id: 'seg3',
+        id: 'seg3', index: 0,
         startTime: 10,
         endTime: 15,
         text: 'Three'

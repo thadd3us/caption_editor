@@ -53,20 +53,20 @@ describe('captionsDocument', () => {
 
     it('adds a cue and keeps segments sorted', () => {
       let doc = createTestDoc()
-      doc = addCue(doc, { id: 'b', startTime: 5, endTime: 6, text: 'B' })
-      doc = addCue(doc, { id: 'a', startTime: 1, endTime: 2, text: 'A' })
+      doc = addCue(doc, { id: 'b', index: 0, startTime: 5, endTime: 6, text: 'B' })
+      doc = addCue(doc, { id: 'a', index: 0, startTime: 1, endTime: 2, text: 'A' })
       expect(doc.segments.map(s => s.id)).toEqual(['a', 'b'])
     })
 
     it('updates a cue and records history', () => {
-      const doc = createTestDoc([{ id: 'a', startTime: 1, endTime: 2, text: 'A' }])
+      const doc = createTestDoc([{ id: 'a', index: 0, startTime: 1, endTime: 2, text: 'A' }])
       const updated = updateCue(doc, 'a', { text: 'A2' })
       expect(updated.segments[0].text).toBe('A2')
       expect(updated.history?.length).toBe(1)
     })
 
     it('deletes a cue and records history', () => {
-      const doc = createTestDoc([{ id: 'a', startTime: 1, endTime: 2, text: 'A' }])
+      const doc = createTestDoc([{ id: 'a', index: 0, startTime: 1, endTime: 2, text: 'A' }])
       const updated = deleteCue(doc, 'a')
       expect(updated.segments).toHaveLength(0)
       expect(updated.history?.length).toBe(1)

@@ -504,6 +504,7 @@ def asr_segments_to_transcript_segments(
         segments_result.append(
             TranscriptSegment(
                 id="",  # Will be set later with hash
+                index=0,  # Will be re-assigned after all segments are created
                 startTime=segment.start,
                 endTime=segment.end,
                 text=segment.text.strip(),

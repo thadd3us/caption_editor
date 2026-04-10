@@ -5,6 +5,7 @@ import type { TranscriptSegment } from '../types/schema'
 describe('findIndexOfRowForTime', () => {
   const createSegment = (id: string, startTime: number, endTime: number): TranscriptSegment => ({
     id,
+    index: 0,
     startTime,
     endTime,
     text: `Segment ${id}`

@@ -53,20 +53,20 @@ describe('captionsUtils', () => {
 
     it('adds a segment and keeps segments sorted', () => {
       let doc = createTestDoc()
-      doc = addSegment(doc, { id: 'b', startTime: 5, endTime: 6, text: 'B' })
-      doc = addSegment(doc, { id: 'a', startTime: 1, endTime: 2, text: 'A' })
+      doc = addSegment(doc, { id: 'b', index: 0, startTime: 5, endTime: 6, text: 'B' })
+      doc = addSegment(doc, { id: 'a', index: 0, startTime: 1, endTime: 2, text: 'A' })
       expect(doc.segments.map(s => s.id)).toEqual(['a', 'b'])
     })
 
     it('updates a segment and records history', () => {
-      const doc = createTestDoc([{ id: 'a', startTime: 1, endTime: 2, text: 'A' }])
+      const doc = createTestDoc([{ id: 'a', index: 0, startTime: 1, endTime: 2, text: 'A' }])
       const updated = updateSegment(doc, 'a', { text: 'A2' })
       expect(updated.segments[0].text).toBe('A2')
       expect(updated.history?.length).toBe(1)
     })
 
     it('deletes a segment and records history', () => {
-      const doc = createTestDoc([{ id: 'a', startTime: 1, endTime: 2, text: 'A' }])
+      const doc = createTestDoc([{ id: 'a', index: 0, startTime: 1, endTime: 2, text: 'A' }])
       const updated = deleteSegment(doc, 'a')
       expect(updated.segments).toHaveLength(0)
       expect(updated.history?.length).toBe(1)

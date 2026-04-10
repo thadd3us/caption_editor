@@ -8,6 +8,7 @@ import type {
 import { HistoryAction } from '../types/schema'
 import { splitSegmentAtWord } from './splitSegmentAtWord'
 import { realignWords } from './realignWords'
+import { reindexSegments } from './captionsUtils'
 
 /**
  * Get current timestamp in ISO 8601 format with local timezone.
@@ -100,7 +101,7 @@ function sortSegments(segments: readonly TranscriptSegment[]): readonly Transcri
     }
     return a.endTime - b.endTime
   })
-  return Object.freeze(sorted)
+  return reindexSegments(sorted)
 }
 
 /**
@@ -244,7 +245,7 @@ export function deleteCue(document: CaptionsDocument, cueId: string): CaptionsDo
   // Create document with cue removed
   let newDocument: CaptionsDocument = {
     ...document,
-    segments: Object.freeze(document.segments.filter(cue => cue.id !== cueId))
+    segments: reindexSegments(document.segments.filter(cue => cue.id !== cueId))
   }
 
   // Add history entry
@@ -378,6 +379,7 @@ export function mergeAdjacentSegments(
   // Create merged segment
   const mergedSegment: TranscriptSegment = {
     id: uuidv4(),
+    index: 0, // placeholder; will be corrected by sortSegments → reindexSegments
     startTime: sortedSegments[0].startTime,
     endTime: sortedSegments[sortedSegments.length - 1].endTime,
     text: sortedSegments.map(s => s.text).join(' '),

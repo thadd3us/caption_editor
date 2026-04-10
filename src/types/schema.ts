@@ -35,6 +35,7 @@ export interface TranscriptWord {
  */
 export interface TranscriptSegment {
   readonly id: string // UUID - segment identifier
+  readonly index: number // Zero-based ordinal index, kept in sync with sort order by start/end time
 
   // FIXME: In the AG Grid UI, when we sort by this column, it sorts as a string, not a number (1, 10, 100, 2, 20, 3, etc).  Same for endTime I think.  Add a test and then fix it.
   readonly startTime: number // Start time in seconds

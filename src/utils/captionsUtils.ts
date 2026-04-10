@@ -91,7 +91,15 @@ export function createEmptyDocument(): CaptionsDocument {
 }
 
 /**
- * Sort segments by start time, then end time.
+ * Assign zero-based index to each segment based on array position.
+ * Avoids creating new objects when indices are already correct.
+ */
+export function reindexSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
+  return Object.freeze(segments.map((seg, i) => seg.index === i ? seg : { ...seg, index: i }))
+}
+
+/**
+ * Sort segments by start time, then end time, and re-assign ordinal indices.
  */
 function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
   const sorted = [...segments].sort((a, b) => {
@@ -100,7 +108,7 @@ function sortSegments(segments: readonly TranscriptSegment[]): readonly Transcri
     }
     return a.endTime - b.endTime
   })
-  return Object.freeze(sorted)
+  return reindexSegments(sorted)
 }
 
 /**
@@ -254,7 +262,7 @@ export function deleteSegment(
   // Create document with segment removed
   let newDocument: CaptionsDocument = {
     ...document,
-    segments: Object.freeze(document.segments.filter(seg => seg.id !== segmentId))
+    segments: reindexSegments(document.segments.filter(seg => seg.id !== segmentId))
   }
 
   // Add history entry
@@ -388,6 +396,7 @@ export function mergeAdjacentSegments(
   // Create merged segment
   const mergedSegment: TranscriptSegment = {
     id: uuidv4(),
+    index: 0, // placeholder; will be corrected by sortSegments → reindexSegments
     startTime: sortedSegments[0].startTime,
     endTime: sortedSegments[sortedSegments.length - 1].endTime,
     text: sortedSegments.map(s => s.text).join(' '),

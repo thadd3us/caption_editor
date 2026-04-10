@@ -13,7 +13,7 @@ export function createDocumentFromSrtContent(content: string): { success: true; 
   try {
     const parser = new SrtParser({ numericTimestamps: true })
     const entries = parser.fromSrt(content) as SrtEntryFromParser[]
-    const segments: Array<Omit<TranscriptSegment, 'id'>> = []
+    const segments: Array<Omit<TranscriptSegment, 'id' | 'index'>> = []
     for (const entry of entries) {
       // `fromSrt()` returns numeric timestamps in seconds when numericTimestamps=true.
       const startTime = entry.startTime

@@ -63,6 +63,7 @@
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
       @cell-context-menu="onCellContextMenu"
+      @cell-key-down="onCellKeyDown"
       @cell-editing-started="onCellEditingStarted"
       :domLayout="'normal'"
       style="flex: 1; min-height: 0;"
@@ -79,7 +80,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
-import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent, ColumnState } from 'ag-grid-community'
+import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent, CellKeyDownEvent, ColumnState } from 'ag-grid-community'
 import { themeAlpine } from 'ag-grid-community'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 
@@ -117,6 +118,7 @@ const rowData = computed(() => {
   // Segments are always kept sorted in the document model
   return store.document.segments.map(segment => ({
     id: segment.id,
+    index: segment.index,
     startTime: segment.startTime,
     endTime: segment.endTime,
 
@@ -139,6 +141,18 @@ const columnDefs = ref<ColDef[]>([
     filter: false,
     sortable: false,
     resizable: false
+  },
+  {
+    field: 'index',
+    headerName: '#',
+    width: 60,
+    sortable: true,
+    sort: 'asc',
+    pinned: 'left',
+    editable: false,
+    filter: false,
+    resizable: false,
+    cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
   },
   {
     field: 'text',
@@ -205,7 +219,6 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Speaker Similarity',
     width: 150,
     sortable: true,
-    sort: 'desc',
     hide: true,  // Hidden by default
     valueFormatter: (params) => {
       return params.value != null ? params.value.toFixed(3) : ''
@@ -327,6 +340,17 @@ const rowSelectionConfig = {
 
 function getRowId(params: { data: { id: string } }) {
   return params.data.id
+}
+
+function onCellKeyDown(event: CellKeyDownEvent) {
+  const keyEvent = event.event as KeyboardEvent | undefined
+  if (!keyEvent) return
+  if (keyEvent.key === 'Enter' && event.column.getColId() === 'actions') {
+    keyEvent.preventDefault()
+    if (event.data) {
+      store.startPlaylistPlayback([event.data.id], 0)
+    }
+  }
 }
 
 function onGridReady(params: GridReadyEvent) {

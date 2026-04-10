@@ -1,13 +1,14 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { ParseResult, TranscriptSegment, TranscriptMetadata, CaptionsDocument, UIState } from '../types/schema'
 import { stableJsonStringify } from './stableJson'
+import { reindexSegments } from './captionsUtils'
 
 function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
   const sorted = [...segments].sort((a, b) => {
     if (a.startTime !== b.startTime) return a.startTime - b.startTime
     return a.endTime - b.endTime
   })
-  return Object.freeze(sorted)
+  return reindexSegments(sorted)
 }
 
 function validateUniqueSegmentIds(segments: readonly TranscriptSegment[]): { ok: true } | { ok: false; error: string } {
@@ -125,8 +126,8 @@ export function serializeCaptionsJSON(document: CaptionsDocument): string {
 /**
  * Create a minimal document from segments (used for imports like SRT).
  */
-export function createDocumentFromSegments(segments: readonly Omit<TranscriptSegment, 'id'>[], metadata?: Partial<TranscriptMetadata>): CaptionsDocument {
-  const withIds: TranscriptSegment[] = segments.map(s => ({ ...s, id: uuidv4() }))
+export function createDocumentFromSegments(segments: readonly Omit<TranscriptSegment, 'id' | 'index'>[], metadata?: Partial<TranscriptMetadata>): CaptionsDocument {
+  const withIds: TranscriptSegment[] = segments.map((s, i) => ({ ...s, id: uuidv4(), index: i }))
   const doc: CaptionsDocument = {
     metadata: {
       id: metadata?.id || uuidv4(),
