@@ -368,13 +368,6 @@ async function attemptMediaAutoLoad() {
     return
   }
 
-  // Skip if media is already loaded
-  if (store.mediaPath) {
-    console.log('[Auto-load] Media already loaded, skipping auto-load')
-    attemptedAutoLoad.value = documentId
-    return
-  }
-
   console.log('[Auto-load] Document metadata references media file:', mediaFilePath)
 
   // Mark that we've attempted auto-load for this document

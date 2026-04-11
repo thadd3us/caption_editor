@@ -91,6 +91,17 @@ export const useCaptionStore = defineStore('captions', () => {
   // Actions
   function loadFromFile(content: string, filePath?: string) {
     console.log('Loading captions from file:', filePath)
+
+    // Reset all state so the new file starts clean (media, playback, selection, etc.)
+    mediaPath.value = null
+    currentTime.value = 0
+    isPlaying.value = false
+    selectedSegmentId.value = null
+    playbackMode.value = PlaybackMode.STOPPED
+    playlist.value = []
+    playlistIndex.value = 0
+    playlistStartIndex.value = 0
+
     const result = parseCaptionsJSON(content)
 
     if (result.success && result.document) {
