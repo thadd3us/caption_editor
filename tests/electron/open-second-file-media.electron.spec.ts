@@ -17,8 +17,8 @@ test.describe('Opening a second captions file should replace media', () => {
   // Two existing test WAVs with very different durations:
   //   OSR_us_000_0010_8k.wav  ≈ 33.6 s
   //   test-audio-10s.wav      = 10.0 s
-  const mediaA = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-  const mediaB = path.join(getProjectRoot(), 'test_data', 'test-audio-10s.wav')
+  const _mediaA = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
+  const _mediaB = path.join(getProjectRoot(), 'test_data', 'test-audio-10s.wav')
 
   test.beforeAll(async () => {
     await fs.mkdir(tempDir, { recursive: true })

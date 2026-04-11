@@ -125,11 +125,11 @@ class TestGetAudioDuration:
 class TestAtomicWrite:
     def test_writes_valid_json(self, tmp_path: Path):
         """Atomic write produces a readable captions_json file."""
-        doc = CaptionsDocument(
+        doc = CaptionsDocument(  # type: ignore[reportCallIssue]
             metadata=TranscriptMetadata(id="doc-1", mediaFilePath="test.wav"),
             title="test",
             segments=[
-                TranscriptSegment(
+                TranscriptSegment(  # type: ignore[reportCallIssue]
                     id="s0",
                     index=0,
                     startTime=0.0,

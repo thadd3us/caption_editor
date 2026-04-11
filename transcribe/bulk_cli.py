@@ -46,7 +46,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 from tqdm import tqdm
@@ -261,7 +261,7 @@ def main(
         typer.echo(f"Loading ASR model: {model if not use_mock else '(mock)'} …")
         recognizer = create_recognizer(model, mock=use_mock)
 
-    embed_inference = None
+    embed_inference: Any = None
     if needs_asr or needs_embed_only:
         if use_mock:
             # For mock mode, create a trivial embedding callable.
