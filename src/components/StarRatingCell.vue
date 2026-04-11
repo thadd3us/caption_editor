@@ -51,26 +51,20 @@ function handleClick(star: number) {
 }
 </script>
 
-<style scoped>
-.star-rating {
-  display: flex;
-  gap: 4px;
-  padding: 4px 0;
-}
-
-.star {
+<style>
+.star-rating .star {
   cursor: pointer;
   font-size: 20px;
-  color: #999 !important;
+  color: #999;
   transition: color 0.2s;
   user-select: none;
 }
 
-.star.filled {
-  color: #ffd700 !important;
+.star-rating .star.filled {
+  color: #ffd700;
 }
 
-.star:hover {
-  color: #ffed4e !important;
+.star-rating .star:hover {
+  color: #ffed4e;
 }
 </style>
