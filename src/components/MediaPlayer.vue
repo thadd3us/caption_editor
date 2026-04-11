@@ -549,8 +549,9 @@ video, audio {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-1);
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 .word-span {
