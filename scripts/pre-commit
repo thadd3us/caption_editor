@@ -7,6 +7,10 @@
 
 set -e
 
+# Always run from the repo root, regardless of where the commit was invoked.
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
 echo "🔍 Running pre-commit checks..."
 
 # Auto-install dependencies if missing
@@ -35,6 +39,6 @@ git diff --relative --name-only . | xargs -r git add --
 
 echo "🐍 Running pyright..."
 uv run pyright
-cd ..
+cd "$REPO_ROOT"
 
 echo "✅ All pre-commit checks passed!"
