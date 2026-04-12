@@ -3,11 +3,11 @@
  */
 
 // App Information
-export const APP_VERSION = '1.4.0'
+export const APP_VERSION = '1.4.1'
 
 // AI Transcription (uvx / transcribe)
 export const UV_VERSION = '0.10.4'
 // NOTE: This hash must exist on GitHub because uvx fetches from ASR_GITHUB_REPO.
 // Keep this pinned to a pushed commit that includes the `transcribe` packaging config.
-export const ASR_COMMIT_HASH = 'a1312ad136c21b3d6ac805a8018dd078f5e032f6'
+export const ASR_COMMIT_HASH = '63220834e413f1a26f578086ab6ac599d612efaa'
 export const ASR_GITHUB_REPO = 'git+https://github.com/thadd3us/caption_editor'
