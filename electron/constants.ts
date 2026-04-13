@@ -16,5 +16,5 @@ export const UV_VERSION = '0.10.4'
 // The checkout *at A* still has the *previous* hash inside transcribe/constants.py —
 // that is fine: the app does not read that file to choose the fetch rev; Electron
 // passes this constant. For CLI-only runs, use `main` after B (or match this pin).
-export const ASR_COMMIT_HASH = 'fa3fc769dd899b569cae16a39f88dde9d4a4b63c'
+export const ASR_COMMIT_HASH = '73d21a8a2276879beb94bddad245f09f6d501a00'
 export const ASR_GITHUB_REPO = 'git+https://github.com/thadd3us/caption_editor'
