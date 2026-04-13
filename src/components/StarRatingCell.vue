@@ -1,5 +1,10 @@
 <template>
-  <div class="star-rating" :data-rating="rating || 0">
+  <div
+    class="star-rating tooltip-btn"
+    :data-rating="rating || 0"
+    data-tooltip="Set star rating for this caption (or for every row you are targeting in the current selection); click the same star again to clear"
+    title="Set star rating for this caption (or for every row you are targeting in the current selection); click the same star again to clear"
+  >
     <span
       v-for="star in 5"
       :key="star"

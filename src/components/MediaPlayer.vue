@@ -4,7 +4,7 @@
       <button 
         class="show-in-finder-btn" 
         @click="showMediaInFinder" 
-        data-tooltip="Reveal media file in Finder"
+        data-tooltip="Reveal the media file in Finder"
       >📁</button>
       <span class="media-filename">{{ mediaFileName }}</span>
     </div>
@@ -37,7 +37,13 @@
 
     <div class="controls">
       <div class="playback-controls">
-        <button @click="togglePlayPause" class="control-btn" :disabled="!hasMedia">
+        <button
+          type="button"
+          @click="togglePlayPause"
+          class="control-btn tooltip-btn"
+          :disabled="!hasMedia"
+          :data-tooltip="store.isPlaying ? 'Pause the media' : 'Play the media file'"
+        >
           {{ store.isPlaying ? '⏸️' : '▶️' }}
         </button>
         <span class="time-display">{{ formatTime(store.currentTime) }}</span>

@@ -80,7 +80,7 @@ test.describe('Caption Editor - User Interactions', () => {
     }, { timeout: 2000 })
 
     // Application should still be functional - check that the table header is visible
-    const tableHeader = window.locator('.table-header h2')
+    const tableHeader = window.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
   })
 

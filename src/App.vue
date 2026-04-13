@@ -1096,4 +1096,27 @@ html, body, #app {
 .dialog-button-success:hover {
   background: #16a34a;
 }
+
+/* Hover tooltips: class + data-tooltip (global so cell renderers and AG Grid headers can use them) */
+.tooltip-btn {
+  position: relative;
+}
+.tooltip-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 12px;
+  max-width: min(320px, 90vw);
+  white-space: normal;
+  text-align: center;
+  border-radius: 4px;
+  z-index: 100000;
+  pointer-events: none;
+}
 </style>

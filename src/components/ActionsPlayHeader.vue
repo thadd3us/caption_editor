@@ -1,0 +1,78 @@
+<template>
+  <div class="actions-play-header">
+    <button
+      type="button"
+      class="actions-play-header-btn sequential-play-header-btn tooltip-btn"
+      :disabled="disabled"
+      :data-tooltip="tooltip"
+      :title="tooltip"
+      @click="onClick"
+    >
+      {{ icon }}
+    </button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { IHeaderParams } from 'ag-grid-community'
+import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
+
+const props = defineProps<{ params: IHeaderParams }>()
+
+const store = useCaptionStore()
+
+const icon = computed(() =>
+  store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸' : '▶️'
+)
+
+const tooltip = computed(() => {
+  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
+    return 'Pause playing captions in table order'
+  }
+  return 'Play captions in table order from the selected or focused row, skipping gaps between them'
+})
+
+const disabled = computed(
+  () => !store.mediaPath || store.document.segments.length === 0
+)
+
+function onClick(e: MouseEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  const fn = props.params.context?.toggleSequentialPlayback as (() => void) | undefined
+  fn?.()
+}
+</script>
+
+<style scoped>
+.actions-play-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.actions-play-header-btn {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.actions-play-header-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+.actions-play-header-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+</style>

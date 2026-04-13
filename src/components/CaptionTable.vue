@@ -4,7 +4,7 @@
       <button 
         class="show-in-finder-btn" 
         @click="showCaptionsInFinder" 
-        data-tooltip="Reveal caption file in Finder"
+        data-tooltip="Reveal the saved captions file in Finder"
       >📁</button>
       <span class="file-path-value">{{ store.document.filePath }}</span>
     </div>
@@ -16,32 +16,22 @@
         @input="store.updateTitle(($event.target as HTMLInputElement).value)"
         placeholder="Untitled document"
       />
-      <span class="caption-count">{{ store.document.segments.length }} captions</span>
     </div>
     <div class="table-header">
-      <h2>Captions ({{ store.document.segments.length }})</h2>
       <div class="header-controls">
-        <button
-          @click="toggleSequentialPlayback"
-          class="sequential-play-btn tooltip-btn"
-          :disabled="!store.mediaPath || store.document.segments.length === 0"
-          :data-tooltip="sequentialPlayButtonTooltip"
-        >
-          {{ sequentialPlayButtonIcon }}
-        </button>
         <button
           @click="addCaptionAtCurrentTime"
           class="add-caption-btn tooltip-btn"
           :disabled="!store.mediaPath"
-          data-tooltip="Add caption at current position"
+          data-tooltip="Insert a new caption at the current time in the media"
         >
           ➕
         </button>
-        <label class="checkbox-label tooltip-btn" data-tooltip="Autoplays selected row">
+        <label class="checkbox-label tooltip-btn" data-tooltip="When you select a row, jump to its start time and play that caption">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay
         </label>
-        <label class="checkbox-label tooltip-btn" data-tooltip="Scroll to current caption during playback">
+        <label class="checkbox-label tooltip-btn" data-tooltip="Scroll the table so the caption under the playhead stays in view">
           <input type="checkbox" v-model="autoScrollEnabled" />
           Auto-scroll
         </label>
@@ -49,6 +39,10 @@
     </div>
     <div class="grid-toolbar">
       <ColumnManager :grid-api="gridApi" :column-defs="columnDefs" />
+      <span class="grid-stats" aria-live="polite">
+        {{ gridStats.total }} {{ gridStats.total === 1 ? 'caption' : 'captions' }} / {{ gridStats.visible }} visible /
+        {{ gridStats.selected }} selected
+      </span>
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
@@ -56,10 +50,14 @@
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
+      :context="gridContext"
       :rowSelection="rowSelectionConfig"
       
       :getRowId="getRowId"
       @grid-ready="onGridReady"
+      @first-data-rendered="refreshGridStats"
+      @filter-changed="refreshGridStats"
+      @model-updated="refreshGridStats"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
       @cell-context-menu="onCellContextMenu"
@@ -79,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent, CellKeyDownEvent, ColumnState } from 'ag-grid-community'
 import { themeAlpine } from 'ag-grid-community'
@@ -87,6 +85,7 @@ import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 
 import StarRatingCell from './StarRatingCell.vue'
 import ActionButtonsCell from './ActionButtonsCell.vue'
+import ActionsPlayHeader from './ActionsPlayHeader.vue'
 import SpeakerNameCellEditor from './SpeakerNameCellEditor.vue'
 import VerifiedCheckCell from './VerifiedCheckCell.vue'
 import ContextMenu from './ContextMenu.vue'
@@ -98,6 +97,30 @@ import { resolveRowActionTargetRows } from '../utils/rowActionTarget'
 
 const store = useCaptionStore()
 const gridApi = ref<GridApi | null>(null)
+const gridStats = ref({ total: 0, visible: 0, selected: 0 })
+
+function refreshGridStats() {
+  if (!gridApi.value) return
+  const api = gridApi.value
+  let visible = store.document.segments.length
+  if (typeof api.getDisplayedRowCount === 'function') {
+    visible = api.getDisplayedRowCount()
+  } else if (typeof api.forEachNodeAfterFilterAndSort === 'function') {
+    let n = 0
+    api.forEachNodeAfterFilterAndSort(() => {
+      n += 1
+    })
+    visible = n
+  }
+  const selected =
+    typeof api.getSelectedRows === 'function' ? api.getSelectedRows().length : 0
+  gridStats.value = {
+    total: store.document.segments.length,
+    visible,
+    selected
+  }
+}
+
 const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(true)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
@@ -136,9 +159,10 @@ const rowData = computed(() => {
 const columnDefs = ref<ColDef[]>([
   {
     field: 'actions',
-    headerName: '▶️',
+    headerName: '',
     width: 50,
     pinned: 'left',
+    headerComponent: ActionsPlayHeader,
     cellRenderer: ActionButtonsCell,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     filter: false,
@@ -173,6 +197,7 @@ const columnDefs = ref<ColDef[]>([
     autoHeight: true,
     sortable: true,
     floatingFilter: true,
+    suppressHeaderFilterButton: false,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateSegment(params.data.id, { text: params.newValue, verified: true })
@@ -194,6 +219,7 @@ const columnDefs = ref<ColDef[]>([
     editable: true,
     sortable: true,
     floatingFilter: true,
+    suppressHeaderFilterButton: false,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
@@ -228,6 +254,7 @@ const columnDefs = ref<ColDef[]>([
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     sortable: true,
     floatingFilter: true,
+    suppressHeaderFilterButton: false,
   },
   {
     field: 'notes',
@@ -245,6 +272,7 @@ const columnDefs = ref<ColDef[]>([
     wrapText: true,
     autoHeight: true,
     floatingFilter: true,
+    suppressHeaderFilterButton: false,
     onCellValueChanged: (params) => {
       store.updateSegment(params.data.id, { notes: params.newValue })
     }
@@ -397,13 +425,14 @@ function onRowClicked(event: RowClickedEvent) {
 let isSyncingSelection = false
 
 function onSelectionChanged(event: SelectionChangedEvent) {
+  refreshGridStats()
   if (isSyncingSelection) return
-  
+
   const selectedRows = event.api.getSelectedRows()
   if (selectedRows.length === 0) return
-  
+
   const lastRow = selectedRows[selectedRows.length - 1]
-  
+
   // Only sync single selection to store (multi-select is grid-only)
   if (selectedRows.length === 1) {
     store.selectSegment(lastRow.id)
@@ -414,18 +443,6 @@ function onSelectionChanged(event: SelectionChangedEvent) {
     store.startPlaylistPlayback([lastRow.id], 0)
   }
 }
-
-// Sequential playback button icon and tooltip
-const sequentialPlayButtonIcon = computed(() => {
-  return store.playbackMode === PlaybackMode.SEGMENTS_PLAYING ? '⏸' : '▶️'
-})
-
-const sequentialPlayButtonTooltip = computed(() => {
-  if (store.playbackMode === PlaybackMode.SEGMENTS_PLAYING) {
-    return 'Pause segment playback'
-  }
-  return 'Play segments in table order, skipping silence'
-})
 
 /**
  * Show captions file in Finder
@@ -446,8 +463,36 @@ function addCaptionAtCurrentTime() {
 }
 
 /**
+ * First displayed index in playlist order among selected rows, else focused row, else store selection, else 0.
+ */
+function sequentialPlaybackStartIndex(api: GridApi, allSegmentIds: string[]): number {
+  const selectedRows = api.getSelectedRows()
+  if (selectedRows.length > 0) {
+    const selectedSet = new Set(selectedRows.map((r) => r.id))
+    for (let i = 0; i < allSegmentIds.length; i++) {
+      if (selectedSet.has(allSegmentIds[i])) return i
+    }
+  }
+  const focused = api.getFocusedCell()
+  if (focused != null && focused.rowIndex != null) {
+    const node = api.getDisplayedRowAtIndex(focused.rowIndex)
+    const id = node?.data?.id
+    if (id) {
+      const idx = allSegmentIds.indexOf(id)
+      if (idx >= 0) return idx
+    }
+  }
+  const sid = store.selectedSegmentId
+  if (sid) {
+    const idx = allSegmentIds.indexOf(sid)
+    if (idx >= 0) return idx
+  }
+  return 0
+}
+
+/**
  * Toggle sequential playback mode
- * Starts playing from the currently selected row if any, otherwise from the top
+ * Starts playing from the selected, focused, or active row when possible, otherwise from the top
  */
 function toggleSequentialPlayback() {
   if (!gridApi.value) return
@@ -471,20 +516,26 @@ function toggleSequentialPlayback() {
       return
     }
 
-    // Find the starting index - either the selected row or 0
-    let startIndex = 0
-    const selectedRows = gridApi.value.getSelectedRows()
-    if (selectedRows.length > 0) {
-      const selectedId = selectedRows[0].id
-      const foundIndex = allSegmentIds.indexOf(selectedId)
-      if (foundIndex >= 0) {
-        startIndex = foundIndex
-      }
-    }
+    const startIndex = sequentialPlaybackStartIndex(gridApi.value, allSegmentIds)
 
     console.log('Starting playlist playback with', allSegmentIds.length, 'segments from index', startIndex)
     store.startPlaylistPlayback(allSegmentIds, startIndex)
   }
+}
+
+/** Passed to AG Grid header/cell components (e.g. play-all header button). */
+const gridContext = { toggleSequentialPlayback }
+
+function onCaptionFindShortcut(e: KeyboardEvent) {
+  const isF = e.key === 'f' || e.key === 'F'
+  if (!isF || (!e.metaKey && !e.ctrlKey)) return
+  const el = e.target as HTMLElement | null
+  if (el?.closest('input, textarea, select, [contenteditable="true"]')) return
+  const api = gridApi.value
+  if (!api || typeof api.showColumnFilter !== 'function') return
+  e.preventDefault()
+  e.stopPropagation()
+  api.showColumnFilter('text')
 }
 
 // Calculate cosine similarity between two vectors
@@ -852,11 +903,17 @@ let lastRestoredDocumentId: string | null = null
 function restoreGridState() {
   if (!gridApi.value) return
   const docId = store.document.metadata.id
-  if (docId === lastRestoredDocumentId) return
+  if (docId === lastRestoredDocumentId) {
+    refreshGridStats()
+    return
+  }
   lastRestoredDocumentId = docId
 
   const uiState = store.document.uiState
-  if (!uiState) return
+  if (!uiState) {
+    refreshGridStats()
+    return
+  }
 
   if (uiState.columnState) {
     gridApi.value.applyColumnState({
@@ -868,6 +925,7 @@ function restoreGridState() {
     gridApi.value.setFilterModel(uiState.filterModel)
   }
   console.log('Restored grid state from document')
+  refreshGridStats()
 }
 
 // Restore grid state when document changes (file open)
@@ -876,13 +934,23 @@ watch(() => store.document.metadata.id, () => {
   setTimeout(restoreGridState, 0)
 })
 
+watch(
+  rowData,
+  () => {
+    nextTick(() => refreshGridStats())
+  },
+  { deep: true }
+)
+
 onMounted(() => {
   window.addEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
+  window.addEventListener('keydown', onCaptionFindShortcut, true)
 })
 
 onUnmounted(() => {
   store.gridStateProvider = null
   window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
+  window.removeEventListener('keydown', onCaptionFindShortcut, true)
 })
 </script>
 
@@ -927,14 +995,6 @@ onUnmounted(() => {
   color: var(--text-3, #999);
   font-weight: 400;
 }
-
-.caption-count {
-  font-size: 13px;
-  color: var(--text-2, #666);
-  white-space: nowrap;
-}
-
-
 
 .file-path-display {
   padding: 8px 12px;
@@ -994,43 +1054,11 @@ onUnmounted(() => {
   z-index: 100;
 }
 
-/*
- * CSS Tooltips: Add class="tooltip-btn" and data-tooltip="Text" to any element.
- * The tooltip appears below on hover. Parent containers need overflow:visible
- * (see .left-panel in App.vue) for tooltips to extend beyond boundaries.
- */
-.tooltip-btn {
-  position: relative;
-}
-
-.tooltip-btn[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  transform: translateX(-50%);
-  margin-top: 6px;
-  padding: 4px 8px;
-  background: var(--tooltip-bg);
-  color: var(--tooltip-text);
-  font-size: 12px;
-  white-space: nowrap;
-  border-radius: 4px;
-  z-index: 10000;
-  pointer-events: none;
-}
-
 .table-header {
   padding: 10px 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.table-header h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-1);
 }
 
 .header-controls {
@@ -1039,7 +1067,6 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.sequential-play-btn,
 .add-caption-btn {
   padding: 8px 16px;
   background: #3498db;
@@ -1053,12 +1080,10 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.sequential-play-btn:hover:not(:disabled),
 .add-caption-btn:hover:not(:disabled) {
   background: #2980b9;
 }
 
-.sequential-play-btn:disabled,
 .add-caption-btn:disabled {
   background: var(--btn-disabled-bg);
   cursor: not-allowed;
@@ -1083,7 +1108,14 @@ onUnmounted(() => {
 .grid-toolbar {
   display: flex;
   align-items: center;
+  gap: 12px;
   margin-bottom: 4px;
+}
+
+.grid-stats {
+  font-size: 13px;
+  color: var(--text-2, #666);
+  white-space: nowrap;
 }
 
 .ag-theme-alpine {

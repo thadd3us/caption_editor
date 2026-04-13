@@ -82,8 +82,9 @@ test.describe('Caption Editor', () => {
   })
 
   test('should display caption count', async ({ page }) => {
-    const header = page.locator('.table-header h2')
-    await expect(header).toContainText('Captions')
-    console.log('Caption count header is displayed')
+    const stats = page.locator('.grid-stats')
+    await expect(stats).toBeVisible()
+    await expect(stats).toContainText(/caption/)
+    console.log('Caption stats line is displayed')
   })
 })

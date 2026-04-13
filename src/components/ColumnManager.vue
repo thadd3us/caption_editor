@@ -2,7 +2,7 @@
   <div class="column-manager" ref="containerRef">
     <button
       class="column-manager-btn tooltip-btn"
-      data-tooltip="Manage columns"
+      data-tooltip="Show or hide table columns"
       @click="togglePanel"
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -16,7 +16,13 @@
     <div v-if="isPanelOpen" class="column-panel">
       <div class="panel-header">
         <span class="panel-title">Columns</span>
-        <button class="reset-btn" @click="resetToDefaults" title="Reset to defaults">↺ Reset</button>
+        <button
+          class="reset-btn tooltip-btn"
+          data-tooltip="Reset column order, sizes, and visibility to defaults"
+          @click="resetToDefaults"
+        >
+          ↺ Reset
+        </button>
       </div>
       <div class="panel-body">
         <div

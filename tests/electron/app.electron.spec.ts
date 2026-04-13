@@ -18,7 +18,7 @@ test.describe('Electron App', () => {
   })
 
   test('should show the caption table header', async ({ page }) => {
-    const tableHeader = page.locator('.table-header h2')
+    const tableHeader = page.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
   })
 
@@ -152,7 +152,7 @@ test.describe('Electron App', () => {
 
     // Since we removed the Open Files button, just verify the app is functional
     // We can't easily test the menu trigger from the test without more setup
-    const tableHeader = page.locator('.table-header h2')
+    const tableHeader = page.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
 
     // Wait for dialog to be processed

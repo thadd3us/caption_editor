@@ -76,7 +76,7 @@ test.describe('Sequential Playback', () => {
     await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await expect(sequentialBtn).toBeVisible()
   })
 
@@ -97,7 +97,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     console.log('[Test] Clicking Play Segments button...')
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
     console.log('[Test] Verifying button changed to Pause icon...')
@@ -199,7 +199,7 @@ test.describe('Sequential Playback', () => {
     await page.waitForTimeout(50)
 
     // Click sequential play button
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
     await page.waitForTimeout(100)
@@ -225,7 +225,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const playBtn = page.locator('button.sequential-play-btn')
+    const playBtn = page.locator('button.sequential-play-header-btn')
     await playBtn.click()
 
     // Button should change to pause icon
@@ -266,7 +266,7 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await page.locator('button.sequential-play-btn').click()
+    await page.locator('button.sequential-play-header-btn').click()
 
     await page.waitForTimeout(100)
 
@@ -298,7 +298,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await page.locator('button.sequential-play-btn').click()
+    await page.locator('button.sequential-play-header-btn').click()
 
     await page.waitForTimeout(50)
 
@@ -335,7 +335,7 @@ test.describe('Sequential Playback', () => {
     await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Sequential play button should be disabled (no media path)
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await expect(sequentialBtn).toBeDisabled()
   })
 
@@ -357,7 +357,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
     await page.waitForTimeout(50)

@@ -1,5 +1,10 @@
 <template>
-  <div class="verified-check" @click.stop="handleClick">
+  <div
+    class="verified-check tooltip-btn"
+    data-tooltip="Mark this caption as verified (or for every row you are targeting in the current selection)"
+    title="Mark this caption as verified (or for every row you are targeting in the current selection)"
+    @click.stop="handleClick"
+  >
     <span class="check-icon" :class="{ verified: isVerified }">
       {{ isVerified ? '✅' : '⬜' }}
     </span>
