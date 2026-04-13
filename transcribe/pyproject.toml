@@ -29,6 +29,7 @@ dependencies = [
     "pyright>=1.1.408",
     "imageio-ffmpeg>=0.6.0",
     "json5>=0.14.0",
+    "umap-learn>=0.5.11",
 ]
 
 [project.scripts]

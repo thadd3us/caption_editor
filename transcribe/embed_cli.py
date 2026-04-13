@@ -94,6 +94,7 @@ def embed_document(
     inference: Inference,
     model_name: str,
     min_segment_duration: float = 0.3,
+    umap_dimensions: Optional[list[int]] = None,
 ) -> CaptionsDocument:
     """Compute speaker embeddings for all segments in a document.
 
@@ -107,6 +108,7 @@ def embed_document(
         inference: Pre-loaded pyannote Inference object.
         model_name: Embedding model name (stored in document).
         min_segment_duration: Skip segments shorter than this (seconds).
+        umap_dimensions: Optional list of integer dimensions for UMAP reduction.
 
     Returns:
         Updated CaptionsDocument with embeddings populated.
@@ -130,13 +132,49 @@ def embed_document(
         embedding = compute_embedding(inference, audio, sample_rate)
         segment_id_to_embedding[segment.id] = embedding
 
+    # Compute UMAP reductions if requested and enough segments
+    umap_embeddings_map = {sid: {} for sid in segment_id_to_embedding.keys()}
+    segment_ids = list(segment_id_to_embedding.keys())
+    
+    if umap_dimensions and len(segment_ids) > 1:
+        import umap
+        
+        # Stack all embeddings into (num_segments, embedding_dim)
+        X = np.stack([segment_id_to_embedding[sid] for sid in segment_ids])
+        
+        for dim in umap_dimensions:
+            # Number of neighbors must be less than number of samples
+            # default n_neighbors is 15.
+            n_neighbors = min(15, len(segment_ids) - 1)
+            # Spectral initialization fails if number of samples is too small relative to components
+            init_method = 'spectral' if len(segment_ids) > dim + 2 else 'random'
+            
+            try:
+                reducer = umap.UMAP(
+                    n_components=dim, 
+                    metric="cosine", 
+                    n_neighbors=n_neighbors, 
+                    init=init_method
+                )
+                reduced = reducer.fit_transform(X)
+                
+                for i, sid in enumerate(segment_ids):
+                    umap_embeddings_map[sid][str(dim)] = [float(val) for val in reduced[i]]
+            except Exception as e:
+                # If UMAP fails (e.g. edge cases with too few samples or identical points)
+                # just skip this dimensionality
+                print(f"Warning: UMAP computation failed for dim {dim}: {e}")
+
     embeddings = []
     for segment_id, embedding in segment_id_to_embedding.items():
         embedding_b64 = encode_embedding(embedding.tolist())
+        umap_data = umap_embeddings_map.get(segment_id)
+        
         embeddings.append(
             SegmentSpeakerEmbedding(
                 segmentId=segment_id,
                 speakerEmbedding=embedding_b64,
+                umapEmbeddings=umap_data if umap_data else None,
             )
         )
 
@@ -164,6 +202,11 @@ def main(
     min_segment_duration: float = typer.Option(
         0.3,
         help="Shortest segment to embed",
+    ),
+    umap_dimensions: list[int] = typer.Option(
+        [1, 2],
+        "--umap-dimensions",
+        help="List of dimensionalities to compute UMAP embeddings for (e.g., --umap-dimensions 1 --umap-dimensions 2)",
     ),
 ) -> None:
     """
@@ -202,8 +245,8 @@ def main(
         typer.echo(f"Loading embedding model: {model}")
         inference = load_embedding_model(model)
 
-        typer.echo("Computing embeddings...")
-        embed_document(document, audio_path, inference, model, min_segment_duration)
+        typer.echo(f"Computing embeddings (with UMAP: {umap_dimensions})...")
+        embed_document(document, audio_path, inference, model, min_segment_duration, umap_dimensions)
 
         typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
         write_captions_json5_file(captions_path, document)

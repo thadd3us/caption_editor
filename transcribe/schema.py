@@ -148,6 +148,11 @@ class SegmentSpeakerEmbedding(BaseModel):
         description="Base64-encoded little-endian float32 speaker embedding vector",
         alias="speakerEmbedding",
     )
+    umap_embeddings: Optional[dict[str, list[float]]] = Field(
+        None,
+        description="UMAP embeddings per dimensionality",
+        alias="umapEmbeddings",
+    )
 
 
 class GridColumnState(BaseModel):

@@ -205,6 +205,11 @@ def main(
         10.0, "--max-segment-duration-seconds"
     ),
     min_segment_duration: float = typer.Option(0.3, "--min-segment-duration"),
+    umap_dimensions: list[int] = typer.Option(
+        [1, 2],
+        "--umap-dimensions",
+        help="List of dimensionalities to compute UMAP embeddings for",
+    ),
     recognizer_kind: str = typer.Option(
         "auto",
         "--recognizer",
@@ -330,6 +335,7 @@ def main(
                                 embed_inference,
                                 embed_model,
                                 min_segment_duration=min_segment_duration,
+                                umap_dimensions=umap_dimensions,
                             )
 
                         cp.parent.mkdir(parents=True, exist_ok=True)
@@ -368,6 +374,7 @@ def main(
                                 embed_inference,
                                 embed_model,
                                 min_segment_duration=min_segment_duration,
+                                umap_dimensions=umap_dimensions,
                             )
 
                         atomic_write_captions_json5(cp, document)
