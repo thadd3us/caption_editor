@@ -2,6 +2,7 @@ import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('Grid Column State - Persist and restore column visibility', () => {
   test('should save column state with hidden columns and restore on re-open', async ({ page }) => {
@@ -60,7 +61,9 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
       return store.exportToString()
     })
 
-    const exported = JSON.parse(exportedContent)
+    const exported = parseCaptionsFileContent(exportedContent) as {
+      uiState: { columnState: Array<{ colId: string; hide?: boolean }> }
+    }
     expect(exported.uiState).toBeDefined()
     expect(exported.uiState.columnState).toBeDefined()
 

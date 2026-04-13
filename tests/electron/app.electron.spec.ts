@@ -2,6 +2,7 @@ import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('Electron App', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
@@ -99,8 +100,10 @@ test.describe('Electron App', () => {
       return store.exportToString()
     })
 
-    // Verify the exported content is valid JSON
-    const parsed = JSON.parse(exportedContent)
+    const parsed = parseCaptionsFileContent(exportedContent) as {
+      metadata: { id: string }
+      segments: Array<{ id: string; text: string }>
+    }
     expect(parsed.metadata.id).toBe('test-123')
     expect(parsed.segments).toHaveLength(1)
     expect(parsed.segments[0].id).toBe('seg-1')

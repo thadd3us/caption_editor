@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   let window: Page
@@ -126,7 +127,9 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 5: Verifying saved captions file contents')
 
     const savedContent = await fs.readFile(testCaptionsPath, 'utf-8')
-    const savedDoc = JSON.parse(savedContent)
+    const savedDoc = parseCaptionsFileContent(savedContent) as {
+      segments: Array<{ id: string; text: string; speakerName?: string }>
+    }
     console.log('Saved captions JSON preview:', JSON.stringify(savedDoc, null, 2).substring(0, 500))
 
     // Verify the saved content has the new segment
@@ -203,7 +206,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Step 7: Final verification of the file on disk
     const savedAsContent = await fs.readFile(saveAsPath, 'utf-8')
-    const savedAsDoc = JSON.parse(savedAsContent)
+    const savedAsDoc = parseCaptionsFileContent(savedAsContent) as Record<string, unknown>
     expect(JSON.stringify(savedAsDoc)).toContain('Welcome to the Caption Editor!')
     expect(JSON.stringify(savedAsDoc)).toContain('This is a sample caption file.')
 
@@ -377,7 +380,9 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 7: Verifying saved captions file contains updated speaker names')
 
     const savedContent = await fs.readFile(osrCaptionsPath, 'utf-8')
-    const savedDoc = JSON.parse(savedContent)
+    const savedDoc = parseCaptionsFileContent(savedContent) as {
+      segments: Array<{ id: string; text: string; speakerName?: string }>
+    }
 
     const savedSegments = savedDoc.segments as Array<any>
     expect(savedSegments[0].speakerName).toBe('Charlie')

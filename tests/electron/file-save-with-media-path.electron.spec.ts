@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save with Media Path - Relative path updates', () => {
   let window: Page
@@ -110,7 +111,7 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     // Step 6: Parse the saved file and check the mediaFilePath
     const savedContent = await fs.readFile(saveAsPath, 'utf-8')
 
-    const savedDoc = JSON.parse(savedContent)
+    const savedDoc = parseCaptionsFileContent(savedContent) as { metadata: { mediaFilePath?: string } }
     console.log('\nParsed metadata from saved file:', savedDoc.metadata)
     console.log('  mediaFilePath:', savedDoc.metadata.mediaFilePath)
 

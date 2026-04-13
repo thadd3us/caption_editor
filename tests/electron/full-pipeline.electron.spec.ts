@@ -5,6 +5,7 @@ import * as os from 'os'
 import { enableConsoleCapture } from '../helpers/console'
 import { launchElectron } from '../helpers/electron-launch'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('Full E2E Pipeline @expensive', () => {
   test('should transcribe audio, add embeddings, load in UI, modify, and save', async () => {
@@ -80,7 +81,7 @@ test.describe('Full E2E Pipeline @expensive', () => {
       })
 
       // Verify persisted output on disk.
-      const parsed = JSON.parse(fs.readFileSync(savedPath, 'utf-8'))
+      const parsed = parseCaptionsFileContent(fs.readFileSync(savedPath, 'utf-8')) as any
       expect(Array.isArray(parsed.segments)).toBe(true)
       expect(parsed.segments.length).toBeGreaterThan(0)
       expect(parsed.segments[0].speakerName).toBe('TestSpeaker')

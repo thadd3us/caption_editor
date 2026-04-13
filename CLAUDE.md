@@ -64,6 +64,8 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 
 ### Test Status
 
+Saved/exported `.captions_json5` from `exportToString()` includes leading `//` header comments. In Playwright specs, parse with `parseCaptionsFileContent()` from `tests/helpers/parseCaptionsFileContent.ts` (JSON5), not `JSON.parse`.
+
 ### Platform Notes
 
 - **macOS**: All tests work out of the box
