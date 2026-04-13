@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Any, Optional
 
+from constants import ASR_COMMIT_HASH
 from schema import CaptionsDocument
 
 
@@ -74,8 +75,8 @@ def serialize_captions_json5(
     json_str = _stable_json_dumps(payload)
     header = (
         "// Caption Editor: https://github.com/thadd3us/caption_editor/\n"
-        "// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/63220834e413f1a26f578086ab6ac599d612efaa/src/types/schema.ts\n"
-        "// File schema Python: https://github.com/thadd3us/caption_editor/blob/63220834e413f1a26f578086ab6ac599d612efaa/transcribe/schema.py\n"
+        f"// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/{ASR_COMMIT_HASH}/src/types/schema.ts\n"
+        f"// File schema Python: https://github.com/thadd3us/caption_editor/blob/{ASR_COMMIT_HASH}/transcribe/schema.py\n"
     )
     return header + json_str
 

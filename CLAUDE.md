@@ -12,10 +12,8 @@
 
 **IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version!**
 
-Both constants live in `electron/constants.ts`:
-
-1. **`APP_VERSION`** — Bump this (e.g., `1.4.0`). Single source of truth for the app version.
-2. **`ASR_COMMIT_HASH`** — After bumping the version, commit and **push**, then update this hash to point to that pushed commit. This is the commit that `uvx` fetches from GitHub for production ASR. It must be a pushed commit that includes the `transcribe` packaging config.
+1. **`APP_VERSION`** — In `electron/constants.ts`. Single source of truth for the app version.
+2. **`ASR_COMMIT_HASH`** — After bumping the version, commit and **push**, then set this hash to that pushed commit in **both** `electron/constants.ts` and `transcribe/constants.py` (same string). It is the commit `uvx` fetches for production ASR, the blob URLs in new `.captions_json5` headers, and must be a pushed commit that includes the `transcribe` packaging config.
 
 The two-step workflow:
 ```bash
@@ -24,7 +22,7 @@ git add -A && git commit -m "Bump version to X.Y.Z"
 git push
 # 2. Update ASR_COMMIT_HASH to the commit hash from step 1, commit, and push
 git rev-parse HEAD  # copy this hash
-# edit ASR_COMMIT_HASH in electron/constants.ts
+# edit ASR_COMMIT_HASH in electron/constants.ts AND transcribe/constants.py
 git add -A && git commit -m "Update ASR_COMMIT_HASH to vX.Y.Z"
 git push
 ```

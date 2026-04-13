@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import JSON5 from 'json5'
+import { ASR_COMMIT_HASH } from '../../electron/constants'
 import type {
   ParseResult,
   TranscriptSegment,
@@ -136,8 +137,8 @@ export function serializeCaptionsJSON5(document: CaptionsDocument): string {
   const { filePath: _filePath, ...persisted } = document as any
   const jsonStr = stableJsonStringify(persisted)
   const header = `// Caption Editor: https://github.com/thadd3us/caption_editor/
-// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/63220834e413f1a26f578086ab6ac599d612efaa/src/types/schema.ts
-// File schema Python: https://github.com/thadd3us/caption_editor/blob/63220834e413f1a26f578086ab6ac599d612efaa/transcribe/schema.py\n`
+// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/${ASR_COMMIT_HASH}/src/types/schema.ts
+// File schema Python: https://github.com/thadd3us/caption_editor/blob/${ASR_COMMIT_HASH}/transcribe/schema.py\n`
   return header + jsonStr
 }
 
