@@ -13,15 +13,17 @@
 **IMPORTANT: When changing Node.js/TypeScript code, bump the Electron app version!**
 
 1. **`APP_VERSION`** — In `electron/constants.ts`. Single source of truth for the app version.
-2. **`ASR_COMMIT_HASH`** — After bumping the version, commit and **push**, then set this hash to that pushed commit in **both** `electron/constants.ts` and `transcribe/constants.py` (same string). It is the commit `uvx` fetches for production ASR, the blob URLs in new `.captions_json5` headers, and must be a pushed commit that includes the `transcribe` packaging config.
+2. **`ASR_COMMIT_HASH`** — Same string in `electron/constants.ts` and `transcribe/constants.py`. This is the revision **Electron passes to `uvx`** (must be on GitHub with a working `transcribe/` package). It is also baked into `.captions_json5` header blob URLs when the app or CLI serializes a file.
+
+**Why the pin can’t match “this” commit’s tree:** A git commit id is the hash of that commit’s tree. The tree cannot truthfully contain its own commit id as file text (changing the text would change the tree and thus the id). So the usual release is **two commits**: commit **A** bumps `APP_VERSION`; commit **B** sets `ASR_COMMIT_HASH` to **A**’s hash in both files. The tarball **at A** still has the *previous* `ASR_COMMIT_HASH` inside `transcribe/constants.py` — that does **not** break production: uvx uses the rev from **Electron**, not from Python’s constant. For local `uv run transcribe_cli` with headers matching the pin, work from `main` **after B** (or accept one-commit lag on a checkout exactly at **A**).
 
 The two-step workflow:
 ```bash
 # 1. Bump APP_VERSION, commit, and push
 git add -A && git commit -m "Bump version to X.Y.Z"
 git push
-# 2. Update ASR_COMMIT_HASH to the commit hash from step 1, commit, and push
-git rev-parse HEAD  # copy this hash
+# 2. Set ASR_COMMIT_HASH to the hash of commit 1 (not “this” commit’s hash), in BOTH files
+git rev-parse HEAD  # after step 1, this is commit A — copy for ASR_COMMIT_HASH
 # edit ASR_COMMIT_HASH in electron/constants.ts AND transcribe/constants.py
 git add -A && git commit -m "Update ASR_COMMIT_HASH to vX.Y.Z"
 git push
