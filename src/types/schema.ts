@@ -92,6 +92,35 @@ export interface UIState {
 }
 
 /**
+ * Word in a raw ASR segment snapshot (pre–post-processing pipeline).
+ */
+export interface RawAsrWord {
+  readonly word: string
+  readonly start: number
+  readonly end: number
+}
+
+/**
+ * Single ASR segment before overlap merge, gap split/group, and long-segment split.
+ */
+export interface RawAsrSegmentSnapshot {
+  readonly text: string
+  readonly start: number
+  readonly end: number
+  readonly chunkStart?: number // Audio chunk start (seconds) when using chunked transcription
+  readonly words: readonly RawAsrWord[]
+}
+
+/**
+ * Immutable snapshot of chunked ASR output, written once when the document is created by ASR.
+ * Not updated by the editor; useful for debugging or re-running post-processing without ASR.
+ */
+export interface RawAsrOutput {
+  readonly version: number
+  readonly segments: readonly RawAsrSegmentSnapshot[]
+}
+
+/**
  * Complete captions document with metadata
  */
 export interface CaptionsDocument {
@@ -103,6 +132,7 @@ export interface CaptionsDocument {
   readonly embeddings?: readonly SegmentSpeakerEmbedding[] // Speaker embeddings for segments
   readonly embeddingModel?: string // Name of the embedding model that produced the speaker embeddings
   readonly uiState?: UIState // Persisted UI state (grid column layout, filters)
+  readonly rawAsrOutput?: RawAsrOutput // Pre-merge chunked ASR (optional; set at transcription time)
 }
 
 /**

@@ -192,6 +192,45 @@ class UIState(BaseModel):
     )
 
 
+class RawAsrWord(BaseModel):
+    """Single word in a raw ASR segment snapshot."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    word: str
+    start: float
+    end: float
+
+
+class RawAsrSegmentSnapshot(BaseModel):
+    """One ASR segment before overlap resolution, gap splitting, and long-segment splits."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    text: str
+    start: float
+    end: float
+    chunk_start: Optional[float] = Field(
+        None,
+        description="Audio chunk start (seconds) when produced by chunked transcription",
+        alias="chunkStart",
+    )
+    words: list[RawAsrWord]
+
+
+class RawAsrOutput(BaseModel):
+    """Immutable snapshot of chunked ASR output before the post-processing pipeline.
+
+    Written once when a document is created by the transcription CLI. The editor does
+    not mutate this field.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    version: int = Field(1, description="Schema version for this snapshot object")
+    segments: list[RawAsrSegmentSnapshot]
+
+
 class CaptionsDocument(BaseModel):
     """Complete captions document (native .captions_json5 format)."""
 
@@ -219,4 +258,12 @@ class CaptionsDocument(BaseModel):
         None,
         description="Persisted UI state (grid column layout, filters)",
         alias="uiState",
+    )
+    raw_asr_output: Optional[RawAsrOutput] = Field(
+        None,
+        description=(
+            "Chunked ASR segments as returned before overlap merge, gap split/group, "
+            "and long-segment split (debug / recovery; not updated after first write)"
+        ),
+        alias="rawAsrOutput",
     )

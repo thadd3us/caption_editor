@@ -1,6 +1,13 @@
 import { v4 as uuidv4 } from 'uuid'
 import JSON5 from 'json5'
-import type { ParseResult, TranscriptSegment, TranscriptMetadata, CaptionsDocument, UIState } from '../types/schema'
+import type {
+  ParseResult,
+  TranscriptSegment,
+  TranscriptMetadata,
+  CaptionsDocument,
+  UIState,
+  RawAsrOutput
+} from '../types/schema'
 import { stableJsonStringify } from './stableJson'
 import { reindexSegments } from './captionsUtils'
 
@@ -92,6 +99,11 @@ export function parseCaptionsJSON5(content: string): ParseResult {
     // Parse uiState if present
     const uiState = (obj.uiState && typeof obj.uiState === 'object') ? obj.uiState as UIState : undefined
 
+    const rawAsrOutput =
+      obj.rawAsrOutput !== undefined && obj.rawAsrOutput !== null && typeof obj.rawAsrOutput === 'object'
+        ? (obj.rawAsrOutput as RawAsrOutput)
+        : undefined
+
     const document: CaptionsDocument = {
       metadata,
       title: typeof obj.title === 'string' ? obj.title : undefined,
@@ -99,7 +111,8 @@ export function parseCaptionsJSON5(content: string): ParseResult {
       history: Array.isArray(obj.history) ? (obj.history as any) : undefined,
       embeddings,
       embeddingModel,
-      uiState
+      uiState,
+      rawAsrOutput
       // filePath is intentionally not persisted; it’s attached by caller
     }
 

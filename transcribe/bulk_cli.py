@@ -51,6 +51,7 @@ from typing import Any, Optional
 import typer
 from tqdm import tqdm
 
+from asr_results_to_captions import post_process_raw_asr_segments
 from audio_utils import extract_audio_to_wav
 from captions_json5_lib import (
     parse_captions_json5_file,
@@ -313,16 +314,28 @@ def main(
                         wav_path = extract_audio_to_wav(media, Path(td) / "audio.wav")
 
                         assert recognizer is not None
-                        asr_segments = recognizer.transcribe(
+                        raw_asr_segments = recognizer.transcribe(
                             wav_path,
                             chunk_size=chunk_size,
                             overlap=overlap,
                             max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
                             max_segment_duration_seconds=max_segment_duration_seconds,
                         )
+                        asr_segments = post_process_raw_asr_segments(
+                            raw_asr_segments,
+                            chunk_size=float(chunk_size),
+                            overlap=float(overlap),
+                            max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
+                            max_segment_duration_seconds=max_segment_duration_seconds,
+                            is_whisper="whisper" in model.lower(),
+                        )
 
                         document = build_captions_document(
-                            media, wav_path, asr_segments, model
+                            media,
+                            wav_path,
+                            asr_segments,
+                            model,
+                            raw_asr_segments_before_post_process=raw_asr_segments,
                         )
 
                         # Embed in the same pass (WAV already extracted)

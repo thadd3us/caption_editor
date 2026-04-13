@@ -29,12 +29,10 @@ from audio_utils import extract_audio_to_wav, load_audio_segment
 from asr_results_to_captions import (
     ASRSegment,
     asr_segments_to_transcript_segments,
-    group_segments_by_gap,
     parse_nemo_result_with_words,
     parse_transformers_result_with_words,
-    resolve_overlap_conflicts,
-    split_long_segments,
-    split_segments_by_word_gap,
+    post_process_raw_asr_segments,
+    raw_asr_segments_to_raw_asr_output,
 )
 from schema import (
     CaptionsDocument,
@@ -380,22 +378,24 @@ def transcribe_audio_file(
 ) -> List[ASRSegment]:
     """Run chunked ASR on a WAV file with a pre-loaded model.
 
-    Performs the full three-pass post-processing pipeline (overlap resolution,
-    gap-based grouping/splitting, long-segment splitting).
+    Concatenates per-chunk model output only. Call
+    :func:`asr_results_to_captions.post_process_raw_asr_segments` on the result
+    for overlap merge, gap grouping/splitting, and long-segment splitting.
+
     Extracted from main() so bulk processing can reuse a loaded model.
 
     Args:
         audio_path: Path to 16kHz mono WAV file.
         asr_pipeline: Pre-loaded ASR model.
         is_nemo: Whether asr_pipeline is a NeMo model.
-        model_name: Model name string (used for Whisper vs Parakeet branching).
+        model_name: Model name string (reserved for callers; branching uses post-process).
         chunk_size: Chunk size in seconds.
         overlap: Overlap between chunks in seconds.
-        max_intra_segment_gap_seconds: Max gap before splitting a segment.
-        max_segment_duration_seconds: Max segment duration before splitting.
+        max_intra_segment_gap_seconds: Unused here; pass to post-process.
+        max_segment_duration_seconds: Unused here; pass to post-process.
 
     Returns:
-        Post-processed list of ASRSegment objects.
+        Raw segments: concatenation of per-chunk ASR output before overlap merge.
     """
     info = sf.info(audio_path)
     duration = info.duration
@@ -421,24 +421,7 @@ def transcribe_audio_file(
         )
         all_segments.extend(chunk_segments)
 
-    # Three-pass segment processing pipeline:
-    # 1. Resolve overlaps from chunked processing
-    after_overlap = resolve_overlap_conflicts(all_segments, chunk_size, overlap)
-
-    # 2. Gap-based grouping (Whisper) or splitting (Parakeet)
-    if "whisper" in model_name.lower():
-        after_grouping = group_segments_by_gap(
-            after_overlap, max_intra_segment_gap_seconds
-        )
-    else:
-        after_grouping = split_segments_by_word_gap(
-            after_overlap, max_intra_segment_gap_seconds
-        )
-
-    # 3. Split long segments
-    final_segments = split_long_segments(after_grouping, max_segment_duration_seconds)
-
-    return final_segments
+    return list(all_segments)
 
 
 def build_captions_document(
@@ -447,6 +430,7 @@ def build_captions_document(
     asr_segments: List[ASRSegment],
     model_name: str,
     deterministic_ids: bool = False,
+    raw_asr_segments_before_post_process: Optional[List[ASRSegment]] = None,
 ) -> CaptionsDocument:
     """Convert ASR segments into a complete CaptionsDocument.
 
@@ -456,9 +440,11 @@ def build_captions_document(
     Args:
         media_path: Path to the original media file (stored in metadata).
         audio_path: Path to the WAV file (used for audio hash).
-        asr_segments: Post-processed ASR segments from transcribe_audio_file().
+        asr_segments: Post-processed ASR segments (after :func:`post_process_raw_asr_segments`).
         model_name: ASR model name (stored per-segment).
         deterministic_ids: Use simple incremental IDs for testing.
+        raw_asr_segments_before_post_process: If set, stored as ``rawAsrOutput`` on
+            the document (chunked ASR before overlap merge and later steps).
 
     Returns:
         Complete CaptionsDocument ready for serialization.
@@ -476,6 +462,12 @@ def build_captions_document(
     doc_id = generate_document_id(audio_hash, deterministic=deterministic_ids)
     metadata = TranscriptMetadata(id=doc_id, mediaFilePath=str(media_path))
 
+    raw_out = (
+        raw_asr_segments_to_raw_asr_output(raw_asr_segments_before_post_process)
+        if raw_asr_segments_before_post_process is not None
+        else None
+    )
+
     return CaptionsDocument(
         metadata=metadata,
         title=media_path.stem,
@@ -484,6 +476,7 @@ def build_captions_document(
         embeddings=None,
         embeddingModel=None,
         uiState=None,
+        raw_asr_output=raw_out,
     )
 
 
@@ -599,7 +592,7 @@ def main(
             raise typer.Exit(1)
 
         typer.echo("Transcribing...")
-        asr_segments = transcribe_audio_file(
+        raw_asr_segments = transcribe_audio_file(
             audio_path,
             asr_pipeline,
             is_nemo,
@@ -608,6 +601,14 @@ def main(
             overlap=overlap,
             max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
             max_segment_duration_seconds=max_segment_duration_seconds,
+        )
+        asr_segments = post_process_raw_asr_segments(
+            raw_asr_segments,
+            chunk_size=float(chunk_size),
+            overlap=float(overlap),
+            max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
+            max_segment_duration_seconds=max_segment_duration_seconds,
+            is_whisper="whisper" in model_name.lower(),
         )
 
         # Remux MP3 if requested (adds Xing seek table for accurate browser seeking)
@@ -621,6 +622,7 @@ def main(
             asr_segments,
             model_name,
             deterministic_ids=deterministic_ids,
+            raw_asr_segments_before_post_process=raw_asr_segments,
         )
 
         output_dir = output.resolve().parent

@@ -66,6 +66,14 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 
 Saved/exported `.captions_json5` from `exportToString()` includes leading `//` header comments. In Playwright specs, parse with `parseCaptionsFileContent()` from `tests/helpers/parseCaptionsFileContent.ts` (JSON5), not `JSON.parse`.
 
+### ASR post-processing without running models
+
+**Already in place:** `transcribe/asr_results_to_captions_post_processing_pipeline_test.py` loads captured chunked raw output from `transcribe/test_fixtures/` (Whisper and Parakeet, 10s and 60s chunk sizes), parses chunks into `ASRSegment` lists, and runs the production pipeline via `post_process_asr_segments()` (which delegates to `post_process_raw_asr_segments()` then transcript conversion). Snapshots lock the resulting segment boundaries and text. No GPU, no `@pytest.mark.expensive` ASR runs.
+
+**Opportunity:** When overlap merge or gap/long-segment logic misbehaves on real audio, add a **fixture-driven** regression: capture raw chunked ASR (e.g. `transcribe/capture_raw_asr_output.py`, or copy `rawAsrOutput` from a `.captions_json5` produced by transcription), drop JSON under `test_fixtures/`, and add a parametrized case or a dedicated test that calls `post_process_raw_asr_segments()` / `post_process_asr_segments()` with the same `chunk_size`, `overlap`, and gap thresholds as production. That isolates post-processing bugs from model noise and keeps CI fast.
+
+**Syrupy (`.ambr`):** Most transcribe snapshot tests use the default fixture from `transcribe/conftest.py` (one `.ambr` file per test module under `transcribe/__snapshots__/`). `asr_results_to_captions_post_processing_pipeline_test.py` uses a per-parametrized-case file and applies `snapshot(matcher=rounded_floats_matcher(...))` from `transcribe/snapshot_test_utils.py` so **floats are rounded during serialization**—values stay visible in the Amber file but tiny FP jitter does not fail CI. To **drop** keys entirely from snapshots, use `snapshot(exclude=syrupy.filters.paths("a.b", ...))` instead.
+
 ### Platform Notes
 
 - **macOS**: All tests work out of the box

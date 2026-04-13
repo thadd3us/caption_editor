@@ -9,7 +9,13 @@ and duration.
 from dataclasses import dataclass
 from typing import List, Optional
 
-from schema import TranscriptSegment, TranscriptWord
+from schema import (
+    RawAsrOutput,
+    RawAsrSegmentSnapshot,
+    RawAsrWord,
+    TranscriptSegment,
+    TranscriptWord,
+)
 
 
 @dataclass
@@ -745,6 +751,72 @@ def parse_parakeet_raw_chunk(
     return segments
 
 
+def raw_asr_segments_to_raw_asr_output(segments: List[ASRSegment]) -> RawAsrOutput:
+    """Serialize chunked ASR segments before overlap merge and later pipeline steps."""
+    return RawAsrOutput(
+        version=1,
+        segments=[
+            RawAsrSegmentSnapshot(
+                text=s.text,
+                start=float(s.start),
+                end=float(s.end),
+                chunk_start=s.chunk_start,
+                words=[
+                    RawAsrWord(word=w.word, start=float(w.start), end=float(w.end))
+                    for w in s.words
+                ],
+            )
+            for s in segments
+        ],
+    )
+
+
+def post_process_raw_asr_segments(
+    segments: List[ASRSegment],
+    *,
+    chunk_size: float,
+    overlap: float,
+    max_intra_segment_gap_seconds: float,
+    max_segment_duration_seconds: float,
+    is_whisper: bool,
+) -> List[ASRSegment]:
+    """Turn chunked raw ASR output into merged/split ``ASRSegment`` list.
+
+    This is the production pipeline used after ``transcribe_audio_file()`` (which
+    only concatenates per-chunk model output). Steps:
+
+    1. Resolve overlaps from chunked processing
+    2. Group/split by gap (Whisper groups word segments; Parakeet splits on large gaps)
+    3. Split segments longer than ``max_segment_duration_seconds``
+
+    Args:
+        segments: Raw segments straight from chunked transcription (before overlap merge)
+        chunk_size: Chunk size in seconds (same as transcription)
+        overlap: Overlap between chunks in seconds
+        max_intra_segment_gap_seconds: Whisper: max gap to group; Parakeet: max gap before split
+        max_segment_duration_seconds: Split segments longer than this
+        is_whisper: True for Whisper-style word segments, False for Parakeet-style sentences
+
+    Returns:
+        Post-processed ``ASRSegment`` list (still not ``TranscriptSegment`` / no cue IDs).
+    """
+    segments = resolve_overlap_conflicts(segments, chunk_size, overlap)
+
+    if is_whisper:
+        segments = group_segments_by_gap(
+            segments, max_gap_seconds=max_intra_segment_gap_seconds
+        )
+    else:
+        segments = split_segments_by_word_gap(
+            segments, max_gap_seconds=max_intra_segment_gap_seconds
+        )
+
+    segments = split_long_segments(
+        segments, max_duration_seconds=max_segment_duration_seconds
+    )
+    return segments
+
+
 def post_process_asr_segments(
     segments: List[ASRSegment],
     chunk_size: float,
@@ -753,13 +825,11 @@ def post_process_asr_segments(
     max_duration: float,
     is_whisper: bool,
 ) -> List[TranscriptSegment]:
-    """Apply the complete post-processing pipeline to ASR segments.
+    """Apply the complete post-processing pipeline and convert to transcript segments.
 
-    This is the production pipeline used by transcribe_cli.py. It performs:
-    1. Resolve overlaps from chunked processing
-    2. Group/split by gap (model-specific: Whisper groups, Parakeet splits)
-    3. Split long segments
-    4. Convert to TranscriptSegments
+    Same as :func:`post_process_raw_asr_segments` followed by
+    :func:`asr_segments_to_transcript_segments`. Kept for tests and callers that want
+    ``TranscriptSegment`` objects directly.
 
     Args:
         segments: Raw ASR segments with word timestamps
@@ -772,19 +842,12 @@ def post_process_asr_segments(
     Returns:
         List of TranscriptSegment objects
     """
-    # Step 1: Resolve overlaps from chunked processing
-    segments = resolve_overlap_conflicts(segments, chunk_size, overlap)
-
-    # Step 2: Group or split by gap (model-specific)
-    if is_whisper:
-        # Whisper: group word-level segments into sentences
-        segments = group_segments_by_gap(segments, max_gap_seconds=gap_threshold)
-    else:
-        # Parakeet: split sentence-level segments at large gaps
-        segments = split_segments_by_word_gap(segments, max_gap_seconds=gap_threshold)
-
-    # Step 3: Split long segments
-    segments = split_long_segments(segments, max_duration_seconds=max_duration)
-
-    # Step 4: Convert to TranscriptSegments
-    return asr_segments_to_transcript_segments(segments)
+    asr_segments = post_process_raw_asr_segments(
+        segments,
+        chunk_size=chunk_size,
+        overlap=overlap,
+        max_intra_segment_gap_seconds=gap_threshold,
+        max_segment_duration_seconds=max_duration,
+        is_whisper=is_whisper,
+    )
+    return asr_segments_to_transcript_segments(asr_segments)

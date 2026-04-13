@@ -20,6 +20,7 @@ from bulk_cli import (
     find_media_files,
     get_audio_duration_seconds,
 )
+from asr_results_to_captions import post_process_raw_asr_segments
 from captions_json5_lib import parse_captions_json5_file
 from recognizer import MockRecognizer
 from schema import CaptionsDocument, TranscriptMetadata, TranscriptSegment
@@ -168,8 +169,17 @@ class TestMockRecognizer:
         make_silent_wav(wav, 9.0)
 
         rec = MockRecognizer()
-        segs1 = rec.transcribe(wav)
-        segs2 = rec.transcribe(wav)
+        raw1 = rec.transcribe(wav)
+        raw2 = rec.transcribe(wav)
+        pp_kw = dict(
+            chunk_size=60,
+            overlap=5,
+            max_intra_segment_gap_seconds=0.50,
+            max_segment_duration_seconds=10.0,
+            is_whisper=False,
+        )
+        segs1 = post_process_raw_asr_segments(raw1, **pp_kw)
+        segs2 = post_process_raw_asr_segments(raw2, **pp_kw)
 
         assert len(segs1) == 3  # 9s / 3s per segment
         assert len(segs1) == len(segs2)
@@ -182,7 +192,14 @@ class TestMockRecognizer:
         wav = tmp_path / "test.wav"
         make_silent_wav(wav, 3.0)
 
-        segs = MockRecognizer().transcribe(wav)
+        segs = post_process_raw_asr_segments(
+            MockRecognizer().transcribe(wav),
+            chunk_size=60,
+            overlap=5,
+            max_intra_segment_gap_seconds=0.50,
+            max_segment_duration_seconds=10.0,
+            is_whisper=False,
+        )
         assert len(segs) == 1
         assert segs[0].words is not None
         assert len(segs[0].words) == 4  # MOCK_WORDS_PER_SEGMENT
@@ -205,6 +222,9 @@ class TestBulkCLI:
         # Verify the written files are valid
         doc = parse_captions_json5_file(tmp_path / "a.captions_json5")
         assert len(doc.segments) > 0
+        assert doc.raw_asr_output is not None
+        assert doc.raw_asr_output.version == 1
+        assert len(doc.raw_asr_output.segments) > 0
 
     def test_skips_existing_captions(self, tmp_path: Path):
         """Files with existing .captions_json5 are skipped."""

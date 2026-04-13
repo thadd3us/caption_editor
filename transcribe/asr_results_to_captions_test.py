@@ -4,6 +4,7 @@ from asr_results_to_captions import (
     ASRSegment,
     WordTimestamp,
     asr_segments_to_transcript_segments,
+    raw_asr_segments_to_raw_asr_output,
     split_long_segments,
     split_segments_by_word_gap,
     zip_words_in_overlapping_segments,
@@ -544,3 +545,21 @@ def test_zip_words_preserves_words_only_in_second_chunk():
     assert "surface is fine and powdery" in result.text, (
         f"Words only present in second chunk were dropped. Got: {result.text!r}"
     )
+
+
+def test_raw_asr_segments_to_raw_asr_output_preserves_chunk_and_words():
+    segs = [
+        ASRSegment(
+            text="hello",
+            start=1.0,
+            end=2.0,
+            words=[WordTimestamp("hello", 1.0, 2.0)],
+            chunk_start=0.0,
+        ),
+    ]
+    snap = raw_asr_segments_to_raw_asr_output(segs)
+    assert snap.version == 1
+    assert len(snap.segments) == 1
+    assert snap.segments[0].text == "hello"
+    assert snap.segments[0].chunk_start == 0.0
+    assert snap.segments[0].words[0].word == "hello"
