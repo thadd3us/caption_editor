@@ -35,6 +35,14 @@ test.describe('ASR Cancellation Reproduction', () => {
 
             const page = await electronApp.firstWindow()
 
+            // Forward renderer [ASR timing] lines so we can correlate with test wall clock.
+            page.on('console', (msg) => {
+                const t = msg.text()
+                if (t.includes('[ASR timing]')) {
+                    console.log('[Test][renderer]', t)
+                }
+            })
+
             // Set the ASR model override on the window
             await page.evaluate(() => {
                 (window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
@@ -62,14 +70,27 @@ test.describe('ASR Cancellation Reproduction', () => {
                 { timeout: 5000 }
             )
 
+            const testWallStart = Date.now()
+            const logTestTiming = (label: string) => {
+                const now = Date.now()
+                console.log(
+                    `[Test timing] ${label} wallMs=${now} deltaFromTestStartMs=${now - testWallStart}`
+                )
+            }
+
             // Trigger ASR menu action
+            logTestTiming('before handleMenuAsrCaption()')
             await page.evaluate(() => {
                 (window as any).handleMenuAsrCaption()
             })
 
             // Wait for ASR modal to appear
             await page.waitForSelector('.asr-modal-overlay', { timeout: 5000 })
-            console.log('[Test] ASR modal appeared')
+            const tModalVisible = Date.now()
+            logTestTiming('ASR modal overlay visible (selector matched)')
+            console.log(
+                '[Test timing] Compare renderer lines "[ASR timing] transcribe IPC invoke end ... elapsedMs=?" to "[Test timing] ... cancel click": if invoke end runs before the click with elapsedMs < 5000, ASR finished in under 5s on that run.'
+            )
 
             // Wait for the cancel button to be visible, then click it.
             // Flaky: the ASR process may finish (or the modal may start closing)
@@ -77,11 +98,23 @@ test.describe('ASR Cancellation Reproduction', () => {
             // the button to detach from the DOM mid-click. The retry handles this.
             const cancelButton = page.locator('.asr-button-cancel')
             await cancelButton.waitFor({ state: 'visible', timeout: 3000 })
+            const tCancelVisible = Date.now()
+            logTestTiming('cancel button visible')
+            console.log(
+                `[Test timing] ms from modal overlay to cancel button visible: ${tCancelVisible - tModalVisible}`
+            )
+
             console.log('[Test] Clicking cancel button')
+            const tBeforeClick = Date.now()
             await cancelButton.click()
+            logTestTiming('after cancel click() resolved')
+            console.log(
+                `[Test timing] ms from modal visible to cancel click finished: ${Date.now() - tModalVisible}`
+            )
 
             // Wait for modal to disappear
             await page.waitForSelector('.asr-modal-overlay', { state: 'hidden', timeout: 3000 })
+            logTestTiming('ASR modal overlay hidden')
             console.log('[Test] ASR modal closed')
 
             // VERIFY APP IS STILL RESPONSIVE

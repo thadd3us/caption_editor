@@ -767,12 +767,27 @@ async function startAsrTranscription() {
     asrHr()
     console.log('[ASR] Renderer: waiting on main process — log may look "done" while subprocess exits, file is read, and data is sent over IPC.')
     asrHr()
+    const transcribeWallStart = Date.now()
+    console.log(
+      '[ASR timing] transcribe IPC invoke start wallMs=' + transcribeWallStart
+    )
     const result = await window.electronAPI.asr.transcribe({
       mediaFilePath: store.mediaFilePath,
       model,
       chunkSize,
       remuxMp3
     })
+    const transcribeWallEnd = Date.now()
+    console.log(
+      '[ASR timing] transcribe IPC invoke end wallMs=' +
+        transcribeWallEnd +
+        ' elapsedMs=' +
+        (transcribeWallEnd - transcribeWallStart) +
+        ' canceled=' +
+        !!result.canceled +
+        ' success=' +
+        result.success
+    )
 
     if (result.canceled) {
       console.log('[ASR] Transcription was canceled')
@@ -822,12 +837,29 @@ async function startAsrTranscription() {
 }
 
 async function handleAsrCancel() {
+  const wallEntry = Date.now()
+  console.log(
+    '[ASR timing] handleAsrCancel entry wallMs=' +
+      wallEntry +
+      ' isAsrRunning=' +
+      isAsrRunning.value +
+      ' processId=' +
+      (currentAsrProcessId ?? 'null')
+  )
   console.log('[ASR] Cancel button clicked')
 
   if (isAsrRunning.value && currentAsrProcessId && window.electronAPI?.asr) {
     // Cancel the running process
     console.log('[ASR] Cancelling process:', currentAsrProcessId)
     await window.electronAPI.asr.cancel(currentAsrProcessId)
+    console.log(
+      '[ASR timing] handleAsrCancel after asr.cancel() wallMs=' + Date.now()
+    )
+  } else {
+    console.log(
+      '[ASR timing] handleAsrCancel skipped IPC cancel (not running or no processId) wallMs=' +
+        Date.now()
+    )
   }
 
   // Close modal
@@ -835,6 +867,7 @@ async function handleAsrCancel() {
   isAsrRunning.value = false
   asrFailed.value = false
   currentAsrProcessId = null
+  console.log('[ASR timing] handleAsrCancel exit modal closed wallMs=' + Date.now())
 }
 
 // Also attempt auto-load on mount (for localStorage recovery)
