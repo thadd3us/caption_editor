@@ -2,12 +2,8 @@ import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
 /**
- * Documents intended “Lightroom-style” targeting: multi-select + actions keyed to
+ * Regression tests for Lightroom-style targeting: multi-select + actions keyed to
  * whether the gesture row is inside or outside the selection.
- *
- * Tests marked with test.fail() expect the assertion to fail on the current
- * implementation; they pass as long as the bug is present. Remove test.fail()
- * when the behavior is fixed.
  */
 test.describe('Selection targeting (Lightroom-style)', () => {
   let window: Page
@@ -17,13 +13,17 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     await window.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
-  test.afterEach(async () => {
-    await window
-      .evaluate(() => {
-        const overlay = document.querySelector('.context-menu-overlay')
-        if (overlay) (overlay as HTMLElement).click()
-      })
-      .catch(() => {})
+  test.afterEach(async ({ page }) => {
+    try {
+      if (page && !page.isClosed()) {
+        await page.evaluate(() => {
+          const overlay = document.querySelector('.context-menu-overlay')
+          if (overlay) (overlay as HTMLElement).click()
+        })
+      }
+    } catch {
+      // ignore teardown when the Electron fixture did not start
+    }
   })
 
   test('verified toggle applies to all selected rows when clicking inside selection', async () => {
@@ -72,8 +72,6 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('star rating applies to all selected rows when clicking a star inside selection', async () => {
-    test.fail(true, 'StarRatingCell ignores multi-select; should match VerifiedCheckCell / CLAUDE.md')
-
     await window.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
@@ -118,11 +116,6 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('context menu delete targets only right-clicked row when that row is outside selection', async () => {
-    test.fail(
-      true,
-      'onCellContextMenu uses getSelectedRows() only; ignores row under pointer — see CLAUDE.md'
-    )
-
     await window.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
@@ -158,6 +151,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     await row2Text.click({ button: 'right' })
 
     await expect(window.locator('.context-menu')).toBeVisible({ timeout: 5000 })
+    await expect(window.locator('.context-menu-header')).toHaveText('Targeting 1 row')
 
     await window.locator('.context-menu-item', { hasText: 'Delete Selected' }).click()
 
@@ -205,6 +199,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     await row1Text.click({ button: 'right' })
 
     await expect(window.locator('.context-menu')).toBeVisible({ timeout: 5000 })
+    await expect(window.locator('.context-menu-header')).toHaveText('Targeting 2 rows')
 
     await window.locator('.context-menu-item', { hasText: 'Delete Selected' }).click()
 
@@ -217,11 +212,6 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('context menu enables speaker similarity when right-clicked row has embedding but selection does not', async () => {
-    test.fail(
-      true,
-      'hasAnyEmbedding uses selection only; should consider context row under pointer — see CLAUDE.md'
-    )
-
     await window.evaluate(() => {
       const store = (window as any).$store
       if (!store) return

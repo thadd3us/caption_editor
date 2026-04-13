@@ -60,6 +60,33 @@ describe('ContextMenu', () => {
     expect(menu.attributes('style')).toContain('left: 150px')
   })
 
+  it('should render optional header when headerText is set', () => {
+    const wrapper = mount(ContextMenu, {
+      props: {
+        isVisible: true,
+        position: { x: 100, y: 200 },
+        headerText: 'Targeting 2 rows',
+        items: mockItems
+      }
+    })
+
+    const header = wrapper.find('.context-menu-header')
+    expect(header.exists()).toBe(true)
+    expect(header.text()).toBe('Targeting 2 rows')
+  })
+
+  it('should not render header when headerText is omitted', () => {
+    const wrapper = mount(ContextMenu, {
+      props: {
+        isVisible: true,
+        position: { x: 100, y: 200 },
+        items: mockItems
+      }
+    })
+
+    expect(wrapper.find('.context-menu-header').exists()).toBe(false)
+  })
+
   it('should render all menu items', () => {
     const wrapper = mount(ContextMenu, {
       props: {

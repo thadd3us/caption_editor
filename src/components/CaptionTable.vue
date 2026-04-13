@@ -71,6 +71,7 @@
     <ContextMenu
       :is-visible="isContextMenuVisible"
       :position="contextMenuPosition"
+      :header-text="contextMenuHeaderText"
       :items="contextMenuItems"
       @close="closeContextMenu"
     />
@@ -93,6 +94,7 @@ import ColumnManager from './ColumnManager.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 import type { UIState } from '../types/schema'
 import { decodeEmbedding } from '../utils/embeddingCodec'
+import { resolveRowActionTargetRows } from '../utils/rowActionTarget'
 
 const store = useCaptionStore()
 const gridApi = ref<GridApi | null>(null)
@@ -110,6 +112,7 @@ const speakerSimilarityScores = ref<Map<string, number>>(new Map())
 const isContextMenuVisible = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
 const contextMenuItems = ref<ContextMenuItem[]>([])
+const contextMenuHeaderText = ref('')
 const selectedRowsForContextMenu = ref<any[]>([])
 
 
@@ -196,24 +199,15 @@ const columnDefs = ref<ColDef[]>([
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       const newSpeaker = params.newValue
-      const editedNode = params.node
-      
-      // Get all selected rows
-      const selectedNodes = gridApi.value?.getSelectedNodes() || []
-      
-      // If multiple rows selected, apply to all of them
-      if (selectedNodes.length > 1) {
-        console.log('Applying speaker to all selected rows')
-        selectedNodes.forEach(node => {
-          if (node !== editedNode && node.data?.id) {
-            // Update other selected rows via AG Grid (triggers store update)
-            node.setDataValue('speakerName', newSpeaker)
-          }
-        })
+      const api = gridApi.value
+      if (!api || !params.node) {
+        store.updateSegment(params.data.id, { speakerName: newSpeaker })
+        return
       }
-      
-      // Always update the edited row in store
-      store.updateSegment(params.data.id, { speakerName: newSpeaker })
+      const targets = resolveRowActionTargetRows(api, params.node)
+      const ids = targets.map((r) => r.id).filter(Boolean) as string[]
+      if (ids.length === 0) return
+      store.bulkSetSpeaker(ids, newSpeaker)
     }
   },
   {
@@ -519,17 +513,19 @@ function cosineSimilarity(vecA: ArrayLike<number>, vecB: ArrayLike<number>): num
   return dotProduct / (normA * normB)
 }
 
-// Compute speaker similarity scores for all rows based on selected rows
-function computeSpeakerSimilarity() {
+// Compute speaker similarity scores for all rows based on reference rows (or current selection)
+function computeSpeakerSimilarity(referenceRows?: ReadonlyArray<{ id: string }>) {
   if (!gridApi.value) return
 
-  const selectedRows = gridApi.value.getSelectedRows()
+  const selectedRows = referenceRows?.length
+    ? [...referenceRows]
+    : gridApi.value.getSelectedRows()
   if (selectedRows.length === 0) {
     console.warn('No rows selected for speaker similarity computation')
     return
   }
 
-  console.log('Computing speaker similarity for', selectedRows.length, 'selected rows')
+  console.log('Computing speaker similarity for', selectedRows.length, 'reference rows')
 
   // Build lookup from segmentId -> decoded Float32Array
   const embeddingLookup = new Map<string, Float32Array>()
@@ -758,93 +754,76 @@ function onCellEditingStarted(event: any) {
 function onCellContextMenu(event: CellContextMenuEvent) {
   if (!gridApi.value) return
 
-  // Get selected rows by collecting selected nodes
-  const selectedRows: any[] = []
-  gridApi.value.forEachNode((node) => {
-    if (node.isSelected()) {
-      selectedRows.push(node.data)
-    }
-  })
+  const targetRows = resolveRowActionTargetRows(gridApi.value, event.node)
+  if (targetRows.length === 0) return
 
-  // Only show context menu if rows are selected
-  if (selectedRows.length === 0) {
-    return
-  }
-
-  // Prevent default browser context menu
   if (event.event) {
     const mouseEvent = event.event as MouseEvent
     mouseEvent.preventDefault()
-
-    // Store position for context menu
     contextMenuPosition.value = {
       x: mouseEvent.clientX,
       y: mouseEvent.clientY
     }
   }
 
-  // Store selected rows for context menu actions
-  selectedRowsForContextMenu.value = selectedRows
+  selectedRowsForContextMenu.value = targetRows
 
-  // Check if selected segments are adjacent
-  const segmentIds = selectedRows.map(row => row.id)
+  const n = targetRows.length
+  contextMenuHeaderText.value = `Targeting ${n} row${n === 1 ? '' : 's'}`
+
+  const segmentIds = targetRows.map((row) => row.id)
   const isAdjacent = areSegmentsAdjacent(segmentIds)
 
-  // Check if any selected row has a speaker embedding
-  const hasAnyEmbedding = selectedRows.some(row =>
-    (store.document.embeddings ?? []).some(e => e.segmentId === row.id && e.speakerEmbedding)
+  const hasAnyEmbedding = targetRows.some((row) =>
+    (store.document.embeddings ?? []).some((e) => e.segmentId === row.id && e.speakerEmbedding)
   )
 
-  // Build context menu items
   contextMenuItems.value = [
     {
       label: 'Bulk Set Speaker',
       action: () => {
-        // Store selected rows in window for App.vue to access
         (window as any).__captionTableSelectedRows = selectedRowsForContextMenu.value
-
-        // Dispatch event to open bulk set speaker dialog
-        window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
-          detail: { rowCount: selectedRowsForContextMenu.value.length }
-        }))
+        window.dispatchEvent(
+          new CustomEvent('openBulkSetSpeakerDialog', {
+            detail: { rowCount: selectedRowsForContextMenu.value.length }
+          })
+        )
       }
     },
     {
-      label: `Merge Adjacent Segments (${selectedRows.length})`,
+      label: `Merge Adjacent Segments (${targetRows.length})`,
       action: () => {
-        // Merge the adjacent segments
-        const segmentIds = selectedRowsForContextMenu.value.map(row => row.id)
-        store.mergeAdjacentSegments(segmentIds)
+        const ids = selectedRowsForContextMenu.value.map((row) => row.id)
+        store.mergeAdjacentSegments(ids)
       },
-      disabled: !isAdjacent || selectedRows.length < 2
+      disabled: !isAdjacent || targetRows.length < 2
     },
     {
       label: 'Sort Rows by Speaker Similarity',
       action: () => {
-        computeSpeakerSimilarity()
+        computeSpeakerSimilarity(selectedRowsForContextMenu.value)
       },
       disabled: !hasAnyEmbedding
     },
     {
       label: 'Delete Selected',
       action: () => {
-        // Store selected rows in window for App.vue to access
         (window as any).__captionTableSelectedRows = selectedRowsForContextMenu.value
-
-        // Dispatch event to open delete confirmation dialog
-        window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-          detail: { rowCount: selectedRowsForContextMenu.value.length }
-        }))
+        window.dispatchEvent(
+          new CustomEvent('openDeleteConfirmDialog', {
+            detail: { rowCount: selectedRowsForContextMenu.value.length }
+          })
+        )
       }
     }
   ]
 
-  // Show context menu
   isContextMenuVisible.value = true
 }
 
 function closeContextMenu() {
   isContextMenuVisible.value = false
+  contextMenuHeaderText.value = ''
 }
 
 // --- Grid state persistence ---

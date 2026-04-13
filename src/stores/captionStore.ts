@@ -347,6 +347,16 @@ export const useCaptionStore = defineStore('captions', () => {
     isDirty.value = true
   }
 
+  function bulkSetRating(segmentIds: string[], rating: number | undefined) {
+    console.log('Bulk setting rating for', segmentIds.length, 'segments to:', rating)
+    let updatedDoc = document.value
+    for (const segmentId of segmentIds) {
+      updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { rating })
+    }
+    document.value = updatedDoc
+    isDirty.value = true
+  }
+
   function bulkDeleteSegments(segmentIds: string[]) {
     console.log('Bulk deleting', segmentIds.length, 'segments')
 
@@ -591,6 +601,7 @@ export const useCaptionStore = defineStore('captions', () => {
     renameSpeaker,
     bulkSetSpeaker,
     bulkSetVerified,
+    bulkSetRating,
     bulkDeleteSegments,
     splitSegmentAtWordIndex,
     mergeAdjacentSegments,

@@ -118,25 +118,16 @@ gridApi.value.deselectAll()
 rowNode.setSelected(true)
 ```
 
-### Selection vs. context target (intended behavior, not fully implemented)
+### Selection vs. context target (Lightroom-style)
 
-We want **first-class multi-selection** with a **Lightroom-style rule** for what any gesture targets:
+**Rule:** Use `resolveRowActionTargetRows(gridApi, anchorNode)` in `src/utils/rowActionTarget.ts`. If several rows are selected and the **anchor** row (clicked / right-clicked cell’s `params.node` or `event.node`) is **in** that selection → actions apply to **all selected rows**; otherwise → **only the anchor row**. The table context menu shows a non-interactive header like **“Targeting N row(s)”** (similar to Finder’s “N items” / macOS menu section headers).
 
-1. **Right-click / context menu**  
-   - If the pointer is on a row **inside** the current selection, menu actions apply to the **whole selection** (and labels like “Delete Selected” / merge counts match that set).  
-   - If the pointer is on a row **outside** the selection, actions apply to **that row only** (singular copy where it makes sense), without requiring the user to deselect first.  
-   The menu should derive its target from **`event.node` / the row under the pointer** plus whether that node is selected, not blindly from `getSelectedRows()`.
+- **Context menu** (`CaptionTable.vue` `onCellContextMenu`): target rows from `resolveRowActionTargetRows`; speaker similarity from the menu passes that set into `computeSpeakerSimilarity(rows)`. The app menu / shortcut still calls `computeSpeakerSimilarity()` with no args → uses current `getSelectedRows()`.
+- **✓ / ★ / speaker column:** `VerifiedCheckCell`, `StarRatingCell`, and speaker `onCellValueChanged` use the same helper.
 
-2. **Inline cell controls (✓ verified, ★ rating)**  
-   Same rule as above: if **multiple rows are selected** and the click is on a row **in** the selection, the action applies to **all selected rows**. If the click is on a row **not** in the selection, apply to **that row only** (and optionally move focus/selection—product decision when implementing).  
-   Today **`VerifiedCheckCell`** follows this; **`StarRatingCell`** does not (it always updates a single row).
+**AG Grid:** `CellContextMenuEvent.node`, `ICellRendererParams.node` / `.api`; `getSelectedNodes()`, `deselectAll()`, `setSelected()`.
 
-3. **Speaker similarity**  
-   `computeSpeakerSimilarity()` uses `gridApi.getSelectedRows()` and the context menu’s “enabled” state uses the same selection-only check. Under the rule above, similarity sort and embedding checks should use the **effective context target** (selection vs. right-clicked row), not the stale selection when the menu opened on an unselected row.
-
-**AG Grid references:** `CellContextMenuEvent` exposes the row/node under the cursor (`node`, `data`). Selection APIs include `getSelectedNodes()`, `deselectAll()`, `setSelected()`, and `SelectionChangedEvent`. There is no built-in “context target” object—you combine **hit-tested row** + **selection membership** to match the Lightroom pattern.
-
-**Regression tests:** `tests/selection-targeting.spec.ts` (uses `test.fail()` for cases that still fail until the behavior is implemented).
+**Regression tests:** `tests/selection-targeting.spec.ts`.
 
 ### Test Button Clicks
 Use `page.evaluate()` to click directly when elements are obscured:

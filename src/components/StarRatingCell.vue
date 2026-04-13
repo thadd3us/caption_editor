@@ -16,6 +16,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCaptionStore } from '../stores/captionStore'
+import { resolveRowActionTargetRows } from '../utils/rowActionTarget'
 
 interface Props {
   params?: {
@@ -23,6 +24,8 @@ interface Props {
       id: string
       rating?: number
     }
+    api?: any
+    node?: any
   }
   data?: {
     id: string
@@ -42,12 +45,22 @@ function handleClick(star: number) {
 
   console.log('Star clicked:', star, 'for segment:', rowData.value.id)
 
-  // If clicking the current rating, clear it
-  if (star === rating.value) {
-    store.updateSegment(rowData.value.id, { rating: undefined })
-  } else {
-    store.updateSegment(rowData.value.id, { rating: star })
+  const clearRating = star === rating.value
+  const nextRating = clearRating ? undefined : star
+
+  const gridApi = props.params?.api
+  const node = props.params?.node
+
+  if (!gridApi || !node) {
+    store.updateSegment(rowData.value.id, { rating: nextRating })
+    return
   }
+
+  const ids = resolveRowActionTargetRows(gridApi, node)
+    .map((r) => r.id)
+    .filter(Boolean) as string[]
+  if (ids.length === 0) return
+  store.bulkSetRating(ids, nextRating)
 }
 </script>
 
