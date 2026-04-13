@@ -1018,7 +1018,15 @@ ipcMain.handle('asr:transcribe', async (event, options: {
 
   if (result.success) {
     try {
+      const hr = '='.repeat(76)
+      console.log(hr)
+      console.log('[main] asr:transcribe — Python finished OK. Reading captions file from disk (large files can take a moment)…')
+      console.log('[main] asr:transcribe — path:', captionsPath)
+      const readStart = Date.now()
       const content = await fs.readFile(captionsPath, 'utf-8')
+      const readMs = Date.now() - readStart
+      console.log(`[main] asr:transcribe — read ${content.length} characters in ${readMs}ms; sending to renderer over IPC (also can take a moment)`)
+      console.log(hr)
       return {
         ...result,
         captionsPath,
@@ -1052,7 +1060,15 @@ ipcMain.handle('asr:embed', async (event, options: {
 
   if (result.success) {
     try {
+      const hr = '='.repeat(76)
+      console.log(hr)
+      console.log('[main] asr:embed — Python finished OK. Reading captions file from disk (embeddings make files large)…')
+      console.log('[main] asr:embed — path:', options.captionsPath)
+      const readStart = Date.now()
       const content = await fs.readFile(options.captionsPath, 'utf-8')
+      const readMs = Date.now() - readStart
+      console.log(`[main] asr:embed — read ${content.length} characters in ${readMs}ms; sending to renderer over IPC`)
+      console.log(hr)
       return {
         ...result,
         content

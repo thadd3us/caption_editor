@@ -683,6 +683,10 @@ async function startAsrEmbedding() {
   try {
     const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
     
+    const asrHr = () => console.log('='.repeat(76))
+    asrHr()
+    console.log('[ASR] Renderer: waiting on main process — Python may look "done" in the log while the app is still finishing subprocess exit, reading the file, and IPC.')
+    asrHr()
     const result = await window.electronAPI.asr.embed({
       captionsPath: store.document.filePath,
       model
@@ -699,12 +703,17 @@ async function startAsrEmbedding() {
       throw new Error(result.error || 'Embedding failed')
     }
 
-    console.log('[ASR] Embedding completed successfully')
+    console.log('[ASR] Embedding IPC finished successfully')
 
     // Reload the captions file with embeddings using content returned from main
     if (result.content) {
+      asrHr()
+      console.log('[ASR] Renderer: parsing JSON5 + loadFromFile (resets some UI state, refreshes AG Grid) — modal stays open until this finishes')
+      asrHr()
+      const t0 = performance.now()
       store.loadFromFile(result.content, store.document.filePath!)
-      console.log('[ASR] Captions file reloaded with embeddings')
+      console.log(`[ASR] Renderer: loadFromFile finished in ${Math.round(performance.now() - t0)}ms — closing modal`)
+      asrHr()
     } else {
       throw new Error('Embedding succeeded but no content was returned')
     }
@@ -754,6 +763,10 @@ async function startAsrTranscription() {
     // Start ASR transcription
     const remuxMp3 = pendingRemuxMp3.value
     pendingRemuxMp3.value = false
+    const asrHr = () => console.log('='.repeat(76))
+    asrHr()
+    console.log('[ASR] Renderer: waiting on main process — log may look "done" while subprocess exits, file is read, and data is sent over IPC.')
+    asrHr()
     const result = await window.electronAPI.asr.transcribe({
       mediaFilePath: store.mediaFilePath,
       model,
@@ -769,12 +782,17 @@ async function startAsrTranscription() {
     }
 
     if (result.success) {
-      console.log('[ASR] Transcription completed successfully:', result.captionsPath)
+      console.log('[ASR] Transcription IPC finished:', result.captionsPath)
 
       // Merge ASR results into current document (preserves UUID, title, history, etc.)
       if (result.content) {
+        asrHr()
+        console.log('[ASR] Renderer: parsing JSON5 + mergeAsrResult (AG Grid refresh) — modal stays open until this completes')
+        asrHr()
+        const t0 = performance.now()
         store.mergeAsrResult(result.content)
-        console.log('[ASR] ASR results merged into document')
+        console.log(`[ASR] Renderer: merge finished in ${Math.round(performance.now() - t0)}ms — closing modal`)
+        asrHr()
       } else {
         throw new Error('Transcription succeeded but no captions content was returned')
       }
