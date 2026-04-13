@@ -2,7 +2,7 @@
  * Encode/decode speaker embedding vectors as base64 little-endian float32.
  *
  * This format is shared with Python (transcribe/schema.py) — both sides use
- * the same encoding so .captions_json files are portable.
+ * the same encoding so .captions_json5 files are portable.
  */
 
 /**

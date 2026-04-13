@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import JSON5 from 'json5'
 import type { ParseResult, TranscriptSegment, TranscriptMetadata, CaptionsDocument, UIState } from '../types/schema'
 import { stableJsonStringify } from './stableJson'
 import { reindexSegments } from './captionsUtils'
@@ -44,9 +45,9 @@ function isTranscriptSegment(value: unknown): value is TranscriptSegment {
   )
 }
 
-export function parseCaptionsJSON(content: string): ParseResult {
+export function parseCaptionsJSON5(content: string): ParseResult {
   try {
-    const parsed = JSON.parse(content) as unknown
+    const parsed = JSON5.parse(content) as unknown
     if (!parsed || typeof parsed !== 'object') {
       return { success: false, error: 'Invalid captions JSON: expected an object' }
     }
@@ -112,15 +113,19 @@ export function parseCaptionsJSON(content: string): ParseResult {
 }
 
 /**
- * Serialize a document to the on-disk `.captions_json` format.
+ * Serialize a document to the on-disk `.captions_json5` format.
  *
  * Notes:
  * - `filePath` is runtime-only and is never persisted.
  * - Keys are deep-sorted for stable diffs.
  */
-export function serializeCaptionsJSON(document: CaptionsDocument): string {
+export function serializeCaptionsJSON5(document: CaptionsDocument): string {
   const { filePath: _filePath, ...persisted } = document as any
-  return stableJsonStringify(persisted)
+  const jsonStr = stableJsonStringify(persisted)
+  const header = `// Caption Editor: https://github.com/thadd3us/caption_editor/
+// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/63220834e413f1a26f578086ab6ac599d612efaa/src/types/schema.ts
+// File schema Python: https://github.com/thadd3us/caption_editor/blob/63220834e413f1a26f578086ab6ac599d612efaa/transcribe/schema.py\n`
+  return header + jsonStr
 }
 
 /**

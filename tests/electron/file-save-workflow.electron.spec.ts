@@ -16,7 +16,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     await fs.mkdir(tempDir, { recursive: true })
 
     // Create a sample captions file for testing
-    testCaptionsPath = path.join(tempDir, 'test-captions.captions_json')
+    testCaptionsPath = path.join(tempDir, 'test-captions.captions_json5')
     const initialDoc = {
       metadata: { id: 'sample-doc' },
       segments: [
@@ -28,7 +28,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     await fs.writeFile(testCaptionsPath, JSON.stringify(initialDoc, null, 2), 'utf-8')
 
     // Define the save-as target path
-    saveAsPath = path.join(tempDir, 'test-captions-edited.captions_json')
+    saveAsPath = path.join(tempDir, 'test-captions-edited.captions_json5')
   })
 
   test.afterEach(async () => {
@@ -222,7 +222,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     window = page
     // Step 1: Set up a captions JSON document containing speaker names
     console.log('Step 1: Setting up test document with speaker names')
-    const osrCaptionsPath = path.join(tempDir, 'osr-test-speakers.captions_json')
+    const osrCaptionsPath = path.join(tempDir, 'osr-test-speakers.captions_json5')
     const osrMediaFileName = 'OSR_us_000_0010_8k.wav'
     const osrMediaPath = path.join(getProjectRoot(), 'test_data', osrMediaFileName)
     const tempOsrMediaPath = path.join(tempDir, osrMediaFileName)

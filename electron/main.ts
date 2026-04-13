@@ -14,8 +14,8 @@ const execAsync = promisify(exec)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const CAPTIONS_JSON_SUFFIX = '.captions_json'
-const captions_json_files = ['captions_json']
+const CAPTIONS_JSON_SUFFIX = '.captions_json5'
+const captions_json5_files = ['captions_json5', 'captions_json']
 const srt_files = ['srt']
 const MIME_TYPES: Record<string, string> = {
   '.mp4': 'video/mp4',
@@ -29,7 +29,7 @@ const MIME_TYPES: Record<string, string> = {
   '.flac': 'audio/flac'
 }
 const media_files = Object.keys(MIME_TYPES).map(ext => ext.substring(1))
-const all_files = captions_json_files.concat(srt_files, media_files)
+const all_files = captions_json5_files.concat(srt_files, media_files)
 
 // Register custom protocols as privileged for media streaming
 protocol.registerSchemesAsPrivileged([
@@ -452,7 +452,7 @@ app.whenReady().then(() => {
     const filePath = process.argv[process.argv.length - 1]
     const lower = (filePath || '').toLowerCase()
     const ext = path.extname(lower)
-    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.srt') || ext in MIME_TYPES)) {
+    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.captions_json') || lower.endsWith('.srt') || ext in MIME_TYPES)) {
       fileToOpen = path.resolve(filePath)
     }
   }
@@ -488,7 +488,7 @@ ipcMain.handle('dialog:openFile', async (event, options?: {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
       { name: 'All Supported Files', extensions: all_files },
-      { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
+      { name: 'Captions Files (*.captions_json5)', extensions: captions_json5_files },
       { name: 'SRT Files', extensions: srt_files },
       { name: 'Media Files', extensions: media_files }
     ]
@@ -539,7 +539,7 @@ ipcMain.handle('file:save', async (event, options: {
     const result = await dialog.showSaveDialog(win, {
       defaultPath: options.suggestedName || `captions${CAPTIONS_JSON_SUFFIX}`,
       filters: [
-        { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
+        { name: 'Captions Files (*.captions_json5)', extensions: captions_json5_files },
         { name: 'All Files', extensions: ['*'] }
       ]
     })
@@ -1093,7 +1093,7 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
   console.log('[main] processDroppedFiles called for', filePaths.length, 'files')
 
   type DroppedFileResult =
-    | { type: 'captions_json'; filePath: string; fileName: string; content: string }
+    | { type: 'captions_json5'; filePath: string; fileName: string; content: string }
     | { type: 'srt'; filePath: string; fileName: string; content: string }
     | { type: 'media'; filePath: string; fileName: string; url: string }
 
@@ -1108,10 +1108,10 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
       const extensionWithoutDot = ext.substring(1)
       const lowerPath = filePath.toLowerCase()
 
-      if (lowerPath.endsWith(CAPTIONS_JSON_SUFFIX)) {
+      if (lowerPath.endsWith(CAPTIONS_JSON_SUFFIX) || lowerPath.endsWith('.captions_json')) {
         const content = await fs.readFile(filePath, 'utf-8')
         results.push({
-          type: 'captions_json',
+          type: 'captions_json5',
           filePath,
           fileName: path.basename(filePath),
           content

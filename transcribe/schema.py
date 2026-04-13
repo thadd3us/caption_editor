@@ -2,7 +2,7 @@
 Pydantic schema definitions for the caption editor document structure.
 
 This module defines the data models used by the caption editor for its native
-`.captions_json` document format, including segments, metadata, history entries,
+`.captions_json5` document format, including segments, metadata, history entries,
 and speaker embeddings. These models are shared between the Python transcription
 tools and the Electron app.
 
@@ -16,7 +16,7 @@ When adding or modifying fields:
 1. Update both Python (this file) and TypeScript (src/types/schema.ts) schemas
 2. Use snake_case in Python with Field aliases for camelCase conversion to match TypeScript
 3. Ensure optional fields are marked consistently (Optional[type] in Python, readonly field?: type in TS)
-4. Update serialization/parsing logic in src/utils/captionsJson.ts if needed
+4. Update serialization/parsing logic in src/utils/captionsJson5.ts if needed
 5. Run both Python and TypeScript tests to verify compatibility
 """
 
@@ -188,7 +188,7 @@ class UIState(BaseModel):
 
 
 class CaptionsDocument(BaseModel):
-    """Complete captions document (native .captions_json format)."""
+    """Complete captions document (native .captions_json5 format)."""
 
     model_config = ConfigDict(populate_by_name=True)
 

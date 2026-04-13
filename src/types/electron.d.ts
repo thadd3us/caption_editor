@@ -89,7 +89,7 @@ export interface ElectronAPI {
    * Process dropped files
    */
   processDroppedFiles: (filePaths: string[]) => Promise<Array<{
-    type: 'captions_json' | 'srt' | 'media'
+    type: 'captions_json5' | 'srt' | 'media'
     filePath: string
     fileName: string
     content?: string

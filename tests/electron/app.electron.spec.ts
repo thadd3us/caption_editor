@@ -43,7 +43,7 @@ test.describe('Electron App', () => {
   })
 
   test('should load and display captions JSON content', async ({ page }) => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [
         { id: 'seg_1', startTime: 0, endTime: 5, text: 'First caption' },
@@ -55,9 +55,9 @@ test.describe('Electron App', () => {
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store?.loadFromFile) {
-        store.loadFromFile(content, 'test.captions_json')
+        store.loadFromFile(content, 'test.captions_json5')
       }
-    }, captionsJson)
+    }, captionsJson5)
 
     // Wait for the table to update
     await page.waitForTimeout(500)
@@ -72,7 +72,7 @@ test.describe('Electron App', () => {
   })
 
   test('should be able to export captions JSON', async ({ page }) => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'test-123' },
       segments: [{ id: 'seg-1', startTime: 0.0, endTime: 5.0, text: 'Test caption' }]
     })
@@ -80,9 +80,9 @@ test.describe('Electron App', () => {
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test-export.captions_json')
+        store.loadFromFile(content, 'test-export.captions_json5')
       }
-    }, captionsJson)
+    }, captionsJson5)
 
     await page.waitForTimeout(500)
 
@@ -111,14 +111,14 @@ test.describe('Electron App', () => {
 
   test('should handle file drops', async ({ page }) => {
     // Create a test captions file
-    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions_json')
-    const captionsJson = JSON.stringify({
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions_json5')
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 0, endTime: 5, text: 'Dropped caption' }]
     })
 
     await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
-    await fs.writeFile(testCaptionsPath, captionsJson)
+    await fs.writeFile(testCaptionsPath, captionsJson5)
 
     // Simulate file drop via electronAPI
     const result = await page.evaluate(async (filePath) => {
@@ -128,7 +128,7 @@ test.describe('Electron App', () => {
 
     expect(result).toBeTruthy()
     expect(result).toHaveLength(1)
-    expect(result![0].type).toBe('captions_json')
+    expect(result![0].type).toBe('captions_json5')
     expect(result![0].content).toContain('Dropped caption')
 
     // Clean up

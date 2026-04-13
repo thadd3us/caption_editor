@@ -124,7 +124,7 @@ test.describe('ASR Menu Integration @expensive', () => {
       console.log('[Test] ASR completed successfully')
 
       // Verify captions file was generated and loaded
-      const captionsPath = path.join(tmpDir, 'test_audio.captions_json')
+      const captionsPath = path.join(tmpDir, 'test_audio.captions_json5')
       expect(fs.existsSync(captionsPath)).toBe(true)
       console.log('[Test] Captions file generated:', captionsPath)
 

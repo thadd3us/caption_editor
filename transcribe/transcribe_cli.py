@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Media transcription tool using NVIDIA Parakeet TDT model.
-Converts media files to the caption editor native `.captions_json` format with segment-level transcription.
+Converts media files to the caption editor native `.captions_json5` format with segment-level transcription.
 
 Example usage:
 uv run transcribe_cli path/to/media.mp4
@@ -43,7 +43,7 @@ from schema import (
 )
 from constants import MODEL_PARAKEET, MODEL_VOXCELEB
 from embed_cli import main as embed_main
-from captions_json_lib import write_captions_json_file
+from captions_json5_lib import write_captions_json5_file
 
 logger = logging.getLogger(__name__)
 
@@ -501,7 +501,7 @@ def main(
         None,
         "--output",
         "-o",
-        help="Output captions JSON file path (.captions_json)",
+        help="Output captions JSON file path (.captions_json5)",
         exists=False,
         file_okay=True,
         dir_okay=False,
@@ -559,14 +559,14 @@ def main(
     ),
 ):
     """
-    Transcribe media files to the caption editor `.captions_json` format using NVIDIA Parakeet TDT model.
+    Transcribe media files to the caption editor `.captions_json5` format using NVIDIA Parakeet TDT model.
 
     Supports long media files by processing in chunks with overlap to avoid
     cutting off words at boundaries.
     """
     # Determine output path
     if output is None:
-        output = media_file.with_suffix(".captions_json")
+        output = media_file.with_suffix(".captions_json5")
 
     if output.exists():
         typer.echo(
@@ -625,7 +625,7 @@ def main(
 
         output_dir = output.resolve().parent
         output_dir.mkdir(parents=True, exist_ok=True)
-        write_captions_json_file(output, document)
+        write_captions_json5_file(output, document)
         typer.echo(f"Transcription complete: {output}")
         typer.echo(f"Generated {len(document.segments)} segments")
 

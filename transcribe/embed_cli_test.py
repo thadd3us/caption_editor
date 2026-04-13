@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 from repo_root import REPO_ROOT
-from captions_json_lib import parse_captions_json_file
+from captions_json5_lib import parse_captions_json5_file
 from embed_cli import app
 from schema import decode_embedding
 
@@ -87,7 +87,7 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
     assert TEST_AUDIO.exists(), f"Test audio file not found: {TEST_AUDIO}"
 
     # Create captions json + copy audio to temp directory.
-    test_captions = tmp_path / "test.captions_json"
+    test_captions = tmp_path / "test.captions_json5"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
 
     test_audio.write_bytes(TEST_AUDIO.read_bytes())
@@ -141,7 +141,7 @@ def test_embed_osr_audio(snapshot, tmp_path: Path):
             ],
         )
     assert result.exit_code == 0
-    doc = parse_captions_json_file(test_captions)
+    doc = parse_captions_json5_file(test_captions)
     assert doc.embeddings is not None
 
     embeddings = [

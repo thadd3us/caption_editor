@@ -8,7 +8,7 @@ test('filled stars should be gold, empty stars should be grey', async ({ page })
       segments: [
         { id: 's1', startTime: 0, endTime: 1, text: 'Rated segment', rating: 3 }
       ]
-    }), 'test.captions_json')
+    }), 'test.captions_json5')
   })
 
   await page.waitForFunction(() => {

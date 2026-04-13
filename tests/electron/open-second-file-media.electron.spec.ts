@@ -4,7 +4,7 @@ import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
 
 /**
- * Regression test for: opening a second captions_json file should replace
+ * Regression test for: opening a second captions_json5 file should replace
  * the first file's media in the player.
  *
  * Bug: The media *path* shown in the UI updates correctly, but the actual
@@ -33,7 +33,7 @@ test.describe('Opening a second captions file should replace media', () => {
 
     // --- Create two captions files, each pointing at a different audio file ---
 
-    const captionsFileA = path.join(tempDir, 'fileA.captions_json')
+    const captionsFileA = path.join(tempDir, 'fileA.captions_json5')
     await fs.writeFile(
       captionsFileA,
       JSON.stringify({
@@ -45,7 +45,7 @@ test.describe('Opening a second captions file should replace media', () => {
       'utf-8'
     )
 
-    const captionsFileB = path.join(tempDir, 'fileB.captions_json')
+    const captionsFileB = path.join(tempDir, 'fileB.captions_json5')
     await fs.writeFile(
       captionsFileB,
       JSON.stringify({
@@ -70,7 +70,7 @@ test.describe('Opening a second captions file should replace media', () => {
       const results = await api.processDroppedFiles([filePath])
       const store = (window as any).$store
       for (const r of results) {
-        if (r.type === 'captions_json' && r.content) {
+        if (r.type === 'captions_json5' && r.content) {
           store.loadFromFile(r.content, r.filePath)
         }
       }
@@ -111,7 +111,7 @@ test.describe('Opening a second captions file should replace media', () => {
       const results = await api.processDroppedFiles([filePath])
       const store = (window as any).$store
       for (const r of results) {
-        if (r.type === 'captions_json' && r.content) {
+        if (r.type === 'captions_json5' && r.content) {
           store.loadFromFile(r.content, r.filePath)
         }
       }

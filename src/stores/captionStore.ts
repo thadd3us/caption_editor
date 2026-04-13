@@ -12,7 +12,7 @@ import {
   mergeAdjacentSegments as mergeAdjacentSegmentsInDoc,
   getCurrentTimestamp
 } from '../utils/captionsUtils'
-import { parseCaptionsJSON, serializeCaptionsJSON } from '../utils/captionsJson'
+import { parseCaptionsJSON5, serializeCaptionsJSON5 } from '../utils/captionsJson5'
 import { createDocumentFromSrtContent } from '../utils/srt'
 
 /**
@@ -28,7 +28,7 @@ export enum PlaybackMode {
 }
 
 export const useCaptionStore = defineStore('captions', () => {
-  // State - all state lives in memory only, persisted by saving `.captions_json` files
+  // State - all state lives in memory only, persisted by saving `.captions_json5` files
   const document = ref<CaptionsDocument>(createEmptyDocument())
 
   // Media URL - always a media:// URL in Electron mode
@@ -102,7 +102,7 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistIndex.value = 0
     playlistStartIndex.value = 0
 
-    const result = parseCaptionsJSON(content)
+    const result = parseCaptionsJSON5(content)
 
     if (result.success && result.document) {
       const loadedDoc = {
@@ -248,7 +248,7 @@ export const useCaptionStore = defineStore('captions', () => {
     }
     documentToExport = { ...documentToExport, uiState }
 
-    return serializeCaptionsJSON(documentToExport)
+    return serializeCaptionsJSON5(documentToExport)
   }
 
   function updateTitle(title: string) {
@@ -489,7 +489,7 @@ export const useCaptionStore = defineStore('captions', () => {
    * (metadata.id, title, history, uiState, filePath, mediaFilePath).
    */
   function mergeAsrResult(content: string) {
-    const result = parseCaptionsJSON(content)
+    const result = parseCaptionsJSON5(content)
     if (!result.success || !result.document) {
       throw new Error(result.error || 'Failed to parse ASR result')
     }
@@ -529,7 +529,7 @@ export const useCaptionStore = defineStore('captions', () => {
 
       for (const result of results) {
         try {
-          if (result.type === 'captions_json' && result.content) {
+          if (result.type === 'captions_json5' && result.content) {
             loadFromFile(result.content, result.filePath)
             console.log('[captionStore] Captions file loaded successfully:', result.fileName)
             successes++

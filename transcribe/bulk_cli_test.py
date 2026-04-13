@@ -15,12 +15,12 @@ from typer.testing import CliRunner
 from bulk_cli import (
     MEDIA_EXTENSIONS,
     app,
-    atomic_write_captions_json,
+    atomic_write_captions_json5,
     captions_path_for,
     find_media_files,
     get_audio_duration_seconds,
 )
-from captions_json_lib import parse_captions_json_file
+from captions_json5_lib import parse_captions_json5_file
 from recognizer import MockRecognizer
 from schema import CaptionsDocument, TranscriptMetadata, TranscriptSegment
 
@@ -35,8 +35,8 @@ def make_silent_wav(path: Path, duration_seconds: float = 3.0) -> None:
     sf.write(str(path), np.zeros(samples, dtype=np.float32), 16000)
 
 
-def make_minimal_captions_json(path: Path, media_filename: str) -> None:
-    """Write a minimal valid .captions_json file."""
+def make_minimal_captions_json5(path: Path, media_filename: str) -> None:
+    """Write a minimal valid .captions_json5 file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     doc = {
         "metadata": {"id": "test-doc", "mediaFilePath": media_filename},
@@ -72,10 +72,10 @@ class TestFindMediaFiles:
         assert found_exts == MEDIA_EXTENSIONS
 
     def test_ignores_non_media(self, tmp_path: Path):
-        """Non-media files (txt, py, captions_json) are ignored."""
+        """Non-media files (txt, py, captions_json5) are ignored."""
         (tmp_path / "readme.txt").write_text("hi")
         (tmp_path / "script.py").write_text("pass")
-        (tmp_path / "captions.captions_json").write_text("{}")
+        (tmp_path / "captions.captions_json5").write_text("{}")
         make_silent_wav(tmp_path / "audio.wav")
 
         found = find_media_files(tmp_path)
@@ -104,7 +104,7 @@ class TestFindMediaFiles:
 class TestCaptionsPathFor:
     def test_basic(self):
         assert captions_path_for(Path("/a/b/song.mp3")) == Path(
-            "/a/b/song.captions_json"
+            "/a/b/song.captions_json5"
         )
 
 
@@ -124,7 +124,7 @@ class TestGetAudioDuration:
 
 class TestAtomicWrite:
     def test_writes_valid_json(self, tmp_path: Path):
-        """Atomic write produces a readable captions_json file."""
+        """Atomic write produces a readable captions_json5 file."""
         doc = CaptionsDocument(  # type: ignore[reportCallIssue]
             metadata=TranscriptMetadata(id="doc-1", mediaFilePath="test.wav"),
             title="test",
@@ -139,22 +139,22 @@ class TestAtomicWrite:
                 )
             ],
         )
-        out = tmp_path / "out.captions_json"
-        atomic_write_captions_json(out, doc)
+        out = tmp_path / "out.captions_json5"
+        atomic_write_captions_json5(out, doc)
 
         assert out.exists()
-        parsed = parse_captions_json_file(out)
+        parsed = parse_captions_json5_file(out)
         assert parsed.metadata.id == "doc-1"
 
     def test_no_partial_on_error(self, tmp_path: Path):
         """If serialization fails, no file is left behind."""
-        out = tmp_path / "fail.captions_json"
+        out = tmp_path / "fail.captions_json5"
 
         class BadDoc:
             pass
 
         with pytest.raises(Exception):
-            atomic_write_captions_json(out, BadDoc())
+            atomic_write_captions_json5(out, BadDoc())
 
         assert not out.exists()
         # Also no temp files left
@@ -199,17 +199,17 @@ class TestBulkCLI:
         result = runner.invoke(app, [str(tmp_path), "--recognizer", "mock"])
         assert result.exit_code == 0, result.output
 
-        assert (tmp_path / "a.captions_json").exists()
-        assert (tmp_path / "b.captions_json").exists()
+        assert (tmp_path / "a.captions_json5").exists()
+        assert (tmp_path / "b.captions_json5").exists()
 
         # Verify the written files are valid
-        doc = parse_captions_json_file(tmp_path / "a.captions_json")
+        doc = parse_captions_json5_file(tmp_path / "a.captions_json5")
         assert len(doc.segments) > 0
 
     def test_skips_existing_captions(self, tmp_path: Path):
-        """Files with existing .captions_json are skipped."""
+        """Files with existing .captions_json5 are skipped."""
         make_silent_wav(tmp_path / "done.wav", 3.0)
-        make_minimal_captions_json(tmp_path / "done.captions_json", "done.wav")
+        make_minimal_captions_json5(tmp_path / "done.captions_json5", "done.wav")
 
         make_silent_wav(tmp_path / "new.wav", 3.0)
 
@@ -217,11 +217,11 @@ class TestBulkCLI:
         assert result.exit_code == 0, result.output
 
         # "done" should not be re-processed — its content should be unchanged
-        doc = parse_captions_json_file(tmp_path / "done.captions_json")
+        doc = parse_captions_json5_file(tmp_path / "done.captions_json5")
         assert doc.metadata.id == "test-doc"  # original, not overwritten
 
         # "new" should be processed
-        assert (tmp_path / "new.captions_json").exists()
+        assert (tmp_path / "new.captions_json5").exists()
 
     def test_resume_after_partial(self, tmp_path: Path):
         """Re-running after partial completion picks up where we left off."""
@@ -233,8 +233,8 @@ class TestBulkCLI:
         assert result.exit_code == 0
 
         # Both files done
-        assert (tmp_path / "a.captions_json").exists()
-        assert (tmp_path / "b.captions_json").exists()
+        assert (tmp_path / "a.captions_json5").exists()
+        assert (tmp_path / "b.captions_json5").exists()
 
         # Re-run — should skip both
         result2 = runner.invoke(app, [str(tmp_path), "--recognizer", "mock"])
@@ -244,7 +244,7 @@ class TestBulkCLI:
     def test_always_update_embeddings(self, tmp_path: Path):
         """--always-update-speaker-embeddings re-embeds existing files."""
         make_silent_wav(tmp_path / "audio.wav", 3.0)
-        make_minimal_captions_json(tmp_path / "audio.captions_json", "audio.wav")
+        make_minimal_captions_json5(tmp_path / "audio.captions_json5", "audio.wav")
 
         result = runner.invoke(
             app,
@@ -257,7 +257,7 @@ class TestBulkCLI:
         )
         assert result.exit_code == 0, result.output
 
-        doc = parse_captions_json_file(tmp_path / "audio.captions_json")
+        doc = parse_captions_json5_file(tmp_path / "audio.captions_json5")
         # The original doc had no embeddings; now it should
         assert doc.embeddings is not None
         assert len(doc.embeddings) > 0
@@ -269,7 +269,7 @@ class TestBulkCLI:
         result = runner.invoke(app, [str(tmp_path), "--recognizer", "mock"])
         assert result.exit_code == 0, result.output
 
-        assert (tmp_path / "sub" / "deep" / "audio.captions_json").exists()
+        assert (tmp_path / "sub" / "deep" / "audio.captions_json5").exists()
 
     def test_empty_directory(self, tmp_path: Path):
         """Empty directory exits cleanly."""
@@ -283,7 +283,7 @@ class TestBulkCLI:
         result = runner.invoke(app, [str(tmp_path), "--recognizer", "mock"])
         assert result.exit_code == 0, result.output
 
-        doc = parse_captions_json_file(tmp_path / "audio.captions_json")
+        doc = parse_captions_json5_file(tmp_path / "audio.captions_json5")
         assert doc.embeddings is not None
         assert len(doc.embeddings) > 0
         assert doc.embedding_model is not None

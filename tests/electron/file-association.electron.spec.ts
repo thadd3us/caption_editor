@@ -17,7 +17,7 @@ test.describe('File Association - Open captions files from OS', () => {
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
     const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association')
     await fs.mkdir(tempDir, { recursive: true })
-    const captionsFilePath = path.join(tempDir, 'with-media-reference.captions_json')
+    const captionsFilePath = path.join(tempDir, 'with-media-reference.captions_json5')
 
     // Create a dedicated captions fixture for this test (do not depend on shared test_data files)
     await fs.writeFile(
@@ -161,7 +161,7 @@ test.describe('File Association - Open captions files from OS', () => {
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
     const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association')
     await fs.mkdir(tempDir, { recursive: true })
-    const captionsFilePath = path.join(tempDir, 'with-media-reference-macos.captions_json')
+    const captionsFilePath = path.join(tempDir, 'with-media-reference-macos.captions_json5')
 
     await fs.writeFile(
       captionsFilePath,

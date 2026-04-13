@@ -23,7 +23,7 @@
       "icon": "assets/packaging/icon.icns"
     },
     {
-      "ext": "captions_json",
+      "ext": "captions_json5",
       "name": "Caption Editor Project",
       "description": "Caption Editor project file",
       "role": "Editor",

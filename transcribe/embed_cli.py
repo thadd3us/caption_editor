@@ -1,7 +1,7 @@
-"""Command-line interface for computing speaker embeddings for `.captions_json` files.
+"""Command-line interface for computing speaker embeddings for `.captions_json5` files.
 
 Example usage:
-uv run embed_cli path/to/captions.captions_json
+uv run embed_cli path/to/captions.captions_json5
 """
 
 import os
@@ -16,10 +16,10 @@ from pyannote.audio import Inference, Model
 from tqdm import tqdm
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
-from captions_json_lib import parse_captions_json_file, write_captions_json_file
+from captions_json5_lib import parse_captions_json5_file, write_captions_json5_file
 from schema import CaptionsDocument, SegmentSpeakerEmbedding, encode_embedding
 
-app = typer.Typer(help="Compute speaker embeddings for .captions_json files")
+app = typer.Typer(help="Compute speaker embeddings for .captions_json5 files")
 
 
 def get_hf_token() -> Optional[str]:
@@ -153,7 +153,7 @@ def main(
         file_okay=True,
         dir_okay=False,
         readable=True,
-        help="Path to the .captions_json file",
+        help="Path to the .captions_json5 file",
     ),
     model: str = typer.Option(
         "pyannote/wespeaker-voxceleb-resnet34-LM",
@@ -177,7 +177,7 @@ def main(
 
     try:
         typer.echo(f"Parsing captions JSON: {captions_path}")
-        document = parse_captions_json_file(captions_path)
+        document = parse_captions_json5_file(captions_path)
         metadata = document.metadata
 
         if not metadata.media_file_path:
@@ -206,7 +206,7 @@ def main(
         embed_document(document, audio_path, inference, model, min_segment_duration)
 
         typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
-        write_captions_json_file(captions_path, document)
+        write_captions_json5_file(captions_path, document)
         n = len(document.embeddings) if document.embeddings else 0
         typer.echo(f"Done! Wrote {n} embeddings to captions JSON")
 

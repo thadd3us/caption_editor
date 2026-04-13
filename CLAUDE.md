@@ -79,7 +79,7 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 - Segments always sorted by start/end time
 
 ### Captions JSON Format
-- Primary document format: `*.captions_json`
+- Primary document format: `*.captions_json5`
 - Media file paths stored as **absolute** internally, **relative** when serialized
 - Speaker embeddings stored in `embeddings[]` (no VTT comments)
 
@@ -105,8 +105,8 @@ npm test src/utils/findIndexOfRowForTime.test.ts
 
 ### Key Utilities
 - `findIndexOfRowForTime(segments, time)`: Find segment index for time
-- `serializeCaptionsJSON(document)`: Convert to stable `.captions_json` (converts paths to relative via store export)
-- `parseCaptionsJSON(content)`: Parse `.captions_json` to document
+- `serializeCaptionsJSON5(document)`: Convert to stable `.captions_json5` (converts paths to relative via store export)
+- `parseCaptionsJSON5(content)`: Parse `.captions_json5` to document
 - `realignWords(originalWords, editedText)`: Preserve word timestamps
 
 ## Common Issues
@@ -147,10 +147,10 @@ Three-pass pipeline: split by gaps, split long segments, resolve overlaps.
 ### Speaker Embeddings (transcribe/embed_cli.py)
 ```bash
 cd transcribe
-uv run python embed_cli.py file.captions_json  # Uses wespeaker (no token required)
+uv run python embed_cli.py file.captions_json5  # Uses wespeaker (no token required)
 ```
 
-Writes speaker embeddings into the `.captions_json` document `embeddings[]`.
+Writes speaker embeddings into the `.captions_json5` document `embeddings[]`.
 
 ### UVX Distribution
 Package for distribution: `./scripts/package-for-uvx.sh`

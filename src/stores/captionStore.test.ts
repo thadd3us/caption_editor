@@ -42,15 +42,15 @@ describe('captionStore', () => {
   describe('loadFromFile', () => {
     it('should load valid captions JSON content', () => {
       const store = useCaptionStore()
-      const captionsJson = JSON.stringify({
+      const captionsJson5 = JSON.stringify({
         metadata: { id: 'doc_1' },
         segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
       })
 
-      store.loadFromFile(captionsJson, '/test/file.captions_json')
+      store.loadFromFile(captionsJson5, '/test/file.captions_json5')
       expect(store.document.segments).toHaveLength(1)
       expect(store.document.segments[0].text).toBe('Test caption')
-      expect(store.document.filePath).toBe('/test/file.captions_json')
+      expect(store.document.filePath).toBe('/test/file.captions_json5')
     })
 
     it('should throw error on invalid captions content', () => {
@@ -72,15 +72,15 @@ describe('captionStore', () => {
   describe('exportToString', () => {
     it('should export document as captions JSON string', () => {
       const store = useCaptionStore()
-      const captionsJson = JSON.stringify({
+      const captionsJson5 = JSON.stringify({
         metadata: { id: 'doc_1' },
         segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
       })
 
-      store.loadFromFile(captionsJson)
+      store.loadFromFile(captionsJson5)
       const exported = store.exportToString()
 
-      const parsed = JSON.parse(exported)
+      const parsed = require('json5').parse(exported)
       expect(parsed.metadata.id).toBe('doc_1')
       expect(parsed.segments).toHaveLength(1)
       expect(parsed.segments[0].text).toBe('Test caption')
@@ -314,7 +314,7 @@ describe('captionStore', () => {
         ],
         embeddingModel: 'wespeaker-v1'
       })
-      store.loadFromFile(originalContent, '/path/to/doc.captions_json')
+      store.loadFromFile(originalContent, '/path/to/doc.captions_json5')
       store.updateTitle('My Custom Title')
       store.setIsDirty(false)
 
@@ -334,7 +334,7 @@ describe('captionStore', () => {
       expect(store.document.metadata.id).toBe('original-uuid-123')
       expect(store.document.title).toBe('My Custom Title')
       expect(store.document.metadata.mediaFilePath).toBe('/path/to/media.wav')
-      expect(store.document.filePath).toBe('/path/to/doc.captions_json')
+      expect(store.document.filePath).toBe('/path/to/doc.captions_json5')
       expect(store.document.history).toHaveLength(1)
 
       // Segments replaced

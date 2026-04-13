@@ -73,9 +73,9 @@ describe('FileDropZone', () => {
       // Mock Electron API
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'captions_json',
-          filePath: '/path/to/test.captions_json',
-          fileName: 'test.captions_json',
+          type: 'captions_json5',
+          filePath: '/path/to/test.captions_json5',
+          fileName: 'test.captions_json5',
           content: JSON.stringify({
             metadata: { id: 'doc_1' },
             segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test caption' }]
@@ -91,7 +91,7 @@ describe('FileDropZone', () => {
       const store = useCaptionStore()
 
       // Simulate Electron file drop
-      const mockFilePaths = ['/path/to/test.captions_json']
+      const mockFilePaths = ['/path/to/test.captions_json5']
       await store.processFilePaths(mockFilePaths)
 
       // Verify Electron API was called
@@ -100,7 +100,7 @@ describe('FileDropZone', () => {
       // Verify captions content was loaded into store
       expect(store.document.segments.length).toBe(1)
       expect(store.document.segments[0].text).toBe('Test caption')
-      expect(store.document.filePath).toBe('/path/to/test.captions_json')
+      expect(store.document.filePath).toBe('/path/to/test.captions_json5')
 
       // Cleanup
       delete global.window.electronAPI
@@ -143,9 +143,9 @@ describe('FileDropZone', () => {
       // Mock Electron API
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'captions_json',
-          filePath: '/path/to/test.captions_json',
-          fileName: 'test.captions_json',
+          type: 'captions_json5',
+          filePath: '/path/to/test.captions_json5',
+          fileName: 'test.captions_json5',
           content: JSON.stringify({
             metadata: { id: 'doc_1' },
             segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test caption' }]
@@ -167,7 +167,7 @@ describe('FileDropZone', () => {
       const store = useCaptionStore()
 
       // Simulate Electron drop with multiple files
-      const mockFilePaths = ['/path/to/test.captions_json', '/path/to/video.mp4']
+      const mockFilePaths = ['/path/to/test.captions_json5', '/path/to/video.mp4']
       await store.processFilePaths(mockFilePaths)
 
       // Verify both files were processed
@@ -187,9 +187,9 @@ describe('FileDropZone', () => {
       // Mock Electron API to return invalid captions JSON
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'captions_json',
-          filePath: '/path/to/bad.captions_json',
-          fileName: 'bad.captions_json',
+          type: 'captions_json5',
+          filePath: '/path/to/bad.captions_json5',
+          fileName: 'bad.captions_json5',
           content: '{not json'
         }
       ])
@@ -202,7 +202,7 @@ describe('FileDropZone', () => {
       const store = useCaptionStore()
 
       // Simulate Electron drop with invalid captions JSON
-      const mockFilePaths = ['/path/to/bad.captions_json']
+      const mockFilePaths = ['/path/to/bad.captions_json5']
       const result = await store.processFilePaths(mockFilePaths)
 
       // Verify error was logged and failure count is 1
@@ -231,9 +231,9 @@ describe('FileDropZone', () => {
 
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'captions_json',
-          filePath: '/path/to/duplicates.captions_json',
-          fileName: 'duplicates.captions_json',
+          type: 'captions_json5',
+          filePath: '/path/to/duplicates.captions_json5',
+          fileName: 'duplicates.captions_json5',
           content: captionsWithDuplicates
         }
       ])
@@ -246,7 +246,7 @@ describe('FileDropZone', () => {
       const store = useCaptionStore()
 
       // Simulate Electron drop with duplicate IDs
-      const mockFilePaths = ['/path/to/duplicates.captions_json']
+      const mockFilePaths = ['/path/to/duplicates.captions_json5']
       const result = await store.processFilePaths(mockFilePaths)
 
       // Verify failure count is 1 and console error logged
@@ -265,12 +265,12 @@ describe('FileDropZone', () => {
 
   describe('triggerFileInput method', () => {
     it('should call Electron openFile API when in Electron', async () => {
-      const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.captions_json'])
+      const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.captions_json5'])
       const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
         {
-          type: 'captions_json',
-          filePath: '/path/to/test.captions_json',
-          fileName: 'test.captions_json',
+          type: 'captions_json5',
+          filePath: '/path/to/test.captions_json5',
+          fileName: 'test.captions_json5',
           content: JSON.stringify({
             metadata: { id: 'doc_1' },
             segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test' }]
@@ -294,7 +294,7 @@ describe('FileDropZone', () => {
       })
 
       // Verify files were processed
-      expect(mockProcessDroppedFiles).toHaveBeenCalledWith(['/path/to/test.captions_json'])
+      expect(mockProcessDroppedFiles).toHaveBeenCalledWith(['/path/to/test.captions_json5'])
 
       // Cleanup
       delete global.window.electronAPI

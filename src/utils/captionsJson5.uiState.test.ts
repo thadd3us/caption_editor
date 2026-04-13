@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { parseCaptionsJSON, serializeCaptionsJSON } from './captionsJson'
+import { parseCaptionsJSON5, serializeCaptionsJSON5 } from './captionsJson5'
 import type { CaptionsDocument, UIState } from '../types/schema'
 
-describe('captionsJson uiState round-trip', () => {
+describe('captionsJson5 uiState round-trip', () => {
   const baseDocument: CaptionsDocument = {
     metadata: { id: 'test-doc-1' },
     segments: [
@@ -23,8 +23,8 @@ describe('captionsJson uiState round-trip', () => {
     }
 
     const docWithState: CaptionsDocument = { ...baseDocument, uiState }
-    const serialized = serializeCaptionsJSON(docWithState)
-    const parsed = parseCaptionsJSON(serialized)
+    const serialized = serializeCaptionsJSON5(docWithState)
+    const parsed = parseCaptionsJSON5(serialized)
 
     expect(parsed.success).toBe(true)
     expect(parsed.document?.uiState).toBeDefined()
@@ -59,8 +59,8 @@ describe('captionsJson uiState round-trip', () => {
     }
 
     const docWithState: CaptionsDocument = { ...baseDocument, uiState }
-    const serialized = serializeCaptionsJSON(docWithState)
-    const parsed = parseCaptionsJSON(serialized)
+    const serialized = serializeCaptionsJSON5(docWithState)
+    const parsed = parseCaptionsJSON5(serialized)
 
     expect(parsed.success).toBe(true)
     expect(parsed.document?.uiState?.filterModel).toBeDefined()
@@ -68,8 +68,8 @@ describe('captionsJson uiState round-trip', () => {
   })
 
   it('should handle document without uiState', () => {
-    const serialized = serializeCaptionsJSON(baseDocument)
-    const parsed = parseCaptionsJSON(serialized)
+    const serialized = serializeCaptionsJSON5(baseDocument)
+    const parsed = parseCaptionsJSON5(serialized)
 
     expect(parsed.success).toBe(true)
     expect(parsed.document?.uiState).toBeUndefined()
@@ -87,13 +87,13 @@ describe('captionsJson uiState round-trip', () => {
     const docWithState: CaptionsDocument = { ...baseDocument, uiState }
 
     // Round-trip 1
-    const serialized1 = serializeCaptionsJSON(docWithState)
-    const parsed1 = parseCaptionsJSON(serialized1)
+    const serialized1 = serializeCaptionsJSON5(docWithState)
+    const parsed1 = parseCaptionsJSON5(serialized1)
     expect(parsed1.success).toBe(true)
 
     // Round-trip 2
-    const serialized2 = serializeCaptionsJSON(parsed1.document!)
-    const parsed2 = parseCaptionsJSON(serialized2)
+    const serialized2 = serializeCaptionsJSON5(parsed1.document!)
+    const parsed2 = parseCaptionsJSON5(serialized2)
     expect(parsed2.success).toBe(true)
 
     // Should be identical

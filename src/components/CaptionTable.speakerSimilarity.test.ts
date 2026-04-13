@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import CaptionTable from './CaptionTable.vue'
 import { useCaptionStore } from '../stores/captionStore'
 
-function getPartialEmbeddingsCaptionsJson(): string {
+function getPartialEmbeddingsCaptionsJson5(): string {
   return JSON.stringify({
     metadata: { id: 'doc1' },
     segments: [
@@ -56,7 +56,7 @@ describe('CaptionTable - Speaker Similarity', () => {
 
   it('should parse captions JSON with partial embeddings', () => {
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson5(), '/tmp/partial-embeddings.captions_json5')
 
     // Verify document loaded correctly
     expect(store.document.segments.length).toBe(5)
@@ -90,7 +90,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(pinia)
 
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson5(), '/tmp/partial-embeddings.captions_json5')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -159,7 +159,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(pinia)
 
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson5(), '/tmp/partial-embeddings.captions_json5')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {
@@ -208,7 +208,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     setActivePinia(pinia)
 
     const store = useCaptionStore()
-    store.loadFromFile(getPartialEmbeddingsCaptionsJson(), '/tmp/partial-embeddings.captions_json')
+    store.loadFromFile(getPartialEmbeddingsCaptionsJson5(), '/tmp/partial-embeddings.captions_json5')
 
     // Mount component with the same pinia instance
     const wrapper = mount(CaptionTable, {

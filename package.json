@@ -35,6 +35,7 @@
     "ag-grid-community": "^35.2.0",
     "ag-grid-vue3": "^35.2.0",
     "ansi-to-html": "^0.7.2",
+    "json5": "^2.2.3",
     "pinia": "^3.0.4",
     "uuid": "^13.0.0",
     "vue": "^3.5.31"

@@ -1,30 +1,26 @@
 Bottom right caption panel:
-* Should word-wrap
 * Should default to at least 40% of the window height.
 * There should be a way there to edit the start and time of that segment, and replay just it.
 * It would be nice to be able to edit the text there, instead of just in the table.
-
-
-* I want integeral segment indices in the table, and to be able to sort by them.
 * Better preservation of which rows are selected.
 * Do we need the play button in the table?  Maybe just use the one at the top?
   - Esecially b/c once you click it, you have to click somewhere else to go pause it.
+
+
 
 
 * The checked button isn't present in the table.
 * JSON file: "text": "\u00c8 solo che le cibchiera", -- crappy UTF, can it be better?
 * embeddings inline with the segments in a serialized float form?  don't like having them at the beginning.
 
-
-
-
-
 * move all python tests adjacent to code under test.
 * switch all dataclasses to pydantic.
 
+
+
 * open a new wav should clear the document model.
-
-
+* Should word-wrap
+* I want integeral segment indices in the table, and to be able to sort by them.
 * Right click on a row to sort by speaker similarity.
 * When sorting by the start time, it seems to be treating it as a string, not a number.
 * ASR crashes if you don't have ffmpeg installed.

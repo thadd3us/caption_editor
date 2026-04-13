@@ -62,12 +62,12 @@ Options:
 - `--recognizer mock` — dry run with a fast deterministic stub (no model download)
 - `--always-update-speaker-embeddings` — re-embed files that already have embeddings
 
-Files with an existing `.captions_json` sidecar are skipped, so you can Ctrl-C and resume at any time.
+Files with an existing `.captions_json5` sidecar are skipped, so you can Ctrl-C and resume at any time.
 
 ## Other tips
 
-* `.captions_json` files contain a relative path pointing to their media file.
-* This app associates with the `.captions_json` extension, so double-clicking this file opens the captions and the media file.
+* `.captions_json5` files contain a relative path pointing to their media file.
+* This app associates with the `.captions_json5` extension, so double-clicking this file opens the captions and the media file.
 * Each caption segment has a UUID.
 
 
@@ -109,7 +109,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Core Functionality
 
-- **Captions JSON Support**: Open and edit `*.captions_json` documents (primary save/load format)
+- **Captions JSON Support**: Open and edit `*.captions_json5` documents (primary save/load format)
 - **SRT Import/Export**: Import `*.srt` files and export to standard SRT
 - **Media Playback**: Load and play video or audio files alongside captions
 - **Drag & Drop**: Intuitive file loading - drop captions JSON/SRT and media files together or separately
@@ -131,7 +131,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Data Persistence
 
-- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions_json`
+- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions_json5`
 
 ### Technical Details
 
@@ -267,7 +267,7 @@ console.log(JSON.stringify($store.document.segments[0], null, 2))
       "rating": 5
     }
   ],
-  "filePath": "example.captions_json"
+  "filePath": "example.captions_json5"
 }
 ```
 

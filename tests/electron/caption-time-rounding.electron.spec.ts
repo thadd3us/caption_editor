@@ -68,7 +68,7 @@ test.describe('Caption time rounding', () => {
     )
 
     // Write a captions file with the exact problematic startTime from the real file
-    const captionsPath = await writeTestCaptionsFile('rounding-test.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('rounding-test.captions_json5', {
       metadata: { id: 'rounding-test' },
       segments: [{
         id: 'mordor-seg',

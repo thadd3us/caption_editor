@@ -523,7 +523,7 @@ async function handleMenuSaveFile() {
 }
 
 
-/** Build a sidecar filename from the loaded media path (e.g. video.mp4 -> video.captions_json) */
+/** Build a sidecar filename from the loaded media path (e.g. video.mp4 -> video.captions_json5) */
 function mediaSidecarName(): string | null {
   return sidecarName(store.mediaFilePath)
 }
@@ -540,7 +540,7 @@ async function handleMenuSaveAs() {
 
     const result = await window.electronAPI.saveFile({
       content,
-      suggestedName: store.document.filePath || mediaSidecarName() || 'captions.captions_json'
+      suggestedName: store.document.filePath || mediaSidecarName() || 'captions.captions_json5'
     })
 
     if (result.success) {
