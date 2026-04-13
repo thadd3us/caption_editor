@@ -183,6 +183,73 @@ def embed_document(
     return document
 
 
+def embed_captions_path(
+    captions_path: Path,
+    *,
+    model: str = "pyannote/wespeaker-voxceleb-resnet34-LM",
+    min_segment_duration: float = 0.3,
+    umap_dimensions: Optional[list[int]] = None,
+) -> None:
+    """Load ``captions_path``, compute speaker embeddings (and optional UMAP), write in place.
+
+    Plain Python API for programmatic use. Typer does not process this function; optional
+    arguments use normal defaults (unlike calling a ``@app.command()`` handler directly).
+    """
+    if umap_dimensions is None:
+        umap_dimensions = [1, 2]
+
+    temp_dir_obj = tempfile.TemporaryDirectory()
+    temp_dir = Path(temp_dir_obj.name)
+
+    try:
+        typer.echo(f"Parsing captions JSON: {captions_path}")
+        document = parse_captions_json5_file(captions_path)
+        metadata = document.metadata
+
+        if not metadata.media_file_path:
+            raise ValueError("No media file path found in document metadata")
+
+        captions_dir = captions_path.parent
+        media_path = Path(os.path.normpath(captions_dir / metadata.media_file_path))
+
+        if not media_path.exists():
+            raise ValueError(f"Media file not found: {media_path}")
+
+        typer.echo(f"Media file: {media_path}")
+        typer.echo(f"Found {len(document.segments)} segments")
+
+        # Convert to WAV if needed
+        audio_path = media_path
+        if media_path.suffix.lower() not in [".wav", ".wave"]:
+            typer.echo(f"Converting {media_path.suffix} to WAV format...")
+            audio_path = extract_audio_to_wav(media_path, temp_dir / "audio.wav")
+            typer.echo("Conversion complete")
+
+        typer.echo(f"Loading embedding model: {model}")
+        inference = load_embedding_model(model)
+
+        typer.echo(f"Computing embeddings (with UMAP dims {umap_dimensions})...")
+        embed_document(
+            document,
+            audio_path,
+            inference,
+            model,
+            min_segment_duration,
+            umap_dimensions,
+        )
+
+        typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
+        write_captions_json5_file(captions_path, document)
+        n = len(document.embeddings) if document.embeddings else 0
+        typer.echo(f"Done! Wrote {n} embeddings to captions JSON")
+
+    except Exception as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    finally:
+        temp_dir_obj.cleanup()
+
+
 @app.command()
 def main(
     captions_path: Path = typer.Argument(
@@ -215,49 +282,12 @@ def main(
     HF_TOKEN environment variable is optional (only needed for gated models).
     Writes embeddings into the `embeddings` field of the captions JSON document.
     """
-    temp_dir_obj = tempfile.TemporaryDirectory()
-    temp_dir = Path(temp_dir_obj.name)
-
-    try:
-        typer.echo(f"Parsing captions JSON: {captions_path}")
-        document = parse_captions_json5_file(captions_path)
-        metadata = document.metadata
-
-        if not metadata.media_file_path:
-            raise ValueError("No media file path found in document metadata")
-
-        captions_dir = captions_path.parent
-        media_path = Path(os.path.normpath(captions_dir / metadata.media_file_path))
-
-        if not media_path.exists():
-            raise ValueError(f"Media file not found: {media_path}")
-
-        typer.echo(f"Media file: {media_path}")
-        typer.echo(f"Found {len(document.segments)} segments")
-
-        # Convert to WAV if needed
-        audio_path = media_path
-        if media_path.suffix.lower() not in [".wav", ".wave"]:
-            typer.echo(f"Converting {media_path.suffix} to WAV format...")
-            audio_path = extract_audio_to_wav(media_path, temp_dir / "audio.wav")
-            typer.echo("Conversion complete")
-
-        typer.echo(f"Loading embedding model: {model}")
-        inference = load_embedding_model(model)
-
-        typer.echo(f"Computing embeddings (with UMAP: {umap_dimensions})...")
-        embed_document(document, audio_path, inference, model, min_segment_duration, umap_dimensions)
-
-        typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
-        write_captions_json5_file(captions_path, document)
-        n = len(document.embeddings) if document.embeddings else 0
-        typer.echo(f"Done! Wrote {n} embeddings to captions JSON")
-
-    except Exception as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(code=1)
-    finally:
-        temp_dir_obj.cleanup()
+    embed_captions_path(
+        captions_path,
+        model=model,
+        min_segment_duration=min_segment_duration,
+        umap_dimensions=umap_dimensions,
+    )
 
 
 if __name__ == "__main__":

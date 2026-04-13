@@ -40,7 +40,7 @@ from schema import (
     TranscriptSegment,
 )
 from constants import MODEL_PARAKEET, MODEL_VOXCELEB
-from embed_cli import main as embed_main
+from embed_cli import embed_captions_path
 from captions_json5_lib import write_captions_json5_file
 
 logger = logging.getLogger(__name__)
@@ -635,8 +635,8 @@ def main(
         if embed:
             typer.echo("Running speaker embedding...")
             try:
-                embed_main(
-                    captions_path=output,
+                embed_captions_path(
+                    output,
                     model=embed_model,
                     min_segment_duration=min_segment_duration,
                 )
