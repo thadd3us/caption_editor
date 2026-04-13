@@ -55,7 +55,7 @@ The play button above the table plays segments in the table order, jumping aroun
 To run ASR and speaker embedding on an entire directory tree from the project root:
 
 ```bash
-cd transcribe && uv run python bulk_cli.py /path/to/media/
+uv run --directory transcribe/ python bulk_cli.py /path/to/media/
 ```
 
 Options:
