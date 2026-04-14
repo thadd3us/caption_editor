@@ -1,22 +1,18 @@
 # Caption Editor
 
-WARNING: This is a vibe-coded project -- use at your own risk!
+* Local first: Run fast, SOTA multilingual speech recognition (NVIDIA Parakeet) and speaker identification models
+* Smooth Workflow: Visualize, edit, and annotate model results as time-aligned captions with synced playback and scrubbing
+* Interoperable: Store results in easy-to-parse JSON sidecar files
+* Modern: Use an open-source Electron UI with native macOS integration
 
-I built this because I wanted these features:
+It's a media annotation and labeling tool for your own data, to help make it more useful and findable for you.
 
-* A pure-local app for running multi-lingual Automatic Speech Recognition (ASR) and speaker ID
-* Time-aligned captions for media files (both audio and video)
-* A format to persist this data that I could easily index and import elsewhere.
-* The ability to edit and annotate both captions and speaker names, to correct ASR and speaker ID output.
-* Bi-directionally synchronized scrubbing between the media playback and captions.
-
-This project is driven by the philosophy that 90+% of data labeling should be done "in flow",
-using the same tools you'd be using for other useful work, which in this case means:
+This project is driven by the philosophy that 90+% of data labeling should be done "in flow", using the same tools you'd be using for other useful work, which in this case means
 media playback, indexing and curating.  I wanted to combine AI-assisted labeling with
 the ability to easily correct the labels when I saw something wrong.
 
 
-## My Workflow
+## User Quickstart
 
 1. Cmd-O to open a media file.
 
@@ -44,11 +40,16 @@ You do this by right-clicking the words in the selected caption on the bottom ri
 6. Pick a segment, then sort segments by similarity to that speaker.
 ![sort_by_speaker_similarity](docs/sort_by_speaker_similarity.png)
 
-7. Bulk set speaker names.
+7. Set speaker names.
 ![bulk_set_speaker](docs/bulk_set_speaker.png)
 
 The play button above the table plays segments in the table order, jumping around the audio file, so you can listen to all segments with similar speaker embeddedings.
 
+## Other tips
+
+* `.captions_json5` files contain a relative path pointing to their media file.
+* This app associates with the `.captions_json5` extension, so double-clicking this file opens the captions and the media file.
+* Each caption segment has a UUID.
 
 ## Bulk Processing
 
@@ -60,18 +61,12 @@ uv run --directory transcribe/ python bulk_cli.py /path/to/media/
 
 Options:
 - `--recognizer mock` — dry run with a fast deterministic stub (no model download)
-- `--always-update-speaker-embeddings` — re-embed files that already have embeddings
+- `--always-update-speaker-embeddings` — re-embed files that already have embeddings (doesn't change speaker label names)
 
 Files with an existing `.captions_json5` sidecar are skipped, so you can Ctrl-C and resume at any time.
 
-## Other tips
 
-* `.captions_json5` files contain a relative path pointing to their media file.
-* This app associates with the `.captions_json5` extension, so double-clicking this file opens the captions and the media file.
-* Each caption segment has a UUID.
-
-
-### Quick Start (Desktop)
+### Development nNtes
 
 #### Development Mode
 ```bash
