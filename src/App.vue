@@ -1097,29 +1097,5 @@ html, body, #app {
   background: #16a34a;
 }
 
-/* Hover tooltips: class + data-tooltip (global so cell renderers and AG Grid headers can use them) */
-.tooltip-btn {
-  position: relative;
-}
-.tooltip-btn[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  transform: translateX(-50%);
-  margin-top: 6px;
-  padding: 4px 8px;
-  background: var(--tooltip-bg);
-  color: var(--tooltip-text);
-  font-size: 12px;
-  /* Shrink-to-fit uses the button as containing block; without max-content the box
-     collapses to ~trigger width and long text stacks one word per line. */
-  width: max-content;
-  max-width: min(320px, 90vw);
-  white-space: normal;
-  text-align: center;
-  border-radius: 4px;
-  z-index: 100000;
-  pointer-events: none;
-}
+/* Tooltips: `[data-tooltip].tooltip-btn` + installFloatingTooltip() in main.ts */
 </style>

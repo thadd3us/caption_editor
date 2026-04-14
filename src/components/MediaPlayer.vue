@@ -1,9 +1,11 @@
 <template>
   <div class="media-player">
     <div v-if="hasMedia && mediaFileName" class="media-info">
-      <button 
-        class="show-in-finder-btn" 
-        @click="showMediaInFinder" 
+      <button
+        type="button"
+        class="show-in-finder-btn tooltip-btn"
+        data-tooltip-placement="right"
+        @click="showMediaInFinder"
         data-tooltip="Reveal the media file in Finder"
       >📁</button>
       <span class="media-filename">{{ mediaFileName }}</span>
@@ -419,22 +421,6 @@ watch(() => store.currentTime, (time) => {
 
 .show-in-finder-btn:hover {
   opacity: 1;
-}
-
-.show-in-finder-btn[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 8px;
-  padding: 4px 8px;
-  background: var(--tooltip-bg);
-  color: var(--tooltip-text);
-  font-size: 12px;
-  white-space: nowrap;
-  border-radius: 4px;
-  z-index: 100;
 }
 
 .media-duration {

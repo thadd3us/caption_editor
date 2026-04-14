@@ -1,9 +1,11 @@
 <template>
   <div class="caption-table">
     <div v-if="store.document.filePath" class="file-path-display">
-      <button 
-        class="show-in-finder-btn" 
-        @click="showCaptionsInFinder" 
+      <button
+        type="button"
+        class="show-in-finder-btn tooltip-btn"
+        data-tooltip-placement="right"
+        @click="showCaptionsInFinder"
         data-tooltip="Reveal the saved captions file in Finder"
       >📁</button>
       <span class="file-path-value">{{ store.document.filePath }}</span>
@@ -1038,22 +1040,6 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-.show-in-finder-btn[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 8px;
-  padding: 4px 8px;
-  background: var(--tooltip-bg);
-  color: var(--tooltip-text);
-  font-size: 12px;
-  white-space: nowrap;
-  border-radius: 4px;
-  z-index: 100;
-}
-
 .table-header {
   padding: 10px 0;
   display: flex;
@@ -1201,15 +1187,4 @@ onUnmounted(() => {
   text-align: center;
 }
 
-/* data-tooltip uses ::after with width: max-content; AG Grid still clips unless
-   ancestors allow overflow (header row/cell/comp-wrapper default to hidden). */
-:deep(.ag-header-row:has(.tooltip-btn)),
-:deep(.ag-header-cell:has(.tooltip-btn)),
-:deep(.ag-header-cell-comp-wrapper:has(.tooltip-btn)) {
-  overflow: visible !important;
-}
-
-:deep(.ag-cell-value:has(.tooltip-btn)) {
-  overflow: visible !important;
-}
 </style>

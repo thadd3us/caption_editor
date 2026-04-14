@@ -4,6 +4,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import App from './App.vue'
 import './style.css'
 import { useCaptionStore } from './stores/captionStore'
+import { installFloatingTooltip } from './utils/floatingTooltip'
 
 function applyThemeMode(mode: 'light' | 'dark') {
   document.documentElement.dataset.theme = mode
@@ -48,6 +49,8 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.mount('#app')
+
+installFloatingTooltip()
 
 // Always expose store on window for tests and debugging
 const store = useCaptionStore()

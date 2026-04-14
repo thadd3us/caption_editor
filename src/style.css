@@ -52,6 +52,24 @@
   --terminal-text: #d4d4d4;
 }
 
+/* Body-level tooltip host (see utils/floatingTooltip.ts). */
+.floating-tooltip {
+  position: fixed;
+  z-index: 200000;
+  pointer-events: none;
+  padding: 4px 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: min(320px, calc(100vw - 16px));
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
 :root[data-theme='light'] {
   color-scheme: light;
 }
