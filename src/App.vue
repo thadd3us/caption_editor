@@ -1112,6 +1112,9 @@ html, body, #app {
   background: var(--tooltip-bg);
   color: var(--tooltip-text);
   font-size: 12px;
+  /* Shrink-to-fit uses the button as containing block; without max-content the box
+     collapses to ~trigger width and long text stacks one word per line. */
+  width: max-content;
   max-width: min(320px, 90vw);
   white-space: normal;
   text-align: center;

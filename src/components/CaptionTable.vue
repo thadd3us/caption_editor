@@ -1200,4 +1200,16 @@ onUnmounted(() => {
   justify-content: center;
   text-align: center;
 }
+
+/* data-tooltip uses ::after with width: max-content; AG Grid still clips unless
+   ancestors allow overflow (header row/cell/comp-wrapper default to hidden). */
+:deep(.ag-header-row:has(.tooltip-btn)),
+:deep(.ag-header-cell:has(.tooltip-btn)),
+:deep(.ag-header-cell-comp-wrapper:has(.tooltip-btn)) {
+  overflow: visible !important;
+}
+
+:deep(.ag-cell-value:has(.tooltip-btn)) {
+  overflow: visible !important;
+}
 </style>
