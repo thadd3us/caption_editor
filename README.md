@@ -1,9 +1,12 @@
 # Caption Editor
 
-* Local first: Run fast, SOTA multilingual speech recognition (NVIDIA Parakeet) and speaker identification models
-* Smooth Workflow: Visualize, edit, and annotate model results as time-aligned captions with synced playback and scrubbing
-* Interoperable: Store results in easy-to-parse JSON sidecar files
-* Modern: Use an open-source Electron UI with native macOS integration
+🖥️ **Local First** — Run fast, SOTA multilingual speech recognition (NVIDIA Parakeet) and speaker identification models entirely on-device
+
+🎬 **Smooth Workflows** — Visualize, edit, and annotate model results as time-aligned captions with synced playback and scrubbing
+
+🔗 **Interoperable** — Store results in easy-to-parse JSON sidecar files
+
+⚡ **Modern** — Open-source Electron UI with native macOS integrations
 
 It's a media annotation and labeling tool for your own data, to help make it more useful and findable for you.
 
