@@ -107,6 +107,26 @@ describe('Playlist Playback Store', () => {
     expect(store.currentPlaylistSegment?.id).toBe('seg2')
   })
 
+  it('should advance with optional playhead time when avoiding a seek (small gap)', () => {
+    const store = useCaptionStore()
+
+    loadTestDocument(store, [
+      { id: 'seg1', startTime: 0, endTime: 2, text: 'First', timestamp: '2024-01-01T00:00:00.000Z' },
+      { id: 'seg2', startTime: 2.2, endTime: 5, text: 'Second', timestamp: '2024-01-01T00:00:00.000Z' }
+    ])
+
+    const segmentIds = store.document.segments.map(s => s.id)
+    store.startPlaylistPlayback(segmentIds, 0)
+
+    const mediaTime = 2.05
+    const hasNext = store.nextPlaylistSegment(mediaTime)
+
+    expect(hasNext).toBe(true)
+    expect(store.playlistIndex).toBe(1)
+    expect(store.currentTime).toBe(mediaTime)
+    expect(store.selectedSegmentId).toBe('seg2')
+  })
+
   it('should return false and return to start when reaching end of playlist', () => {
     const store = useCaptionStore()
 

@@ -454,9 +454,12 @@ export const useCaptionStore = defineStore('captions', () => {
 
   /**
    * Move to the next segment in the playlist
+   * @param playheadTime - If set, keep the playhead here (sequential mode avoiding a seek
+   *   when the next segment starts soon after the previous end). If omitted, seek to the
+   *   next segment's start time.
    * @returns true if there's a next segment, false if we've reached the end
    */
-  function nextPlaylistSegment(): boolean {
+  function nextPlaylistSegment(playheadTime?: number): boolean {
     if (playbackMode.value !== PlaybackMode.SEGMENTS_PLAYING) {
       return false
     }
@@ -473,7 +476,11 @@ export const useCaptionStore = defineStore('captions', () => {
     const segment = currentPlaylistSegment.value
     if (segment) {
       console.log('Playing next segment:', segment.id)
-      setCurrentTime(segment.startTime)
+      if (playheadTime !== undefined) {
+        setCurrentTime(playheadTime)
+      } else {
+        setCurrentTime(segment.startTime)
+      }
       selectSegment(segment.id)
       return true
     }

@@ -110,6 +110,9 @@ const segmentEndTime = ref<number | null>(null)  // Track when current segment s
 const scrubberElement = ref<HTMLInputElement | null>(null)
 const isManualScrub = ref(false)  // Track if user is manually scrubbing
 
+/** Timeline gap (next start − previous end) above this ⇒ seek to next segment start. */
+const SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC = 0.5
+
 // Context menu state
 const isContextMenuVisible = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
@@ -241,15 +244,26 @@ function onTimeUpdate() {
     if (segmentEndTime.value !== null && mediaElement.value.currentTime >= segmentEndTime.value) {
       console.log('Segment playback complete')
 
-      // Move to next segment in the playlist
-      const hasNext = store.nextPlaylistSegment()
+      const prevEnd = segmentEndTime.value
+      const mediaT = mediaElement.value.currentTime
+      const nextIndex = store.playlistIndex + 1
+      const nextId = store.playlist[nextIndex]
+      const nextSeg = nextId
+        ? store.document.segments.find((s) => s.id === nextId)
+        : undefined
+      const timelineSilence =
+        nextSeg !== undefined ? nextSeg.startTime - prevEnd : Number.POSITIVE_INFINITY
+      const seekToNextStart = timelineSilence > SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC
+
+      const hasNext = store.nextPlaylistSegment(seekToNextStart ? undefined : mediaT)
       if (hasNext) {
-        // Continue playing the next segment
         const nextSegment = store.currentPlaylistSegment
         if (nextSegment) {
           console.log('Playlist: moving to next segment:', nextSegment.id)
           segmentEndTime.value = nextSegment.endTime
-          mediaElement.value.currentTime = nextSegment.startTime
+          if (seekToNextStart) {
+            mediaElement.value.currentTime = nextSegment.startTime
+          }
           // Keep playing (don't pause)
         }
       } else {
