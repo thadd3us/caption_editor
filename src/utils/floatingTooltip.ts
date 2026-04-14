@@ -5,6 +5,14 @@
  */
 const TOOLTIP_SELECTOR = '[data-tooltip].tooltip-btn'
 
+/** Pointer target can be a #text node (e.g. emoji in a button); Text has no .closest(). */
+function pointerEventTargetElement(e: PointerEvent): Element | null {
+  const t = e.target
+  if (t instanceof Element) return t
+  if (t instanceof Text) return t.parentElement
+  return null
+}
+
 let previousCleanup: (() => void) | null = null
 
 export function installFloatingTooltip(): () => void {
@@ -94,16 +102,14 @@ export function installFloatingTooltip(): () => void {
 
   function onPointerOver(e: PointerEvent) {
     if (e.pointerType === 'touch') return
-    const found = (e.target as HTMLElement | null)?.closest(TOOLTIP_SELECTOR)
+    const found = pointerEventTargetElement(e)?.closest(TOOLTIP_SELECTOR)
     if (!(found instanceof HTMLElement)) return
-    const trigger = found
-    if (isDisabledTrigger(trigger)) return
-    scheduleLayout(trigger)
+    scheduleLayout(found)
   }
 
   function onPointerOut(e: PointerEvent) {
     if (e.pointerType === 'touch') return
-    const found = (e.target as HTMLElement | null)?.closest(TOOLTIP_SELECTOR)
+    const found = pointerEventTargetElement(e)?.closest(TOOLTIP_SELECTOR)
     if (!(found instanceof HTMLElement)) return
     const trigger = found
     const related = e.relatedTarget as Node | null
@@ -120,14 +126,15 @@ export function installFloatingTooltip(): () => void {
     if (activeTrigger) layout()
   }
 
-  document.addEventListener('pointerover', onPointerOver)
-  document.addEventListener('pointerout', onPointerOut)
+  /* Capture so AG Grid / inner handlers using stopPropagation do not hide tooltips. */
+  document.addEventListener('pointerover', onPointerOver, true)
+  document.addEventListener('pointerout', onPointerOut, true)
   document.addEventListener('scroll', onScroll, true)
   window.addEventListener('resize', onResize)
 
   const cleanup = () => {
-    document.removeEventListener('pointerover', onPointerOver)
-    document.removeEventListener('pointerout', onPointerOut)
+    document.removeEventListener('pointerover', onPointerOver, true)
+    document.removeEventListener('pointerout', onPointerOut, true)
     document.removeEventListener('scroll', onScroll, true)
     window.removeEventListener('resize', onResize)
     hide()
@@ -136,12 +143,4 @@ export function installFloatingTooltip(): () => void {
   }
   previousCleanup = cleanup
   return cleanup
-}
-
-function isDisabledTrigger(el: HTMLElement): boolean {
-  if (el.matches('button:disabled, [disabled]')) return true
-  if (el.matches('button[aria-disabled="true"]')) return true
-  const btn = el.closest('button')
-  if (btn?.disabled) return true
-  return false
 }

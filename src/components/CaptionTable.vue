@@ -21,14 +21,19 @@
     </div>
     <div class="table-header">
       <div class="header-controls">
-        <button
-          @click="addCaptionAtCurrentTime"
-          class="add-caption-btn tooltip-btn"
-          :disabled="!store.mediaPath"
+        <span
+          class="add-caption-tooltip-host tooltip-btn"
           data-tooltip="Insert a new caption at the current time in the media"
         >
-          ➕
-        </button>
+          <button
+            type="button"
+            class="add-caption-btn"
+            :disabled="!store.mediaPath"
+            @click="addCaptionAtCurrentTime"
+          >
+            ➕
+          </button>
+        </span>
         <label class="checkbox-label tooltip-btn" data-tooltip="When you select a row, jump to its start time and play that caption">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay
@@ -1051,6 +1056,10 @@ onUnmounted(() => {
   display: flex;
   gap: 16px;
   align-items: center;
+}
+
+.add-caption-tooltip-host {
+  display: inline-flex;
 }
 
 .add-caption-btn {

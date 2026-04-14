@@ -1,15 +1,20 @@
 <template>
   <div class="actions-play-header">
-    <button
-      type="button"
-      class="actions-play-header-btn sequential-play-header-btn tooltip-btn"
-      :disabled="disabled"
+    <!-- Wrapper holds tooltip: disabled buttons do not receive pointer events in Chromium. -->
+    <span
+      class="actions-play-header-tooltip-host tooltip-btn"
       :data-tooltip="tooltip"
-      :title="tooltip"
-      @click="onClick"
     >
-      {{ icon }}
-    </button>
+      <button
+        type="button"
+        class="actions-play-header-btn sequential-play-header-btn"
+        :disabled="disabled"
+        :title="tooltip"
+        @click="onClick"
+      >
+        {{ icon }}
+      </button>
+    </span>
   </div>
 </template>
 
@@ -52,6 +57,12 @@ function onClick(e: MouseEvent) {
   justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+.actions-play-header-tooltip-host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .actions-play-header-btn {
