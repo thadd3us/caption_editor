@@ -80,6 +80,41 @@ test.describe('Sequential Playback', () => {
     await expect(sequentialBtn).toBeVisible()
   })
 
+  test('sequential play header control is drawn larger than per-row play (bounding boxes)', async ({
+    electronApp,
+    page
+  }) => {
+    const captionsPath = await writeTestCaptionsFile('bbox-compare.captions_json5', {
+      metadata: { id: 'seq-bbox' },
+      segments: [
+        { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
+        { id: 'seg2', startTime: 1, endTime: 2, text: 'Two' }
+      ]
+    })
+    await loadCaptionsFile(electronApp, page, captionsPath)
+
+    const headerBtn = page.locator('button.sequential-play-header-btn')
+    // Skip AG Grid “ghost” rows (no caption text) — see CLAUDE.md
+    const rowBtn = page
+      .locator('.ag-row')
+      .filter({ has: page.locator('[col-id="text"]') })
+      .first()
+      .locator('[col-id="actions"] button.action-btn')
+    await expect(headerBtn).toBeVisible()
+    await expect(rowBtn).toBeVisible()
+
+    const headerBox = await headerBtn.boundingBox()
+    const rowBox = await rowBtn.boundingBox()
+    expect(headerBox, 'header play button box').not.toBeNull()
+    expect(rowBox, 'row play button box').not.toBeNull()
+
+    // Layout pixels: header uses 28px SVG + padding/min dimensions; row uses 14px emoji + small padding.
+    expect(headerBox!.width).toBeGreaterThan(rowBox!.width)
+    expect(headerBox!.height).toBeGreaterThan(rowBox!.height)
+    expect(headerBox!.width).toBeGreaterThanOrEqual(52)
+    expect(headerBox!.height).toBeGreaterThanOrEqual(36)
+  })
+
   test('should start sequential playback from top when no row selected', async ({ electronApp, page }) => {
     console.log('[Test] Loading captions file...')
     const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
@@ -100,8 +135,8 @@ test.describe('Sequential Playback', () => {
     const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
-    console.log('[Test] Verifying button changed to Pause icon...')
-    await expect(sequentialBtn).toHaveText(/⏸/)
+    console.log('[Test] Verifying button changed to pause state...')
+    await expect(sequentialBtn).toHaveAttribute('data-state', 'playing')
 
     console.log('[Test] Checking playback state...')
     const state = await page.evaluate(() => {
@@ -228,14 +263,14 @@ test.describe('Sequential Playback', () => {
     const playBtn = page.locator('button.sequential-play-header-btn')
     await playBtn.click()
 
-    // Button should change to pause icon
-    await expect(playBtn).toHaveText(/⏸/)
+    // Button should change to pause state
+    await expect(playBtn).toHaveAttribute('data-state', 'playing')
 
     // Click pause
     await playBtn.click()
 
-    // Button should change back to play
-    await expect(playBtn).toHaveText(/▶️/)
+    // Button should change back to idle (play) state
+    await expect(playBtn).toHaveAttribute('data-state', 'idle')
   })
 
   test('should play segments in table order respecting sort', async ({ electronApp, page }) => {
@@ -363,7 +398,7 @@ test.describe('Sequential Playback', () => {
     await page.waitForTimeout(50)
 
     // Stop sequential playback
-    await expect(sequentialBtn).toHaveText(/⏸/)
+    await expect(sequentialBtn).toHaveAttribute('data-state', 'playing')
     await sequentialBtn.click()
 
     await page.waitForTimeout(50)
