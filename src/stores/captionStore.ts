@@ -92,6 +92,15 @@ export const useCaptionStore = defineStore('captions', () => {
   function loadFromFile(content: string, filePath?: string) {
     console.log('Loading captions from file:', filePath)
 
+    // App.vue tracks "already tried auto-load for this metadata.id". A full reload with the
+    // same id (e.g. after Compute Speaker Embeddings) must clear that or mediaPath stays null.
+    try {
+      const reset = (window as any).__resetAttemptedAutoLoad
+      if (typeof reset === 'function') reset()
+    } catch {
+      /* ignore outside Electron */
+    }
+
     // Reset all state so the new file starts clean (media, playback, selection, etc.)
     mediaPath.value = null
     currentTime.value = 0
