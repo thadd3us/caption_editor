@@ -79,12 +79,10 @@ Files with an existing `.captions_json5` sidecar are skipped, so you can Ctrl-C 
 npm install
 
 # Build the Electron app (must be done first)
-npm run build:all
-
-# Run in development mode (with hot reload)
-npm run dev:electron
+npm run build:all && npm run dev:electron
 
 # Or run the built app directly
+# FIXME: Document what this actually does.
 npm start
 ```
 
