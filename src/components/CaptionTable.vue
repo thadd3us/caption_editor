@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
-import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent, CellKeyDownEvent, ColumnState } from 'ag-grid-community'
+import type { ColDef, GridApi, GridReadyEvent, SelectionChangedEvent, RowClickedEvent, CellContextMenuEvent, CellKeyDownEvent, ColumnState, SuppressKeyboardEventParams } from 'ag-grid-community'
 import { themeAlpine } from 'ag-grid-community'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 
@@ -161,6 +161,30 @@ const contextMenuHeaderText = ref('')
 const selectedRowsForContextMenu = ref<any[]>([])
 
 
+
+/**
+ * When a printable key opens the speaker cell, start editing with that key explicitly.
+ * Otherwise the grid can swallow the first character (especially on empty cells), and
+ * Playwright `keyboard.type` often does not populate the editor's `eventKey`.
+ */
+function suppressSpeakerNameKeyboardForTypedChar(params: SuppressKeyboardEventParams): boolean {
+  if (params.editing) return false
+  if (!params.data) return false
+  const ev = params.event
+  const k = ev.key
+  if (k.length !== 1) return false
+  const code = k.charCodeAt(0)
+  if (code < 32 || code === 127) return false
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return false
+  const rowIndex = params.node.rowIndex
+  if (rowIndex == null) return false
+  params.api.startEditingCell({
+    rowIndex,
+    colKey: 'speakerName',
+    key: k
+  })
+  return true
+}
 
 const rowData = computed(() => {
   // Segments are always kept sorted in the document model
@@ -246,6 +270,7 @@ const columnDefs = ref<ColDef[]>([
     suppressFloatingFilterButton: true,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
+    suppressKeyboardEvent: suppressSpeakerNameKeyboardForTypedChar,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)
       const newSpeaker = params.newValue
