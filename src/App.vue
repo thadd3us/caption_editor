@@ -238,7 +238,24 @@ function openRenameSpeakerDialog() {
 
 function handleLicenseAgree() {
   localStorage.setItem(LICENSE_ACCEPTED_KEY, 'true')
+  const api = (window as any).electronAPI
+  if (api?.setLicenseAccepted) {
+    void api.setLicenseAccepted()
+  }
   isLicenseDialogOpen.value = false
+}
+
+function isLicenseAccepted(): boolean {
+  const api = (window as any).electronAPI
+  if (api?.getLicenseAcceptedSync) {
+    if (api.getLicenseAcceptedSync()) return true
+    if (localStorage.getItem(LICENSE_ACCEPTED_KEY) === 'true') {
+      void api.setLicenseAccepted?.()
+      return true
+    }
+    return false
+  }
+  return !!localStorage.getItem(LICENSE_ACCEPTED_KEY)
 }
 
 function handleLicenseExit() {
@@ -874,8 +891,7 @@ async function handleAsrCancel() {
 
 // Also attempt auto-load on mount (for localStorage recovery)
 onMounted(() => {
-  // Show license agreement on first run
-  if (!localStorage.getItem(LICENSE_ACCEPTED_KEY)) {
+  if (!isLicenseAccepted()) {
     isLicenseDialogOpen.value = true
   }
 

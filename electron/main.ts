@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell, nativeTheme } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { exec, type ChildProcess } from 'child_process'
 import { promisify } from 'util'
@@ -336,6 +336,44 @@ ipcMain.on('app:quit', (event) => {
     }
   }
 })
+
+/** License acceptance: localStorage is unreliable for packaged `file://` loads; persist under userData. */
+const LICENSE_ACCEPTED_FILENAME = 'license-accepted.json'
+
+function licenseAcceptedFilePath(): string {
+  return path.join(app.getPath('userData'), LICENSE_ACCEPTED_FILENAME)
+}
+
+function readLicenseAcceptedFromDisk(): boolean {
+  try {
+    const p = licenseAcceptedFilePath()
+    if (!existsSync(p)) return false
+    const data = JSON.parse(readFileSync(p, 'utf8')) as { accepted?: unknown }
+    return data.accepted === true
+  } catch {
+    return false
+  }
+}
+
+ipcMain.on('license:getAcceptedSync', (event) => {
+  event.returnValue = readLicenseAcceptedFromDisk()
+})
+
+ipcMain.handle('license:setAccepted', async () => {
+  const p = licenseAcceptedFilePath()
+  mkdirSync(path.dirname(p), { recursive: true })
+  writeFileSync(p, JSON.stringify({ accepted: true, version: 1 }), 'utf8')
+})
+
+if (process.env.NODE_ENV === 'test') {
+  ipcMain.handle('license:clearAcceptedForTests', async () => {
+    try {
+      unlinkSync(licenseAcceptedFilePath())
+    } catch {
+      // no file
+    }
+  })
+}
 
 // Handle file opening from OS (macOS)
 let fileToOpen: string | null = null

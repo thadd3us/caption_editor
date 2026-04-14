@@ -107,6 +107,14 @@ export interface ElectronAPI {
   isElectron: boolean
 
   /**
+   * License acceptance persisted in userData (localStorage is unreliable for packaged file://).
+   */
+  getLicenseAcceptedSync?: () => boolean
+  setLicenseAccepted?: () => Promise<void>
+  /** Test only: remove persisted license file */
+  clearLicenseAcceptedForTests?: () => Promise<void>
+
+  /**
    * Listen for files opened from the OS (double-click, right-click > Open With)
    */
   onFileOpen: (callback: (filePath: string) => void) => void
