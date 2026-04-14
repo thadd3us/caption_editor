@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { test, expect } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import { enableConsoleCapture } from './helpers/console'
@@ -319,5 +321,116 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       return store?.document?.segments?.[0]?.speakerName
     })
     expect(speakerName).toBe('Bob')
+  })
+
+  /**
+   * Regression: focusing a speaker cell and typing to enter edit mode must not drop the first
+   * character (e.g. "James" becoming "ames"). Existing tests use startEditingCell() or set the
+   * value in JS, which does not reproduce type-to-edit.
+   *
+   * Marked test.fail() so CI stays green until the product bug is fixed; remove test.fail() then.
+   */
+  test('regression: first character is kept when typing to start editing an empty speaker cell', async () => {
+    test.fail()
+
+    await window.evaluate(() => {
+      const vttStore = (window as any).$store
+      if (!vttStore) return
+
+      const captionsContent = JSON.stringify(
+        {
+          metadata: { id: 'speaker-first-key-regression' },
+          segments: [
+            { id: 'cue1', startTime: 0, endTime: 1, text: 'First line' },
+            { id: 'cue2', startTime: 2, endTime: 3, text: 'Second line', speakerName: 'Bob' }
+          ]
+        },
+        null,
+        2
+      )
+
+      vttStore.loadFromFile(captionsContent, '/test/speaker-first-key.captions_json5')
+    })
+
+    await expectGridCaptionTotal(window, 2, 2000)
+
+    const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
+    await speakerCell.click()
+    await window.waitForTimeout(150)
+    await window.keyboard.type('James', { delay: 40 })
+
+    const editor = window.locator('.speaker-name-editor')
+    await expect(editor).toBeVisible({ timeout: 5000 })
+    await expect(editor).toHaveValue('James')
+  })
+
+  /**
+   * Regression: with many rows, committing the speaker editor via Enter must not scroll the grid
+   * so the edited row is off-screen (reported jump to ~rows 37–42 on a ~54-row file).
+   *
+   * Uses test_data/about-time-speaker-regression.captions_json5 (copy of a real project file).
+   * Auto-scroll is turned off so follow-playhead scrolling does not mask the bug.
+   *
+   * Marked test.fail() so CI stays green until the product bug is fixed; remove test.fail() then.
+   */
+  test('regression: committing speaker edit does not scroll the edited row off-screen (large document)', async () => {
+    test.fail()
+
+    const fixturePath = path.join(__dirname, '../test_data/about-time-speaker-regression.captions_json5')
+    const content = fs.readFileSync(fixturePath, 'utf8')
+
+    await window.evaluate(
+      ({ fileContent }: { fileContent: string }) => {
+        const vttStore = (window as any).$store
+        vttStore.loadFromFile(fileContent, '/test/about-time-speaker-regression.captions_json5')
+      },
+      { fileContent: content }
+    )
+
+    await expectGridCaptionTotal(window, 54, 15000)
+
+    const autoScroll = window.getByRole('checkbox', { name: /Auto-scroll/i })
+    await autoScroll.uncheck()
+
+    await window.evaluate(() => {
+      const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
+      if (vp) vp.scrollTop = 0
+    })
+    await window.waitForTimeout(200)
+
+    const scrollBefore = await window.evaluate(
+      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
+    )
+    expect(scrollBefore).toBe(0)
+
+    const expectedTopRowId = await window.evaluate(() => (window as any).$store.document.segments[0].id)
+
+    await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi) throw new Error('Grid API not available')
+      gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
+    })
+
+    const input = window.locator('.speaker-name-editor')
+    await expect(input).toBeVisible({ timeout: 5000 })
+    await window.evaluate(() => {
+      const el = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
+      if (!el) throw new Error('speaker-name-editor not found')
+      el.value = 'Pat'
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await input.press('Enter')
+    await window.waitForTimeout(500)
+
+    const topRowId = await window.evaluate(() => {
+      const api = (window as any).__agGridApi
+      return api?.getDisplayedRowAtIndex?.(0)?.data?.id ?? null
+    })
+    expect(topRowId).toBe(expectedTopRowId)
+
+    const scrollAfter = await window.evaluate(
+      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
+    )
+    expect(Math.abs(scrollAfter - scrollBefore)).toBeLessThan(80)
   })
 })
