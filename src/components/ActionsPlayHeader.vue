@@ -69,16 +69,19 @@ function onClick(e: MouseEvent) {
   justify-content: center;
 }
 
-/* ~1.5× vs other toolbar / grid control buttons (14px) — only this header control. */
+/* Prominent “play all in table order” control — larger than per-row ▶ (14px in ActionButtonsCell). */
 .actions-play-header-btn {
-  padding: 6px 15px;
+  box-sizing: border-box;
+  min-width: 56px;
+  min-height: 40px;
+  padding: 4px 10px;
   background: rgba(255, 255, 255, 0.22);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 21px;
-  line-height: 1.2;
+  font-size: 26px;
+  line-height: 1;
   font-weight: 500;
   transition: background 0.15s, border-color 0.15s, opacity 0.15s;
 }
