@@ -362,9 +362,11 @@ async function attemptMediaAutoLoad() {
     return
   }
 
-  // Skip if we already attempted auto-load for this document
-  if (attemptedAutoLoad.value === documentId) {
-    console.log('[Auto-load] Already attempted for this document')
+  // Skip only when media is already wired to the player. Same metadata.id can survive
+  // a full document reload (e.g. after Compute Speaker Embeddings calls loadFromFile),
+  // which clears mediaPath — we must allow auto-load to run again in that case.
+  if (attemptedAutoLoad.value === documentId && store.mediaPath) {
+    console.log('[Auto-load] Already loaded media for this document')
     return
   }
 
