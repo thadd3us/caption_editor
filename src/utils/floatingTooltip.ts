@@ -94,16 +94,18 @@ export function installFloatingTooltip(): () => void {
 
   function onPointerOver(e: PointerEvent) {
     if (e.pointerType === 'touch') return
-    const trigger = (e.target as HTMLElement | null)?.closest?.(TOOLTIP_SELECTOR) ?? null
-    if (!trigger) return
+    const found = (e.target as HTMLElement | null)?.closest(TOOLTIP_SELECTOR)
+    if (!(found instanceof HTMLElement)) return
+    const trigger = found
     if (isDisabledTrigger(trigger)) return
     scheduleLayout(trigger)
   }
 
   function onPointerOut(e: PointerEvent) {
     if (e.pointerType === 'touch') return
-    const trigger = (e.target as HTMLElement | null)?.closest?.(TOOLTIP_SELECTOR) ?? null
-    if (!trigger) return
+    const found = (e.target as HTMLElement | null)?.closest(TOOLTIP_SELECTOR)
+    if (!(found instanceof HTMLElement)) return
+    const trigger = found
     const related = e.relatedTarget as Node | null
     if (!related || !trigger.contains(related)) {
       hide()
