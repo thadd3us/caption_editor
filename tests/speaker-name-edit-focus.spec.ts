@@ -1,10 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { test, expect } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import { fileURLToPath } from 'node:url'
+import { test, expect, ElectronApplication, Page } from '@playwright/test'
 import { enableConsoleCapture } from './helpers/console'
 import { launchElectron } from './helpers/electron-launch'
 import { expectGridCaptionTotal } from './helpers/wait-helpers'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   let electronApp: ElectronApplication
@@ -328,11 +331,8 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
    * character (e.g. "James" becoming "ames"). Existing tests use startEditingCell() or set the
    * value in JS, which does not reproduce type-to-edit.
    *
-   * Marked test.fail() so CI stays green until the product bug is fixed; remove test.fail() then.
    */
   test('regression: first character is kept when typing to start editing an empty speaker cell', async () => {
-    test.fail()
-
     await window.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
@@ -371,11 +371,8 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
    * Uses test_data/about-time-speaker-regression.captions_json5 (copy of a real project file).
    * Auto-scroll is turned off so follow-playhead scrolling does not mask the bug.
    *
-   * Marked test.fail() so CI stays green until the product bug is fixed; remove test.fail() then.
    */
   test('regression: committing speaker edit does not scroll the edited row off-screen (large document) (About Time fixture, 54 segments)', async () => {
-    test.fail()
-
     const fixturePath = path.join(__dirname, '../test_data/about-time-speaker-regression.captions_json5')
     const content = fs.readFileSync(fixturePath, 'utf8')
 
@@ -431,6 +428,6 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     const scrollAfter = await window.evaluate(
       () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
     )
-    expect(Math.abs(scrollAfter - scrollBefore)).toBeLessThan(80)
+    expect(scrollAfter).toBe(scrollBefore)
   })
 })
