@@ -5,6 +5,7 @@ import * as os from 'os'
 import { fileURLToPath } from 'url'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { enableConsoleCapture } from '../helpers/console'
+import { acceptLicenseIfVisible } from '../helpers/license'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -66,6 +67,8 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             await page.waitForLoadState('domcontentloaded')
             // Wait for Vue app to mount and store to be available
             await page.waitForFunction(() => (window as any).$store || (window as any).store, { timeout: 10000 })
+
+            await acceptLicenseIfVisible(page)
 
             await page.evaluate(() => {
                 console.log('[Test] electronAPI keys:', Object.keys((window as any).electronAPI || {}))
