@@ -146,6 +146,23 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             expect(embeddingCount).toBeGreaterThan(0)
             expect(embeddingCount).toBe(segmentCount)
 
+            // Regression: loadFromFile after embed clears mediaPath; auto-load must restore it
+            // so the playback window does not show "No media loaded".
+            const mediaState = await page.evaluate(() => {
+                const store = (window as any).$store || (window as any).store
+                return {
+                    mediaPath: store.mediaPath as string | null | undefined,
+                    mediaFilePath: store.mediaFilePath as string | null | undefined
+                }
+            })
+            console.log('[Test] After embed — mediaPath:', mediaState.mediaPath?.slice(0, 48), '…')
+            expect(
+                mediaState.mediaPath,
+                'store.mediaPath should be set after embedding reload (same as opening captions with media in metadata)'
+            ).toBeTruthy()
+            expect(mediaState.mediaPath).toMatch(/^media:\/\//)
+            expect(mediaState.mediaFilePath).toBe(destAudioPath)
+
             // Close app
             await page.evaluate(() => {
                 // FIXME: Why are there 2 ways of doing this?  Can we settle on one?
