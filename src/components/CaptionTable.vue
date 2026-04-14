@@ -163,9 +163,21 @@ const selectedRowsForContextMenu = ref<any[]>([])
 
 
 /**
- * When a printable key opens the speaker cell, start editing with that key explicitly.
- * Otherwise the grid can swallow the first character (especially on empty cells), and
- * Playwright `keyboard.type` often does not populate the editor's `eventKey`.
+ * Speaker column: first printable key and commit behavior
+ *
+ * Problem 1 — “James” → “ames” on empty cells: With no existing text, AG Grid uses the first
+ * keystroke only to enter edit mode; that character often never reaches the `<input>`. Cells
+ * that already had a speaker name were less obvious because select-all + replace masked it.
+ * Playwright `keyboard.type()` also frequently left `ICellEditorParams.eventKey` unset, so the
+ * editor could not recover the first letter from params alone.
+ *
+ * Fix: For a single printable key while not editing, call `startEditingCell({ key })` and return
+ * `true` from `suppressKeyboardEvent` so the grid does not handle the same event without passing
+ * the character through. Works with `SpeakerNameCellEditor`, which seeds from `eventKey` and
+ * places the caret at end of that seed (see `SpeakerNameCellEditor.vue`).
+ *
+ * Problem 2 — viewport jumping after Enter: Addressed in the editor via `stopEditing(true)` so AG
+ * Grid does not move focus to the next cell after commit (which could scroll a large grid).
  */
 function suppressSpeakerNameKeyboardForTypedChar(params: SuppressKeyboardEventParams): boolean {
   if (params.editing) return false
@@ -270,6 +282,7 @@ const columnDefs = ref<ColDef[]>([
     suppressFloatingFilterButton: true,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
+    /* See suppressSpeakerNameKeyboardForTypedChar — required for reliable first-key-on-empty. */
     suppressKeyboardEvent: suppressSpeakerNameKeyboardForTypedChar,
     onCellValueChanged: (params) => {
       console.log('Speaker name edited:', params.newValue)

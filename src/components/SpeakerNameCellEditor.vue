@@ -21,9 +21,45 @@
 </template>
 
 <script lang="ts">
+/**
+ * Inline speaker editor for AG Grid. Related grid-side logic: `CaptionTable.vue`
+ * (`suppressSpeakerNameKeyboardForTypedChar`).
+ *
+ * Fixes we maintain here:
+ *
+ * 1. First character missing (esp. empty cells): `ICellEditorParams.eventKey` carries the key that
+ *    opened the editor when the grid passes it; we mirror that into `editValue` on init. The grid
+ *    column also calls `startEditingCell({ key })` when `eventKey` would otherwise be missing
+ *    (e.g. Playwright).
+ *
+ * 2. Caret vs select-all: If we seeded from a single `eventKey`, we must not `select()` the whole
+ *    input — the next typed character would replace only that first letter (e.g. “J” + “a” → “a”).
+ *    We put the caret at end instead. For double-click / F2 / programmatic edit, `eventKey` is not
+ *    a printable single char, so we `select()` the full cell value as before.
+ *
+ * 3. Scroll jump on Enter: `params.stopEditing(true)` tells AG Grid not to move focus to the next
+ *    cell after commit, which avoids unexpected vertical scrolling on large documents. Same for
+ *    Escape (cancel) and blur commit so behavior stays consistent.
+ */
 import { defineComponent, ref, computed, nextTick, watch } from 'vue'
 import { useCaptionStore } from '../stores/captionStore'
 import type { ICellEditorParams } from 'ag-grid-community'
+
+/** True when `eventKey` is a single printable character (the key that started this edit). */
+function isPrintableSingleEventKey(ev: string | null | undefined): boolean {
+  if (ev == null || ev.length !== 1) return false
+  const code = ev.charCodeAt(0)
+  return code >= 32 && code !== 127
+}
+
+/** Initial `<input>` value: use `eventKey` when the grid supplies a printable starter; else cell value. */
+function initialSpeakerEditValue(params: ICellEditorParams): string {
+  if (isPrintableSingleEventKey(params.eventKey)) {
+    return params.eventKey!
+  }
+  const v = params.value
+  return v == null ? '' : String(v)
+}
 
 export default defineComponent({
   name: 'SpeakerNameCellEditor',
@@ -37,8 +73,10 @@ export default defineComponent({
     const store = useCaptionStore()
 
     const inputRef = ref<HTMLInputElement | null>(null)
-    const editValue = ref(props.params.value || '')
+    const editValue = ref(initialSpeakerEditValue(props.params))
     const shouldStop = ref(false)
+    /** Matches `initialSpeakerEditValue` using `eventKey` — drives caret-at-end vs select-all in `afterGuiAttached`. */
+    const startedWithTypedPrintableKey = isPrintableSingleEventKey(props.params.eventKey)
 
     // Playwright+Electron has a known crash bug when interacting with <input list=...> / <datalist>.
     // Disable datalist suggestions in E2E tests to keep the renderer stable.
@@ -47,7 +85,11 @@ export default defineComponent({
     })
 
     // Debug logging for macOS troubleshooting
-    console.log('[SpeakerNameCellEditor] Component created with initial value:', props.params.value)
+    console.log('[SpeakerNameCellEditor] Component created', {
+      initial: editValue.value,
+      eventKey: props.params.eventKey,
+      cellValue: props.params.value
+    })
 
     // Watch editValue changes
     watch(editValue, (newVal, oldVal) => {
@@ -119,8 +161,9 @@ export default defineComponent({
         setTimeout(() => {
           console.log('[SpeakerNameCellEditor] In setTimeout callback - editValue:', editValue.value)
           console.log('[SpeakerNameCellEditor] In setTimeout callback - input.value:', inputRef.value?.value)
-          console.log('[SpeakerNameCellEditor] Calling stopEditing()')
-          props.params.stopEditing()
+          /* `true` → suppressNavigateAfterEdit: keep focus from moving to the next row/cell (large-grid scroll jump). */
+          console.log('[SpeakerNameCellEditor] Calling stopEditing(true)')
+          props.params.stopEditing(true)
         }, 0)
       }
 
@@ -131,7 +174,7 @@ export default defineComponent({
         event.stopPropagation()
         editValue.value = props.params.value || ''
         shouldStop.value = true
-        props.params.stopEditing()
+        props.params.stopEditing(true)
       }
 
       // Tab key accepts current value and moves to next cell
@@ -148,7 +191,7 @@ export default defineComponent({
       if (!shouldStop.value) {
         console.log('[SpeakerNameCellEditor] Blur triggered stopEditing - editValue:', editValue.value)
         shouldStop.value = true
-        props.params.stopEditing()
+        props.params.stopEditing(true)
       }
     }
 
@@ -176,10 +219,19 @@ export default defineComponent({
         requestAnimationFrame(() => {
           console.log('[SpeakerNameCellEditor] In requestAnimationFrame')
           if (inputRef.value) {
-            console.log('[SpeakerNameCellEditor] Focusing and selecting input')
-            inputRef.value.focus()
-            inputRef.value.select()
-            console.log('[SpeakerNameCellEditor] Input focused, activeElement:', document.activeElement === inputRef.value)
+            const input = inputRef.value
+            console.log('[SpeakerNameCellEditor] Focusing input', {
+              startedWithTypedPrintableKey
+            })
+            input.focus()
+            if (startedWithTypedPrintableKey) {
+              /* Caret after seeded first letter so the rest of the word appends (see module comment). */
+              const len = input.value.length
+              input.setSelectionRange(len, len)
+            } else {
+              input.select()
+            }
+            console.log('[SpeakerNameCellEditor] Input focused, activeElement:', document.activeElement === input)
           } else {
             console.log('[SpeakerNameCellEditor] WARNING: inputRef.value is null!')
           }
