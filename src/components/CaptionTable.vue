@@ -133,6 +133,20 @@ const autoplayEnabled = ref(false)
 const autoScrollEnabled = ref(true)
 let isAutoScrolling = false  // Flag to prevent autoplay during auto-scroll selection
 
+/** Log every programmatic grid scroll so we can correlate viewport jumps with causes. */
+function logProgrammaticGridScroll(
+  reason: string,
+  action: () => void,
+  detail?: Record<string, unknown>
+) {
+  if (detail !== undefined && Object.keys(detail).length > 0) {
+    console.log('[CaptionTable] programmatic grid scroll:', reason, detail)
+  } else {
+    console.log('[CaptionTable] programmatic grid scroll:', reason)
+  }
+  action()
+}
+
 // AG Grid v33+ Theming API (do not import legacy CSS themes)
 const gridTheme = themeAlpine
 
@@ -672,9 +686,10 @@ function computeSpeakerSimilarity(referenceRows?: ReadonlyArray<{ id: string }>)
     })
     console.log('Auto-sorted by speaker similarity (descending)')
 
-    // Scroll to top after sorting
-    gridApi.value.ensureIndexVisible(0, 'top')
-    console.log('Scrolled to top of grid')
+    logProgrammaticGridScroll(
+      'speaker similarity: show first row after descending sort',
+      () => gridApi.value!.ensureIndexVisible(0, 'top')
+    )
   }
 }
 
@@ -698,7 +713,11 @@ watch(() => store.selectedSegmentId, (segmentId) => {
   const rowNode = gridApi.value.getRowNode(segmentId)
   if (rowNode) {
     selectRowIfNeeded(rowNode)
-    gridApi.value.ensureNodeVisible(rowNode, null)
+    logProgrammaticGridScroll(
+      'selectedSegmentId sync: ensure selected row is visible',
+      () => gridApi.value!.ensureNodeVisible(rowNode, null),
+      { segmentId }
+    )
   }
 })
 
@@ -716,13 +735,21 @@ watch(() => store.currentTime, (currentTime) => {
 
   // If row already selected, just ensure visible (preserves multi-selection)
   if (rowNode.isSelected()) {
-    gridApi.value.ensureNodeVisible(rowNode, null)
+    logProgrammaticGridScroll(
+      'auto-scroll (playhead): selected row — ensure visible',
+      () => gridApi.value!.ensureNodeVisible(rowNode, null),
+      { segmentId: segment.id, currentTime }
+    )
     return
   }
 
   isAutoScrolling = true
   selectRowIfNeeded(rowNode)
-  gridApi.value.ensureNodeVisible(rowNode, null)
+  logProgrammaticGridScroll(
+    'auto-scroll (playhead): jump to segment under playhead (select + scroll)',
+    () => gridApi.value!.ensureNodeVisible(rowNode, null),
+    { segmentId: segment.id, currentTime }
+  )
   setTimeout(() => { isAutoScrolling = false }, 100)
 })
 

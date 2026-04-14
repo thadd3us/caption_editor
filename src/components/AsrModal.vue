@@ -79,9 +79,10 @@ function flushOutput() {
     trimScrollback(pre)
   }
 
-  // Auto-scroll
+  // Auto-scroll terminal to latest output
   const terminal = terminalRef.value
   if (terminal) {
+    console.log('[AsrModal] programmatic scroll: follow ASR log output (scrollTop = scrollHeight)')
     terminal.scrollTop = terminal.scrollHeight
   }
 }
