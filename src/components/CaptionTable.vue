@@ -19,22 +19,22 @@
         placeholder="Untitled document"
       />
     </div>
-    <div class="table-header">
-      <div class="header-controls">
-        <!-- Same pattern as ActionsPlayHeader: disabled <button> often gets no pointer events. -->
-        <span
-          class="add-caption-tooltip-host tooltip-btn"
-          data-tooltip="Insert a new caption at the current time in the media"
+    <div class="caption-toolbar table-header">
+      <!-- Same pattern as ActionsPlayHeader: disabled <button> often gets no pointer events. -->
+      <span
+        class="add-caption-tooltip-host tooltip-btn toolbar-add-btn-wrap"
+        data-tooltip="Insert a new caption at the current time in the media"
+      >
+        <button
+          type="button"
+          class="add-caption-btn"
+          :disabled="!store.mediaPath"
+          @click="addCaptionAtCurrentTime"
         >
-          <button
-            type="button"
-            class="add-caption-btn"
-            :disabled="!store.mediaPath"
-            @click="addCaptionAtCurrentTime"
-          >
-            ➕
-          </button>
-        </span>
+          ➕
+        </button>
+      </span>
+      <div class="header-controls">
         <label class="checkbox-label tooltip-btn" data-tooltip="When you select a row, jump to its start time and play that caption">
           <input type="checkbox" v-model="autoplayEnabled" />
           Autoplay
@@ -43,14 +43,10 @@
           <input type="checkbox" v-model="autoScrollEnabled" />
           Auto-scroll
         </label>
+        <span class="toolbar-columns">
+          <ColumnManager :grid-api="gridApi" :column-defs="columnDefs" />
+        </span>
       </div>
-    </div>
-    <div class="grid-toolbar">
-      <ColumnManager :grid-api="gridApi" :column-defs="columnDefs" />
-      <span class="grid-stats" aria-live="polite">
-        {{ gridStats.total }} {{ gridStats.total === 1 ? 'caption' : 'captions' }} / {{ gridStats.visible }} visible /
-        {{ gridStats.selected }} selected
-      </span>
     </div>
     <ag-grid-vue
       class="ag-theme-alpine"
@@ -74,6 +70,10 @@
       :domLayout="'normal'"
       style="flex: 1; min-height: 0;"
     />
+    <div class="grid-stats caption-status-bar" aria-live="polite">
+      {{ gridStats.total }} {{ gridStats.total === 1 ? 'caption' : 'captions' }} / {{ gridStats.visible }} visible /
+      {{ gridStats.selected }} selected
+    </div>
     <ContextMenu
       :is-visible="isContextMenuVisible"
       :position="contextMenuPosition"
@@ -1054,17 +1054,31 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-.table-header {
-  padding: 10px 0;
+.caption-toolbar.table-header {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  flex-shrink: 0;
 }
 
 .header-controls {
   display: flex;
   gap: 16px;
   align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar-columns {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.toolbar-add-btn-wrap {
+  flex-shrink: 0;
 }
 
 .add-caption-tooltip-host {
@@ -1072,14 +1086,15 @@ onUnmounted(() => {
 }
 
 .add-caption-btn {
-  padding: 8px 16px;
+  padding: 4px 8px;
   background: #3498db;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
+  line-height: 1;
   transition: background 0.2s;
   white-space: nowrap;
 }
@@ -1109,17 +1124,14 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.grid-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 4px;
-}
-
-.grid-stats {
+.grid-stats.caption-status-bar {
+  flex-shrink: 0;
   font-size: 13px;
   color: var(--text-2, #666);
   white-space: nowrap;
+  padding: 8px 2px 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-1, #e0e0e0);
 }
 
 .ag-theme-alpine {
