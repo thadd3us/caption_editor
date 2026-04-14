@@ -4,6 +4,7 @@ Example usage:
 uv run embed_cli path/to/captions.captions_json5
 """
 
+import logging
 import os
 import tempfile
 from pathlib import Path
@@ -18,6 +19,8 @@ from tqdm import tqdm
 from audio_utils import extract_audio_to_wav, load_audio_segment
 from captions_json5_lib import parse_captions_json5_file, write_captions_json5_file
 from schema import CaptionsDocument, SegmentSpeakerEmbedding, encode_embedding
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer(help="Compute speaker embeddings for .captions_json5 files")
 
@@ -137,33 +140,52 @@ def embed_document(
     segment_ids = list(segment_id_to_embedding.keys())
     
     if umap_dimensions and len(segment_ids) > 1:
-        import umap
-        
+        if not logging.root.handlers:
+            logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+        logger.info("Loading umap-learn (deferred import; can take a few seconds)...")
+        import umap  # noqa: PLC0415 - import only when UMAP runs; package is slow to load
+
+        logger.info(
+            "Computing UMAP for %d segment(s), dimensions %s",
+            len(segment_ids),
+            umap_dimensions,
+        )
+
         # Stack all embeddings into (num_segments, embedding_dim)
         X = np.stack([segment_id_to_embedding[sid] for sid in segment_ids])
-        
+
         for dim in umap_dimensions:
             # Number of neighbors must be less than number of samples
             # default n_neighbors is 15.
             n_neighbors = min(15, len(segment_ids) - 1)
             # Spectral initialization fails if number of samples is too small relative to components
-            init_method = 'spectral' if len(segment_ids) > dim + 2 else 'random'
-            
+            init_method = "spectral" if len(segment_ids) > dim + 2 else "random"
+
+            logger.info(
+                "UMAP n_components=%s (n_neighbors=%s, init=%s) - fitting...",
+                dim,
+                n_neighbors,
+                init_method,
+            )
             try:
                 reducer = umap.UMAP(
-                    n_components=dim, 
-                    metric="cosine", 
-                    n_neighbors=n_neighbors, 
-                    init=init_method
+                    n_components=dim,
+                    metric="cosine",
+                    n_neighbors=n_neighbors,
+                    init=init_method,
                 )
                 reduced = reducer.fit_transform(X)
-                
+
                 for i, sid in enumerate(segment_ids):
                     umap_embeddings_map[sid][str(dim)] = [float(val) for val in reduced[i]]
+                logger.info("UMAP n_components=%s finished.", dim)
             except Exception as e:
                 # If UMAP fails (e.g. edge cases with too few samples or identical points)
                 # just skip this dimensionality
-                print(f"Warning: UMAP computation failed for dim {dim}: {e}")
+                logger.warning(
+                    "UMAP computation failed for n_components=%s: %s", dim, e
+                )
 
     embeddings = []
     for segment_id, embedding in segment_id_to_embedding.items():
