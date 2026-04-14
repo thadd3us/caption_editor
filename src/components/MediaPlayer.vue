@@ -110,7 +110,15 @@ const segmentEndTime = ref<number | null>(null)  // Track when current segment s
 const scrubberElement = ref<HTMLInputElement | null>(null)
 const isManualScrub = ref(false)  // Track if user is manually scrubbing
 
-/** Timeline gap (next start − previous end) above this ⇒ seek to next segment start. */
+/**
+ * Sequential playlist: seek to each row’s start only when the timeline gap is “large”.
+ *
+ * Adjacent rows often have <~500ms between previous `endTime` and next `startTime` (or
+ * overlap). Forcing `currentTime = next.startTime` still runs a real seek; decoders often
+ * snap to keyframes or quantized times, so the playhead can jump slightly backward and
+ * sound/video stutters. If the gap is small, leaving the clock alone matches continuous
+ * playback and still updates selection + segment end via `segmentEndTime`.
+ */
 const SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC = 0.5
 
 // Context menu state
@@ -244,6 +252,8 @@ function onTimeUpdate() {
     if (segmentEndTime.value !== null && mediaElement.value.currentTime >= segmentEndTime.value) {
       console.log('Segment playback complete')
 
+      // `timelineSilence` = next segment start minus previous end (negative if overlap).
+      // Large positive gap ⇒ skip silence by seeking; small/overlap ⇒ avoid seek (see threshold comment above).
       const prevEnd = segmentEndTime.value
       const mediaT = mediaElement.value.currentTime
       const nextIndex = store.playlistIndex + 1

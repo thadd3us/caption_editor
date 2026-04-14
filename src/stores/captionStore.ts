@@ -454,9 +454,10 @@ export const useCaptionStore = defineStore('captions', () => {
 
   /**
    * Move to the next segment in the playlist
-   * @param playheadTime - If set, keep the playhead here (sequential mode avoiding a seek
-   *   when the next segment starts soon after the previous end). If omitted, seek to the
-   *   next segment's start time.
+   * @param playheadTime - If set, sync the store to this clock position instead of the
+   *   next segment’s `startTime`. Used by sequential playback when the timeline gap to the
+   *   next row is small: the media element does not seek (avoids decoder/keyframe stutter),
+   *   but selection and UI still follow the new row.
    * @returns true if there's a next segment, false if we've reached the end
    */
   function nextPlaylistSegment(playheadTime?: number): boolean {
