@@ -543,10 +543,12 @@ video, audio {
   color: var(--text-1);
   white-space: normal;
   overflow-wrap: break-word;
-  word-break: keep-all;
+  word-break: normal;
 }
 
 .word-span {
+  /* Line breaks only at spaces between spans, not inside a timed word. */
+  white-space: nowrap;
   cursor: context-menu;
   padding: 1px 2px;
   border-radius: 2px;
