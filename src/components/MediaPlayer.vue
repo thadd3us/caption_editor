@@ -537,6 +537,29 @@ video, audio {
   letter-spacing: 0.5px;
 }
 
+/*
+ * Current caption when `segment.words` is present: each word is an inline <span.word-span>
+ * with a literal space text node between spans (see template). You would expect wrapping
+ * only at those spaces.
+ *
+ * Problem: this container used to set overflow-wrap: break-word without per-word nowrap.
+ * break-word tells the engine it may insert soft wrap opportunities *inside* a “word”
+ * (Unicode line-breaking rules) when a line would otherwise overflow. Our timed tokens are
+ * short Latin words, but the line breaker could still split inside them (e.g. "m" + "oment",
+ * "actuall" + "y") depending on available width and how inline boxes are measured—not
+ * because the DOM used divs, but because wrap opportunities were allowed inside each span’s
+ * text.
+ *
+ * Fix: white-space: nowrap on .word-span makes each timed token a non-breaking inline run,
+ * so the only break points between tokens are the explicit spaces in the markup. Keep
+ * overflow-wrap: break-word on .caption-text for the v-else branch (plain segment text
+ * without per-word spans), where long unbroken strings should still wrap instead of
+ * overflowing horizontally. word-break: normal avoids CJK-oriented keep-all and matches
+ * ordinary English wrapping for that fallback.
+ *
+ * Tradeoff: a single token longer than the caption box width cannot split across lines;
+ * it overflows (rare for real captions; ASR tokens are usually short).
+ */
 .caption-text {
   font-size: 16px;
   line-height: 1.5;
@@ -547,7 +570,6 @@ video, audio {
 }
 
 .word-span {
-  /* Line breaks only at spaces between spans, not inside a timed word. */
   white-space: nowrap;
   cursor: context-menu;
   padding: 1px 2px;
