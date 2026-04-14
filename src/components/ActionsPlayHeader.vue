@@ -1,6 +1,10 @@
 <template>
   <div class="actions-play-header">
-    <!-- Wrapper holds tooltip: disabled buttons do not receive pointer events in Chromium. -->
+    <!--
+      Tooltip attrs live on this span, not the button: when :disabled is true, Chromium
+      often delivers no pointer events to the button, so hover tooltips never fired.
+      Putting tooltip-btn + data-tooltip on a disabled button also failed for the same reason.
+    -->
     <span
       class="actions-play-header-tooltip-host tooltip-btn"
       :data-tooltip="tooltip"

@@ -50,6 +50,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.mount('#app')
 
+/* Body-level tooltips (see floatingTooltip.ts); must run after mount so document.body exists. */
 installFloatingTooltip()
 
 // Always expose store on window for tests and debugging

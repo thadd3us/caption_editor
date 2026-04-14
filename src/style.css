@@ -52,7 +52,10 @@
   --terminal-text: #d4d4d4;
 }
 
-/* Body-level tooltip host (see utils/floatingTooltip.ts). */
+/*
+ * Body-level tooltip host (utils/floatingTooltip.ts). Not inside #app so AG Grid
+ * overflow cannot clip it; uses theme vars for light/dark.
+ */
 .floating-tooltip {
   position: fixed;
   z-index: 200000;

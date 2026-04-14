@@ -21,6 +21,7 @@
     </div>
     <div class="table-header">
       <div class="header-controls">
+        <!-- Same pattern as ActionsPlayHeader: disabled <button> often gets no pointer events. -->
         <span
           class="add-caption-tooltip-host tooltip-btn"
           data-tooltip="Insert a new caption at the current time in the media"
