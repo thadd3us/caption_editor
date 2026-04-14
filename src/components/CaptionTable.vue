@@ -168,9 +168,7 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'actions',
     headerName: '',
-    /* Wide enough for the large sequential-play header control; narrow columns + AG Grid’s
-       .ag-header-cell-comp-wrapper-limited-height > div { overflow: hidden } clip it. */
-    width: 84,
+    width: 58,
     pinned: 'left',
     headerComponent: ActionsPlayHeader,
     cellRenderer: ActionButtonsCell,
@@ -1169,15 +1167,6 @@ onUnmounted(() => {
   height: 48px !important;
   padding-top: 6px;
   padding-bottom: 6px;
-}
-
-/* Custom header (sequential play): default theme hides overflow on the inner wrapper,
-   which clips a wide/tall control when the column was narrow. */
-:deep(.ag-header-cell[col-id="actions"]) {
-  overflow: visible !important;
-}
-:deep(.ag-header-cell[col-id="actions"] .ag-header-cell-comp-wrapper-limited-height > div) {
-  overflow: visible !important;
 }
 
 /* Override AG Grid's default ellipsis behavior for time columns */
