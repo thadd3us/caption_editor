@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import { enableConsoleCapture } from './helpers/console'
 import { launchElectron } from './helpers/electron-launch'
+import { expectGridCaptionTotal } from './helpers/wait-helpers'
 
 test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   let electronApp: ElectronApplication
@@ -59,9 +60,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     await window.waitForTimeout(200)
 
-    // Wait for grid to render
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('2', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 2, 2000)
 
     // Start editing the speaker cell for the first row
     await window.evaluate(() => {
@@ -104,9 +103,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     await window.waitForTimeout(200)
 
-    // Wait for grid to render
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('1', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 1, 2000)
 
     console.log('[TEST] Starting to edit speaker cell')
 
@@ -289,8 +286,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('3', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 3, 2000)
 
     // Start editing the speaker cell for the first row.
     await window.evaluate(() => {

@@ -31,6 +31,15 @@ const MIME_TYPES: Record<string, string> = {
 const media_files = Object.keys(MIME_TYPES).map(ext => ext.substring(1))
 const all_files = captions_json5_files.concat(srt_files, media_files)
 
+/** If `filePath` is a known media type and a sibling `<stem>.captions_json5` exists, open that instead. */
+function resolveOpenFilePathPreferSiblingCaptions(filePath: string): string {
+  const resolved = path.resolve(filePath)
+  const ext = path.extname(resolved).toLowerCase()
+  if (!(ext in MIME_TYPES)) return resolved
+  const sibling = path.join(path.dirname(resolved), `${path.basename(resolved, path.extname(resolved))}${CAPTIONS_JSON_SUFFIX}`)
+  return existsSync(sibling) ? sibling : resolved
+}
+
 // Register custom protocols as privileged for media streaming
 protocol.registerSchemesAsPrivileged([
   { scheme: 'media', privileges: { secure: true, standard: true, supportFetchAPI: true, stream: true, bypassCSP: false } }
@@ -334,13 +343,14 @@ let fileToOpen: string | null = null
 app.on('open-file', (event, filePath) => {
   event.preventDefault()
 
+  const toOpen = resolveOpenFilePathPreferSiblingCaptions(filePath)
   const windows = BrowserWindow.getAllWindows()
   if (windows.length > 0) {
     const win = BrowserWindow.getFocusedWindow() || windows[0]
-    win.webContents.send('open-file', filePath)
+    win.webContents.send('open-file', toOpen)
   } else {
     // Window not ready yet, store for later
-    fileToOpen = filePath
+    fileToOpen = toOpen
   }
 })
 
@@ -453,7 +463,7 @@ app.whenReady().then(() => {
     const lower = (filePath || '').toLowerCase()
     const ext = path.extname(lower)
     if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.captions_json') || lower.endsWith('.srt') || ext in MIME_TYPES)) {
-      fileToOpen = path.resolve(filePath)
+      fileToOpen = resolveOpenFilePathPreferSiblingCaptions(filePath)
     }
   }
 

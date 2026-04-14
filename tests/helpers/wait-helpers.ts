@@ -1,4 +1,17 @@
-import { Page } from '@playwright/test'
+import { expect, Page } from '@playwright/test'
+
+/**
+ * Matches the total segment count in the caption table status line (`.grid-stats`),
+ * e.g. "4 captions / 4 visible / 0 selected".
+ */
+export function gridStatsTotalRegex(total: number): RegExp {
+  const label = total === 1 ? 'caption' : 'captions'
+  return new RegExp(`\\b${total} ${label}\\b`)
+}
+
+export async function expectGridCaptionTotal(page: Page, total: number, timeout = 5000): Promise<void> {
+  await expect(page.locator('.grid-stats')).toContainText(gridStatsTotalRegex(total), { timeout })
+}
 
 /**
  * Wait for the VTT store to have a specific number of segments

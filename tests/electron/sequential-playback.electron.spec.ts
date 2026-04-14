@@ -378,8 +378,9 @@ test.describe('Sequential Playback', () => {
     }, { timeout: 5000 })
 
     // Click play button on first row (should use snippet mode)
-    // Use a simple selector that finds the first visible play button
-    const playButton = page.locator('button[title="Play snippet"]').first()
+    const playButton = page
+      .locator('button[title="Play only this caption from its start time"]')
+      .first()
     await playButton.click()
 
     await page.waitForTimeout(50)

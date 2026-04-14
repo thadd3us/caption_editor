@@ -1,4 +1,5 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import { expectGridCaptionTotal } from './helpers/wait-helpers'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - Rename Speaker', () => {
@@ -34,9 +35,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(3)
 
-    // Wait for caption count to update
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('3', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 3, 2000)
 
     // Open rename dialog (simulating Edit menu -> Rename Speaker)
     await window.evaluate(() => {

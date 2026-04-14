@@ -1,4 +1,5 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import { expectGridCaptionTotal } from './helpers/wait-helpers'
 
 test.describe('Caption Editor - Speaker Name Autocomplete', () => {
   test('should show autocomplete datalist in bulk set speaker dialog', async ({ page }) => {
@@ -236,9 +237,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    // Wait for grid to render
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('2', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 2, 2000)
 
     // Double-click on the speaker cell to start editing
     await window.evaluate(() => {

@@ -1,4 +1,5 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import { expectGridCaptionTotal } from './helpers/wait-helpers'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - Bulk Delete', () => {
@@ -43,9 +44,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(4)
 
-    // Wait for caption count to update
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('4', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 4, 2000)
 
     // Select first two rows and trigger delete confirmation dialog
     await window.evaluate(() => {
@@ -101,8 +100,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
     expect(remainingSegments[0].text).toBe('Third message')
     expect(remainingSegments[1].text).toBe('Fourth message')
 
-    // Verify caption count updated
-    await expect(captionCount).toContainText('2', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 2, 2000)
   })
 
   test('should delete single row after confirmation', async () => {

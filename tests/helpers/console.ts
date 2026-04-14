@@ -1,8 +1,10 @@
 import { Page } from '@playwright/test'
 
+import { testProcessLogger } from './test-logger'
+
 /**
  * Enable console output capture for an Electron window
- * Prints all browser console messages to the test output
+ * Forwards renderer `console` to {@link testProcessLogger} (Winston on the Node test process).
  *
  * @param window - The Playwright Page object
  * @example
@@ -16,11 +18,11 @@ export function enableConsoleCapture(window: Page): void {
     const type = msg.type()
     const text = msg.text()
     if (type === 'error') {
-      console.error('[Browser Error]', text)
+      testProcessLogger.error(`[Browser Error] ${text}`)
     } else if (type === 'warning') {
-      console.warn('[Browser Warning]', text)
+      testProcessLogger.warn(`[Browser Warning] ${text}`)
     } else {
-      console.log('[Browser]', text)
+      testProcessLogger.info(`[Browser] ${text}`)
     }
   })
 }
