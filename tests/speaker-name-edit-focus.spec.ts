@@ -373,7 +373,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
    *
    * Marked test.fail() so CI stays green until the product bug is fixed; remove test.fail() then.
    */
-  test('regression: committing speaker edit does not scroll the edited row off-screen (large document)', async () => {
+  test('regression: committing speaker edit does not scroll the edited row off-screen (large document) (About Time fixture, 54 segments)', async () => {
     test.fail()
 
     const fixturePath = path.join(__dirname, '../test_data/about-time-speaker-regression.captions_json5')
