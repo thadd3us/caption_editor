@@ -168,7 +168,7 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'actions',
     headerName: '',
-    width: 50,
+    width: 58,
     pinned: 'left',
     headerComponent: ActionsPlayHeader,
     cellRenderer: ActionButtonsCell,
@@ -205,7 +205,9 @@ const columnDefs = ref<ColDef[]>([
     autoHeight: true,
     sortable: true,
     floatingFilter: true,
-    suppressHeaderFilterButton: false,
+    /* AG Grid new UI: header filter (magnify) is hidden while floating row shows its filter
+       button; suppress that row-side button so the column header icon is visible again. */
+    suppressFloatingFilterButton: true,
     onCellValueChanged: (params) => {
       console.log('Caption text edited:', params.newValue)
       store.updateSegment(params.data.id, { text: params.newValue, verified: true })
@@ -227,7 +229,7 @@ const columnDefs = ref<ColDef[]>([
     editable: true,
     sortable: true,
     floatingFilter: true,
-    suppressHeaderFilterButton: false,
+    suppressFloatingFilterButton: true,
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     cellEditor: SpeakerNameCellEditor,
     onCellValueChanged: (params) => {
@@ -249,6 +251,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: 'Speaker Similarity',
     width: 150,
     sortable: true,
+    filter: false,
     hide: true,  // Hidden by default
     valueFormatter: (params) => {
       return params.value != null ? params.value.toFixed(3) : ''
@@ -262,7 +265,7 @@ const columnDefs = ref<ColDef[]>([
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
     sortable: true,
     floatingFilter: true,
-    suppressHeaderFilterButton: false,
+    suppressFloatingFilterButton: true,
   },
   {
     field: 'notes',
@@ -280,7 +283,7 @@ const columnDefs = ref<ColDef[]>([
     wrapText: true,
     autoHeight: true,
     floatingFilter: true,
-    suppressHeaderFilterButton: false,
+    suppressFloatingFilterButton: true,
     onCellValueChanged: (params) => {
       store.updateSegment(params.data.id, { notes: params.newValue })
     }
@@ -291,6 +294,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
+    filter: false,
     valueFormatter: (params) => params.value != null ? Number(params.value).toFixed(3) : '',
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
@@ -335,6 +339,7 @@ const columnDefs = ref<ColDef[]>([
     width: 120,
     editable: true,
     sortable: true,
+    filter: false,
     valueFormatter: (params) => params.value != null ? Number(params.value).toFixed(3) : '',
     cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
     onCellClicked: (params) => {
@@ -378,7 +383,10 @@ const columnDefs = ref<ColDef[]>([
 const defaultColDef = ref<ColDef>({
   sortable: false,  // Disable sorting by default; columns can opt-in with sortable: true
   filter: true,
-  suppressHeaderFilterButton: true,  // Hide per-column filter icons; use ColumnManager instead
+  /* false = show header filter (magnify) where the column allows filters. We previously hid
+     all header filter buttons; users still could not see them because floatingFilter + default
+     suppressFloatingFilterButton also suppresses the header icon in the new column menu UX. */
+  suppressHeaderFilterButton: false,
   resizable: true,
   cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }
 })
@@ -1195,6 +1203,18 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+/* Header filter (magnify) icon: theme default can be low-contrast on purple gradient. */
+:deep(.ag-header-cell-filter-button) {
+  color: rgba(255, 255, 255, 0.95);
+}
+:deep(.ag-header-cell-filter-button .ag-icon) {
+  color: inherit;
+  opacity: 0.92;
+}
+:deep(.ag-header-cell-filter-button:hover .ag-icon) {
+  opacity: 1;
 }
 
 </style>
