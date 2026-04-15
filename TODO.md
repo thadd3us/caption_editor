@@ -101,7 +101,6 @@ In either playback mode, or even when playback is not happening, if "Auto-scroll
 * Context menu: Merge adjacent selected rows.
 * Play table segments in table order.
 * Add "Speaker" menu.
-* Bulk set speaker for selected rows.
 * When editing caption, try to preserve word level timestamps.
 * Hide "Speaker similarity" column until its populated.  After sorting by speaker sim, scroll to top. Fix table sort on start, should be start_time
 * Delete the "Open Files" button, and "add caption at current position"

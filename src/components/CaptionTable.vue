@@ -912,17 +912,6 @@ function onCellContextMenu(event: CellContextMenuEvent) {
 
   contextMenuItems.value = [
     {
-      label: 'Bulk Set Speaker',
-      action: () => {
-        (window as any).__captionTableSelectedRows = selectedRowsForContextMenu.value
-        window.dispatchEvent(
-          new CustomEvent('openBulkSetSpeakerDialog', {
-            detail: { rowCount: selectedRowsForContextMenu.value.length }
-          })
-        )
-      }
-    },
-    {
       label: `Merge Adjacent Segments (${targetRows.length})`,
       action: () => {
         const ids = selectedRowsForContextMenu.value.map((row) => row.id)

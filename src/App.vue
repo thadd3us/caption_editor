@@ -17,12 +17,6 @@
       @close="closeRenameSpeakerDialog"
       @rename="handleRenameSpeaker"
     />
-    <BulkSetSpeakerDialog
-      :is-open="isBulkSetSpeakerDialogOpen"
-      :row-count="bulkSetRowCount"
-      @close="closeBulkSetSpeakerDialog"
-      @set-speaker="handleBulkSetSpeaker"
-    />
     <ConfirmDeleteDialog
       :is-open="isDeleteConfirmDialogOpen"
       :row-count="deleteRowCount"
@@ -102,7 +96,6 @@ import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
-import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
 import ConfirmDeleteDialog from './components/ConfirmDeleteDialog.vue'
 import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
 import RemuxMp3Dialog from './components/RemuxMp3Dialog.vue'
@@ -133,9 +126,6 @@ const leftPanelWidth = computed({
 })
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
-const isBulkSetSpeakerDialogOpen = ref(false)
-const bulkSetRowCount = ref(0)
-const selectedSegmentIdsForBulkSet = ref<string[]>([])
 const isDeleteConfirmDialogOpen = ref(false)
 const deleteRowCount = ref(0)
 const selectedSegmentIdsForDelete = ref<string[]>([])
@@ -274,37 +264,6 @@ function closeRenameSpeakerDialog() {
 function handleRenameSpeaker({ oldName, newName }: { oldName: string; newName: string }) {
   console.log('Renaming speaker:', oldName, '->', newName)
   store.renameSpeaker(oldName, newName)
-}
-
-function openBulkSetSpeakerDialog(event: Event) {
-  console.log('[App] openBulkSetSpeakerDialog called')
-  const customEvent = event as CustomEvent
-  const { rowCount } = customEvent.detail
-
-  // Get the currently selected rows from CaptionTable
-  // We need to get the segment IDs from the grid
-  const selectedRows = (window as any).__captionTableSelectedRows || []
-
-  bulkSetRowCount.value = rowCount
-  selectedSegmentIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
-  isBulkSetSpeakerDialogOpen.value = true
-}
-
-function closeBulkSetSpeakerDialog() {
-  isBulkSetSpeakerDialogOpen.value = false
-  selectedSegmentIdsForBulkSet.value = []
-  bulkSetRowCount.value = 0
-}
-
-function handleBulkSetSpeaker({ speakerName }: { speakerName: string }) {
-  console.log(
-    'Bulk setting speaker to:',
-    speakerName,
-    'for',
-    selectedSegmentIdsForBulkSet.value.length,
-    'segments'
-  )
-  store.bulkSetSpeaker(selectedSegmentIdsForBulkSet.value, speakerName)
 }
 
 function openDeleteConfirmDialog(event: Event) {
@@ -899,15 +858,11 @@ onMounted(() => {
     attemptMediaAutoLoad()
   }, 200)
 
-  // Listen for openBulkSetSpeakerDialog event from CaptionTable's context menu
-  window.addEventListener('openBulkSetSpeakerDialog', openBulkSetSpeakerDialog as EventListener)
-
   // Listen for openDeleteConfirmDialog event from CaptionTable's context menu
   window.addEventListener('openDeleteConfirmDialog', openDeleteConfirmDialog as EventListener)
 
   // Expose dialog functions for testing
   ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
-  ;(window as any).openBulkSetSpeakerDialog = openBulkSetSpeakerDialog
   ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed

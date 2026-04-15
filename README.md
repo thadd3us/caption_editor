@@ -43,8 +43,7 @@ You do this by right-clicking the words in the selected caption on the bottom ri
 6. Pick a segment, then sort segments by similarity to that speaker.
 ![sort_by_speaker_similarity](docs/sort_by_speaker_similarity.png)
 
-7. Set speaker names.
-![bulk_set_speaker](docs/bulk_set_speaker.png)
+7. Set speaker names by editing the Speaker column. With several rows selected, changing one speaker cell applies the same name to all selected rows.
 
 The play button above the table plays segments in the table order, jumping around the audio file, so you can listen to all segments with similar speaker embeddedings.
 
