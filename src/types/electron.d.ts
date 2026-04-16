@@ -89,7 +89,7 @@ export interface ElectronAPI {
    * Process dropped files
    */
   processDroppedFiles: (filePaths: string[]) => Promise<Array<{
-    type: 'captions_json' | 'srt' | 'media'
+    type: 'captions_json5' | 'srt' | 'media'
     filePath: string
     fileName: string
     content?: string
@@ -105,6 +105,14 @@ export interface ElectronAPI {
    * Check if running in Electron
    */
   isElectron: boolean
+
+  /**
+   * License acceptance persisted in userData (localStorage is unreliable for packaged file://).
+   */
+  getLicenseAcceptedSync?: () => boolean
+  setLicenseAccepted?: () => Promise<void>
+  /** Test only: remove persisted license file */
+  clearLicenseAcceptedForTests?: () => Promise<void>
 
   /**
    * Listen for files opened from the OS (double-click, right-click > Open With)

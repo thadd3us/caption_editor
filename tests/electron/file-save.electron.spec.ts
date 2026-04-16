@@ -2,13 +2,14 @@ import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save - Save captions files correctly', () => {
   test('should include mediaFilePath in saved captions metadata', async ({ page }) => {
     // Create a temporary captions file
     const tempDir = path.join(getProjectRoot(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
-    const tempCaptionsPath = path.join(tempDir, 'test-media-save.captions_json')
+    const tempCaptionsPath = path.join(tempDir, 'test-media-save.captions_json5')
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
 
     const initialCaptions = JSON.stringify({
@@ -61,7 +62,7 @@ test.describe('File Save - Save captions files correctly', () => {
     console.log('Exported captions content:')
     console.log(exportedContent)
 
-    const exported = JSON.parse(exportedContent)
+    const exported = parseCaptionsFileContent(exportedContent) as { metadata: { mediaFilePath?: string } }
     expect(exported.metadata.mediaFilePath).toBeTruthy()
     expect(String(exported.metadata.mediaFilePath)).toContain('OSR_us_000_0010_8k.wav')
 

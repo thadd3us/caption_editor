@@ -14,20 +14,20 @@ Bottom right caption panel:
   - Esecially b/c once you click it, you have to click somewhere else to go pause it.
 
 
+
+
 * The checked button isn't present in the table.
 * JSON file: "text": "\u00c8 solo che le cibchiera", -- crappy UTF, can it be better?
 * embeddings inline with the segments in a serialized float form?  don't like having them at the beginning.
 
-
-
-
-
 * move all python tests adjacent to code under test.
 * switch all dataclasses to pydantic.
 
+
+
 * open a new wav should clear the document model.
-
-
+* Should word-wrap
+* I want integeral segment indices in the table, and to be able to sort by them.
 * Right click on a row to sort by speaker similarity.
 * When sorting by the start time, it seems to be treating it as a string, not a number.
 * ASR crashes if you don't have ffmpeg installed.
@@ -108,7 +108,6 @@ In either playback mode, or even when playback is not happening, if "Auto-scroll
 * Context menu: Merge adjacent selected rows.
 * Play table segments in table order.
 * Add "Speaker" menu.
-* Bulk set speaker for selected rows.
 * When editing caption, try to preserve word level timestamps.
 * Hide "Speaker similarity" column until its populated.  After sorting by speaker sim, scroll to top. Fix table sort on start, should be start_time
 * Delete the "Open Files" button, and "add caption at current position"

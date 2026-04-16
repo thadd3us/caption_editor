@@ -1,22 +1,21 @@
 # Caption Editor
 
-WARNING: This is a vibe-coded project -- use at your own risk!
+🖥️ **Local First** — Run fast, SOTA multilingual speech recognition (NVIDIA Parakeet) and speaker identification models entirely on-device
 
-I built this because I wanted these features:
+🎬 **Smooth Workflows** — Visualize, edit, and annotate model results as time-aligned captions with synced playback and scrubbing
 
-* A pure-local app for running multi-lingual Automatic Speech Recognition (ASR) and speaker ID
-* Time-aligned captions for media files (both audio and video)
-* A format to persist this data that I could easily index and import elsewhere.
-* The ability to edit and annotate both captions and speaker names, to correct ASR and speaker ID output.
-* Bi-directionally synchronized scrubbing between the media playback and captions.
+🔗 **Interoperable** — Store captions and metadata in easy-to-parse JSON sidecar files
 
-This project is driven by the philosophy that 90+% of data labeling should be done "in flow",
-using the same tools you'd be using for other useful work, which in this case means:
+⚡ **Modern** — Open-source Electron UI with native macOS integrations
+
+It's a media annotation and labeling tool for your own data, to help make it more useful and findable for you.
+
+This project is driven by the philosophy that 90+% of data labeling should be done "in flow", using the same tools you'd be using for other useful work, which in this case means
 media playback, indexing and curating.  I wanted to combine AI-assisted labeling with
 the ability to easily correct the labels when I saw something wrong.
 
 
-## My Workflow
+## User Quickstart
 
 1. Cmd-O to open a media file.
 
@@ -44,34 +43,32 @@ You do this by right-clicking the words in the selected caption on the bottom ri
 6. Pick a segment, then sort segments by similarity to that speaker.
 ![sort_by_speaker_similarity](docs/sort_by_speaker_similarity.png)
 
-7. Bulk set speaker names.
-![bulk_set_speaker](docs/bulk_set_speaker.png)
+7. Set speaker names by editing the Speaker column. With several rows selected, changing one speaker cell applies the same name to all selected rows.
 
 The play button above the table plays segments in the table order, jumping around the audio file, so you can listen to all segments with similar speaker embeddedings.
 
+## Other tips
+
+* `.captions_json5` files contain a relative path pointing to their media file.
+* This app associates with the `.captions_json5` extension, so double-clicking this file opens the captions and the media file.
+* Each caption segment has a UUID.
 
 ## Bulk Processing
 
 To run ASR and speaker embedding on an entire directory tree from the project root:
 
 ```bash
-cd transcribe && uv run python bulk_cli.py /path/to/media/
+uv run --directory transcribe/ python bulk_cli.py /path/to/media/
 ```
 
 Options:
 - `--recognizer mock` — dry run with a fast deterministic stub (no model download)
-- `--always-update-speaker-embeddings` — re-embed files that already have embeddings
+- `--always-update-speaker-embeddings` — re-embed files that already have embeddings (doesn't change speaker label names)
 
-Files with an existing `.captions_json` sidecar are skipped, so you can Ctrl-C and resume at any time.
-
-## Other tips
-
-* `.captions_json` files contain a relative path pointing to their media file.
-* This app associates with the `.captions_json` extension, so double-clicking this file opens the captions and the media file.
-* Each caption segment has a UUID.
+Files with an existing `.captions_json5` sidecar are skipped, so you can Ctrl-C and resume at any time.
 
 
-### Quick Start (Desktop)
+### Development nNtes
 
 #### Development Mode
 ```bash
@@ -79,12 +76,10 @@ Files with an existing `.captions_json` sidecar are skipped, so you can Ctrl-C a
 npm install
 
 # Build the Electron app (must be done first)
-npm run build:all
-
-# Run in development mode (with hot reload)
-npm run dev:electron
+npm run build:all && npm run dev:electron
 
 # Or run the built app directly
+# FIXME: Document what this actually does.
 npm start
 ```
 
@@ -109,7 +104,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Core Functionality
 
-- **Captions JSON Support**: Open and edit `*.captions_json` documents (primary save/load format)
+- **Captions JSON Support**: Open and edit `*.captions_json5` documents (primary save/load format)
 - **SRT Import/Export**: Import `*.srt` files and export to standard SRT
 - **Media Playback**: Load and play video or audio files alongside captions
 - **Drag & Drop**: Intuitive file loading - drop captions JSON/SRT and media files together or separately
@@ -131,7 +126,7 @@ npm run package:linux   # Linux (AppImage)
 
 ### Data Persistence
 
-- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions_json`
+- **Stable JSON**: All metadata (UUIDs, ratings, history) is preserved in `*.captions_json5`
 
 ### Technical Details
 
@@ -267,7 +262,7 @@ console.log(JSON.stringify($store.document.segments[0], null, 2))
       "rating": 5
     }
   ],
-  "filePath": "example.captions_json"
+  "filePath": "example.captions_json5"
 }
 ```
 

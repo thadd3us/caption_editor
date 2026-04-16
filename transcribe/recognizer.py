@@ -1,8 +1,9 @@
 """Recognizer abstraction for ASR.
 
 Defines a Protocol so that bulk_cli can swap real ASR models for a fast
-MockRecognizer in tests.  The Protocol returns raw ASRSegment lists —
-document construction is the caller's responsibility.
+MockRecognizer in tests.  Implementations return **raw** chunked ASR segments only;
+callers run :func:`asr_results_to_captions.post_process_raw_asr_segments` before
+building a document.
 
 Why a Protocol instead of an ABC:
   The codebase uses functions + Typer, not class hierarchies.
@@ -56,6 +57,9 @@ class MockRecognizer:
 
     Each segment is MOCK_SEGMENT_INTERVAL seconds long and contains
     MOCK_WORDS_PER_SEGMENT evenly-spaced words like "mock_0", "mock_1", etc.
+
+    Does not run overlap merge or gap/long-segment post-processing; callers should
+    pass the result through :func:`post_process_raw_asr_segments` like real ASR.
     """
 
     def transcribe(

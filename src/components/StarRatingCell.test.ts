@@ -344,4 +344,38 @@ describe('StarRatingCell', () => {
 
     expect(updateSegmentSpy).toHaveBeenCalledWith('test-ag-grid-click', { rating: 5 })
   })
+
+  it('should bulk-set rating when anchor is in a multi-selection', async () => {
+    const store = useCaptionStore()
+    const bulkSpy = vi.spyOn(store, 'bulkSetRating')
+    const updateSegmentSpy = vi.spyOn(store, 'updateSegment')
+
+    const nodeA = {
+      data: { id: 'a', rating: 1 },
+      isSelected: () => true
+    }
+    const nodeB = {
+      data: { id: 'b', rating: 1 },
+      isSelected: () => true
+    }
+    const gridApi = {
+      getSelectedNodes: () => [nodeA, nodeB]
+    }
+
+    const wrapper = mount(StarRatingCell, {
+      props: {
+        params: {
+          data: { id: 'a', rating: 1 },
+          api: gridApi,
+          node: nodeA
+        }
+      }
+    })
+
+    const stars = wrapper.findAll('.star')
+    await stars[4].trigger('click')
+
+    expect(bulkSpy).toHaveBeenCalledWith(['a', 'b'], 5)
+    expect(updateSegmentSpy).not.toHaveBeenCalled()
+  })
 })

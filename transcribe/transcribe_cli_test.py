@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from constants import MODEL_PARAKEET, MODEL_WHISPER_TINY
 from typer.testing import CliRunner
-from captions_json_lib import parse_captions_json_file
+from captions_json5_lib import parse_captions_json5_file
 from schema import decode_embedding
 from transcribe_cli import app
 
@@ -36,13 +36,13 @@ def _round_floats_deep(value, *, ndigits: int):
 def test_transcribe_osr_audio(
     repo_root: Path, tmp_path: Path, snapshot, model_name: str
 ):
-    """Test transcribing the OSR audio file and writing `.captions_json`."""
+    """Test transcribing the OSR audio file and writing `.captions_json5`."""
     # Copy audio file to tmp_path to avoid absolute path in snapshots
     source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
     test_audio.write_bytes(source_audio.read_bytes())
 
-    output_path = tmp_path / "output.captions_json"
+    output_path = tmp_path / "output.captions_json5"
 
     # Use tighter gap threshold for Whisper to split on sentence boundaries
     gap_threshold = "0.2" if "whisper" in model_name.lower() else "2.0"
@@ -67,7 +67,7 @@ def test_transcribe_osr_audio(
     # Check that output file was created
     assert output_path.exists(), "Output captions JSON file was not created"
 
-    doc = parse_captions_json_file(output_path)
+    doc = parse_captions_json5_file(output_path)
 
     # Snapshot the full object (including words), but normalize float jitter so
     # minor model/runtime differences don't cause noisy diffs.
@@ -78,13 +78,13 @@ def test_transcribe_osr_audio(
 
 @pytest.mark.expensive
 def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
-    """Test that `--embed` triggers embedding and updates `.captions_json`."""
+    """Test that `--embed` triggers embedding and updates `.captions_json5`."""
     # Copy audio file to tmp_path
     source_audio = repo_root / "test_data" / "OSR_us_000_0010_8k.wav"
     test_audio = tmp_path / "OSR_us_000_0010_8k.wav"
     test_audio.write_bytes(source_audio.read_bytes())
 
-    output_path = tmp_path / "output.captions_json"
+    output_path = tmp_path / "output.captions_json5"
 
     # We want to mock the embedding model to avoid downloading it and slow tests
     # We can mock the Inference class in embed_cli.py or the compute_embedding function
@@ -116,7 +116,7 @@ def test_transcribe_with_embed(repo_root: Path, tmp_path: Path):
     assert "Running speaker embedding..." in result.stdout
     assert output_path.exists()
 
-    doc = parse_captions_json_file(output_path)
+    doc = parse_captions_json5_file(output_path)
     assert doc.embeddings is not None
     assert len(doc.embeddings) > 0
     assert all(

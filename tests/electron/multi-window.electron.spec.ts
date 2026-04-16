@@ -52,7 +52,7 @@ test('each window has independent document state', async () => {
 
   await page1.evaluate((content) => {
     const store = (window as any).$store
-    store.loadFromFile(content, '/tmp/test.captions_json')
+    store.loadFromFile(content, '/tmp/test.captions_json5')
   }, testDoc)
 
   // Verify window 1 has the document

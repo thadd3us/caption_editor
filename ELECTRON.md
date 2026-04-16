@@ -142,8 +142,8 @@ if (result.success) {
 ```typescript
 // Renderer side
 const result = await window.electronAPI.saveFile({
-  content: captionsJsonContent,
-  suggestedName: 'captions.captions_json'
+  content: captionsJson5Content,
+  suggestedName: 'captions.captions_json5'
 })
 ```
 

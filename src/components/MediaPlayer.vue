@@ -1,10 +1,12 @@
 <template>
   <div class="media-player">
     <div v-if="hasMedia && mediaFileName" class="media-info">
-      <button 
-        class="show-in-finder-btn" 
-        @click="showMediaInFinder" 
-        data-tooltip="Reveal media file in Finder"
+      <button
+        type="button"
+        class="show-in-finder-btn tooltip-btn"
+        data-tooltip-placement="right"
+        @click="showMediaInFinder"
+        data-tooltip="Reveal the media file in Finder"
       >📁</button>
       <span class="media-filename">{{ mediaFileName }}</span>
     </div>
@@ -37,7 +39,13 @@
 
     <div class="controls">
       <div class="playback-controls">
-        <button @click="togglePlayPause" class="control-btn" :disabled="!hasMedia">
+        <button
+          type="button"
+          @click="togglePlayPause"
+          class="control-btn tooltip-btn"
+          :disabled="!hasMedia"
+          :data-tooltip="store.isPlaying ? 'Pause the media' : 'Play the media file'"
+        >
           {{ store.isPlaying ? '⏸️' : '▶️' }}
         </button>
         <span class="time-display">{{ formatTime(store.currentTime) }}</span>
@@ -101,6 +109,17 @@ const duration = ref(0)
 const segmentEndTime = ref<number | null>(null)  // Track when current segment should end
 const scrubberElement = ref<HTMLInputElement | null>(null)
 const isManualScrub = ref(false)  // Track if user is manually scrubbing
+
+/**
+ * Sequential playlist: seek to each row’s start only when the timeline gap is “large”.
+ *
+ * Adjacent rows often have <~500ms between previous `endTime` and next `startTime` (or
+ * overlap). Forcing `currentTime = next.startTime` still runs a real seek; decoders often
+ * snap to keyframes or quantized times, so the playhead can jump slightly backward and
+ * sound/video stutters. If the gap is small, leaving the clock alone matches continuous
+ * playback and still updates selection + segment end via `segmentEndTime`.
+ */
+const SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC = 0.5
 
 // Context menu state
 const isContextMenuVisible = ref(false)
@@ -233,15 +252,28 @@ function onTimeUpdate() {
     if (segmentEndTime.value !== null && mediaElement.value.currentTime >= segmentEndTime.value) {
       console.log('Segment playback complete')
 
-      // Move to next segment in the playlist
-      const hasNext = store.nextPlaylistSegment()
+      // `timelineSilence` = next segment start minus previous end (negative if overlap).
+      // Large positive gap ⇒ skip silence by seeking; small/overlap ⇒ avoid seek (see threshold comment above).
+      const prevEnd = segmentEndTime.value
+      const mediaT = mediaElement.value.currentTime
+      const nextIndex = store.playlistIndex + 1
+      const nextId = store.playlist[nextIndex]
+      const nextSeg = nextId
+        ? store.document.segments.find((s) => s.id === nextId)
+        : undefined
+      const timelineSilence =
+        nextSeg !== undefined ? nextSeg.startTime - prevEnd : Number.POSITIVE_INFINITY
+      const seekToNextStart = timelineSilence > SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC
+
+      const hasNext = store.nextPlaylistSegment(seekToNextStart ? undefined : mediaT)
       if (hasNext) {
-        // Continue playing the next segment
         const nextSegment = store.currentPlaylistSegment
         if (nextSegment) {
           console.log('Playlist: moving to next segment:', nextSegment.id)
           segmentEndTime.value = nextSegment.endTime
-          mediaElement.value.currentTime = nextSegment.startTime
+          if (seekToNextStart) {
+            mediaElement.value.currentTime = nextSegment.startTime
+          }
           // Keep playing (don't pause)
         }
       } else {
@@ -415,22 +447,6 @@ watch(() => store.currentTime, (time) => {
   opacity: 1;
 }
 
-.show-in-finder-btn[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 8px;
-  padding: 4px 8px;
-  background: var(--tooltip-bg);
-  color: var(--tooltip-text);
-  font-size: 12px;
-  white-space: nowrap;
-  border-radius: 4px;
-  z-index: 100;
-}
-
 .media-duration {
   font-family: monospace;
   color: var(--text-2);
@@ -545,15 +561,40 @@ video, audio {
   letter-spacing: 0.5px;
 }
 
+/*
+ * Current caption when `segment.words` is present: each word is an inline <span.word-span>
+ * with a literal space text node between spans (see template). You would expect wrapping
+ * only at those spaces.
+ *
+ * Problem: this container used to set overflow-wrap: break-word without per-word nowrap.
+ * break-word tells the engine it may insert soft wrap opportunities *inside* a “word”
+ * (Unicode line-breaking rules) when a line would otherwise overflow. Our timed tokens are
+ * short Latin words, but the line breaker could still split inside them (e.g. "m" + "oment",
+ * "actuall" + "y") depending on available width and how inline boxes are measured—not
+ * because the DOM used divs, but because wrap opportunities were allowed inside each span’s
+ * text.
+ *
+ * Fix: white-space: nowrap on .word-span makes each timed token a non-breaking inline run,
+ * so the only break points between tokens are the explicit spaces in the markup. Keep
+ * overflow-wrap: break-word on .caption-text for the v-else branch (plain segment text
+ * without per-word spans), where long unbroken strings should still wrap instead of
+ * overflowing horizontally. word-break: normal avoids CJK-oriented keep-all and matches
+ * ordinary English wrapping for that fallback.
+ *
+ * Tradeoff: a single token longer than the caption box width cannot split across lines;
+ * it overflows (rare for real captions; ASR tokens are usually short).
+ */
 .caption-text {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-1);
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .word-span {
+  white-space: nowrap;
   cursor: context-menu;
   padding: 1px 2px;
   border-radius: 2px;

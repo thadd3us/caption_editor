@@ -1,6 +1,12 @@
 <template>
   <div class="action-buttons">
-    <button @click="playSnippet" class="action-btn" title="Play snippet">
+    <button
+      type="button"
+      class="action-btn tooltip-btn"
+      data-tooltip="Play only this caption from its start time"
+      title="Play only this caption from its start time"
+      @click="playSnippet"
+    >
       ▶️
     </button>
   </div>

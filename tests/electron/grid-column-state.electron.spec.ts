@@ -2,12 +2,13 @@ import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('Grid Column State - Persist and restore column visibility', () => {
   test('should save column state with hidden columns and restore on re-open', async ({ page }) => {
     const tempDir = path.join(getProjectRoot(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
-    const tempCaptionsPath = path.join(tempDir, 'test-column-state.captions_json')
+    const tempCaptionsPath = path.join(tempDir, 'test-column-state.captions_json5')
 
     const initialCaptions = JSON.stringify({
       metadata: { id: 'col-state-test-1' },
@@ -60,7 +61,9 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
       return store.exportToString()
     })
 
-    const exported = JSON.parse(exportedContent)
+    const exported = parseCaptionsFileContent(exportedContent) as {
+      uiState: { columnState: Array<{ colId: string; hide?: boolean }> }
+    }
     expect(exported.uiState).toBeDefined()
     expect(exported.uiState.columnState).toBeDefined()
 
@@ -121,7 +124,7 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
   test('should not fail when opening a file without uiState', async ({ page }) => {
     const tempDir = path.join(getProjectRoot(), 'test_data/temp')
     await fs.mkdir(tempDir, { recursive: true })
-    const tempCaptionsPath = path.join(tempDir, 'test-no-ui-state.captions_json')
+    const tempCaptionsPath = path.join(tempDir, 'test-no-ui-state.captions_json5')
 
     // Old-format file with no uiState
     const oldFormatCaptions = JSON.stringify({

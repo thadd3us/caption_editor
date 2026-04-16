@@ -35,8 +35,11 @@ test.describe('License Agreement Dialog', () => {
         { timeout: 10000 }
       )
 
-      // Clear localStorage to simulate first run
-      await page.evaluate(() => localStorage.removeItem('caption-editor-license-accepted'))
+      // Clear persisted acceptance (userData file + localStorage) to simulate first run
+      await page.evaluate(async () => {
+        localStorage.removeItem('caption-editor-license-accepted')
+        await (window as any).electronAPI?.clearLicenseAcceptedForTests?.()
+      })
       await page.reload({ waitUntil: 'domcontentloaded' })
       await page.waitForFunction(
         () => (window as any).$store || (window as any).store,

@@ -1,4 +1,5 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import { expectGridCaptionTotal } from './helpers/wait-helpers'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - Rename Speaker', () => {
@@ -24,7 +25,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
       })
 
       try {
-        store.loadFromFile(captionsContent, '/test/file.captions_json')
+        store.loadFromFile(captionsContent, '/test/file.captions_json5')
         return { success: true, segmentCount: store.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -34,9 +35,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(3)
 
-    // Wait for caption count to update
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('3', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 3, 2000)
 
     // Open rename dialog (simulating Edit menu -> Rename Speaker)
     await window.evaluate(() => {
@@ -113,7 +112,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
           { id: 'seg2', startTime: 5, endTime: 8, text: 'Another caption without speaker' }
         ]
       })
-      store.loadFromFile(captionsContent, '/test/no-speakers.captions_json')
+      store.loadFromFile(captionsContent, '/test/no-speakers.captions_json5')
     })
 
     await window.waitForFunction(() => {
@@ -169,7 +168,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
         segments: [{ id: 'seg1', startTime: 1, endTime: 4, text: 'Hello', speakerName: 'Alice' }]
       })
 
-      store.loadFromFile(captionsContent, '/test/file.captions_json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     await window.waitForFunction(() => {
@@ -208,7 +207,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
         ]
       })
 
-      store.loadFromFile(captionsContent, '/test/file.captions_json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     await window.waitForFunction(() => {

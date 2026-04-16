@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   let window: Page
@@ -16,7 +17,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     await fs.mkdir(tempDir, { recursive: true })
 
     // Create a sample captions file for testing
-    testCaptionsPath = path.join(tempDir, 'test-captions.captions_json')
+    testCaptionsPath = path.join(tempDir, 'test-captions.captions_json5')
     const initialDoc = {
       metadata: { id: 'sample-doc' },
       segments: [
@@ -28,7 +29,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     await fs.writeFile(testCaptionsPath, JSON.stringify(initialDoc, null, 2), 'utf-8')
 
     // Define the save-as target path
-    saveAsPath = path.join(tempDir, 'test-captions-edited.captions_json')
+    saveAsPath = path.join(tempDir, 'test-captions-edited.captions_json5')
   })
 
   test.afterEach(async () => {
@@ -126,7 +127,9 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 5: Verifying saved captions file contents')
 
     const savedContent = await fs.readFile(testCaptionsPath, 'utf-8')
-    const savedDoc = JSON.parse(savedContent)
+    const savedDoc = parseCaptionsFileContent(savedContent) as {
+      segments: Array<{ id: string; text: string; speakerName?: string }>
+    }
     console.log('Saved captions JSON preview:', JSON.stringify(savedDoc, null, 2).substring(0, 500))
 
     // Verify the saved content has the new segment
@@ -203,7 +206,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Step 7: Final verification of the file on disk
     const savedAsContent = await fs.readFile(saveAsPath, 'utf-8')
-    const savedAsDoc = JSON.parse(savedAsContent)
+    const savedAsDoc = parseCaptionsFileContent(savedAsContent) as Record<string, unknown>
     expect(JSON.stringify(savedAsDoc)).toContain('Welcome to the Caption Editor!')
     expect(JSON.stringify(savedAsDoc)).toContain('This is a sample caption file.')
 
@@ -222,7 +225,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     window = page
     // Step 1: Set up a captions JSON document containing speaker names
     console.log('Step 1: Setting up test document with speaker names')
-    const osrCaptionsPath = path.join(tempDir, 'osr-test-speakers.captions_json')
+    const osrCaptionsPath = path.join(tempDir, 'osr-test-speakers.captions_json5')
     const osrMediaFileName = 'OSR_us_000_0010_8k.wav'
     const osrMediaPath = path.join(getProjectRoot(), 'test_data', osrMediaFileName)
     const tempOsrMediaPath = path.join(tempDir, osrMediaFileName)
@@ -377,7 +380,9 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 7: Verifying saved captions file contains updated speaker names')
 
     const savedContent = await fs.readFile(osrCaptionsPath, 'utf-8')
-    const savedDoc = JSON.parse(savedContent)
+    const savedDoc = parseCaptionsFileContent(savedContent) as {
+      segments: Array<{ id: string; text: string; speakerName?: string }>
+    }
 
     const savedSegments = savedDoc.segments as Array<any>
     expect(savedSegments[0].speakerName).toBe('Charlie')

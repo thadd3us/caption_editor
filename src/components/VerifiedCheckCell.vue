@@ -1,5 +1,10 @@
 <template>
-  <div class="verified-check" @click.stop="handleClick">
+  <div
+    class="verified-check tooltip-btn"
+    data-tooltip="Mark this caption as verified (or for every row you are targeting in the current selection)"
+    title="Mark this caption as verified (or for every row you are targeting in the current selection)"
+    @click.stop="handleClick"
+  >
     <span class="check-icon" :class="{ verified: isVerified }">
       {{ isVerified ? '✅' : '⬜' }}
     </span>
@@ -9,6 +14,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCaptionStore } from '../stores/captionStore'
+import { resolveRowActionTargetRows } from '../utils/rowActionTarget'
 
 interface Props {
   params?: {
@@ -17,6 +23,7 @@ interface Props {
       verified?: boolean
     }
     api?: any
+    node?: any
   }
 }
 
@@ -27,21 +34,22 @@ const rowData = computed(() => props.params?.data)
 const isVerified = computed(() => rowData.value?.verified === true)
 
 function handleClick() {
-  if (!rowData.value || !props.params?.api) return
+  if (!rowData.value) return
 
   const newValue = !isVerified.value
-  const gridApi = props.params.api
+  const gridApi = props.params?.api
+  const node = props.params?.node
 
-  // Get all selected nodes
-  const selectedNodes = gridApi.getSelectedNodes() || []
-
-  // If this row is among selected rows and multiple are selected, apply to all
-  const selectedIds = selectedNodes.map((n: any) => n.data?.id).filter(Boolean)
-  if (selectedIds.length > 1 && selectedIds.includes(rowData.value.id)) {
-    store.bulkSetVerified(selectedIds, newValue)
-  } else {
+  if (!gridApi || !node) {
     store.updateSegment(rowData.value.id, { verified: newValue || undefined })
+    return
   }
+
+  const ids = resolveRowActionTargetRows(gridApi, node)
+    .map((r) => r.id)
+    .filter(Boolean) as string[]
+  if (ids.length === 0) return
+  store.bulkSetVerified(ids, newValue)
 }
 </script>
 

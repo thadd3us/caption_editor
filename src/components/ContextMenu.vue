@@ -10,6 +10,9 @@
       :style="{ top: position.y + 'px', left: position.x + 'px' }"
       @click.stop
     >
+      <div v-if="headerText" class="context-menu-header" aria-hidden="true">
+        {{ headerText }}
+      </div>
       <div
         v-for="(item, index) in items"
         :key="index"
@@ -30,6 +33,8 @@ defineProps<{
   isVisible: boolean
   position: { x: number; y: number }
   items: ContextMenuItem[]
+  /** Optional non-interactive title (e.g. how many rows an action affects). */
+  headerText?: string
 }>()
 
 const emit = defineEmits<{
@@ -68,6 +73,19 @@ function handleItemClick(item: ContextMenuItem) {
   min-width: 180px;
   padding: 4px 0;
   z-index: 1501;
+}
+
+.context-menu-header {
+  padding: 6px 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-3, #888);
+  border-bottom: 1px solid var(--border-1);
+  margin-bottom: 2px;
+  pointer-events: none;
+  user-select: none;
 }
 
 .context-menu-item {

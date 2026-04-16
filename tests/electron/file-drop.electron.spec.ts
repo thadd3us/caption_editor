@@ -10,15 +10,15 @@ test.describe('File Drop', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
 
   test('should handle captions JSON file drops', async ({ page }) => {
-    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions_json')
-    const captionsJson = JSON.stringify({
+    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions_json5')
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [
         { id: 'seg_1', startTime: 0, endTime: 5, text: 'First caption' },
         { id: 'seg_2', startTime: 5, endTime: 10, text: 'Second caption' }
       ]
     })
-    await fs.writeFile(captionsFilePath, captionsJson, 'utf-8')
+    await fs.writeFile(captionsFilePath, captionsJson5, 'utf-8')
 
     const result = await page.evaluate(async (filePath) => {
       const api = (window as any).electronAPI
@@ -31,7 +31,7 @@ test.describe('File Drop', () => {
 
     expect(result).toBeDefined()
     expect(result.length).toBe(1)
-    expect(result[0].type).toBe('captions_json')
+    expect(result[0].type).toBe('captions_json5')
     expect(result[0].filePath).toBe(captionsFilePath)
     expect(result[0].content).toContain('First caption')
 
@@ -84,7 +84,7 @@ test.describe('File Drop', () => {
   })
 
   test('should handle dropping both captions and WAV files together', async ({ page }) => {
-    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions_json')
+    const captionsFilePath = path.resolve(__dirname, '../../test_data/drop-sample.captions_json5')
     const wavFilePath = path.resolve(__dirname, '../../test_data/test-audio-10s.wav')
 
     await fs.writeFile(
@@ -109,7 +109,7 @@ test.describe('File Drop', () => {
     expect(result).toBeDefined()
     expect(result.length).toBe(2)
 
-    const captionsResult = result.find((r: any) => r.type === 'captions_json')
+    const captionsResult = result.find((r: any) => r.type === 'captions_json5')
     const mediaResult = result.find((r: any) => r.type === 'media')
 
     expect(captionsResult).toBeDefined()
@@ -123,7 +123,7 @@ test.describe('File Drop', () => {
         throw new Error('$store not available')
       }
 
-      const captions = results.find((r: any) => r.type === 'captions_json')
+      const captions = results.find((r: any) => r.type === 'captions_json5')
       const media = results.find((r: any) => r.type === 'media')
 
       if (captions) {

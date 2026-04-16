@@ -6,7 +6,7 @@ speaker embedding on each — loading the NN models only once.
 
 Design decisions:
 
-  * **Resumable**: files with an existing ``.captions_json`` sidecar are
+  * **Resumable**: files with an existing ``.captions_json5`` sidecar are
     skipped.  You can Ctrl-C at any time and re-run; completed files
     persist because every write is an **atomic rename** (write to temp
     file in the same directory, then ``os.replace``).
@@ -46,15 +46,16 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 from tqdm import tqdm
 
+from asr_results_to_captions import post_process_raw_asr_segments
 from audio_utils import extract_audio_to_wav
-from captions_json_lib import (
-    parse_captions_json_file,
-    serialize_captions_json,
+from captions_json5_lib import (
+    parse_captions_json5_file,
+    serialize_captions_json5,
 )
 from constants import MODEL_PARAKEET, MODEL_VOXCELEB
 from recognizer import Recognizer, create_recognizer
@@ -95,8 +96,8 @@ def find_media_files(root: Path) -> list[Path]:
 
 
 def captions_path_for(media_path: Path) -> Path:
-    """Return the sidecar ``.captions_json`` path for a media file."""
-    return media_path.with_suffix(".captions_json")
+    """Return the sidecar ``.captions_json5`` path for a media file."""
+    return media_path.with_suffix(".captions_json5")
 
 
 def get_audio_duration_seconds(media_path: Path) -> float:
@@ -134,7 +135,7 @@ def get_audio_duration_seconds(media_path: Path) -> float:
     return 0.0
 
 
-def atomic_write_captions_json(
+def atomic_write_captions_json5(
     path: Path, document, *, captions_path: Optional[Path] = None
 ) -> None:
     """Write a CaptionsDocument to *path* via atomic rename.
@@ -145,12 +146,12 @@ def atomic_write_captions_json(
     state.
     """
     effective_path = captions_path or path
-    content = serialize_captions_json(document, captions_path=effective_path)
+    content = serialize_captions_json5(document, captions_path=effective_path)
     fd = -1
     tmp_path = ""
     try:
         fd, tmp_path = tempfile.mkstemp(
-            dir=str(path.parent), suffix=".captions_json.tmp"
+            dir=str(path.parent), suffix=".captions_json5.tmp"
         )
         os.write(fd, content.encode("utf-8"))
         os.close(fd)
@@ -193,7 +194,7 @@ def main(
         "--always-update-speaker-embeddings",
         help=(
             "Re-run speaker embeddings even on files that already have a "
-            ".captions_json (useful after segment-boundary changes)."
+            ".captions_json5 (useful after segment-boundary changes)."
         ),
     ),
     chunk_size: int = typer.Option(60, "--chunk-size", "-c"),
@@ -205,6 +206,11 @@ def main(
         10.0, "--max-segment-duration-seconds"
     ),
     min_segment_duration: float = typer.Option(0.3, "--min-segment-duration"),
+    umap_dimensions: list[int] = typer.Option(
+        [1, 2],
+        "--umap-dimensions",
+        help="List of dimensionalities to compute UMAP embeddings for",
+    ),
     recognizer_kind: str = typer.Option(
         "auto",
         "--recognizer",
@@ -261,7 +267,7 @@ def main(
         typer.echo(f"Loading ASR model: {model if not use_mock else '(mock)'} …")
         recognizer = create_recognizer(model, mock=use_mock)
 
-    embed_inference = None
+    embed_inference: Any = None
     if needs_asr or needs_embed_only:
         if use_mock:
             # For mock mode, create a trivial embedding callable.
@@ -308,16 +314,28 @@ def main(
                         wav_path = extract_audio_to_wav(media, Path(td) / "audio.wav")
 
                         assert recognizer is not None
-                        asr_segments = recognizer.transcribe(
+                        raw_asr_segments = recognizer.transcribe(
                             wav_path,
                             chunk_size=chunk_size,
                             overlap=overlap,
                             max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
                             max_segment_duration_seconds=max_segment_duration_seconds,
                         )
+                        asr_segments = post_process_raw_asr_segments(
+                            raw_asr_segments,
+                            chunk_size=float(chunk_size),
+                            overlap=float(overlap),
+                            max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
+                            max_segment_duration_seconds=max_segment_duration_seconds,
+                            is_whisper="whisper" in model.lower(),
+                        )
 
                         document = build_captions_document(
-                            media, wav_path, asr_segments, model
+                            media,
+                            wav_path,
+                            asr_segments,
+                            model,
+                            raw_asr_segments_before_post_process=raw_asr_segments,
                         )
 
                         # Embed in the same pass (WAV already extracted)
@@ -330,10 +348,11 @@ def main(
                                 embed_inference,
                                 embed_model,
                                 min_segment_duration=min_segment_duration,
+                                umap_dimensions=umap_dimensions,
                             )
 
                         cp.parent.mkdir(parents=True, exist_ok=True)
-                        atomic_write_captions_json(cp, document)
+                        atomic_write_captions_json5(cp, document)
 
                     completed += 1
                     audio_seconds_processed += durations[media]
@@ -354,7 +373,7 @@ def main(
                 dur_min = durations[media] / 60.0
 
                 try:
-                    document = parse_captions_json_file(cp)
+                    document = parse_captions_json5_file(cp)
 
                     with tempfile.TemporaryDirectory() as td:
                         wav_path = extract_audio_to_wav(media, Path(td) / "audio.wav")
@@ -368,9 +387,10 @@ def main(
                                 embed_inference,
                                 embed_model,
                                 min_segment_duration=min_segment_duration,
+                                umap_dimensions=umap_dimensions,
                             )
 
-                        atomic_write_captions_json(cp, document)
+                        atomic_write_captions_json5(cp, document)
 
                     completed += 1
                     audio_seconds_processed += durations[media]

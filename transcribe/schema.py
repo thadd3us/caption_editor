@@ -2,7 +2,7 @@
 Pydantic schema definitions for the caption editor document structure.
 
 This module defines the data models used by the caption editor for its native
-`.captions_json` document format, including segments, metadata, history entries,
+`.captions_json5` document format, including segments, metadata, history entries,
 and speaker embeddings. These models are shared between the Python transcription
 tools and the Electron app.
 
@@ -16,7 +16,7 @@ When adding or modifying fields:
 1. Update both Python (this file) and TypeScript (src/types/schema.ts) schemas
 2. Use snake_case in Python with Field aliases for camelCase conversion to match TypeScript
 3. Ensure optional fields are marked consistently (Optional[type] in Python, readonly field?: type in TS)
-4. Update serialization/parsing logic in src/utils/captionsJson.ts if needed
+4. Update serialization/parsing logic in src/utils/captionsJson5.ts if needed
 5. Run both Python and TypeScript tests to verify compatibility
 """
 
@@ -148,6 +148,11 @@ class SegmentSpeakerEmbedding(BaseModel):
         description="Base64-encoded little-endian float32 speaker embedding vector",
         alias="speakerEmbedding",
     )
+    umap_embeddings: Optional[dict[str, list[float]]] = Field(
+        None,
+        description="UMAP embeddings per dimensionality",
+        alias="umapEmbeddings",
+    )
 
 
 class GridColumnState(BaseModel):
@@ -187,8 +192,47 @@ class UIState(BaseModel):
     )
 
 
+class RawAsrWord(BaseModel):
+    """Single word in a raw ASR segment snapshot."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    word: str
+    start: float
+    end: float
+
+
+class RawAsrSegmentSnapshot(BaseModel):
+    """One ASR segment before overlap resolution, gap splitting, and long-segment splits."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    text: str
+    start: float
+    end: float
+    chunk_start: Optional[float] = Field(
+        None,
+        description="Audio chunk start (seconds) when produced by chunked transcription",
+        alias="chunkStart",
+    )
+    words: list[RawAsrWord]
+
+
+class RawAsrOutput(BaseModel):
+    """Immutable snapshot of chunked ASR output before the post-processing pipeline.
+
+    Written once when a document is created by the transcription CLI. The editor does
+    not mutate this field.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    version: int = Field(1, description="Schema version for this snapshot object")
+    segments: list[RawAsrSegmentSnapshot]
+
+
 class CaptionsDocument(BaseModel):
-    """Complete captions document (native .captions_json format)."""
+    """Complete captions document (native .captions_json5 format)."""
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -214,4 +258,12 @@ class CaptionsDocument(BaseModel):
         None,
         description="Persisted UI state (grid column layout, filters)",
         alias="uiState",
+    )
+    raw_asr_output: Optional[RawAsrOutput] = Field(
+        None,
+        description=(
+            "Chunked ASR segments as returned before overlap merge, gap split/group, "
+            "and long-segment split (debug / recovery; not updated after first write)"
+        ),
+        alias="rawAsrOutput",
     )

@@ -1,7 +1,13 @@
-import { test, expect } from '@playwright/test'
-import { ElectronApplication, Page } from '@playwright/test'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { test, expect, ElectronApplication, Page } from '@playwright/test'
 import { enableConsoleCapture } from './helpers/console'
 import { launchElectron } from './helpers/electron-launch'
+import { expectGridCaptionTotal } from './helpers/wait-helpers'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   let electronApp: ElectronApplication
@@ -54,14 +60,12 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     await window.waitForTimeout(200)
 
-    // Wait for grid to render
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('2', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 2, 2000)
 
     // Start editing the speaker cell for the first row
     await window.evaluate(() => {
@@ -99,14 +103,12 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     await window.waitForTimeout(200)
 
-    // Wait for grid to render
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('1', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 1, 2000)
 
     console.log('[TEST] Starting to edit speaker cell')
 
@@ -202,7 +204,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     await window.waitForTimeout(200)
@@ -240,7 +242,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'First message', speakerName: 'Alice' }]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     await window.waitForTimeout(200)
@@ -286,11 +288,10 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
         ]
       }, null, 2)
 
-      store.loadFromFile(captionsContent, '/test/file.captions_json')
+      store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    const captionCount = window.locator('h2', { hasText: 'Captions' })
-    await expect(captionCount).toContainText('3', { timeout: 2000 })
+    await expectGridCaptionTotal(window, 3, 2000)
 
     // Start editing the speaker cell for the first row.
     await window.evaluate(() => {
@@ -323,5 +324,110 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       return store?.document?.segments?.[0]?.speakerName
     })
     expect(speakerName).toBe('Bob')
+  })
+
+  /**
+   * Regression: focusing a speaker cell and typing to enter edit mode must not drop the first
+   * character (e.g. "James" becoming "ames"). Existing tests use startEditingCell() or set the
+   * value in JS, which does not reproduce type-to-edit.
+   *
+   */
+  test('regression: first character is kept when typing to start editing an empty speaker cell', async () => {
+    await window.evaluate(() => {
+      const vttStore = (window as any).$store
+      if (!vttStore) return
+
+      const captionsContent = JSON.stringify(
+        {
+          metadata: { id: 'speaker-first-key-regression' },
+          segments: [
+            { id: 'cue1', startTime: 0, endTime: 1, text: 'First line' },
+            { id: 'cue2', startTime: 2, endTime: 3, text: 'Second line', speakerName: 'Bob' }
+          ]
+        },
+        null,
+        2
+      )
+
+      vttStore.loadFromFile(captionsContent, '/test/speaker-first-key.captions_json5')
+    })
+
+    await expectGridCaptionTotal(window, 2, 2000)
+
+    const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
+    await speakerCell.click()
+    await window.waitForTimeout(150)
+    await window.keyboard.type('James', { delay: 40 })
+
+    const editor = window.locator('.speaker-name-editor')
+    await expect(editor).toBeVisible({ timeout: 5000 })
+    await expect(editor).toHaveValue('James')
+  })
+
+  /**
+   * Regression: with many rows, committing the speaker editor via Enter must not scroll the grid
+   * so the edited row is off-screen (reported jump to ~rows 37–42 on a ~54-row file).
+   *
+   * Uses test_data/about-time-speaker-regression.captions_json5 (copy of a real project file).
+   * Auto-scroll is turned off so follow-playhead scrolling does not mask the bug.
+   *
+   */
+  test('regression: committing speaker edit does not scroll the edited row off-screen (large document) (About Time fixture, 54 segments)', async () => {
+    const fixturePath = path.join(__dirname, '../test_data/about-time-speaker-regression.captions_json5')
+    const content = fs.readFileSync(fixturePath, 'utf8')
+
+    await window.evaluate(
+      ({ fileContent }: { fileContent: string }) => {
+        const vttStore = (window as any).$store
+        vttStore.loadFromFile(fileContent, '/test/about-time-speaker-regression.captions_json5')
+      },
+      { fileContent: content }
+    )
+
+    await expectGridCaptionTotal(window, 54, 15000)
+
+    const autoScroll = window.getByRole('checkbox', { name: /Auto-scroll/i })
+    await autoScroll.uncheck()
+
+    await window.evaluate(() => {
+      const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
+      if (vp) vp.scrollTop = 0
+    })
+    await window.waitForTimeout(200)
+
+    const scrollBefore = await window.evaluate(
+      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
+    )
+    expect(scrollBefore).toBe(0)
+
+    const expectedTopRowId = await window.evaluate(() => (window as any).$store.document.segments[0].id)
+
+    await window.evaluate(() => {
+      const gridApi = (window as any).__agGridApi
+      if (!gridApi) throw new Error('Grid API not available')
+      gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
+    })
+
+    const input = window.locator('.speaker-name-editor')
+    await expect(input).toBeVisible({ timeout: 5000 })
+    await window.evaluate(() => {
+      const el = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
+      if (!el) throw new Error('speaker-name-editor not found')
+      el.value = 'Pat'
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await input.press('Enter')
+    await window.waitForTimeout(500)
+
+    const topRowId = await window.evaluate(() => {
+      const api = (window as any).__agGridApi
+      return api?.getDisplayedRowAtIndex?.(0)?.data?.id ?? null
+    })
+    expect(topRowId).toBe(expectedTopRowId)
+
+    const scrollAfter = await window.evaluate(
+      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
+    )
+    expect(scrollAfter).toBe(scrollBefore)
   })
 })

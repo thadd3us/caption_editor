@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell, nativeTheme } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { exec, type ChildProcess } from 'child_process'
 import { promisify } from 'util'
@@ -14,8 +14,8 @@ const execAsync = promisify(exec)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const CAPTIONS_JSON_SUFFIX = '.captions_json'
-const captions_json_files = ['captions_json']
+const CAPTIONS_JSON_SUFFIX = '.captions_json5'
+const captions_json5_files = ['captions_json5', 'captions_json']
 const srt_files = ['srt']
 const MIME_TYPES: Record<string, string> = {
   '.mp4': 'video/mp4',
@@ -29,7 +29,16 @@ const MIME_TYPES: Record<string, string> = {
   '.flac': 'audio/flac'
 }
 const media_files = Object.keys(MIME_TYPES).map(ext => ext.substring(1))
-const all_files = captions_json_files.concat(srt_files, media_files)
+const all_files = captions_json5_files.concat(srt_files, media_files)
+
+/** If `filePath` is a known media type and a sibling `<stem>.captions_json5` exists, open that instead. */
+function resolveOpenFilePathPreferSiblingCaptions(filePath: string): string {
+  const resolved = path.resolve(filePath)
+  const ext = path.extname(resolved).toLowerCase()
+  if (!(ext in MIME_TYPES)) return resolved
+  const sibling = path.join(path.dirname(resolved), `${path.basename(resolved, path.extname(resolved))}${CAPTIONS_JSON_SUFFIX}`)
+  return existsSync(sibling) ? sibling : resolved
+}
 
 // Register custom protocols as privileged for media streaming
 protocol.registerSchemesAsPrivileged([
@@ -328,19 +337,58 @@ ipcMain.on('app:quit', (event) => {
   }
 })
 
+/** License acceptance: localStorage is unreliable for packaged `file://` loads; persist under userData. */
+const LICENSE_ACCEPTED_FILENAME = 'license-accepted.json'
+
+function licenseAcceptedFilePath(): string {
+  return path.join(app.getPath('userData'), LICENSE_ACCEPTED_FILENAME)
+}
+
+function readLicenseAcceptedFromDisk(): boolean {
+  try {
+    const p = licenseAcceptedFilePath()
+    if (!existsSync(p)) return false
+    const data = JSON.parse(readFileSync(p, 'utf8')) as { accepted?: unknown }
+    return data.accepted === true
+  } catch {
+    return false
+  }
+}
+
+ipcMain.on('license:getAcceptedSync', (event) => {
+  event.returnValue = readLicenseAcceptedFromDisk()
+})
+
+ipcMain.handle('license:setAccepted', async () => {
+  const p = licenseAcceptedFilePath()
+  mkdirSync(path.dirname(p), { recursive: true })
+  writeFileSync(p, JSON.stringify({ accepted: true, version: 1 }), 'utf8')
+})
+
+if (process.env.NODE_ENV === 'test') {
+  ipcMain.handle('license:clearAcceptedForTests', async () => {
+    try {
+      unlinkSync(licenseAcceptedFilePath())
+    } catch {
+      // no file
+    }
+  })
+}
+
 // Handle file opening from OS (macOS)
 let fileToOpen: string | null = null
 
 app.on('open-file', (event, filePath) => {
   event.preventDefault()
 
+  const toOpen = resolveOpenFilePathPreferSiblingCaptions(filePath)
   const windows = BrowserWindow.getAllWindows()
   if (windows.length > 0) {
     const win = BrowserWindow.getFocusedWindow() || windows[0]
-    win.webContents.send('open-file', filePath)
+    win.webContents.send('open-file', toOpen)
   } else {
     // Window not ready yet, store for later
-    fileToOpen = filePath
+    fileToOpen = toOpen
   }
 })
 
@@ -452,8 +500,8 @@ app.whenReady().then(() => {
     const filePath = process.argv[process.argv.length - 1]
     const lower = (filePath || '').toLowerCase()
     const ext = path.extname(lower)
-    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.srt') || ext in MIME_TYPES)) {
-      fileToOpen = path.resolve(filePath)
+    if (filePath && !filePath.startsWith('-') && (lower.endsWith(CAPTIONS_JSON_SUFFIX) || lower.endsWith('.captions_json') || lower.endsWith('.srt') || ext in MIME_TYPES)) {
+      fileToOpen = resolveOpenFilePathPreferSiblingCaptions(filePath)
     }
   }
 
@@ -488,7 +536,7 @@ ipcMain.handle('dialog:openFile', async (event, options?: {
     properties: options?.properties || ['openFile'],
     filters: options?.filters || [
       { name: 'All Supported Files', extensions: all_files },
-      { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
+      { name: 'Captions Files (*.captions_json5)', extensions: captions_json5_files },
       { name: 'SRT Files', extensions: srt_files },
       { name: 'Media Files', extensions: media_files }
     ]
@@ -539,7 +587,7 @@ ipcMain.handle('file:save', async (event, options: {
     const result = await dialog.showSaveDialog(win, {
       defaultPath: options.suggestedName || `captions${CAPTIONS_JSON_SUFFIX}`,
       filters: [
-        { name: 'Captions Files (*.captions_json)', extensions: captions_json_files },
+        { name: 'Captions Files (*.captions_json5)', extensions: captions_json5_files },
         { name: 'All Files', extensions: ['*'] }
       ]
     })
@@ -1018,7 +1066,15 @@ ipcMain.handle('asr:transcribe', async (event, options: {
 
   if (result.success) {
     try {
+      const hr = '='.repeat(76)
+      console.log(hr)
+      console.log('[main] asr:transcribe — Python finished OK. Reading captions file from disk (large files can take a moment)…')
+      console.log('[main] asr:transcribe — path:', captionsPath)
+      const readStart = Date.now()
       const content = await fs.readFile(captionsPath, 'utf-8')
+      const readMs = Date.now() - readStart
+      console.log(`[main] asr:transcribe — read ${content.length} characters in ${readMs}ms; sending to renderer over IPC (also can take a moment)`)
+      console.log(hr)
       return {
         ...result,
         captionsPath,
@@ -1052,7 +1108,15 @@ ipcMain.handle('asr:embed', async (event, options: {
 
   if (result.success) {
     try {
+      const hr = '='.repeat(76)
+      console.log(hr)
+      console.log('[main] asr:embed — Python finished OK. Reading captions file from disk (embeddings make files large)…')
+      console.log('[main] asr:embed — path:', options.captionsPath)
+      const readStart = Date.now()
       const content = await fs.readFile(options.captionsPath, 'utf-8')
+      const readMs = Date.now() - readStart
+      console.log(`[main] asr:embed — read ${content.length} characters in ${readMs}ms; sending to renderer over IPC`)
+      console.log(hr)
       return {
         ...result,
         content
@@ -1093,7 +1157,7 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
   console.log('[main] processDroppedFiles called for', filePaths.length, 'files')
 
   type DroppedFileResult =
-    | { type: 'captions_json'; filePath: string; fileName: string; content: string }
+    | { type: 'captions_json5'; filePath: string; fileName: string; content: string }
     | { type: 'srt'; filePath: string; fileName: string; content: string }
     | { type: 'media'; filePath: string; fileName: string; url: string }
 
@@ -1108,10 +1172,10 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
       const extensionWithoutDot = ext.substring(1)
       const lowerPath = filePath.toLowerCase()
 
-      if (lowerPath.endsWith(CAPTIONS_JSON_SUFFIX)) {
+      if (lowerPath.endsWith(CAPTIONS_JSON_SUFFIX) || lowerPath.endsWith('.captions_json')) {
         const content = await fs.readFile(filePath, 'utf-8')
         results.push({
-          type: 'captions_json',
+          type: 'captions_json5',
           filePath,
           fileName: path.basename(filePath),
           content

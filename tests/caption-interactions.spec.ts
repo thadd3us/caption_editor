@@ -12,7 +12,7 @@ test.describe('Caption Editor - User Interactions', () => {
   async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedSegmentCount: number): Promise<void> {
     await window.evaluate((content) => {
       const store = (window as any).$store
-      store.loadFromFile(content, '/test/file.captions_json')
+      store.loadFromFile(content, '/test/file.captions_json5')
     }, captionsContent)
 
     await window.waitForFunction((expected) => {
@@ -22,12 +22,12 @@ test.describe('Caption Editor - User Interactions', () => {
   }
 
   test('should add a caption through UI interaction', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'First caption' }]
     })
 
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
     // Check initial caption count
     const grid = window.locator('.ag-theme-alpine')
@@ -35,19 +35,19 @@ test.describe('Caption Editor - User Interactions', () => {
   })
 
   test('should edit caption text in grid', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Original text' }]
     })
 
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
     // Grid should be visible
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
   })
 
   test('should delete caption using action button', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [
         { id: 'seg_1', startTime: 1, endTime: 4, text: 'Caption to delete' },
@@ -55,7 +55,7 @@ test.describe('Caption Editor - User Interactions', () => {
       ]
     })
 
-    await loadCaptionsAndWaitForSegments(captionsJson, 2)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 2)
 
     // Grid should show 2 captions
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
@@ -67,7 +67,7 @@ test.describe('Caption Editor - User Interactions', () => {
     await window.evaluate((content) => {
       const store = (window as any).$store
       try {
-        store.loadFromFile(content, '/test/file.captions_json')
+        store.loadFromFile(content, '/test/file.captions_json5')
       } catch {
         // Expected parse error
       }
@@ -80,17 +80,17 @@ test.describe('Caption Editor - User Interactions', () => {
     }, { timeout: 2000 })
 
     // Application should still be functional - check that the table header is visible
-    const tableHeader = window.locator('.table-header h2')
+    const tableHeader = window.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
   })
 
   test('should update caption timing', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Caption with timing' }]
     })
 
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
     await expect(window.locator('.ag-theme-alpine')).toBeVisible()
   })

@@ -17,12 +17,6 @@
       @close="closeRenameSpeakerDialog"
       @rename="handleRenameSpeaker"
     />
-    <BulkSetSpeakerDialog
-      :is-open="isBulkSetSpeakerDialogOpen"
-      :row-count="bulkSetRowCount"
-      @close="closeBulkSetSpeakerDialog"
-      @set-speaker="handleBulkSetSpeaker"
-    />
     <ConfirmDeleteDialog
       :is-open="isDeleteConfirmDialogOpen"
       :row-count="deleteRowCount"
@@ -102,7 +96,6 @@ import CaptionTable from './components/CaptionTable.vue'
 import MediaPlayer from './components/MediaPlayer.vue'
 import FileDropZone from './components/FileDropZone.vue'
 import RenameSpeakerDialog from './components/RenameSpeakerDialog.vue'
-import BulkSetSpeakerDialog from './components/BulkSetSpeakerDialog.vue'
 import ConfirmDeleteDialog from './components/ConfirmDeleteDialog.vue'
 import ConfirmAsrDialog from './components/ConfirmAsrDialog.vue'
 import RemuxMp3Dialog from './components/RemuxMp3Dialog.vue'
@@ -133,9 +126,6 @@ const leftPanelWidth = computed({
 })
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
-const isBulkSetSpeakerDialogOpen = ref(false)
-const bulkSetRowCount = ref(0)
-const selectedSegmentIdsForBulkSet = ref<string[]>([])
 const isDeleteConfirmDialogOpen = ref(false)
 const deleteRowCount = ref(0)
 const selectedSegmentIdsForDelete = ref<string[]>([])
@@ -238,7 +228,24 @@ function openRenameSpeakerDialog() {
 
 function handleLicenseAgree() {
   localStorage.setItem(LICENSE_ACCEPTED_KEY, 'true')
+  const api = (window as any).electronAPI
+  if (api?.setLicenseAccepted) {
+    void api.setLicenseAccepted()
+  }
   isLicenseDialogOpen.value = false
+}
+
+function isLicenseAccepted(): boolean {
+  const api = (window as any).electronAPI
+  if (api?.getLicenseAcceptedSync) {
+    if (api.getLicenseAcceptedSync()) return true
+    if (localStorage.getItem(LICENSE_ACCEPTED_KEY) === 'true') {
+      void api.setLicenseAccepted?.()
+      return true
+    }
+    return false
+  }
+  return !!localStorage.getItem(LICENSE_ACCEPTED_KEY)
 }
 
 function handleLicenseExit() {
@@ -257,37 +264,6 @@ function closeRenameSpeakerDialog() {
 function handleRenameSpeaker({ oldName, newName }: { oldName: string; newName: string }) {
   console.log('Renaming speaker:', oldName, '->', newName)
   store.renameSpeaker(oldName, newName)
-}
-
-function openBulkSetSpeakerDialog(event: Event) {
-  console.log('[App] openBulkSetSpeakerDialog called')
-  const customEvent = event as CustomEvent
-  const { rowCount } = customEvent.detail
-
-  // Get the currently selected rows from CaptionTable
-  // We need to get the segment IDs from the grid
-  const selectedRows = (window as any).__captionTableSelectedRows || []
-
-  bulkSetRowCount.value = rowCount
-  selectedSegmentIdsForBulkSet.value = selectedRows.map((row: any) => row.id)
-  isBulkSetSpeakerDialogOpen.value = true
-}
-
-function closeBulkSetSpeakerDialog() {
-  isBulkSetSpeakerDialogOpen.value = false
-  selectedSegmentIdsForBulkSet.value = []
-  bulkSetRowCount.value = 0
-}
-
-function handleBulkSetSpeaker({ speakerName }: { speakerName: string }) {
-  console.log(
-    'Bulk setting speaker to:',
-    speakerName,
-    'for',
-    selectedSegmentIdsForBulkSet.value.length,
-    'segments'
-  )
-  store.bulkSetSpeaker(selectedSegmentIdsForBulkSet.value, speakerName)
 }
 
 function openDeleteConfirmDialog(event: Event) {
@@ -362,9 +338,11 @@ async function attemptMediaAutoLoad() {
     return
   }
 
-  // Skip if we already attempted auto-load for this document
-  if (attemptedAutoLoad.value === documentId) {
-    console.log('[Auto-load] Already attempted for this document')
+  // Skip only when media is already wired to the player. Same metadata.id can survive
+  // a full document reload (e.g. after Compute Speaker Embeddings calls loadFromFile),
+  // which clears mediaPath — we must allow auto-load to run again in that case.
+  if (attemptedAutoLoad.value === documentId && store.mediaPath) {
+    console.log('[Auto-load] Already loaded media for this document')
     return
   }
 
@@ -523,7 +501,7 @@ async function handleMenuSaveFile() {
 }
 
 
-/** Build a sidecar filename from the loaded media path (e.g. video.mp4 -> video.captions_json) */
+/** Build a sidecar filename from the loaded media path (e.g. video.mp4 -> video.captions_json5) */
 function mediaSidecarName(): string | null {
   return sidecarName(store.mediaFilePath)
 }
@@ -540,7 +518,7 @@ async function handleMenuSaveAs() {
 
     const result = await window.electronAPI.saveFile({
       content,
-      suggestedName: store.document.filePath || mediaSidecarName() || 'captions.captions_json'
+      suggestedName: store.document.filePath || mediaSidecarName() || 'captions.captions_json5'
     })
 
     if (result.success) {
@@ -683,6 +661,10 @@ async function startAsrEmbedding() {
   try {
     const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
     
+    const asrHr = () => console.log('='.repeat(76))
+    asrHr()
+    console.log('[ASR] Renderer: waiting on main process — Python may look "done" in the log while the app is still finishing subprocess exit, reading the file, and IPC.')
+    asrHr()
     const result = await window.electronAPI.asr.embed({
       captionsPath: store.document.filePath,
       model
@@ -699,12 +681,17 @@ async function startAsrEmbedding() {
       throw new Error(result.error || 'Embedding failed')
     }
 
-    console.log('[ASR] Embedding completed successfully')
+    console.log('[ASR] Embedding IPC finished successfully')
 
     // Reload the captions file with embeddings using content returned from main
     if (result.content) {
+      asrHr()
+      console.log('[ASR] Renderer: parsing JSON5 + loadFromFile (resets some UI state, refreshes AG Grid) — modal stays open until this finishes')
+      asrHr()
+      const t0 = performance.now()
       store.loadFromFile(result.content, store.document.filePath!)
-      console.log('[ASR] Captions file reloaded with embeddings')
+      console.log(`[ASR] Renderer: loadFromFile finished in ${Math.round(performance.now() - t0)}ms — closing modal`)
+      asrHr()
     } else {
       throw new Error('Embedding succeeded but no content was returned')
     }
@@ -754,12 +741,31 @@ async function startAsrTranscription() {
     // Start ASR transcription
     const remuxMp3 = pendingRemuxMp3.value
     pendingRemuxMp3.value = false
+    const asrHr = () => console.log('='.repeat(76))
+    asrHr()
+    console.log('[ASR] Renderer: waiting on main process — log may look "done" while subprocess exits, file is read, and data is sent over IPC.')
+    asrHr()
+    const transcribeWallStart = Date.now()
+    console.log(
+      '[ASR timing] transcribe IPC invoke start wallMs=' + transcribeWallStart
+    )
     const result = await window.electronAPI.asr.transcribe({
       mediaFilePath: store.mediaFilePath,
       model,
       chunkSize,
       remuxMp3
     })
+    const transcribeWallEnd = Date.now()
+    console.log(
+      '[ASR timing] transcribe IPC invoke end wallMs=' +
+        transcribeWallEnd +
+        ' elapsedMs=' +
+        (transcribeWallEnd - transcribeWallStart) +
+        ' canceled=' +
+        !!result.canceled +
+        ' success=' +
+        result.success
+    )
 
     if (result.canceled) {
       console.log('[ASR] Transcription was canceled')
@@ -769,12 +775,17 @@ async function startAsrTranscription() {
     }
 
     if (result.success) {
-      console.log('[ASR] Transcription completed successfully:', result.captionsPath)
+      console.log('[ASR] Transcription IPC finished:', result.captionsPath)
 
       // Merge ASR results into current document (preserves UUID, title, history, etc.)
       if (result.content) {
+        asrHr()
+        console.log('[ASR] Renderer: parsing JSON5 + mergeAsrResult (AG Grid refresh) — modal stays open until this completes')
+        asrHr()
+        const t0 = performance.now()
         store.mergeAsrResult(result.content)
-        console.log('[ASR] ASR results merged into document')
+        console.log(`[ASR] Renderer: merge finished in ${Math.round(performance.now() - t0)}ms — closing modal`)
+        asrHr()
       } else {
         throw new Error('Transcription succeeded but no captions content was returned')
       }
@@ -804,12 +815,29 @@ async function startAsrTranscription() {
 }
 
 async function handleAsrCancel() {
+  const wallEntry = Date.now()
+  console.log(
+    '[ASR timing] handleAsrCancel entry wallMs=' +
+      wallEntry +
+      ' isAsrRunning=' +
+      isAsrRunning.value +
+      ' processId=' +
+      (currentAsrProcessId ?? 'null')
+  )
   console.log('[ASR] Cancel button clicked')
 
   if (isAsrRunning.value && currentAsrProcessId && window.electronAPI?.asr) {
     // Cancel the running process
     console.log('[ASR] Cancelling process:', currentAsrProcessId)
     await window.electronAPI.asr.cancel(currentAsrProcessId)
+    console.log(
+      '[ASR timing] handleAsrCancel after asr.cancel() wallMs=' + Date.now()
+    )
+  } else {
+    console.log(
+      '[ASR timing] handleAsrCancel skipped IPC cancel (not running or no processId) wallMs=' +
+        Date.now()
+    )
   }
 
   // Close modal
@@ -817,12 +845,12 @@ async function handleAsrCancel() {
   isAsrRunning.value = false
   asrFailed.value = false
   currentAsrProcessId = null
+  console.log('[ASR timing] handleAsrCancel exit modal closed wallMs=' + Date.now())
 }
 
 // Also attempt auto-load on mount (for localStorage recovery)
 onMounted(() => {
-  // Show license agreement on first run
-  if (!localStorage.getItem(LICENSE_ACCEPTED_KEY)) {
+  if (!isLicenseAccepted()) {
     isLicenseDialogOpen.value = true
   }
 
@@ -830,15 +858,11 @@ onMounted(() => {
     attemptMediaAutoLoad()
   }, 200)
 
-  // Listen for openBulkSetSpeakerDialog event from CaptionTable's context menu
-  window.addEventListener('openBulkSetSpeakerDialog', openBulkSetSpeakerDialog as EventListener)
-
   // Listen for openDeleteConfirmDialog event from CaptionTable's context menu
   window.addEventListener('openDeleteConfirmDialog', openDeleteConfirmDialog as EventListener)
 
   // Expose dialog functions for testing
   ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
-  ;(window as any).openBulkSetSpeakerDialog = openBulkSetSpeakerDialog
   ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
@@ -1045,4 +1069,6 @@ html, body, #app {
 .dialog-button-success:hover {
   background: #16a34a;
 }
+
+/* Tooltips: `[data-tooltip].tooltip-btn` + installFloatingTooltip() in main.ts */
 </style>

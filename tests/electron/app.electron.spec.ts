@@ -2,6 +2,7 @@ import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('Electron App', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
@@ -17,7 +18,7 @@ test.describe('Electron App', () => {
   })
 
   test('should show the caption table header', async ({ page }) => {
-    const tableHeader = page.locator('.table-header h2')
+    const tableHeader = page.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
   })
 
@@ -43,7 +44,7 @@ test.describe('Electron App', () => {
   })
 
   test('should load and display captions JSON content', async ({ page }) => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [
         { id: 'seg_1', startTime: 0, endTime: 5, text: 'First caption' },
@@ -55,9 +56,9 @@ test.describe('Electron App', () => {
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store?.loadFromFile) {
-        store.loadFromFile(content, 'test.captions_json')
+        store.loadFromFile(content, 'test.captions_json5')
       }
-    }, captionsJson)
+    }, captionsJson5)
 
     // Wait for the table to update
     await page.waitForTimeout(500)
@@ -72,7 +73,7 @@ test.describe('Electron App', () => {
   })
 
   test('should be able to export captions JSON', async ({ page }) => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'test-123' },
       segments: [{ id: 'seg-1', startTime: 0.0, endTime: 5.0, text: 'Test caption' }]
     })
@@ -80,9 +81,9 @@ test.describe('Electron App', () => {
     await page.evaluate(async (content) => {
       const store = (window as any).$store
       if (store && store.loadFromFile) {
-        store.loadFromFile(content, 'test-export.captions_json')
+        store.loadFromFile(content, 'test-export.captions_json5')
       }
-    }, captionsJson)
+    }, captionsJson5)
 
     await page.waitForTimeout(500)
 
@@ -99,8 +100,10 @@ test.describe('Electron App', () => {
       return store.exportToString()
     })
 
-    // Verify the exported content is valid JSON
-    const parsed = JSON.parse(exportedContent)
+    const parsed = parseCaptionsFileContent(exportedContent) as {
+      metadata: { id: string }
+      segments: Array<{ id: string; text: string }>
+    }
     expect(parsed.metadata.id).toBe('test-123')
     expect(parsed.segments).toHaveLength(1)
     expect(parsed.segments[0].id).toBe('seg-1')
@@ -111,14 +114,14 @@ test.describe('Electron App', () => {
 
   test('should handle file drops', async ({ page }) => {
     // Create a test captions file
-    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions_json')
-    const captionsJson = JSON.stringify({
+    const testCaptionsPath = path.join(getProjectRoot(), 'test_data/drop-test.captions_json5')
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 0, endTime: 5, text: 'Dropped caption' }]
     })
 
     await fs.mkdir(path.join(getProjectRoot(), 'test_data'), { recursive: true })
-    await fs.writeFile(testCaptionsPath, captionsJson)
+    await fs.writeFile(testCaptionsPath, captionsJson5)
 
     // Simulate file drop via electronAPI
     const result = await page.evaluate(async (filePath) => {
@@ -128,7 +131,7 @@ test.describe('Electron App', () => {
 
     expect(result).toBeTruthy()
     expect(result).toHaveLength(1)
-    expect(result![0].type).toBe('captions_json')
+    expect(result![0].type).toBe('captions_json5')
     expect(result![0].content).toContain('Dropped caption')
 
     // Clean up
@@ -149,7 +152,7 @@ test.describe('Electron App', () => {
 
     // Since we removed the Open Files button, just verify the app is functional
     // We can't easily test the menu trigger from the test without more setup
-    const tableHeader = page.locator('.table-header h2')
+    const tableHeader = page.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
 
     // Wait for dialog to be processed

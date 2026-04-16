@@ -1,12 +1,14 @@
-"""Shared `.captions_json` parsing and serialization utilities."""
+"""Shared `.captions_json5` parsing and serialization utilities."""
 
 from __future__ import annotations
 
 import json
+import json5
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
+from constants import ASR_COMMIT_HASH
 from schema import CaptionsDocument
 
 
@@ -55,23 +57,29 @@ def _migrate_embedding_model(data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
-def parse_captions_json_file(path: Path) -> CaptionsDocument:
-    data = json.loads(path.read_text())
+def parse_captions_json5_file(path: Path) -> CaptionsDocument:
+    data = cast(dict[str, Any], json5.loads(path.read_text()))
     return CaptionsDocument.model_validate(_migrate_embedding_model(data))
 
 
-def parse_captions_json_string(content: str) -> CaptionsDocument:
-    data = json.loads(content)
+def parse_captions_json5_string(content: str) -> CaptionsDocument:
+    data = cast(dict[str, Any], json5.loads(content))
     return CaptionsDocument.model_validate(_migrate_embedding_model(data))
 
 
-def serialize_captions_json(
+def serialize_captions_json5(
     document: CaptionsDocument, *, captions_path: Optional[Path] = None
 ) -> str:
     doc_to_write = _convert_media_path_to_relative_if_possible(document, captions_path)
     payload = doc_to_write.model_dump(by_alias=True, exclude_none=True)
-    return _stable_json_dumps(payload)
+    json_str = _stable_json_dumps(payload)
+    header = (
+        "// Caption Editor: https://github.com/thadd3us/caption_editor/\n"
+        f"// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/{ASR_COMMIT_HASH}/src/types/schema.ts\n"
+        f"// File schema Python: https://github.com/thadd3us/caption_editor/blob/{ASR_COMMIT_HASH}/transcribe/schema.py\n"
+    )
+    return header + json_str
 
 
-def write_captions_json_file(path: Path, document: CaptionsDocument) -> None:
-    path.write_text(serialize_captions_json(document, captions_path=path))
+def write_captions_json5_file(path: Path, document: CaptionsDocument) -> None:
+    path.write_text(serialize_captions_json5(document, captions_path=path))

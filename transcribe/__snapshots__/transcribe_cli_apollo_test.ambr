@@ -5,6 +5,1513 @@
       'id': 'doc_id',
       'mediaFilePath': 'Apollo-11_Day-05-Highlights_700s.mp3',
     }),
+    'rawAsrOutput': dict({
+      'segments': list([
+        dict({
+          'chunkStart': 0.0,
+          'end': 6.96,
+          'start': 0.24,
+          'text': 'uh uh depressed in the surface about uh one or two inches.',
+          'words': list([
+            dict({
+              'end': 0.48,
+              'start': 0.24,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 1.92,
+              'start': 1.6,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 3.2,
+              'start': 2.48,
+              'word': 'depressed',
+            }),
+            dict({
+              'end': 3.36,
+              'start': 3.2,
+              'word': 'in',
+            }),
+            dict({
+              'end': 3.52,
+              'start': 3.36,
+              'word': 'the',
+            }),
+            dict({
+              'end': 4.0,
+              'start': 3.52,
+              'word': 'surface',
+            }),
+            dict({
+              'end': 4.48,
+              'start': 4.24,
+              'word': 'about',
+            }),
+            dict({
+              'end': 4.96,
+              'start': 4.64,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 5.84,
+              'start': 5.52,
+              'word': 'one',
+            }),
+            dict({
+              'end': 6.16,
+              'start': 5.84,
+              'word': 'or',
+            }),
+            dict({
+              'end': 6.4,
+              'start': 6.16,
+              'word': 'two',
+            }),
+            dict({
+              'end': 6.96,
+              'start': 6.4,
+              'word': 'inches.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 0.0,
+          'end': 14.88,
+          'start': 7.12,
+          'text': 'Uh although the surface appears to be uh very fine grained as you get close to it.',
+          'words': list([
+            dict({
+              'end': 7.2,
+              'start': 7.12,
+              'word': 'Uh',
+            }),
+            dict({
+              'end': 7.84,
+              'start': 7.36,
+              'word': 'although',
+            }),
+            dict({
+              'end': 8.08,
+              'start': 7.84,
+              'word': 'the',
+            }),
+            dict({
+              'end': 8.64,
+              'start': 8.08,
+              'word': 'surface',
+            }),
+            dict({
+              'end': 9.2,
+              'start': 8.64,
+              'word': 'appears',
+            }),
+            dict({
+              'end': 9.52,
+              'start': 9.2,
+              'word': 'to',
+            }),
+            dict({
+              'end': 9.84,
+              'start': 9.52,
+              'word': 'be',
+            }),
+            dict({
+              'end': 10.72,
+              'start': 10.4,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 12.0,
+              'start': 11.68,
+              'word': 'very',
+            }),
+            dict({
+              'end': 13.28,
+              'start': 12.88,
+              'word': 'fine',
+            }),
+            dict({
+              'end': 13.92,
+              'start': 13.44,
+              'word': 'grained',
+            }),
+            dict({
+              'end': 14.08,
+              'start': 13.92,
+              'word': 'as',
+            }),
+            dict({
+              'end': 14.16,
+              'start': 14.08,
+              'word': 'you',
+            }),
+            dict({
+              'end': 14.32,
+              'start': 14.16,
+              'word': 'get',
+            }),
+            dict({
+              'end': 14.64,
+              'start': 14.32,
+              'word': 'close',
+            }),
+            dict({
+              'end': 14.72,
+              'start': 14.64,
+              'word': 'to',
+            }),
+            dict({
+              'end': 14.88,
+              'start': 14.72,
+              'word': 'it.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 0.0,
+          'end': 16.8,
+          'start': 14.96,
+          'text': "It's almost like a powder.",
+          'words': list([
+            dict({
+              'end': 15.36,
+              'start': 14.96,
+              'word': "It's",
+            }),
+            dict({
+              'end': 15.76,
+              'start': 15.36,
+              'word': 'almost',
+            }),
+            dict({
+              'end': 15.92,
+              'start': 15.76,
+              'word': 'like',
+            }),
+            dict({
+              'end': 16.16,
+              'start': 15.92,
+              'word': 'a',
+            }),
+            dict({
+              'end': 16.8,
+              'start': 16.16,
+              'word': 'powder.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 0.0,
+          'end': 20.16,
+          'start': 17.44,
+          'text': "Brown mass uh it's very fine.",
+          'words': list([
+            dict({
+              'end': 17.76,
+              'start': 17.44,
+              'word': 'Brown',
+            }),
+            dict({
+              'end': 18.4,
+              'start': 18.08,
+              'word': 'mass',
+            }),
+            dict({
+              'end': 18.8,
+              'start': 18.56,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 19.28,
+              'start': 18.96,
+              'word': "it's",
+            }),
+            dict({
+              'end': 19.6,
+              'start': 19.28,
+              'word': 'very',
+            }),
+            dict({
+              'end': 20.16,
+              'start': 19.6,
+              'word': 'fine.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 0.0,
+          'end': 33.84,
+          'start': 32.0,
+          'text': "I'm gonna step off the lamb now.",
+          'words': list([
+            dict({
+              'end': 32.16,
+              'start': 32.0,
+              'word': "I'm",
+            }),
+            dict({
+              'end': 32.4,
+              'start': 32.16,
+              'word': 'gonna',
+            }),
+            dict({
+              'end': 32.72,
+              'start': 32.4,
+              'word': 'step',
+            }),
+            dict({
+              'end': 32.88,
+              'start': 32.72,
+              'word': 'off',
+            }),
+            dict({
+              'end': 33.04,
+              'start': 32.88,
+              'word': 'the',
+            }),
+            dict({
+              'end': 33.36,
+              'start': 33.04,
+              'word': 'lamb',
+            }),
+            dict({
+              'end': 33.84,
+              'start': 33.52,
+              'word': 'now.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 0.0,
+          'end': 50.48,
+          'start': 43.12,
+          'text': "It's one small step per man giant leap per man.",
+          'words': list([
+            dict({
+              'end': 43.68,
+              'start': 43.12,
+              'word': "It's",
+            }),
+            dict({
+              'end': 43.92,
+              'start': 43.68,
+              'word': 'one',
+            }),
+            dict({
+              'end': 44.4,
+              'start': 43.92,
+              'word': 'small',
+            }),
+            dict({
+              'end': 44.8,
+              'start': 44.4,
+              'word': 'step',
+            }),
+            dict({
+              'end': 45.28,
+              'start': 44.96,
+              'word': 'per',
+            }),
+            dict({
+              'end': 45.6,
+              'start': 45.28,
+              'word': 'man',
+            }),
+            dict({
+              'end': 49.68,
+              'start': 49.2,
+              'word': 'giant',
+            }),
+            dict({
+              'end': 50.16,
+              'start': 49.84,
+              'word': 'leap',
+            }),
+            dict({
+              'end': 50.32,
+              'start': 50.16,
+              'word': 'per',
+            }),
+            dict({
+              'end': 50.48,
+              'start': 50.32,
+              'word': 'man.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 0.0,
+          'end': 57.92,
+          'start': 57.2,
+          'text': 'The uh',
+          'words': list([
+            dict({
+              'end': 57.36,
+              'start': 57.2,
+              'word': 'The',
+            }),
+            dict({
+              'end': 57.92,
+              'start': 57.6,
+              'word': 'uh',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 61.96,
+          'start': 57.16,
+          'text': 'The uh surface is fine and powdery.',
+          'words': list([
+            dict({
+              'end': 57.48,
+              'start': 57.16,
+              'word': 'The',
+            }),
+            dict({
+              'end': 57.8,
+              'start': 57.56,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 60.52,
+              'start': 59.96,
+              'word': 'surface',
+            }),
+            dict({
+              'end': 60.68,
+              'start': 60.52,
+              'word': 'is',
+            }),
+            dict({
+              'end': 60.92,
+              'start': 60.68,
+              'word': 'fine',
+            }),
+            dict({
+              'end': 61.16,
+              'start': 60.92,
+              'word': 'and',
+            }),
+            dict({
+              'end': 61.96,
+              'start': 61.16,
+              'word': 'powdery.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 66.36,
+          'start': 62.12,
+          'text': 'I can I can pick it up loosely with my toe.',
+          'words': list([
+            dict({
+              'end': 62.44,
+              'start': 62.12,
+              'word': 'I',
+            }),
+            dict({
+              'end': 62.68,
+              'start': 62.44,
+              'word': 'can',
+            }),
+            dict({
+              'end': 63.48,
+              'start': 63.16,
+              'word': 'I',
+            }),
+            dict({
+              'end': 63.8,
+              'start': 63.48,
+              'word': 'can',
+            }),
+            dict({
+              'end': 64.28,
+              'start': 63.8,
+              'word': 'pick',
+            }),
+            dict({
+              'end': 64.44,
+              'start': 64.28,
+              'word': 'it',
+            }),
+            dict({
+              'end': 64.68,
+              'start': 64.44,
+              'word': 'up',
+            }),
+            dict({
+              'end': 65.16,
+              'start': 64.68,
+              'word': 'loosely',
+            }),
+            dict({
+              'end': 65.4,
+              'start': 65.16,
+              'word': 'with',
+            }),
+            dict({
+              'end': 65.72,
+              'start': 65.4,
+              'word': 'my',
+            }),
+            dict({
+              'end': 66.36,
+              'start': 65.72,
+              'word': 'toe.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 78.44,
+          'start': 67.16,
+          'text': 'It does adhere t in fine layers, uh like uh powdered charcoal to the uh to the spool and and sides of my boots.',
+          'words': list([
+            dict({
+              'end': 67.48,
+              'start': 67.16,
+              'word': 'It',
+            }),
+            dict({
+              'end': 68.12,
+              'start': 67.48,
+              'word': 'does',
+            }),
+            dict({
+              'end': 69.0,
+              'start': 68.36,
+              'word': 'adhere',
+            }),
+            dict({
+              'end': 69.16,
+              'start': 69.0,
+              'word': 't',
+            }),
+            dict({
+              'end': 69.48,
+              'start': 69.32,
+              'word': 'in',
+            }),
+            dict({
+              'end': 70.12,
+              'start': 69.64,
+              'word': 'fine',
+            }),
+            dict({
+              'end': 70.76,
+              'start': 70.12,
+              'word': 'layers,',
+            }),
+            dict({
+              'end': 71.32,
+              'start': 71.0,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 71.96,
+              'start': 71.64,
+              'word': 'like',
+            }),
+            dict({
+              'end': 72.12,
+              'start': 71.96,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 72.84,
+              'start': 72.28,
+              'word': 'powdered',
+            }),
+            dict({
+              'end': 73.64,
+              'start': 72.84,
+              'word': 'charcoal',
+            }),
+            dict({
+              'end': 74.12,
+              'start': 73.88,
+              'word': 'to',
+            }),
+            dict({
+              'end': 74.28,
+              'start': 74.12,
+              'word': 'the',
+            }),
+            dict({
+              'end': 74.6,
+              'start': 74.36,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 75.56,
+              'start': 75.24,
+              'word': 'to',
+            }),
+            dict({
+              'end': 75.88,
+              'start': 75.56,
+              'word': 'the',
+            }),
+            dict({
+              'end': 76.52,
+              'start': 75.88,
+              'word': 'spool',
+            }),
+            dict({
+              'end': 76.76,
+              'start': 76.52,
+              'word': 'and',
+            }),
+            dict({
+              'end': 77.0,
+              'start': 76.76,
+              'word': 'and',
+            }),
+            dict({
+              'end': 77.4,
+              'start': 77.0,
+              'word': 'sides',
+            }),
+            dict({
+              'end': 77.48,
+              'start': 77.4,
+              'word': 'of',
+            }),
+            dict({
+              'end': 77.8,
+              'start': 77.48,
+              'word': 'my',
+            }),
+            dict({
+              'end': 78.44,
+              'start': 77.8,
+              'word': 'boots.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 87.48,
+          'start': 84.84,
+          'text': 'Making sure not to lock it on my way up.',
+          'words': list([
+            dict({
+              'end': 85.08,
+              'start': 84.84,
+              'word': 'Making',
+            }),
+            dict({
+              'end': 85.56,
+              'start': 85.32,
+              'word': 'sure',
+            }),
+            dict({
+              'end': 85.72,
+              'start': 85.56,
+              'word': 'not',
+            }),
+            dict({
+              'end': 85.88,
+              'start': 85.72,
+              'word': 'to',
+            }),
+            dict({
+              'end': 86.2,
+              'start': 85.88,
+              'word': 'lock',
+            }),
+            dict({
+              'end': 86.36,
+              'start': 86.2,
+              'word': 'it',
+            }),
+            dict({
+              'end': 86.52,
+              'start': 86.36,
+              'word': 'on',
+            }),
+            dict({
+              'end': 86.84,
+              'start': 86.52,
+              'word': 'my',
+            }),
+            dict({
+              'end': 87.16,
+              'start': 86.84,
+              'word': 'way',
+            }),
+            dict({
+              'end': 87.48,
+              'start': 87.16,
+              'word': 'up.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 95.0,
+          'start': 93.08,
+          'text': "That's our home for the next couple hours.",
+          'words': list([
+            dict({
+              'end': 93.56,
+              'start': 93.08,
+              'word': "That's",
+            }),
+            dict({
+              'end': 93.8,
+              'start': 93.56,
+              'word': 'our',
+            }),
+            dict({
+              'end': 94.04,
+              'start': 93.8,
+              'word': 'home',
+            }),
+            dict({
+              'end': 94.2,
+              'start': 94.04,
+              'word': 'for',
+            }),
+            dict({
+              'end': 94.28,
+              'start': 94.2,
+              'word': 'the',
+            }),
+            dict({
+              'end': 94.52,
+              'start': 94.28,
+              'word': 'next',
+            }),
+            dict({
+              'end': 94.76,
+              'start': 94.52,
+              'word': 'couple',
+            }),
+            dict({
+              'end': 95.0,
+              'start': 94.84,
+              'word': 'hours.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 96.92,
+          'start': 95.16,
+          'text': 'We want to take good care of it.',
+          'words': list([
+            dict({
+              'end': 95.32,
+              'start': 95.16,
+              'word': 'We',
+            }),
+            dict({
+              'end': 95.48,
+              'start': 95.32,
+              'word': 'want',
+            }),
+            dict({
+              'end': 95.56,
+              'start': 95.48,
+              'word': 'to',
+            }),
+            dict({
+              'end': 95.8,
+              'start': 95.56,
+              'word': 'take',
+            }),
+            dict({
+              'end': 96.04,
+              'start': 95.8,
+              'word': 'good',
+            }),
+            dict({
+              'end': 96.28,
+              'start': 96.04,
+              'word': 'care',
+            }),
+            dict({
+              'end': 96.6,
+              'start': 96.28,
+              'word': 'of',
+            }),
+            dict({
+              'end': 96.92,
+              'start': 96.6,
+              'word': 'it.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 105.64,
+          'start': 99.88,
+          'text': "Okay, I'm on the top step and I can look down over the RCU and s find the gear pad.",
+          'words': list([
+            dict({
+              'end': 100.2,
+              'start': 99.88,
+              'word': 'Okay,',
+            }),
+            dict({
+              'end': 100.6,
+              'start': 100.36,
+              'word': "I'm",
+            }),
+            dict({
+              'end': 100.76,
+              'start': 100.6,
+              'word': 'on',
+            }),
+            dict({
+              'end': 100.84,
+              'start': 100.76,
+              'word': 'the',
+            }),
+            dict({
+              'end': 101.08,
+              'start': 100.84,
+              'word': 'top',
+            }),
+            dict({
+              'end': 101.32,
+              'start': 101.08,
+              'word': 'step',
+            }),
+            dict({
+              'end': 101.56,
+              'start': 101.4,
+              'word': 'and',
+            }),
+            dict({
+              'end': 101.72,
+              'start': 101.56,
+              'word': 'I',
+            }),
+            dict({
+              'end': 101.88,
+              'start': 101.72,
+              'word': 'can',
+            }),
+            dict({
+              'end': 102.12,
+              'start': 101.88,
+              'word': 'look',
+            }),
+            dict({
+              'end': 102.28,
+              'start': 102.12,
+              'word': 'down',
+            }),
+            dict({
+              'end': 102.44,
+              'start': 102.28,
+              'word': 'over',
+            }),
+            dict({
+              'end': 102.68,
+              'start': 102.44,
+              'word': 'the',
+            }),
+            dict({
+              'end': 103.4,
+              'start': 102.68,
+              'word': 'RCU',
+            }),
+            dict({
+              'end': 103.56,
+              'start': 103.4,
+              'word': 'and',
+            }),
+            dict({
+              'end': 103.72,
+              'start': 103.64,
+              'word': 's',
+            }),
+            dict({
+              'end': 104.92,
+              'start': 104.6,
+              'word': 'find',
+            }),
+            dict({
+              'end': 105.16,
+              'start': 105.0,
+              'word': 'the',
+            }),
+            dict({
+              'end': 105.48,
+              'start': 105.16,
+              'word': 'gear',
+            }),
+            dict({
+              'end': 105.64,
+              'start': 105.48,
+              'word': 'pad.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 113.48,
+          'start': 109.48,
+          'text': "That's a very simple matter to hop down from one step to the next.",
+          'words': list([
+            dict({
+              'end': 109.88,
+              'start': 109.48,
+              'word': "That's",
+            }),
+            dict({
+              'end': 110.12,
+              'start': 109.88,
+              'word': 'a',
+            }),
+            dict({
+              'end': 110.28,
+              'start': 110.12,
+              'word': 'very',
+            }),
+            dict({
+              'end': 110.6,
+              'start': 110.28,
+              'word': 'simple',
+            }),
+            dict({
+              'end': 110.92,
+              'start': 110.6,
+              'word': 'matter',
+            }),
+            dict({
+              'end': 111.16,
+              'start': 110.92,
+              'word': 'to',
+            }),
+            dict({
+              'end': 111.56,
+              'start': 111.16,
+              'word': 'hop',
+            }),
+            dict({
+              'end': 111.72,
+              'start': 111.56,
+              'word': 'down',
+            }),
+            dict({
+              'end': 111.96,
+              'start': 111.72,
+              'word': 'from',
+            }),
+            dict({
+              'end': 112.2,
+              'start': 111.96,
+              'word': 'one',
+            }),
+            dict({
+              'end': 112.52,
+              'start': 112.2,
+              'word': 'step',
+            }),
+            dict({
+              'end': 112.68,
+              'start': 112.52,
+              'word': 'to',
+            }),
+            dict({
+              'end': 112.92,
+              'start': 112.68,
+              'word': 'the',
+            }),
+            dict({
+              'end': 113.48,
+              'start': 112.92,
+              'word': 'next.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 55.0,
+          'end': 114.52,
+          'start': 113.8,
+          'text': "Yeah, it's not about",
+          'words': list([
+            dict({
+              'end': 114.04,
+              'start': 113.8,
+              'word': 'Yeah,',
+            }),
+            dict({
+              'end': 114.28,
+              'start': 114.12,
+              'word': "it's",
+            }),
+            dict({
+              'end': 114.36,
+              'start': 114.28,
+              'word': 'not',
+            }),
+            dict({
+              'end': 114.52,
+              'start': 114.44,
+              'word': 'about',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 113.52,
+          'start': 110.24,
+          'text': 'Very simple matter to hop down from one step to the next.',
+          'words': list([
+            dict({
+              'end': 110.4,
+              'start': 110.24,
+              'word': 'Very',
+            }),
+            dict({
+              'end': 110.72,
+              'start': 110.4,
+              'word': 'simple',
+            }),
+            dict({
+              'end': 110.96,
+              'start': 110.72,
+              'word': 'matter',
+            }),
+            dict({
+              'end': 111.2,
+              'start': 110.96,
+              'word': 'to',
+            }),
+            dict({
+              'end': 111.52,
+              'start': 111.2,
+              'word': 'hop',
+            }),
+            dict({
+              'end': 111.76,
+              'start': 111.52,
+              'word': 'down',
+            }),
+            dict({
+              'end': 111.92,
+              'start': 111.76,
+              'word': 'from',
+            }),
+            dict({
+              'end': 112.16,
+              'start': 111.92,
+              'word': 'one',
+            }),
+            dict({
+              'end': 112.48,
+              'start': 112.16,
+              'word': 'step',
+            }),
+            dict({
+              'end': 112.64,
+              'start': 112.48,
+              'word': 'to',
+            }),
+            dict({
+              'end': 112.88,
+              'start': 112.64,
+              'word': 'the',
+            }),
+            dict({
+              'end': 113.52,
+              'start': 112.88,
+              'word': 'next.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 119.36,
+          'start': 113.84,
+          'text': "Yeah, that's be very comfortable and uh and walking is also very comfortable.",
+          'words': list([
+            dict({
+              'end': 114.08,
+              'start': 113.84,
+              'word': 'Yeah,',
+            }),
+            dict({
+              'end': 114.72,
+              'start': 114.32,
+              'word': "that's",
+            }),
+            dict({
+              'end': 115.44,
+              'start': 115.2,
+              'word': 'be',
+            }),
+            dict({
+              'end': 115.6,
+              'start': 115.44,
+              'word': 'very',
+            }),
+            dict({
+              'end': 116.16,
+              'start': 115.6,
+              'word': 'comfortable',
+            }),
+            dict({
+              'end': 116.4,
+              'start': 116.24,
+              'word': 'and',
+            }),
+            dict({
+              'end': 116.72,
+              'start': 116.48,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 117.6,
+              'start': 117.28,
+              'word': 'and',
+            }),
+            dict({
+              'end': 118.24,
+              'start': 117.6,
+              'word': 'walking',
+            }),
+            dict({
+              'end': 118.4,
+              'start': 118.24,
+              'word': 'is',
+            }),
+            dict({
+              'end': 118.64,
+              'start': 118.4,
+              'word': 'also',
+            }),
+            dict({
+              'end': 118.88,
+              'start': 118.64,
+              'word': 'very',
+            }),
+            dict({
+              'end': 119.36,
+              'start': 118.88,
+              'word': 'comfortable.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 127.92,
+          'start': 119.44,
+          'text': "You're on you've got three more steps and then a long one.",
+          'words': list([
+            dict({
+              'end': 125.12,
+              'start': 119.44,
+              'word': "You're",
+            }),
+            dict({
+              'end': 125.36,
+              'start': 125.12,
+              'word': 'on',
+            }),
+            dict({
+              'end': 125.76,
+              'start': 125.44,
+              'word': "you've",
+            }),
+            dict({
+              'end': 125.92,
+              'start': 125.76,
+              'word': 'got',
+            }),
+            dict({
+              'end': 126.16,
+              'start': 125.92,
+              'word': 'three',
+            }),
+            dict({
+              'end': 126.4,
+              'start': 126.16,
+              'word': 'more',
+            }),
+            dict({
+              'end': 126.72,
+              'start': 126.4,
+              'word': 'steps',
+            }),
+            dict({
+              'end': 126.88,
+              'start': 126.72,
+              'word': 'and',
+            }),
+            dict({
+              'end': 127.12,
+              'start': 126.88,
+              'word': 'then',
+            }),
+            dict({
+              'end': 127.28,
+              'start': 127.12,
+              'word': 'a',
+            }),
+            dict({
+              'end': 127.6,
+              'start': 127.28,
+              'word': 'long',
+            }),
+            dict({
+              'end': 127.92,
+              'start': 127.6,
+              'word': 'one.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 145.52,
+          'start': 139.2,
+          'text': "Okay, I'm gonna leave that one foot up there and uh both hands down about the fourth rung up.",
+          'words': list([
+            dict({
+              'end': 139.36,
+              'start': 139.2,
+              'word': 'Okay,',
+            }),
+            dict({
+              'end': 139.76,
+              'start': 139.6,
+              'word': "I'm",
+            }),
+            dict({
+              'end': 139.92,
+              'start': 139.76,
+              'word': 'gonna',
+            }),
+            dict({
+              'end': 140.16,
+              'start': 140.0,
+              'word': 'leave',
+            }),
+            dict({
+              'end': 140.4,
+              'start': 140.24,
+              'word': 'that',
+            }),
+            dict({
+              'end': 140.64,
+              'start': 140.4,
+              'word': 'one',
+            }),
+            dict({
+              'end': 140.88,
+              'start': 140.64,
+              'word': 'foot',
+            }),
+            dict({
+              'end': 141.04,
+              'start': 140.88,
+              'word': 'up',
+            }),
+            dict({
+              'end': 141.2,
+              'start': 141.04,
+              'word': 'there',
+            }),
+            dict({
+              'end': 141.44,
+              'start': 141.28,
+              'word': 'and',
+            }),
+            dict({
+              'end': 141.76,
+              'start': 141.52,
+              'word': 'uh',
+            }),
+            dict({
+              'end': 143.2,
+              'start': 142.72,
+              'word': 'both',
+            }),
+            dict({
+              'end': 143.52,
+              'start': 143.2,
+              'word': 'hands',
+            }),
+            dict({
+              'end': 143.76,
+              'start': 143.52,
+              'word': 'down',
+            }),
+            dict({
+              'end': 144.16,
+              'start': 143.92,
+              'word': 'about',
+            }),
+            dict({
+              'end': 144.32,
+              'start': 144.16,
+              'word': 'the',
+            }),
+            dict({
+              'end': 144.72,
+              'start': 144.32,
+              'word': 'fourth',
+            }),
+            dict({
+              'end': 145.04,
+              'start': 144.72,
+              'word': 'rung',
+            }),
+            dict({
+              'end': 145.52,
+              'start': 145.2,
+              'word': 'up.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 148.24,
+          'start': 147.28,
+          'text': 'There you go.',
+          'words': list([
+            dict({
+              'end': 147.68,
+              'start': 147.28,
+              'word': 'There',
+            }),
+            dict({
+              'end': 147.92,
+              'start': 147.68,
+              'word': 'you',
+            }),
+            dict({
+              'end': 148.24,
+              'start': 147.92,
+              'word': 'go.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 152.64,
+          'start': 150.24,
+          'text': "Okay now I think I'll do the same.",
+          'words': list([
+            dict({
+              'end': 150.4,
+              'start': 150.24,
+              'word': 'Okay',
+            }),
+            dict({
+              'end': 151.04,
+              'start': 150.88,
+              'word': 'now',
+            }),
+            dict({
+              'end': 151.2,
+              'start': 151.12,
+              'word': 'I',
+            }),
+            dict({
+              'end': 151.36,
+              'start': 151.2,
+              'word': 'think',
+            }),
+            dict({
+              'end': 151.68,
+              'start': 151.36,
+              'word': "I'll",
+            }),
+            dict({
+              'end': 151.84,
+              'start': 151.68,
+              'word': 'do',
+            }),
+            dict({
+              'end': 152.0,
+              'start': 151.84,
+              'word': 'the',
+            }),
+            dict({
+              'end': 152.64,
+              'start': 152.0,
+              'word': 'same.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 162.48,
+          'start': 161.28,
+          'text': 'There you got it?',
+          'words': list([
+            dict({
+              'end': 161.6,
+              'start': 161.28,
+              'word': 'There',
+            }),
+            dict({
+              'end': 161.92,
+              'start': 161.76,
+              'word': 'you',
+            }),
+            dict({
+              'end': 162.16,
+              'start': 161.92,
+              'word': 'got',
+            }),
+            dict({
+              'end': 162.48,
+              'start': 162.16,
+              'word': 'it?',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 163.92,
+          'start': 162.88,
+          'text': "That's a good step.",
+          'words': list([
+            dict({
+              'end': 163.28,
+              'start': 162.88,
+              'word': "That's",
+            }),
+            dict({
+              'end': 163.44,
+              'start': 163.28,
+              'word': 'a',
+            }),
+            dict({
+              'end': 163.68,
+              'start': 163.44,
+              'word': 'good',
+            }),
+            dict({
+              'end': 163.92,
+              'start': 163.68,
+              'word': 'step.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 110.0,
+          'end': 164.72,
+          'start': 164.08,
+          'text': 'Yep.',
+          'words': list([
+            dict({
+              'end': 164.72,
+              'start': 164.08,
+              'word': 'Yep.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 165.0,
+          'end': 166.76,
+          'start': 165.16,
+          'text': 'About a three-footer.',
+          'words': list([
+            dict({
+              'end': 165.4,
+              'start': 165.16,
+              'word': 'About',
+            }),
+            dict({
+              'end': 165.64,
+              'start': 165.48,
+              'word': 'a',
+            }),
+            dict({
+              'end': 166.76,
+              'start': 165.64,
+              'word': 'three-footer.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 165.0,
+          'end': 174.12,
+          'start': 173.0,
+          'text': 'Beautiful view.',
+          'words': list([
+            dict({
+              'end': 173.8,
+              'start': 173.0,
+              'word': 'Beautiful',
+            }),
+            dict({
+              'end': 174.12,
+              'start': 173.8,
+              'word': 'view.',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 165.0,
+          'end': 175.32,
+          'start': 174.28,
+          'text': 'Is that something?',
+          'words': list([
+            dict({
+              'end': 174.36,
+              'start': 174.28,
+              'word': 'Is',
+            }),
+            dict({
+              'end': 174.76,
+              'start': 174.68,
+              'word': 'that',
+            }),
+            dict({
+              'end': 175.32,
+              'start': 174.92,
+              'word': 'something?',
+            }),
+          ]),
+        }),
+        dict({
+          'chunkStart': 165.0,
+          'end': 178.28,
+          'start': 176.28,
+          'text': 'Magnus and flight out here.',
+          'words': list([
+            dict({
+              'end': 177.0,
+              'start': 176.28,
+              'word': 'Magnus',
+            }),
+            dict({
+              'end': 177.24,
+              'start': 177.16,
+              'word': 'and',
+            }),
+            dict({
+              'end': 177.72,
+              'start': 177.32,
+              'word': 'flight',
+            }),
+            dict({
+              'end': 177.96,
+              'start': 177.72,
+              'word': 'out',
+            }),
+            dict({
+              'end': 178.28,
+              'start': 177.96,
+              'word': 'here.',
+            }),
+          ]),
+        }),
+      ]),
+      'version': 1,
+    }),
     'segments': list([
       dict({
         'asrModel': 'nvidia/parakeet-tdt-0.6b-v3',

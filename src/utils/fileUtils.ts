@@ -1,13 +1,13 @@
 /**
  * Build a sidecar filename from a media path.
- * e.g. "/path/to/video.mp4" -> "/path/to/video.captions_json"
+ * e.g. "/path/to/video.mp4" -> "/path/to/video.captions_json5"
  * Returns null if the path has no extension or is empty/null.
  */
 export function sidecarName(mediaFilePath: string | null | undefined): string | null {
   if (!mediaFilePath) return null
   const dot = mediaFilePath.lastIndexOf('.')
   if (dot <= 0) return null
-  return mediaFilePath.substring(0, dot) + '.captions_json'
+  return mediaFilePath.substring(0, dot) + '.captions_json5'
 }
 
 /**

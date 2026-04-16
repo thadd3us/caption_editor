@@ -4,6 +4,7 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
+import { acceptLicenseIfVisible } from '../helpers/license'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -17,7 +18,7 @@ test.describe('File Association - Open captions files from OS', () => {
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
     const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association')
     await fs.mkdir(tempDir, { recursive: true })
-    const captionsFilePath = path.join(tempDir, 'with-media-reference.captions_json')
+    const captionsFilePath = path.join(tempDir, 'with-media-reference.captions_json5')
 
     // Create a dedicated captions fixture for this test (do not depend on shared test_data files)
     await fs.writeFile(
@@ -54,6 +55,7 @@ test.describe('File Association - Open captions files from OS', () => {
     // Wait for the first window
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(window)
 
     // Capture console output for debugging
     enableConsoleCapture(window)
@@ -157,11 +159,129 @@ test.describe('File Association - Open captions files from OS', () => {
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   })
 
+  test('should load sibling .captions_json5 when media path is passed as argv', async () => {
+    const sourceWav = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
+    const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association-sibling')
+    await fs.mkdir(tempDir, { recursive: true })
+    const mediaPath = path.join(tempDir, 'paired.wav')
+    const captionsFilePath = path.join(tempDir, 'paired.captions_json5')
+    await fs.copyFile(sourceWav, mediaPath)
+
+    await fs.writeFile(
+      captionsFilePath,
+      JSON.stringify(
+        {
+          metadata: { id: 'sibling-argv', mediaFilePath: mediaPath },
+          segments: [
+            { id: 'seg1', startTime: 0, endTime: 4, text: 'Sibling argv test segment.' }
+          ]
+        },
+        null,
+        2
+      ),
+      'utf-8'
+    )
+
+    electronApp = await electron.launch({
+      args: [path.join(getElectronMainPath()), '--no-sandbox', mediaPath],
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
+      }
+    })
+
+    window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(window)
+    enableConsoleCapture(window)
+
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store?.document?.segments?.length > 0
+      },
+      { timeout: 5000 }
+    )
+
+    const storeState = await window.evaluate(() => {
+      const store = (window as any).$store
+      return { filePath: store?.document?.filePath, firstText: store?.document?.segments?.[0]?.text }
+    })
+
+    expect(storeState.filePath).toBe(captionsFilePath)
+    expect(storeState.firstText).toBe('Sibling argv test segment.')
+
+    await electronApp.close()
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
+  })
+
+  test('should load sibling .captions_json5 on open-file when path is media', async () => {
+    const sourceWav = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
+    const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association-sibling-open')
+    await fs.mkdir(tempDir, { recursive: true })
+    const mediaPath = path.join(tempDir, 'paired2.wav')
+    const captionsFilePath = path.join(tempDir, 'paired2.captions_json5')
+    await fs.copyFile(sourceWav, mediaPath)
+
+    await fs.writeFile(
+      captionsFilePath,
+      JSON.stringify(
+        {
+          metadata: { id: 'sibling-open-file', mediaFilePath: mediaPath },
+          segments: [
+            { id: 'seg1', startTime: 0, endTime: 4, text: 'Sibling open-file test segment.' }
+          ]
+        },
+        null,
+        2
+      ),
+      'utf-8'
+    )
+
+    electronApp = await electron.launch({
+      args: [path.join(getElectronMainPath()), '--no-sandbox'],
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        DISPLAY: process.env.DISPLAY || ':99'
+      }
+    })
+
+    window = await electronApp.firstWindow()
+    await window.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(window)
+    enableConsoleCapture(window)
+
+    await electronApp.evaluate(async ({ app }, p) => {
+      app.emit('open-file', { preventDefault: () => {} } as any, p)
+    }, mediaPath)
+
+    await window.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        return store?.document?.segments?.length > 0
+      },
+      { timeout: 5000 }
+    )
+
+    const storeState = await window.evaluate(() => {
+      const store = (window as any).$store
+      return { filePath: store?.document?.filePath, firstText: store?.document?.segments?.[0]?.text }
+    })
+
+    expect(storeState.filePath).toBe(captionsFilePath)
+    expect(storeState.firstText).toBe('Sibling open-file test segment.')
+
+    await electronApp.close()
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
+  })
+
   test('should handle open-file event on macOS', async () => {
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
     const tempDir = path.join(getProjectRoot(), 'test_data', 'temp-file-association')
     await fs.mkdir(tempDir, { recursive: true })
-    const captionsFilePath = path.join(tempDir, 'with-media-reference-macos.captions_json')
+    const captionsFilePath = path.join(tempDir, 'with-media-reference-macos.captions_json5')
 
     await fs.writeFile(
       captionsFilePath,
@@ -192,6 +312,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(window)
     enableConsoleCapture(window)
 
     // Simulate macOS open-file event by calling the IPC handler directly
@@ -239,6 +360,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(window)
     enableConsoleCapture(window)
 
     // Check that onFileOpen API is available

@@ -5,6 +5,7 @@ import * as os from 'os'
 import { fileURLToPath } from 'url'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { enableConsoleCapture } from '../helpers/console'
+import { acceptLicenseIfVisible } from '../helpers/license'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -26,7 +27,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             const sourceAudioPath = path.join(projectRoot, 'test_data/full_pipeline/OSR_us_000_0010_8k.wav')
 
             const destAudioPath = path.join(tmpDir, 'test_audio.wav')
-            const destCaptionsPath = path.join(tmpDir, 'test_audio.captions_json')
+            const destCaptionsPath = path.join(tmpDir, 'test_audio.captions_json5')
 
             fs.copyFileSync(sourceAudioPath, destAudioPath)
             fs.writeFileSync(destCaptionsPath, JSON.stringify({
@@ -66,6 +67,8 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             await page.waitForLoadState('domcontentloaded')
             // Wait for Vue app to mount and store to be available
             await page.waitForFunction(() => (window as any).$store || (window as any).store, { timeout: 10000 })
+
+            await acceptLicenseIfVisible(page)
 
             await page.evaluate(() => {
                 console.log('[Test] electronAPI keys:', Object.keys((window as any).electronAPI || {}))
@@ -145,6 +148,23 @@ test.describe('Speaker Embedding Integration @expensive', () => {
 
             expect(embeddingCount).toBeGreaterThan(0)
             expect(embeddingCount).toBe(segmentCount)
+
+            // Regression: loadFromFile after embed clears mediaPath; auto-load must restore it
+            // so the playback window does not show "No media loaded".
+            const mediaState = await page.evaluate(() => {
+                const store = (window as any).$store || (window as any).store
+                return {
+                    mediaPath: store.mediaPath as string | null | undefined,
+                    mediaFilePath: store.mediaFilePath as string | null | undefined
+                }
+            })
+            console.log('[Test] After embed — mediaPath:', mediaState.mediaPath?.slice(0, 48), '…')
+            expect(
+                mediaState.mediaPath,
+                'store.mediaPath should be set after embedding reload (same as opening captions with media in metadata)'
+            ).toBeTruthy()
+            expect(mediaState.mediaPath).toMatch(/^media:\/\//)
+            expect(mediaState.mediaFilePath).toBe(destAudioPath)
 
             // Close app
             await page.evaluate(() => {

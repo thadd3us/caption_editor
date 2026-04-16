@@ -1,32 +1,1671 @@
 # serializer version: 1
 # name: test_asr_post_processing_pipeline[whisper-10]
   dict({
-    'num_segments': 4,
-    'segments': list([
-      dict({
-        'duration': 8.94,
-        'end_time': 8.94,
-        'start_time': 0.0,
-        'text': 'The birch can use lid on the smooth planks. Glue the sheet blue easy the',
-      }),
-      dict({
-        'duration': 6.32,
-        'end_time': 15.86,
-        'start_time': 9.54,
-        'text': 'well. days chicken leg is a rare is often round',
-      }),
-      dict({
-        'duration': 9.64,
-        'end_time': 28.64,
-        'start_time': 19.0,
-        'text': 'punch. box beside pork fed corn steady faced',
-      }),
-      dict({
-        'duration': 1.759999999999998,
-        'end_time': 32.0,
-        'start_time': 30.240000000000002,
-        'text': 'A large size in stockings is hard to',
-      }),
-    ]),
+    'processed': dict({
+      'num_segments': 4,
+      'segments': list([
+        dict({
+          'duration': 8.94,
+          'end_time': 8.94,
+          'start_time': 0.0,
+          'text': 'The birch can use lid on the smooth planks. Glue the sheet blue easy the',
+        }),
+        dict({
+          'duration': 6.32,
+          'end_time': 15.86,
+          'start_time': 9.54,
+          'text': 'well. days chicken leg is a rare is often round',
+        }),
+        dict({
+          'duration': 9.64,
+          'end_time': 28.64,
+          'start_time': 19.0,
+          'text': 'punch. box beside pork fed corn steady faced',
+        }),
+        dict({
+          'duration': 1.76,
+          'end_time': 32.0,
+          'start_time': 30.24,
+          'text': 'A large size in stockings is hard to',
+        }),
+      ]),
+    }),
+    'rawAsrOutput': dict({
+      'segments': list([
+        dict({
+          'end': 0.68,
+          'start': 0.0,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 0.68,
+              'start': 0.0,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 1.12,
+          'start': 0.68,
+          'text': 'birch',
+          'words': list([
+            dict({
+              'end': 1.12,
+              'start': 0.68,
+              'word': 'birch',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 1.38,
+          'start': 1.12,
+          'text': 'can',
+          'words': list([
+            dict({
+              'end': 1.38,
+              'start': 1.12,
+              'word': 'can',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 1.68,
+          'start': 1.38,
+          'text': 'use',
+          'words': list([
+            dict({
+              'end': 1.68,
+              'start': 1.38,
+              'word': 'use',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 1.96,
+          'start': 1.68,
+          'text': 'lid',
+          'words': list([
+            dict({
+              'end': 1.96,
+              'start': 1.68,
+              'word': 'lid',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 2.24,
+          'start': 1.96,
+          'text': 'on',
+          'words': list([
+            dict({
+              'end': 2.24,
+              'start': 1.96,
+              'word': 'on',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 2.38,
+          'start': 2.24,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 2.38,
+              'start': 2.24,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 2.7,
+          'start': 2.38,
+          'text': 'smooth',
+          'words': list([
+            dict({
+              'end': 2.7,
+              'start': 2.38,
+              'word': 'smooth',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 4.62,
+          'start': 2.7,
+          'text': 'planks.',
+          'words': list([
+            dict({
+              'end': 4.62,
+              'start': 2.7,
+              'word': 'planks.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 4.62,
+          'start': 4.62,
+          'text': 'Glue',
+          'words': list([
+            dict({
+              'end': 4.62,
+              'start': 4.62,
+              'word': 'Glue',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 4.9,
+          'start': 4.62,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 4.9,
+              'start': 4.62,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.06,
+          'start': 4.9,
+          'text': 'sheet',
+          'words': list([
+            dict({
+              'end': 5.06,
+              'start': 4.9,
+              'word': 'sheet',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.3,
+          'start': 5.06,
+          'text': 'to',
+          'words': list([
+            dict({
+              'end': 5.3,
+              'start': 5.06,
+              'word': 'to',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.44,
+          'start': 5.3,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 5.44,
+              'start': 5.3,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.62,
+          'start': 5.44,
+          'text': 'dark',
+          'words': list([
+            dict({
+              'end': 5.62,
+              'start': 5.44,
+              'word': 'dark',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.82,
+          'start': 5.62,
+          'text': 'blue',
+          'words': list([
+            dict({
+              'end': 5.82,
+              'start': 5.62,
+              'word': 'blue',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 7.94,
+          'start': 5.82,
+          'text': 'background.',
+          'words': list([
+            dict({
+              'end': 7.94,
+              'start': 5.82,
+              'word': 'background.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.04,
+          'start': 7.94,
+          'text': 'It',
+          'words': list([
+            dict({
+              'end': 8.04,
+              'start': 7.94,
+              'word': 'It',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.16,
+          'start': 8.04,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 8.16,
+              'start': 8.04,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.3,
+          'start': 8.16,
+          'text': 'easy',
+          'words': list([
+            dict({
+              'end': 8.3,
+              'start': 8.16,
+              'word': 'easy',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.58,
+          'start': 8.3,
+          'text': 'to',
+          'words': list([
+            dict({
+              'end': 8.58,
+              'start': 8.3,
+              'word': 'to',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.72,
+          'start': 8.58,
+          'text': 'tell',
+          'words': list([
+            dict({
+              'end': 8.72,
+              'start': 8.58,
+              'word': 'tell',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.94,
+          'start': 8.72,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 8.94,
+              'start': 8.72,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.14,
+          'start': 8.94,
+          'text': 'depth',
+          'words': list([
+            dict({
+              'end': 9.14,
+              'start': 8.94,
+              'word': 'depth',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.46,
+          'start': 9.14,
+          'text': 'of',
+          'words': list([
+            dict({
+              'end': 9.46,
+              'start': 9.14,
+              'word': 'of',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.54,
+          'start': 9.46,
+          'text': 'a',
+          'words': list([
+            dict({
+              'end': 9.54,
+              'start': 9.46,
+              'word': 'a',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.2,
+          'start': 5.0,
+          'text': 'to',
+          'words': list([
+            dict({
+              'end': 5.2,
+              'start': 5.0,
+              'word': 'to',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.36,
+          'start': 5.2,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 5.36,
+              'start': 5.2,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.62,
+          'start': 5.36,
+          'text': 'dark',
+          'words': list([
+            dict({
+              'end': 5.62,
+              'start': 5.36,
+              'word': 'dark',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 5.84,
+          'start': 5.62,
+          'text': 'blue',
+          'words': list([
+            dict({
+              'end': 5.84,
+              'start': 5.62,
+              'word': 'blue',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.06,
+          'start': 5.84,
+          'text': 'background.',
+          'words': list([
+            dict({
+              'end': 8.06,
+              'start': 5.84,
+              'word': 'background.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.06,
+          'start': 8.06,
+          'text': 'It',
+          'words': list([
+            dict({
+              'end': 8.06,
+              'start': 8.06,
+              'word': 'It',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.16,
+          'start': 8.06,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 8.16,
+              'start': 8.06,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.34,
+          'start': 8.16,
+          'text': 'easy',
+          'words': list([
+            dict({
+              'end': 8.34,
+              'start': 8.16,
+              'word': 'easy',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.6,
+          'start': 8.34,
+          'text': 'to',
+          'words': list([
+            dict({
+              'end': 8.6,
+              'start': 8.34,
+              'word': 'to',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.72,
+          'start': 8.6,
+          'text': 'tell',
+          'words': list([
+            dict({
+              'end': 8.72,
+              'start': 8.6,
+              'word': 'tell',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 8.96,
+          'start': 8.72,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 8.96,
+              'start': 8.72,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.16,
+          'start': 8.96,
+          'text': 'depth',
+          'words': list([
+            dict({
+              'end': 9.16,
+              'start': 8.96,
+              'word': 'depth',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.48,
+          'start': 9.16,
+          'text': 'of',
+          'words': list([
+            dict({
+              'end': 9.48,
+              'start': 9.16,
+              'word': 'of',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.54,
+          'start': 9.48,
+          'text': 'a',
+          'words': list([
+            dict({
+              'end': 9.54,
+              'start': 9.48,
+              'word': 'a',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 10.98,
+          'start': 9.54,
+          'text': 'well.',
+          'words': list([
+            dict({
+              'end': 10.98,
+              'start': 9.54,
+              'word': 'well.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.18,
+          'start': 10.98,
+          'text': 'These',
+          'words': list([
+            dict({
+              'end': 11.18,
+              'start': 10.98,
+              'word': 'These',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.44,
+          'start': 11.18,
+          'text': 'days',
+          'words': list([
+            dict({
+              'end': 11.44,
+              'start': 11.18,
+              'word': 'days',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.62,
+          'start': 11.44,
+          'text': 'a',
+          'words': list([
+            dict({
+              'end': 11.62,
+              'start': 11.44,
+              'word': 'a',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.82,
+          'start': 11.62,
+          'text': 'chicken',
+          'words': list([
+            dict({
+              'end': 11.82,
+              'start': 11.62,
+              'word': 'chicken',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.04,
+          'start': 11.82,
+          'text': 'leg',
+          'words': list([
+            dict({
+              'end': 12.04,
+              'start': 11.82,
+              'word': 'leg',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.24,
+          'start': 12.04,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 12.24,
+              'start': 12.04,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.36,
+          'start': 12.24,
+          'text': 'a',
+          'words': list([
+            dict({
+              'end': 12.36,
+              'start': 12.24,
+              'word': 'a',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.54,
+          'start': 12.36,
+          'text': 'rare',
+          'words': list([
+            dict({
+              'end': 12.54,
+              'start': 12.36,
+              'word': 'rare',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 14.34,
+          'start': 12.54,
+          'text': 'dish.',
+          'words': list([
+            dict({
+              'end': 14.34,
+              'start': 12.54,
+              'word': 'dish.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 14.54,
+          'start': 14.34,
+          'text': 'Rice',
+          'words': list([
+            dict({
+              'end': 14.54,
+              'start': 14.34,
+              'word': 'Rice',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 14.8,
+          'start': 14.54,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 14.8,
+              'start': 14.54,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.18,
+          'start': 10.78,
+          'text': 'These',
+          'words': list([
+            dict({
+              'end': 11.18,
+              'start': 10.78,
+              'word': 'These',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.44,
+          'start': 11.18,
+          'text': 'days',
+          'words': list([
+            dict({
+              'end': 11.44,
+              'start': 11.18,
+              'word': 'days',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.62,
+          'start': 11.44,
+          'text': 'a',
+          'words': list([
+            dict({
+              'end': 11.62,
+              'start': 11.44,
+              'word': 'a',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 11.82,
+          'start': 11.62,
+          'text': 'chicken',
+          'words': list([
+            dict({
+              'end': 11.82,
+              'start': 11.62,
+              'word': 'chicken',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.04,
+          'start': 11.82,
+          'text': 'leg',
+          'words': list([
+            dict({
+              'end': 12.04,
+              'start': 11.82,
+              'word': 'leg',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.24,
+          'start': 12.04,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 12.24,
+              'start': 12.04,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.36,
+          'start': 12.24,
+          'text': 'a',
+          'words': list([
+            dict({
+              'end': 12.36,
+              'start': 12.24,
+              'word': 'a',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 12.56,
+          'start': 12.36,
+          'text': 'rare',
+          'words': list([
+            dict({
+              'end': 12.56,
+              'start': 12.36,
+              'word': 'rare',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 14.38,
+          'start': 12.56,
+          'text': 'dish.',
+          'words': list([
+            dict({
+              'end': 14.38,
+              'start': 12.56,
+              'word': 'dish.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 14.54,
+          'start': 14.38,
+          'text': 'Rice',
+          'words': list([
+            dict({
+              'end': 14.54,
+              'start': 14.38,
+              'word': 'Rice',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 14.8,
+          'start': 14.54,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 14.8,
+              'start': 14.54,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.12,
+          'start': 14.8,
+          'text': 'often',
+          'words': list([
+            dict({
+              'end': 15.12,
+              'start': 14.8,
+              'word': 'often',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.38,
+          'start': 15.12,
+          'text': 'served',
+          'words': list([
+            dict({
+              'end': 15.38,
+              'start': 15.12,
+              'word': 'served',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.64,
+          'start': 15.38,
+          'text': 'in',
+          'words': list([
+            dict({
+              'end': 15.64,
+              'start': 15.38,
+              'word': 'in',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.86,
+          'start': 15.64,
+          'text': 'round',
+          'words': list([
+            dict({
+              'end': 15.86,
+              'start': 15.64,
+              'word': 'round',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 17.5,
+          'start': 15.86,
+          'text': 'bowls.',
+          'words': list([
+            dict({
+              'end': 17.5,
+              'start': 15.86,
+              'word': 'bowls.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 17.56,
+          'start': 17.5,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 17.56,
+              'start': 17.5,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 17.76,
+          'start': 17.56,
+          'text': 'juice',
+          'words': list([
+            dict({
+              'end': 17.76,
+              'start': 17.56,
+              'word': 'juice',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.0,
+          'start': 17.76,
+          'text': 'of',
+          'words': list([
+            dict({
+              'end': 18.0,
+              'start': 17.76,
+              'word': 'of',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.26,
+          'start': 18.0,
+          'text': 'lemon',
+          'words': list([
+            dict({
+              'end': 18.26,
+              'start': 18.0,
+              'word': 'lemon',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.58,
+          'start': 18.26,
+          'text': 'makes',
+          'words': list([
+            dict({
+              'end': 18.58,
+              'start': 18.26,
+              'word': 'makes',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.98,
+          'start': 18.58,
+          'text': 'fine',
+          'words': list([
+            dict({
+              'end': 18.98,
+              'start': 18.58,
+              'word': 'fine',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.42,
+          'start': 15.0,
+          'text': 'served',
+          'words': list([
+            dict({
+              'end': 15.42,
+              'start': 15.0,
+              'word': 'served',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.64,
+          'start': 15.42,
+          'text': 'in',
+          'words': list([
+            dict({
+              'end': 15.64,
+              'start': 15.42,
+              'word': 'in',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 15.88,
+          'start': 15.64,
+          'text': 'round',
+          'words': list([
+            dict({
+              'end': 15.88,
+              'start': 15.64,
+              'word': 'round',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 17.54,
+          'start': 15.88,
+          'text': 'bowls.',
+          'words': list([
+            dict({
+              'end': 17.54,
+              'start': 15.88,
+              'word': 'bowls.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 17.54,
+          'start': 17.54,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 17.54,
+              'start': 17.54,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 17.78,
+          'start': 17.54,
+          'text': 'juice',
+          'words': list([
+            dict({
+              'end': 17.78,
+              'start': 17.54,
+              'word': 'juice',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.02,
+          'start': 17.78,
+          'text': 'of',
+          'words': list([
+            dict({
+              'end': 18.02,
+              'start': 17.78,
+              'word': 'of',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.28,
+          'start': 18.02,
+          'text': 'lemon',
+          'words': list([
+            dict({
+              'end': 18.28,
+              'start': 18.02,
+              'word': 'lemon',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 18.6,
+          'start': 18.28,
+          'text': 'makes',
+          'words': list([
+            dict({
+              'end': 18.6,
+              'start': 18.28,
+              'word': 'makes',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 19.0,
+          'start': 18.6,
+          'text': 'fine',
+          'words': list([
+            dict({
+              'end': 19.0,
+              'start': 18.6,
+              'word': 'fine',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 20.6,
+          'start': 19.0,
+          'text': 'punch.',
+          'words': list([
+            dict({
+              'end': 20.6,
+              'start': 19.0,
+              'word': 'punch.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 20.64,
+          'start': 20.6,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 20.64,
+              'start': 20.6,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 20.9,
+          'start': 20.64,
+          'text': 'box',
+          'words': list([
+            dict({
+              'end': 20.9,
+              'start': 20.64,
+              'word': 'box',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 21.16,
+          'start': 20.9,
+          'text': 'was',
+          'words': list([
+            dict({
+              'end': 21.16,
+              'start': 20.9,
+              'word': 'was',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 21.38,
+          'start': 21.16,
+          'text': 'thrown',
+          'words': list([
+            dict({
+              'end': 21.38,
+              'start': 21.16,
+              'word': 'thrown',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 21.72,
+          'start': 21.38,
+          'text': 'beside',
+          'words': list([
+            dict({
+              'end': 21.72,
+              'start': 21.38,
+              'word': 'beside',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 22.08,
+          'start': 21.72,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 22.08,
+              'start': 21.72,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 22.18,
+          'start': 22.08,
+          'text': 'pork',
+          'words': list([
+            dict({
+              'end': 22.18,
+              'start': 22.08,
+              'word': 'pork',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 23.82,
+          'start': 22.18,
+          'text': 'chuck.',
+          'words': list([
+            dict({
+              'end': 23.82,
+              'start': 22.18,
+              'word': 'chuck.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 23.98,
+          'start': 23.82,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 23.98,
+              'start': 23.82,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.34,
+          'start': 23.98,
+          'text': 'hogs',
+          'words': list([
+            dict({
+              'end': 24.34,
+              'start': 23.98,
+              'word': 'hogs',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.44,
+          'start': 24.34,
+          'text': 'were',
+          'words': list([
+            dict({
+              'end': 24.44,
+              'start': 24.34,
+              'word': 'were',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.64,
+          'start': 24.44,
+          'text': 'fed',
+          'words': list([
+            dict({
+              'end': 24.64,
+              'start': 24.44,
+              'word': 'fed',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 20.64,
+          'start': 20.34,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 20.64,
+              'start': 20.34,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 20.92,
+          'start': 20.64,
+          'text': 'box',
+          'words': list([
+            dict({
+              'end': 20.92,
+              'start': 20.64,
+              'word': 'box',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 21.14,
+          'start': 20.92,
+          'text': 'was',
+          'words': list([
+            dict({
+              'end': 21.14,
+              'start': 20.92,
+              'word': 'was',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 21.38,
+          'start': 21.14,
+          'text': 'thrown',
+          'words': list([
+            dict({
+              'end': 21.38,
+              'start': 21.14,
+              'word': 'thrown',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 21.7,
+          'start': 21.38,
+          'text': 'beside',
+          'words': list([
+            dict({
+              'end': 21.7,
+              'start': 21.38,
+              'word': 'beside',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 22.08,
+          'start': 21.7,
+          'text': 'the',
+          'words': list([
+            dict({
+              'end': 22.08,
+              'start': 21.7,
+              'word': 'the',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 22.16,
+          'start': 22.08,
+          'text': 'pork',
+          'words': list([
+            dict({
+              'end': 22.16,
+              'start': 22.08,
+              'word': 'pork',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 23.86,
+          'start': 22.16,
+          'text': 'chuck.',
+          'words': list([
+            dict({
+              'end': 23.86,
+              'start': 22.16,
+              'word': 'chuck.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 23.96,
+          'start': 23.86,
+          'text': 'The',
+          'words': list([
+            dict({
+              'end': 23.96,
+              'start': 23.86,
+              'word': 'The',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.32,
+          'start': 23.96,
+          'text': 'hogs',
+          'words': list([
+            dict({
+              'end': 24.32,
+              'start': 23.96,
+              'word': 'hogs',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.44,
+          'start': 24.32,
+          'text': 'were',
+          'words': list([
+            dict({
+              'end': 24.44,
+              'start': 24.32,
+              'word': 'were',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.62,
+          'start': 24.44,
+          'text': 'fed',
+          'words': list([
+            dict({
+              'end': 24.62,
+              'start': 24.44,
+              'word': 'fed',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 24.96,
+          'start': 24.62,
+          'text': 'chopped',
+          'words': list([
+            dict({
+              'end': 24.96,
+              'start': 24.62,
+              'word': 'chopped',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 25.24,
+          'start': 24.96,
+          'text': 'corn',
+          'words': list([
+            dict({
+              'end': 25.24,
+              'start': 24.96,
+              'word': 'corn',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 25.4,
+          'start': 25.24,
+          'text': 'and',
+          'words': list([
+            dict({
+              'end': 25.4,
+              'start': 25.24,
+              'word': 'and',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.22,
+          'start': 25.4,
+          'text': 'garbage.',
+          'words': list([
+            dict({
+              'end': 27.22,
+              'start': 25.4,
+              'word': 'garbage.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.38,
+          'start': 27.22,
+          'text': 'Four',
+          'words': list([
+            dict({
+              'end': 27.38,
+              'start': 27.22,
+              'word': 'Four',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.7,
+          'start': 27.38,
+          'text': 'hours',
+          'words': list([
+            dict({
+              'end': 27.7,
+              'start': 27.38,
+              'word': 'hours',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.88,
+          'start': 27.7,
+          'text': 'of',
+          'words': list([
+            dict({
+              'end': 27.88,
+              'start': 27.7,
+              'word': 'of',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 28.0,
+          'start': 27.88,
+          'text': 'steady',
+          'words': list([
+            dict({
+              'end': 28.0,
+              'start': 27.88,
+              'word': 'steady',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 28.32,
+          'start': 28.0,
+          'text': 'work',
+          'words': list([
+            dict({
+              'end': 28.32,
+              'start': 28.0,
+              'word': 'work',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 28.64,
+          'start': 28.32,
+          'text': 'faced',
+          'words': list([
+            dict({
+              'end': 28.64,
+              'start': 28.32,
+              'word': 'faced',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 25.34,
+          'start': 25.0,
+          'text': 'and',
+          'words': list([
+            dict({
+              'end': 25.34,
+              'start': 25.0,
+              'word': 'and',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.2,
+          'start': 25.34,
+          'text': 'garbage.',
+          'words': list([
+            dict({
+              'end': 27.2,
+              'start': 25.34,
+              'word': 'garbage.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.36,
+          'start': 27.2,
+          'text': 'Four',
+          'words': list([
+            dict({
+              'end': 27.36,
+              'start': 27.2,
+              'word': 'Four',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.68,
+          'start': 27.36,
+          'text': 'hours',
+          'words': list([
+            dict({
+              'end': 27.68,
+              'start': 27.36,
+              'word': 'hours',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 27.88,
+          'start': 27.68,
+          'text': 'of',
+          'words': list([
+            dict({
+              'end': 27.88,
+              'start': 27.68,
+              'word': 'of',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 28.02,
+          'start': 27.88,
+          'text': 'steady',
+          'words': list([
+            dict({
+              'end': 28.02,
+              'start': 27.88,
+              'word': 'steady',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 28.32,
+          'start': 28.02,
+          'text': 'work',
+          'words': list([
+            dict({
+              'end': 28.32,
+              'start': 28.02,
+              'word': 'work',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 28.62,
+          'start': 28.32,
+          'text': 'faced',
+          'words': list([
+            dict({
+              'end': 28.62,
+              'start': 28.32,
+              'word': 'faced',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 30.24,
+          'start': 28.62,
+          'text': 'us.',
+          'words': list([
+            dict({
+              'end': 30.24,
+              'start': 28.62,
+              'word': 'us.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 30.32,
+          'start': 30.24,
+          'text': 'A',
+          'words': list([
+            dict({
+              'end': 30.32,
+              'start': 30.24,
+              'word': 'A',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 30.52,
+          'start': 30.32,
+          'text': 'large',
+          'words': list([
+            dict({
+              'end': 30.52,
+              'start': 30.32,
+              'word': 'large',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 30.78,
+          'start': 30.52,
+          'text': 'size',
+          'words': list([
+            dict({
+              'end': 30.78,
+              'start': 30.52,
+              'word': 'size',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 31.0,
+          'start': 30.78,
+          'text': 'in',
+          'words': list([
+            dict({
+              'end': 31.0,
+              'start': 30.78,
+              'word': 'in',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 31.36,
+          'start': 31.0,
+          'text': 'stockings',
+          'words': list([
+            dict({
+              'end': 31.36,
+              'start': 31.0,
+              'word': 'stockings',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 31.54,
+          'start': 31.36,
+          'text': 'is',
+          'words': list([
+            dict({
+              'end': 31.54,
+              'start': 31.36,
+              'word': 'is',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 31.78,
+          'start': 31.54,
+          'text': 'hard',
+          'words': list([
+            dict({
+              'end': 31.78,
+              'start': 31.54,
+              'word': 'hard',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 32.0,
+          'start': 31.78,
+          'text': 'to',
+          'words': list([
+            dict({
+              'end': 32.0,
+              'start': 31.78,
+              'word': 'to',
+            }),
+          ]),
+        }),
+      ]),
+      'version': 1,
+    }),
   })
 # ---

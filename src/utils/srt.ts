@@ -1,5 +1,5 @@
 import type { TranscriptSegment, CaptionsDocument } from '../types/schema'
-import { createDocumentFromSegments } from './captionsJson'
+import { createDocumentFromSegments } from './captionsJson5'
 import SrtParser from '@qgustavor/srt-parser'
 
 type SrtEntryFromParser = {

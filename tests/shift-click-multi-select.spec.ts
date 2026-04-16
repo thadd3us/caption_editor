@@ -1,7 +1,7 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 
 test.describe('Caption Editor - Shift-Click Multi-Select', () => {
-  test('should select range of rows with shift-click and bulk set speaker', async ({ page }) => {
+  test('should select range of rows with shift-click and set speaker on all selected', async ({ page }) => {
     const window = page
     // Load captions JSON with multiple segments
     const loadResult = await window.evaluate(() => {
@@ -20,7 +20,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
       }, null, 2)
 
       try {
-        vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
+        vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
         return { success: true, segmentCount: vttStore.document.segments.length }
       } catch (error) {
         return { success: false, error: String(error) }
@@ -61,42 +61,23 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     expect(selectedRows).toContain('cue4')
     expect(selectedRows).not.toContain('cue5')
 
-    // Now use bulk set speaker on the selected rows
-    // Store selected rows for App.vue and open dialog
+    // Edit speaker on first selected row — applies to all selected rows
     await window.evaluate(() => {
       const gridApi = (window as any).__agGridApi
-      const selectedRows = gridApi.getSelectedRows().map((r: any) => ({
-        id: r.id,
-        text: r.text,
-        speakerName: r.speakerName
-      }))
-      ;(window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openBulkSetSpeakerDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      if (!gridApi) throw new Error('Grid API not available')
+      gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
 
-    // Dialog should be visible
-    const dialog = window.locator('.base-modal-overlay')
-    await expect(dialog).toBeVisible()
-
-    // Check that row count is displayed correctly
-    await expect(dialog).toContainText('4 selected rows')
-
-    // Enter speaker name
-    const input = window.locator('#speaker-name-input')
-    await input.fill('Bob')
-
-    // Click Set Speaker button
+    const editorInput = window.locator('.speaker-name-editor')
+    await expect(editorInput).toBeVisible({ timeout: 5000 })
     await window.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'))
-      const setBtn = buttons.find(b => b.textContent?.includes('Set Speaker'))
-      if (setBtn) setBtn.click()
+      const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
+      if (!input) throw new Error('speaker-name-editor input not found')
+      input.value = 'Bob'
+      input.dispatchEvent(new Event('input', { bubbles: true }))
     })
-
-    // Verify dialog closed
-    await expect(dialog).not.toBeVisible()
+    await editorInput.press('Enter')
+    await window.waitForTimeout(200)
 
     // Verify speaker was set for the 4 selected rows
     const speakerNames = await window.evaluate(() => {
@@ -136,7 +117,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
         ]
       }, null, 2)
 
-      vttStore.loadFromFile(captionsContent, '/test/file.captions_json')
+      vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
     // Wait for rows to render

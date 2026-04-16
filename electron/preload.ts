@@ -85,6 +85,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isElectron: true,
 
   /**
+   * License agreement (sync read for first paint; stored in userData, not localStorage)
+   */
+  getLicenseAcceptedSync: (): boolean => {
+    try {
+      return ipcRenderer.sendSync('license:getAcceptedSync') === true
+    } catch {
+      return false
+    }
+  },
+
+  setLicenseAccepted: (): Promise<void> => ipcRenderer.invoke('license:setAccepted'),
+
+  ...(process.env.NODE_ENV === 'test'
+    ? {
+        clearLicenseAcceptedForTests: (): Promise<void> =>
+          ipcRenderer.invoke('license:clearAcceptedForTests')
+      }
+    : {}),
+
+  /**
    * Check if running under Playwright/E2E test environment.
    * Used to disable problematic browser features in tests (e.g. datalist in Electron).
    */

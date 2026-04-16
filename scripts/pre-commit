@@ -7,6 +7,10 @@
 
 set -e
 
+# Always run from the repo root, regardless of where the commit was invoked.
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
 echo "🔍 Running pre-commit checks..."
 
 # Auto-install dependencies if missing
@@ -31,10 +35,10 @@ uv run ruff format .
 # Avoid `git add -u .` which, in sparse worktrees (e.g. Mux), marks every
 # file not present on disk as a deletion and silently folds those deletions
 # into the commit.
-git diff --name-only . | xargs -r git add --
+git diff --relative --name-only . | xargs -r git add --
 
 echo "🐍 Running pyright..."
 uv run pyright
-cd ..
+cd "$REPO_ROOT"
 
 echo "✅ All pre-commit checks passed!"

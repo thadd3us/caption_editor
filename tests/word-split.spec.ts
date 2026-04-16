@@ -13,7 +13,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
     await window.evaluate(({ content }) => {
       const vttStore = (window as any).$store
       if (!vttStore) return
-      vttStore.loadFromFile(content, '/test/file.captions_json')
+      vttStore.loadFromFile(content, '/test/file.captions_json5')
     }, { content: captionsContent })
 
     await window.waitForFunction((count) => {
@@ -45,7 +45,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should render words as spans when segment has word-level timestamps', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [
         {
@@ -61,7 +61,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
         }
       ]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
     // Seek to the segment time to display it
     await setCurrentTimeAndWait(2.0)
@@ -87,7 +87,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should show context menu on word right-click with split option enabled', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [
         {
@@ -103,7 +103,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
         }
       ]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="1"]', { timeout: 2000 })
 
@@ -122,7 +122,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should split segment when clicking split option in context menu', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [
         {
@@ -140,7 +140,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
         }
       ]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="1"]', { timeout: 2000 })
 
@@ -205,7 +205,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should show disabled split option for first word', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [
         {
@@ -220,7 +220,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
         }
       ]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="0"]', { timeout: 2000 })
 
@@ -240,7 +240,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should show disabled split option for word without timestamp', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [
         {
@@ -256,7 +256,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
         }
       ]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="1"]', { timeout: 2000 })
 
@@ -280,11 +280,11 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should fall back to plain text display when segment has no words', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [{ id: 'seg1', startTime: 1, endTime: 5, text: 'Hello world' }]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.caption-text', { timeout: 2000 })
 
@@ -298,7 +298,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
   })
 
   test('should preserve speaker metadata when splitting segment', async () => {
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc1' },
       segments: [
         {
@@ -316,7 +316,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
         }
       ]
     })
-    await loadCaptionsAndWaitForSegments(captionsJson, 1)
+    await loadCaptionsAndWaitForSegments(captionsJson5, 1)
     await setCurrentTimeAndWait(2.0)
     await window.waitForSelector('.word-span[data-word-index="2"]', { timeout: 2000 })
 

@@ -1,68 +1,730 @@
 # serializer version: 1
 # name: test_asr_post_processing_pipeline[parakeet-10]
   dict({
-    'num_segments': 10,
-    'segments': list([
-      dict({
-        'duration': 3.2,
-        'end_time': 3.44,
-        'start_time': 0.24,
-        'text': 'The birch canoe slid on the smooth planks.',
-      }),
-      dict({
-        'duration': 3.2,
-        'end_time': 7.2,
-        'start_time': 4.0,
-        'text': 'Glue the sheet to the dark blue background.',
-      }),
-      dict({
-        'duration': 2.3199999999999994,
-        'end_time': 9.76,
-        'start_time': 7.44,
-        'text': 'It is easy to tell the depth of a well.',
-      }),
-      dict({
-        'duration': 3.039999999999999,
-        'end_time': 13.52,
-        'start_time': 10.48,
-        'text': 'These days a chicken leg is a rare dish.',
-      }),
-      dict({
-        'duration': 2.799999999999999,
-        'end_time': 16.72,
-        'start_time': 13.92,
-        'text': 'Rice is often served in round bowls.',
-      }),
-      dict({
-        'duration': 2.84,
-        'end_time': 19.8,
-        'start_time': 16.96,
-        'text': 'The juice of lemons makes makes fine punch.',
-      }),
-      dict({
-        'duration': 2.759999999999998,
-        'end_time': 22.88,
-        'start_time': 20.12,
-        'text': 'The box was thrown beside the parked truck.',
-      }),
-      dict({
-        'duration': 2.919999999999998,
-        'end_time': 26.36,
-        'start_time': 23.44,
-        'text': 'The hogs were fed chopped corn and garbage.',
-      }),
-      dict({
-        'duration': 2.5599999999999987,
-        'end_time': 29.32,
-        'start_time': 26.76,
-        'text': 'Four hours of steady work work faced us.',
-      }),
-      dict({
-        'duration': 2.639999999999997,
-        'end_time': 32.44,
-        'start_time': 29.8,
-        'text': 'A large size in stockings is hard to sell.',
-      }),
-    ]),
+    'processed': dict({
+      'num_segments': 10,
+      'segments': list([
+        dict({
+          'duration': 3.2,
+          'end_time': 3.44,
+          'start_time': 0.24,
+          'text': 'The birch canoe slid on the smooth planks.',
+        }),
+        dict({
+          'duration': 3.2,
+          'end_time': 7.2,
+          'start_time': 4.0,
+          'text': 'Glue the sheet to the dark blue background.',
+        }),
+        dict({
+          'duration': 2.32,
+          'end_time': 9.76,
+          'start_time': 7.44,
+          'text': 'It is easy to tell the depth of a well.',
+        }),
+        dict({
+          'duration': 3.04,
+          'end_time': 13.52,
+          'start_time': 10.48,
+          'text': 'These days a chicken leg is a rare dish.',
+        }),
+        dict({
+          'duration': 2.8,
+          'end_time': 16.72,
+          'start_time': 13.92,
+          'text': 'Rice is often served in round bowls.',
+        }),
+        dict({
+          'duration': 2.84,
+          'end_time': 19.8,
+          'start_time': 16.96,
+          'text': 'The juice of lemons makes makes fine punch.',
+        }),
+        dict({
+          'duration': 2.76,
+          'end_time': 22.88,
+          'start_time': 20.12,
+          'text': 'The box was thrown beside the parked truck.',
+        }),
+        dict({
+          'duration': 2.92,
+          'end_time': 26.36,
+          'start_time': 23.44,
+          'text': 'The hogs were fed chopped corn and garbage.',
+        }),
+        dict({
+          'duration': 2.56,
+          'end_time': 29.32,
+          'start_time': 26.76,
+          'text': 'Four hours of steady work work faced us.',
+        }),
+        dict({
+          'duration': 2.64,
+          'end_time': 32.44,
+          'start_time': 29.8,
+          'text': 'A large size in stockings is hard to sell.',
+        }),
+      ]),
+    }),
+    'rawAsrOutput': dict({
+      'segments': list([
+        dict({
+          'end': 3.44,
+          'start': 0.24,
+          'text': 'The birch canoe slid on the smooth planks.',
+          'words': list([
+            dict({
+              'end': 0.56,
+              'start': 0.24,
+              'word': 'The',
+            }),
+            dict({
+              'end': 1.12,
+              'start': 0.56,
+              'word': 'birch',
+            }),
+            dict({
+              'end': 1.6,
+              'start': 1.12,
+              'word': 'canoe',
+            }),
+            dict({
+              'end': 2.0,
+              'start': 1.6,
+              'word': 'slid',
+            }),
+            dict({
+              'end': 2.16,
+              'start': 2.0,
+              'word': 'on',
+            }),
+            dict({
+              'end': 2.24,
+              'start': 2.16,
+              'word': 'the',
+            }),
+            dict({
+              'end': 2.8,
+              'start': 2.24,
+              'word': 'smooth',
+            }),
+            dict({
+              'end': 3.44,
+              'start': 2.8,
+              'word': 'planks.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 7.2,
+          'start': 4.0,
+          'text': 'Glue the sheet to the dark blue background.',
+          'words': list([
+            dict({
+              'end': 4.56,
+              'start': 4.0,
+              'word': 'Glue',
+            }),
+            dict({
+              'end': 4.72,
+              'start': 4.56,
+              'word': 'the',
+            }),
+            dict({
+              'end': 5.04,
+              'start': 4.72,
+              'word': 'sheet',
+            }),
+            dict({
+              'end': 5.2,
+              'start': 5.04,
+              'word': 'to',
+            }),
+            dict({
+              'end': 5.28,
+              'start': 5.2,
+              'word': 'the',
+            }),
+            dict({
+              'end': 5.6,
+              'start': 5.28,
+              'word': 'dark',
+            }),
+            dict({
+              'end': 6.0,
+              'start': 5.6,
+              'word': 'blue',
+            }),
+            dict({
+              'end': 7.2,
+              'start': 6.0,
+              'word': 'background.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 9.76,
+          'start': 7.44,
+          'text': 'It is easy to tell the depth of a well.',
+          'words': list([
+            dict({
+              'end': 7.76,
+              'start': 7.44,
+              'word': 'It',
+            }),
+            dict({
+              'end': 7.92,
+              'start': 7.76,
+              'word': 'is',
+            }),
+            dict({
+              'end': 8.24,
+              'start': 7.92,
+              'word': 'easy',
+            }),
+            dict({
+              'end': 8.4,
+              'start': 8.24,
+              'word': 'to',
+            }),
+            dict({
+              'end': 8.64,
+              'start': 8.4,
+              'word': 'tell',
+            }),
+            dict({
+              'end': 8.72,
+              'start': 8.64,
+              'word': 'the',
+            }),
+            dict({
+              'end': 9.12,
+              'start': 8.72,
+              'word': 'depth',
+            }),
+            dict({
+              'end': 9.28,
+              'start': 9.12,
+              'word': 'of',
+            }),
+            dict({
+              'end': 9.44,
+              'start': 9.28,
+              'word': 'a',
+            }),
+            dict({
+              'end': 9.76,
+              'start': 9.44,
+              'word': 'well.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 13.52,
+          'start': 10.48,
+          'text': 'These days a chicken leg is a rare dish.',
+          'words': list([
+            dict({
+              'end': 10.88,
+              'start': 10.48,
+              'word': 'These',
+            }),
+            dict({
+              'end': 11.2,
+              'start': 10.88,
+              'word': 'days',
+            }),
+            dict({
+              'end': 11.36,
+              'start': 11.28,
+              'word': 'a',
+            }),
+            dict({
+              'end': 11.84,
+              'start': 11.36,
+              'word': 'chicken',
+            }),
+            dict({
+              'end': 12.08,
+              'start': 11.84,
+              'word': 'leg',
+            }),
+            dict({
+              'end': 12.24,
+              'start': 12.08,
+              'word': 'is',
+            }),
+            dict({
+              'end': 12.32,
+              'start': 12.24,
+              'word': 'a',
+            }),
+            dict({
+              'end': 12.88,
+              'start': 12.32,
+              'word': 'rare',
+            }),
+            dict({
+              'end': 13.52,
+              'start': 12.88,
+              'word': 'dish.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 16.72,
+          'start': 13.92,
+          'text': 'Rice is often served in round bowls.',
+          'words': list([
+            dict({
+              'end': 14.48,
+              'start': 13.92,
+              'word': 'Rice',
+            }),
+            dict({
+              'end': 14.64,
+              'start': 14.48,
+              'word': 'is',
+            }),
+            dict({
+              'end': 14.96,
+              'start': 14.64,
+              'word': 'often',
+            }),
+            dict({
+              'end': 15.28,
+              'start': 14.96,
+              'word': 'served',
+            }),
+            dict({
+              'end': 15.52,
+              'start': 15.28,
+              'word': 'in',
+            }),
+            dict({
+              'end': 15.92,
+              'start': 15.52,
+              'word': 'round',
+            }),
+            dict({
+              'end': 16.72,
+              'start': 15.92,
+              'word': 'bowls.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 19.68,
+          'start': 16.96,
+          'text': 'The juice of lemons makes fine punch',
+          'words': list([
+            dict({
+              'end': 17.28,
+              'start': 16.96,
+              'word': 'The',
+            }),
+            dict({
+              'end': 17.6,
+              'start': 17.28,
+              'word': 'juice',
+            }),
+            dict({
+              'end': 17.76,
+              'start': 17.6,
+              'word': 'of',
+            }),
+            dict({
+              'end': 18.32,
+              'start': 17.76,
+              'word': 'lemons',
+            }),
+            dict({
+              'end': 18.64,
+              'start': 18.32,
+              'word': 'makes',
+            }),
+            dict({
+              'end': 19.12,
+              'start': 18.64,
+              'word': 'fine',
+            }),
+            dict({
+              'end': 19.68,
+              'start': 19.12,
+              'word': 'punch',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 16.68,
+          'start': 15.24,
+          'text': 'Served in round bowls.',
+          'words': list([
+            dict({
+              'end': 15.48,
+              'start': 15.24,
+              'word': 'Served',
+            }),
+            dict({
+              'end': 15.64,
+              'start': 15.48,
+              'word': 'in',
+            }),
+            dict({
+              'end': 15.88,
+              'start': 15.64,
+              'word': 'round',
+            }),
+            dict({
+              'end': 16.68,
+              'start': 15.88,
+              'word': 'bowls.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 19.8,
+          'start': 17.0,
+          'text': 'The juice of lemons makes fine punch.',
+          'words': list([
+            dict({
+              'end': 17.32,
+              'start': 17.0,
+              'word': 'The',
+            }),
+            dict({
+              'end': 17.64,
+              'start': 17.32,
+              'word': 'juice',
+            }),
+            dict({
+              'end': 17.8,
+              'start': 17.64,
+              'word': 'of',
+            }),
+            dict({
+              'end': 18.36,
+              'start': 17.8,
+              'word': 'lemons',
+            }),
+            dict({
+              'end': 18.68,
+              'start': 18.36,
+              'word': 'makes',
+            }),
+            dict({
+              'end': 19.16,
+              'start': 18.68,
+              'word': 'fine',
+            }),
+            dict({
+              'end': 19.8,
+              'start': 19.16,
+              'word': 'punch.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 22.84,
+          'start': 20.12,
+          'text': 'The box was thrown beside the park truck.',
+          'words': list([
+            dict({
+              'end': 20.44,
+              'start': 20.12,
+              'word': 'The',
+            }),
+            dict({
+              'end': 20.84,
+              'start': 20.44,
+              'word': 'box',
+            }),
+            dict({
+              'end': 21.0,
+              'start': 20.84,
+              'word': 'was',
+            }),
+            dict({
+              'end': 21.32,
+              'start': 21.0,
+              'word': 'thrown',
+            }),
+            dict({
+              'end': 21.64,
+              'start': 21.32,
+              'word': 'beside',
+            }),
+            dict({
+              'end': 21.8,
+              'start': 21.64,
+              'word': 'the',
+            }),
+            dict({
+              'end': 22.28,
+              'start': 21.8,
+              'word': 'park',
+            }),
+            dict({
+              'end': 22.84,
+              'start': 22.28,
+              'word': 'truck.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 22.88,
+          'start': 20.24,
+          'text': 'The box was thrown beside the parked truck.',
+          'words': list([
+            dict({
+              'end': 20.48,
+              'start': 20.24,
+              'word': 'The',
+            }),
+            dict({
+              'end': 20.8,
+              'start': 20.48,
+              'word': 'box',
+            }),
+            dict({
+              'end': 20.96,
+              'start': 20.8,
+              'word': 'was',
+            }),
+            dict({
+              'end': 21.36,
+              'start': 20.96,
+              'word': 'thrown',
+            }),
+            dict({
+              'end': 21.6,
+              'start': 21.36,
+              'word': 'beside',
+            }),
+            dict({
+              'end': 21.76,
+              'start': 21.6,
+              'word': 'the',
+            }),
+            dict({
+              'end': 22.16,
+              'start': 21.76,
+              'word': 'parked',
+            }),
+            dict({
+              'end': 22.88,
+              'start': 22.32,
+              'word': 'truck.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 26.24,
+          'start': 23.44,
+          'text': 'The hogs were fed chopped corn and garbage.',
+          'words': list([
+            dict({
+              'end': 23.68,
+              'start': 23.44,
+              'word': 'The',
+            }),
+            dict({
+              'end': 24.08,
+              'start': 23.68,
+              'word': 'hogs',
+            }),
+            dict({
+              'end': 24.24,
+              'start': 24.08,
+              'word': 'were',
+            }),
+            dict({
+              'end': 24.56,
+              'start': 24.24,
+              'word': 'fed',
+            }),
+            dict({
+              'end': 25.04,
+              'start': 24.56,
+              'word': 'chopped',
+            }),
+            dict({
+              'end': 25.28,
+              'start': 25.04,
+              'word': 'corn',
+            }),
+            dict({
+              'end': 25.44,
+              'start': 25.28,
+              'word': 'and',
+            }),
+            dict({
+              'end': 26.24,
+              'start': 25.44,
+              'word': 'garbage.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 29.28,
+          'start': 26.8,
+          'text': 'Four hours of steady work faced us.',
+          'words': list([
+            dict({
+              'end': 27.2,
+              'start': 26.8,
+              'word': 'Four',
+            }),
+            dict({
+              'end': 27.44,
+              'start': 27.2,
+              'word': 'hours',
+            }),
+            dict({
+              'end': 27.68,
+              'start': 27.44,
+              'word': 'of',
+            }),
+            dict({
+              'end': 28.08,
+              'start': 27.68,
+              'word': 'steady',
+            }),
+            dict({
+              'end': 28.4,
+              'start': 28.08,
+              'word': 'work',
+            }),
+            dict({
+              'end': 28.96,
+              'start': 28.4,
+              'word': 'faced',
+            }),
+            dict({
+              'end': 29.28,
+              'start': 28.96,
+              'word': 'us.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 26.36,
+          'start': 25.16,
+          'text': 'Corn and garbage.',
+          'words': list([
+            dict({
+              'end': 25.32,
+              'start': 25.16,
+              'word': 'Corn',
+            }),
+            dict({
+              'end': 25.56,
+              'start': 25.4,
+              'word': 'and',
+            }),
+            dict({
+              'end': 26.36,
+              'start': 25.56,
+              'word': 'garbage.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 29.32,
+          'start': 26.76,
+          'text': 'Four hours of steady work faced us.',
+          'words': list([
+            dict({
+              'end': 27.24,
+              'start': 26.76,
+              'word': 'Four',
+            }),
+            dict({
+              'end': 27.48,
+              'start': 27.24,
+              'word': 'hours',
+            }),
+            dict({
+              'end': 27.64,
+              'start': 27.48,
+              'word': 'of',
+            }),
+            dict({
+              'end': 28.04,
+              'start': 27.64,
+              'word': 'steady',
+            }),
+            dict({
+              'end': 28.2,
+              'start': 28.04,
+              'word': 'work',
+            }),
+            dict({
+              'end': 29.0,
+              'start': 28.44,
+              'word': 'faced',
+            }),
+            dict({
+              'end': 29.32,
+              'start': 29.0,
+              'word': 'us.',
+            }),
+          ]),
+        }),
+        dict({
+          'end': 32.44,
+          'start': 29.8,
+          'text': 'A large size in stockings is hard to sell.',
+          'words': list([
+            dict({
+              'end': 30.04,
+              'start': 29.8,
+              'word': 'A',
+            }),
+            dict({
+              'end': 30.44,
+              'start': 30.04,
+              'word': 'large',
+            }),
+            dict({
+              'end': 30.76,
+              'start': 30.44,
+              'word': 'size',
+            }),
+            dict({
+              'end': 30.92,
+              'start': 30.76,
+              'word': 'in',
+            }),
+            dict({
+              'end': 31.4,
+              'start': 30.92,
+              'word': 'stockings',
+            }),
+            dict({
+              'end': 31.56,
+              'start': 31.4,
+              'word': 'is',
+            }),
+            dict({
+              'end': 31.88,
+              'start': 31.56,
+              'word': 'hard',
+            }),
+            dict({
+              'end': 32.12,
+              'start': 31.88,
+              'word': 'to',
+            }),
+            dict({
+              'end': 32.44,
+              'start': 32.12,
+              'word': 'sell.',
+            }),
+          ]),
+        }),
+      ]),
+      'version': 1,
+    }),
   })
 # ---

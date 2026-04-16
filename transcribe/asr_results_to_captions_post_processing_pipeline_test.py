@@ -14,7 +14,9 @@ from asr_results_to_captions import (
     parse_parakeet_raw_chunk,
     parse_whisper_raw_chunk,
     post_process_asr_segments,
+    raw_asr_segments_to_raw_asr_output,
 )
+from snapshot_test_utils import rounded_floats_matcher
 
 
 class SingleFileSnapshotExtension(AmberSnapshotExtension):
@@ -34,8 +36,10 @@ class SingleFileSnapshotExtension(AmberSnapshotExtension):
 
 @pytest.fixture
 def snapshot(snapshot):
-    """Override snapshot fixture to use single-file extension for this test file."""
-    return snapshot.use_extension(SingleFileSnapshotExtension)
+    """Single-file Amber snapshots + float rounding (stable diffs, values still visible)."""
+    return snapshot.use_extension(SingleFileSnapshotExtension)(
+        matcher=rounded_floats_matcher(ndigits=5),
+    )
 
 
 def load_and_parse_fixture(
@@ -135,5 +139,13 @@ def test_asr_post_processing_pipeline(model: str, chunk_size: int, snapshot):
         is_whisper=(model == "whisper"),
     )
 
-    # Compare with snapshot
-    assert format_result(processed_segments) == snapshot
+    raw_asr_output = raw_asr_segments_to_raw_asr_output(segments).model_dump(
+        by_alias=True, exclude_none=True
+    )
+
+    payload = {
+        "processed": format_result(processed_segments),
+        "rawAsrOutput": raw_asr_output,
+    }
+
+    assert payload == snapshot

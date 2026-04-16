@@ -5,7 +5,7 @@ import shutil
 
 from constants import MODEL_PARAKEET
 from typer.testing import CliRunner
-from captions_json_lib import parse_captions_json_file
+from captions_json5_lib import parse_captions_json5_file
 from transcribe_cli import app
 
 import pytest
@@ -28,7 +28,7 @@ def test_transcribe_apollo_11(repo_root: Path, tmp_path: Path, snapshot):
     test_audio = tmp_path / "Apollo-11_Day-05-Highlights_700s.mp3"
     shutil.copy2(source_audio, test_audio)
 
-    output_path = tmp_path / "apollo.captions_json"
+    output_path = tmp_path / "apollo.captions_json5"
 
     result = CliRunner().invoke(
         app,
@@ -45,7 +45,7 @@ def test_transcribe_apollo_11(repo_root: Path, tmp_path: Path, snapshot):
     assert result.exit_code == 0, f"Transcription failed: {result.output}"
     assert output_path.exists(), "Output captions JSON file was not created"
 
-    doc = parse_captions_json_file(output_path)
+    doc = parse_captions_json5_file(output_path)
 
     payload = doc.model_dump(by_alias=True, exclude_none=True)
     payload = _round_floats_deep(payload, ndigits=3)

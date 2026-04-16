@@ -25,7 +25,7 @@ test.describe('Caption Editor', () => {
           metadata: { id: 'drag-drop-doc' },
           segments: [{ id: 'cue1', startTime: 1, endTime: 4, text: 'Test caption' }]
         }, null, 2)],
-        'test.captions_json',
+        'test.captions_json5',
         { type: 'application/json' }
       )
       dt.items.add(file)
@@ -82,8 +82,9 @@ test.describe('Caption Editor', () => {
   })
 
   test('should display caption count', async ({ page }) => {
-    const header = page.locator('.table-header h2')
-    await expect(header).toContainText('Captions')
-    console.log('Caption count header is displayed')
+    const stats = page.locator('.grid-stats')
+    await expect(stats).toBeVisible()
+    await expect(stats).toContainText(/caption/)
+    console.log('Caption stats line is displayed')
   })
 })

@@ -1,4 +1,5 @@
 import { test, expect, _electron as electron } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
@@ -6,6 +7,19 @@ import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+/** License dialog (z-index 2000) stacks above the ASR modal (1000); dismiss whenever it appears. */
+async function dismissLicenseAgreementIfPresent(page: Page) {
+    const agree = page.getByRole('button', { name: 'I Agree' })
+    try {
+        await agree.waitFor({ state: 'visible', timeout: 2000 })
+    } catch {
+        return
+    }
+    console.log('[Test] Dismissing License Agreement (I Agree)')
+    await agree.click()
+    await agree.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {})
+}
 
 test.describe('ASR Cancellation Reproduction', () => {
     test('should remain responsive after cancelling ASR transcription', async () => {
@@ -35,6 +49,14 @@ test.describe('ASR Cancellation Reproduction', () => {
 
             const page = await electronApp.firstWindow()
 
+            // Forward renderer [ASR timing] lines so we can correlate with test wall clock.
+            page.on('console', (msg) => {
+                const t = msg.text()
+                if (t.includes('[ASR timing]')) {
+                    console.log('[Test][renderer]', t)
+                }
+            })
+
             // Set the ASR model override on the window
             await page.evaluate(() => {
                 (window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
@@ -42,6 +64,8 @@ test.describe('ASR Cancellation Reproduction', () => {
 
             // Wait for app to be ready - wait for the store to be available
             await page.waitForFunction(() => !!(window as any).$store, { timeout: 5000 })
+
+            await dismissLicenseAgreementIfPresent(page)
 
             // Load the audio file and wait for mediaFilePath to be set
             await page.evaluate((audioPath) => {
@@ -62,14 +86,30 @@ test.describe('ASR Cancellation Reproduction', () => {
                 { timeout: 5000 }
             )
 
+            const testWallStart = Date.now()
+            const logTestTiming = (label: string) => {
+                const now = Date.now()
+                console.log(
+                    `[Test timing] ${label} wallMs=${now} deltaFromTestStartMs=${now - testWallStart}`
+                )
+            }
+
             // Trigger ASR menu action
+            logTestTiming('before handleMenuAsrCaption()')
             await page.evaluate(() => {
                 (window as any).handleMenuAsrCaption()
             })
 
             // Wait for ASR modal to appear
             await page.waitForSelector('.asr-modal-overlay', { timeout: 5000 })
-            console.log('[Test] ASR modal appeared')
+            // First-run license can still sit above ASR; clear it so Cancel is clickable.
+            await dismissLicenseAgreementIfPresent(page)
+
+            const tModalVisible = Date.now()
+            logTestTiming('ASR modal overlay visible (selector matched)')
+            console.log(
+                '[Test timing] Compare renderer lines "[ASR timing] transcribe IPC invoke end ... elapsedMs=?" to "[Test timing] ... cancel click": if invoke end runs before the click with elapsedMs < 5000, ASR finished in under 5s on that run.'
+            )
 
             // Wait for the cancel button to be visible, then click it.
             // Flaky: the ASR process may finish (or the modal may start closing)
@@ -77,11 +117,23 @@ test.describe('ASR Cancellation Reproduction', () => {
             // the button to detach from the DOM mid-click. The retry handles this.
             const cancelButton = page.locator('.asr-button-cancel')
             await cancelButton.waitFor({ state: 'visible', timeout: 3000 })
+            const tCancelVisible = Date.now()
+            logTestTiming('cancel button visible')
+            console.log(
+                `[Test timing] ms from modal overlay to cancel button visible: ${tCancelVisible - tModalVisible}`
+            )
+
             console.log('[Test] Clicking cancel button')
+            const _tBeforeClick = Date.now()
             await cancelButton.click()
+            logTestTiming('after cancel click() resolved')
+            console.log(
+                `[Test timing] ms from modal visible to cancel click finished: ${Date.now() - tModalVisible}`
+            )
 
             // Wait for modal to disappear
             await page.waitForSelector('.asr-modal-overlay', { state: 'hidden', timeout: 3000 })
+            logTestTiming('ASR modal overlay hidden')
             console.log('[Test] ASR modal closed')
 
             // VERIFY APP IS STILL RESPONSIVE

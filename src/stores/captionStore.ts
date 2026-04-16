@@ -12,7 +12,7 @@ import {
   mergeAdjacentSegments as mergeAdjacentSegmentsInDoc,
   getCurrentTimestamp
 } from '../utils/captionsUtils'
-import { parseCaptionsJSON, serializeCaptionsJSON } from '../utils/captionsJson'
+import { parseCaptionsJSON5, serializeCaptionsJSON5 } from '../utils/captionsJson5'
 import { createDocumentFromSrtContent } from '../utils/srt'
 
 /**
@@ -28,7 +28,7 @@ export enum PlaybackMode {
 }
 
 export const useCaptionStore = defineStore('captions', () => {
-  // State - all state lives in memory only, persisted by saving `.captions_json` files
+  // State - all state lives in memory only, persisted by saving `.captions_json5` files
   const document = ref<CaptionsDocument>(createEmptyDocument())
 
   // Media URL - always a media:// URL in Electron mode
@@ -92,6 +92,15 @@ export const useCaptionStore = defineStore('captions', () => {
   function loadFromFile(content: string, filePath?: string) {
     console.log('Loading captions from file:', filePath)
 
+    // App.vue tracks "already tried auto-load for this metadata.id". A full reload with the
+    // same id (e.g. after Compute Speaker Embeddings) must clear that or mediaPath stays null.
+    try {
+      const reset = (window as any).__resetAttemptedAutoLoad
+      if (typeof reset === 'function') reset()
+    } catch {
+      /* ignore outside Electron */
+    }
+
     // Reset all state so the new file starts clean (media, playback, selection, etc.)
     mediaPath.value = null
     currentTime.value = 0
@@ -102,7 +111,7 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistIndex.value = 0
     playlistStartIndex.value = 0
 
-    const result = parseCaptionsJSON(content)
+    const result = parseCaptionsJSON5(content)
 
     if (result.success && result.document) {
       const loadedDoc = {
@@ -248,7 +257,7 @@ export const useCaptionStore = defineStore('captions', () => {
     }
     documentToExport = { ...documentToExport, uiState }
 
-    return serializeCaptionsJSON(documentToExport)
+    return serializeCaptionsJSON5(documentToExport)
   }
 
   function updateTitle(title: string) {
@@ -342,6 +351,16 @@ export const useCaptionStore = defineStore('captions', () => {
     let updatedDoc = document.value
     for (const segmentId of segmentIds) {
       updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { verified: verified || undefined })
+    }
+    document.value = updatedDoc
+    isDirty.value = true
+  }
+
+  function bulkSetRating(segmentIds: string[], rating: number | undefined) {
+    console.log('Bulk setting rating for', segmentIds.length, 'segments to:', rating)
+    let updatedDoc = document.value
+    for (const segmentId of segmentIds) {
+      updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { rating })
     }
     document.value = updatedDoc
     isDirty.value = true
@@ -444,9 +463,13 @@ export const useCaptionStore = defineStore('captions', () => {
 
   /**
    * Move to the next segment in the playlist
+   * @param playheadTime - If set, sync the store to this clock position instead of the
+   *   next segment’s `startTime`. Used by sequential playback when the timeline gap to the
+   *   next row is small: the media element does not seek (avoids decoder/keyframe stutter),
+   *   but selection and UI still follow the new row.
    * @returns true if there's a next segment, false if we've reached the end
    */
-  function nextPlaylistSegment(): boolean {
+  function nextPlaylistSegment(playheadTime?: number): boolean {
     if (playbackMode.value !== PlaybackMode.SEGMENTS_PLAYING) {
       return false
     }
@@ -463,7 +486,11 @@ export const useCaptionStore = defineStore('captions', () => {
     const segment = currentPlaylistSegment.value
     if (segment) {
       console.log('Playing next segment:', segment.id)
-      setCurrentTime(segment.startTime)
+      if (playheadTime !== undefined) {
+        setCurrentTime(playheadTime)
+      } else {
+        setCurrentTime(segment.startTime)
+      }
       selectSegment(segment.id)
       return true
     }
@@ -489,7 +516,7 @@ export const useCaptionStore = defineStore('captions', () => {
    * (metadata.id, title, history, uiState, filePath, mediaFilePath).
    */
   function mergeAsrResult(content: string) {
-    const result = parseCaptionsJSON(content)
+    const result = parseCaptionsJSON5(content)
     if (!result.success || !result.document) {
       throw new Error(result.error || 'Failed to parse ASR result')
     }
@@ -529,7 +556,7 @@ export const useCaptionStore = defineStore('captions', () => {
 
       for (const result of results) {
         try {
-          if (result.type === 'captions_json' && result.content) {
+          if (result.type === 'captions_json5' && result.content) {
             loadFromFile(result.content, result.filePath)
             console.log('[captionStore] Captions file loaded successfully:', result.fileName)
             successes++
@@ -591,6 +618,7 @@ export const useCaptionStore = defineStore('captions', () => {
     renameSpeaker,
     bulkSetSpeaker,
     bulkSetVerified,
+    bulkSetRating,
     bulkDeleteSegments,
     splitSegmentAtWordIndex,
     mergeAdjacentSegments,

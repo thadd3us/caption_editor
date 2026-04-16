@@ -65,7 +65,7 @@ test.describe('Sequential Playback', () => {
 
   test('should show sequential play button in table header', async ({ electronApp, page }) => {
     // Load a captions file with multiple segments
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -76,13 +76,13 @@ test.describe('Sequential Playback', () => {
     await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Sequential play button should be visible
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await expect(sequentialBtn).toBeVisible()
   })
 
   test('should start sequential playback from top when no row selected', async ({ electronApp, page }) => {
     console.log('[Test] Loading captions file...')
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -97,7 +97,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     console.log('[Test] Clicking Play Segments button...')
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
     console.log('[Test] Verifying button changed to Pause icon...')
@@ -134,7 +134,7 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load a captions file
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -199,7 +199,7 @@ test.describe('Sequential Playback', () => {
     await page.waitForTimeout(50)
 
     // Click sequential play button
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
     await page.waitForTimeout(100)
@@ -211,7 +211,7 @@ test.describe('Sequential Playback', () => {
 
   test('should stop sequential playback when pause button clicked', async ({ electronApp, page }) => {
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -225,7 +225,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const playBtn = page.locator('button.sequential-play-btn')
+    const playBtn = page.locator('button.sequential-play-header-btn')
     await playBtn.click()
 
     // Button should change to pause icon
@@ -240,7 +240,7 @@ test.describe('Sequential Playback', () => {
 
   test('should play segments in table order respecting sort', async ({ electronApp, page }) => {
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -266,7 +266,7 @@ test.describe('Sequential Playback', () => {
     })
 
     // Start sequential playback
-    await page.locator('button.sequential-play-btn').click()
+    await page.locator('button.sequential-play-header-btn').click()
 
     await page.waitForTimeout(100)
 
@@ -284,7 +284,7 @@ test.describe('Sequential Playback', () => {
 
   test('should preserve playlist order even if table is resorted', async ({ electronApp, page }) => {
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -298,7 +298,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    await page.locator('button.sequential-play-btn').click()
+    await page.locator('button.sequential-play-header-btn').click()
 
     await page.waitForTimeout(50)
 
@@ -325,7 +325,7 @@ test.describe('Sequential Playback', () => {
 
   test('should disable sequential button when no media loaded', async ({ electronApp, page }) => {
     // Load captions file without loading media
-    const captionsPath = await writeTestCaptionsFile('no-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('no-media-reference.captions_json5', {
       metadata: { id: 'seq-no-media' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -335,7 +335,7 @@ test.describe('Sequential Playback', () => {
     await loadCaptionsFile(electronApp, page, captionsPath)
 
     // Sequential play button should be disabled (no media path)
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await expect(sequentialBtn).toBeDisabled()
   })
 
@@ -343,7 +343,7 @@ test.describe('Sequential Playback', () => {
     test.setTimeout(15000) // Need extra time for AG Grid rendering
 
     // Load files
-    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json', {
+    const captionsPath = await writeTestCaptionsFile('with-media-reference.captions_json5', {
       metadata: { id: 'seq-with-media-ref' },
       segments: [
         { id: 'seg1', startTime: 0, endTime: 1, text: 'One' },
@@ -357,7 +357,7 @@ test.describe('Sequential Playback', () => {
     await loadMediaFile(page, audioPath)
 
     // Start sequential playback
-    const sequentialBtn = page.locator('button.sequential-play-btn')
+    const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
     await page.waitForTimeout(50)
@@ -378,8 +378,9 @@ test.describe('Sequential Playback', () => {
     }, { timeout: 5000 })
 
     // Click play button on first row (should use snippet mode)
-    // Use a simple selector that finds the first visible play button
-    const playButton = page.locator('button[title="Play snippet"]').first()
+    const playButton = page
+      .locator('button[title="Play only this caption from its start time"]')
+      .first()
     await playButton.click()
 
     await page.waitForTimeout(50)

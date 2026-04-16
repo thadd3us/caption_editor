@@ -1,0 +1,3893 @@
+// Caption Editor: https://github.com/thadd3us/caption_editor/
+// File schema TypeScript: https://github.com/thadd3us/caption_editor/blob/73d21a8a2276879beb94bddad245f09f6d501a00/src/types/schema.ts
+// File schema Python: https://github.com/thadd3us/caption_editor/blob/73d21a8a2276879beb94bddad245f09f6d501a00/transcribe/schema.py
+{
+  "metadata": {
+    "id": "c7cea3a8-b926-49f6-a49b-f7f76e51822f",
+    "mediaFilePath": "About Time.mp4"
+  },
+  "segments": [
+    {
+      "id": "7541ec8b-8107-1af4-6f40-f63691a86506",
+      "index": 0,
+      "startTime": 6.96,
+      "endTime": 8.4,
+      "text": "My name is Tim.",
+      "words": [
+        {
+          "text": "My",
+          "startTime": 6.96,
+          "endTime": 7.28
+        },
+        {
+          "text": "name",
+          "startTime": 7.28,
+          "endTime": 7.6000000000000005
+        },
+        {
+          "text": "is",
+          "startTime": 7.6000000000000005,
+          "endTime": 7.92
+        },
+        {
+          "text": "Tim.",
+          "startTime": 7.92,
+          "endTime": 8.4
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "0049e884-27d7-421c-6cb0-715a2bb8d21b",
+      "index": 1,
+      "startTime": 8.64,
+      "endTime": 11.120000000000001,
+      "text": "This is the year that would change my life forever.",
+      "words": [
+        {
+          "text": "This",
+          "startTime": 8.64,
+          "endTime": 8.8
+        },
+        {
+          "text": "is",
+          "startTime": 8.8,
+          "endTime": 8.96
+        },
+        {
+          "text": "the",
+          "startTime": 8.96,
+          "endTime": 9.120000000000001
+        },
+        {
+          "text": "year",
+          "startTime": 9.120000000000001,
+          "endTime": 9.36
+        },
+        {
+          "text": "that",
+          "startTime": 9.36,
+          "endTime": 9.6
+        },
+        {
+          "text": "would",
+          "startTime": 9.6,
+          "endTime": 9.76
+        },
+        {
+          "text": "change",
+          "startTime": 9.76,
+          "endTime": 10.08
+        },
+        {
+          "text": "my",
+          "startTime": 10.08,
+          "endTime": 10.32
+        },
+        {
+          "text": "life",
+          "startTime": 10.32,
+          "endTime": 10.56
+        },
+        {
+          "text": "forever.",
+          "startTime": 10.56,
+          "endTime": 11.120000000000001
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "707d0a39-c64b-b3dd-9638-9976073c881e",
+      "index": 2,
+      "startTime": 13.040000000000001,
+      "endTime": 14.48,
+      "text": "Happy New Year!",
+      "words": [
+        {
+          "text": "Happy",
+          "startTime": 13.040000000000001,
+          "endTime": 13.6
+        },
+        {
+          "text": "New",
+          "startTime": 13.6,
+          "endTime": 13.76
+        },
+        {
+          "text": "Year!",
+          "startTime": 14,
+          "endTime": 14.48
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "7e2357bc-cd5d-91d1-bb23-76a02c11a1c4",
+      "index": 3,
+      "startTime": 14.72,
+      "endTime": 16.48,
+      "text": "I just didn't know it yet.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 14.72,
+          "endTime": 15.040000000000001
+        },
+        {
+          "text": "just",
+          "startTime": 15.040000000000001,
+          "endTime": 15.200000000000001
+        },
+        {
+          "text": "didn't",
+          "startTime": 15.200000000000001,
+          "endTime": 15.6
+        },
+        {
+          "text": "know",
+          "startTime": 15.6,
+          "endTime": 15.76
+        },
+        {
+          "text": "it",
+          "startTime": 15.76,
+          "endTime": 16
+        },
+        {
+          "text": "yet.",
+          "startTime": 16,
+          "endTime": 16.48
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "c7122435-7615-a0cd-16c5-1bb32cf91780",
+      "index": 4,
+      "startTime": 16.8,
+      "endTime": 18.64,
+      "text": "Tim, my dear son.",
+      "words": [
+        {
+          "text": "Tim,",
+          "startTime": 16.8,
+          "endTime": 17.28
+        },
+        {
+          "text": "my",
+          "startTime": 17.6,
+          "endTime": 17.84
+        },
+        {
+          "text": "dear",
+          "startTime": 17.84,
+          "endTime": 18.400000000000002
+        },
+        {
+          "text": "son.",
+          "startTime": 18.400000000000002,
+          "endTime": 18.64
+        }
+      ],
+      "timestamp": "2026-04-14T18:38:31.055-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3",
+      "speakerName": "James"
+    },
+    {
+      "id": "7097cfcc-6ac2-e251-4468-df61d8ba25bf",
+      "index": 5,
+      "startTime": 18.8,
+      "endTime": 24.240000000000002,
+      "text": "This is going to sound strange, but there's this family secret that the men in the family can",
+      "words": [
+        {
+          "text": "This",
+          "startTime": 18.8,
+          "endTime": 18.96
+        },
+        {
+          "text": "is",
+          "startTime": 18.96,
+          "endTime": 19.2
+        },
+        {
+          "text": "going",
+          "startTime": 19.2,
+          "endTime": 19.36
+        },
+        {
+          "text": "to",
+          "startTime": 19.36,
+          "endTime": 19.52
+        },
+        {
+          "text": "sound",
+          "startTime": 19.52,
+          "endTime": 19.84
+        },
+        {
+          "text": "strange,",
+          "startTime": 19.84,
+          "endTime": 20.240000000000002
+        },
+        {
+          "text": "but",
+          "startTime": 20.400000000000002,
+          "endTime": 20.56
+        },
+        {
+          "text": "there's",
+          "startTime": 20.56,
+          "endTime": 20.88
+        },
+        {
+          "text": "this",
+          "startTime": 20.88,
+          "endTime": 21.12
+        },
+        {
+          "text": "family",
+          "startTime": 21.12,
+          "endTime": 21.44
+        },
+        {
+          "text": "secret",
+          "startTime": 21.68,
+          "endTime": 22.240000000000002
+        },
+        {
+          "text": "that",
+          "startTime": 22.240000000000002,
+          "endTime": 22.48
+        },
+        {
+          "text": "the",
+          "startTime": 22.48,
+          "endTime": 22.72
+        },
+        {
+          "text": "men",
+          "startTime": 22.72,
+          "endTime": 22.96
+        },
+        {
+          "text": "in",
+          "startTime": 22.96,
+          "endTime": 23.04
+        },
+        {
+          "text": "the",
+          "startTime": 23.04,
+          "endTime": 23.28
+        },
+        {
+          "text": "family",
+          "startTime": 23.28,
+          "endTime": 23.92
+        },
+        {
+          "text": "can",
+          "startTime": 23.92,
+          "endTime": 24.240000000000002
+        }
+      ],
+      "timestamp": "2026-04-14T18:38:31.055-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3",
+      "speakerName": "James"
+    },
+    {
+      "id": "e5eb8cec-7000-5ead-f780-f00785de05ae",
+      "index": 6,
+      "startTime": 25.2,
+      "endTime": 26.560000000000002,
+      "text": "travel in time.",
+      "words": [
+        {
+          "text": "travel",
+          "startTime": 25.2,
+          "endTime": 25.68
+        },
+        {
+          "text": "in",
+          "startTime": 25.92,
+          "endTime": 26.240000000000002
+        },
+        {
+          "text": "time.",
+          "startTime": 26.240000000000002,
+          "endTime": 26.560000000000002
+        }
+      ],
+      "timestamp": "2026-04-14T18:38:31.055-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3",
+      "speakerName": "James"
+    },
+    {
+      "id": "8c3e14b6-ac5f-e57a-9efe-de866413a9c4",
+      "index": 7,
+      "startTime": 26.8,
+      "endTime": 28.48,
+      "text": "This is such a weird joke.",
+      "words": [
+        {
+          "text": "This",
+          "startTime": 26.8,
+          "endTime": 27.12
+        },
+        {
+          "text": "is",
+          "startTime": 27.12,
+          "endTime": 27.28
+        },
+        {
+          "text": "such",
+          "startTime": 27.28,
+          "endTime": 27.6
+        },
+        {
+          "text": "a",
+          "startTime": 27.6,
+          "endTime": 27.76
+        },
+        {
+          "text": "weird",
+          "startTime": 27.76,
+          "endTime": 28.080000000000002
+        },
+        {
+          "text": "joke.",
+          "startTime": 28.080000000000002,
+          "endTime": 28.48
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "649acfe0-a64e-cfc8-0d21-a3f94eefaaa1",
+      "index": 8,
+      "startTime": 28.64,
+      "endTime": 29.28,
+      "text": "It's not a joke.",
+      "words": [
+        {
+          "text": "It's",
+          "startTime": 28.64,
+          "endTime": 28.88
+        },
+        {
+          "text": "not",
+          "startTime": 28.88,
+          "endTime": 29.04
+        },
+        {
+          "text": "a",
+          "startTime": 29.04,
+          "endTime": 29.12
+        },
+        {
+          "text": "joke.",
+          "startTime": 29.12,
+          "endTime": 29.28
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "0a073529-dc65-6203-cc9a-c9478662a5b3",
+      "index": 9,
+      "startTime": 29.52,
+      "endTime": 31.04,
+      "text": "If it's true, which it isn't, although it is.",
+      "words": [
+        {
+          "text": "If",
+          "startTime": 29.52,
+          "endTime": 29.6
+        },
+        {
+          "text": "it's",
+          "startTime": 29.6,
+          "endTime": 29.76
+        },
+        {
+          "text": "true,",
+          "startTime": 29.76,
+          "endTime": 29.92
+        },
+        {
+          "text": "which",
+          "startTime": 30,
+          "endTime": 30.080000000000002
+        },
+        {
+          "text": "it",
+          "startTime": 30.080000000000002,
+          "endTime": 30.16
+        },
+        {
+          "text": "isn't,",
+          "startTime": 30.16,
+          "endTime": 30.32
+        },
+        {
+          "text": "although",
+          "startTime": 30.64,
+          "endTime": 30.88
+        },
+        {
+          "text": "it",
+          "startTime": 30.88,
+          "endTime": 30.96
+        },
+        {
+          "text": "is.",
+          "startTime": 30.96,
+          "endTime": 31.04
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "ee3ae2b1-9294-4df7-876e-a58d9f1fbab8",
+      "index": 10,
+      "startTime": 31.2,
+      "endTime": 32.64,
+      "text": "But if it was, which it's not,",
+      "words": [
+        {
+          "text": "But",
+          "startTime": 31.2,
+          "endTime": 31.36
+        },
+        {
+          "text": "if",
+          "startTime": 31.36,
+          "endTime": 31.52
+        },
+        {
+          "text": "it",
+          "startTime": 31.52,
+          "endTime": 31.6
+        },
+        {
+          "text": "was,",
+          "startTime": 31.6,
+          "endTime": 31.84
+        },
+        {
+          "text": "which",
+          "startTime": 31.92,
+          "endTime": 32.08
+        },
+        {
+          "text": "it's",
+          "startTime": 32.08,
+          "endTime": 32.24
+        },
+        {
+          "text": "not,",
+          "startTime": 32.24,
+          "endTime": 32.32
+        }
+      ],
+      "timestamp": "2026-04-14T13:34:36.672-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "c1cd0f37-4bbb-47df-9847-cd34c5bbc183",
+      "index": 11,
+      "startTime": 32.64,
+      "endTime": 33.2,
+      "text": "which it is,",
+      "words": [
+        {
+          "text": "which",
+          "startTime": 32.64,
+          "endTime": 32.72
+        },
+        {
+          "text": "it",
+          "startTime": 32.8,
+          "endTime": 32.88
+        },
+        {
+          "text": "is,",
+          "startTime": 32.88,
+          "endTime": 32.96
+        }
+      ],
+      "timestamp": "2026-04-14T13:34:40.619-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "1008b947-57ea-4014-b27b-4d8ada9aacdc",
+      "index": 12,
+      "startTime": 33.2,
+      "endTime": 34.4,
+      "text": "how would I actually",
+      "words": [
+        {
+          "text": "how",
+          "startTime": 33.2,
+          "endTime": 33.44
+        },
+        {
+          "text": "would",
+          "startTime": 33.44,
+          "endTime": 33.6
+        },
+        {
+          "text": "I",
+          "startTime": 33.6,
+          "endTime": 33.76
+        },
+        {
+          "text": "actually",
+          "startTime": 33.76,
+          "endTime": 34.160000000000004
+        }
+      ],
+      "timestamp": "2026-04-14T13:35:32.743-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "f9720165-d7a7-48c5-8c68-cce84303bd4d",
+      "index": 13,
+      "startTime": 34.4,
+      "endTime": 39.68,
+      "text": "You go into a dark place, clench your fists, think of the moment you're going to, and you'll find yourself there.",
+      "words": [
+        {
+          "text": "You",
+          "startTime": 34.4,
+          "endTime": 34.56
+        },
+        {
+          "text": "go",
+          "startTime": 34.56,
+          "endTime": 34.72
+        },
+        {
+          "text": "into",
+          "startTime": 34.72,
+          "endTime": 34.88
+        },
+        {
+          "text": "a",
+          "startTime": 34.88,
+          "endTime": 34.96
+        },
+        {
+          "text": "dark",
+          "startTime": 34.96,
+          "endTime": 35.28
+        },
+        {
+          "text": "place,",
+          "startTime": 35.28,
+          "endTime": 35.52
+        },
+        {
+          "text": "clench",
+          "startTime": 35.68,
+          "endTime": 36.24
+        },
+        {
+          "text": "your",
+          "startTime": 36.24,
+          "endTime": 36.4
+        },
+        {
+          "text": "fists,",
+          "startTime": 36.4,
+          "endTime": 36.800000000000004
+        },
+        {
+          "text": "think",
+          "startTime": 36.96,
+          "endTime": 37.2
+        },
+        {
+          "text": "of",
+          "startTime": 37.2,
+          "endTime": 37.28
+        },
+        {
+          "text": "the",
+          "startTime": 37.28,
+          "endTime": 37.44
+        },
+        {
+          "text": "moment",
+          "startTime": 37.44,
+          "endTime": 37.68
+        },
+        {
+          "text": "you're",
+          "startTime": 37.68,
+          "endTime": 37.92
+        },
+        {
+          "text": "going",
+          "startTime": 37.92,
+          "endTime": 38
+        },
+        {
+          "text": "to,",
+          "startTime": 38,
+          "endTime": 38.160000000000004
+        },
+        {
+          "text": "and",
+          "startTime": 38.24,
+          "endTime": 38.4
+        },
+        {
+          "text": "you'll",
+          "startTime": 38.4,
+          "endTime": 38.64
+        },
+        {
+          "text": "find",
+          "startTime": 38.64,
+          "endTime": 38.800000000000004
+        },
+        {
+          "text": "yourself",
+          "startTime": 38.800000000000004,
+          "endTime": 39.36
+        },
+        {
+          "text": "there.",
+          "startTime": 39.36,
+          "endTime": 39.68
+        }
+      ],
+      "timestamp": "2026-04-14T13:35:32.743-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "77c1eea7-be23-aa9f-7d22-d83e8f1eb1b6",
+      "index": 14,
+      "startTime": 44.160000000000004,
+      "endTime": 45.68,
+      "text": "It's gonna be a complicated year.",
+      "words": [
+        {
+          "text": "It's",
+          "startTime": 44.160000000000004,
+          "endTime": 44.480000000000004
+        },
+        {
+          "text": "gonna",
+          "startTime": 44.480000000000004,
+          "endTime": 44.72
+        },
+        {
+          "text": "be",
+          "startTime": 44.72,
+          "endTime": 44.88
+        },
+        {
+          "text": "a",
+          "startTime": 44.88,
+          "endTime": 44.96
+        },
+        {
+          "text": "complicated",
+          "startTime": 44.96,
+          "endTime": 45.44
+        },
+        {
+          "text": "year.",
+          "startTime": 45.44,
+          "endTime": 45.68
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "1b78e881-c9db-578f-368e-0aa190806330",
+      "index": 15,
+      "startTime": 45.84,
+      "endTime": 48,
+      "text": "It's gonna be a complicated life.",
+      "words": [
+        {
+          "text": "It's",
+          "startTime": 45.84,
+          "endTime": 46
+        },
+        {
+          "text": "gonna",
+          "startTime": 46.160000000000004,
+          "endTime": 46.32
+        },
+        {
+          "text": "be",
+          "startTime": 46.32,
+          "endTime": 46.480000000000004
+        },
+        {
+          "text": "a",
+          "startTime": 46.480000000000004,
+          "endTime": 46.56
+        },
+        {
+          "text": "complicated",
+          "startTime": 46.56,
+          "endTime": 47.36
+        },
+        {
+          "text": "life.",
+          "startTime": 47.36,
+          "endTime": 48
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "76e5a8e5-69df-fec4-635b-a8d984ef16fb",
+      "index": 16,
+      "startTime": 49.92,
+      "endTime": 54.160000000000004,
+      "text": "For me, it was always going to be all about love.",
+      "words": [
+        {
+          "text": "For",
+          "startTime": 49.92,
+          "endTime": 50.24
+        },
+        {
+          "text": "me,",
+          "startTime": 50.24,
+          "endTime": 50.56
+        },
+        {
+          "text": "it",
+          "startTime": 50.800000000000004,
+          "endTime": 51.04
+        },
+        {
+          "text": "was",
+          "startTime": 51.04,
+          "endTime": 51.2
+        },
+        {
+          "text": "always",
+          "startTime": 51.2,
+          "endTime": 51.76
+        },
+        {
+          "text": "going",
+          "startTime": 51.76,
+          "endTime": 52
+        },
+        {
+          "text": "to",
+          "startTime": 52,
+          "endTime": 52.32
+        },
+        {
+          "text": "be",
+          "startTime": 52.32,
+          "endTime": 52.56
+        },
+        {
+          "text": "all",
+          "startTime": 52.88,
+          "endTime": 53.2
+        },
+        {
+          "text": "about",
+          "startTime": 53.2,
+          "endTime": 53.52
+        },
+        {
+          "text": "love.",
+          "startTime": 53.84,
+          "endTime": 54.160000000000004
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "8f1a0325-0387-5c7b-8ae2-073a5e89e18f",
+      "index": 17,
+      "startTime": 55.96,
+      "endTime": 56.84,
+      "text": "I'm Tim.",
+      "words": [
+        {
+          "text": "I'm",
+          "startTime": 55.96,
+          "endTime": 56.44
+        },
+        {
+          "text": "Tim.",
+          "startTime": 56.44,
+          "endTime": 56.84
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "00dbabe9-539b-aec3-32cc-5eedcf4ea166",
+      "index": 18,
+      "startTime": 57,
+      "endTime": 57.84,
+      "text": "I'm Mary.",
+      "words": [
+        {
+          "text": "I'm",
+          "startTime": 57.04,
+          "endTime": 57.36
+        },
+        {
+          "text": "Mary.",
+          "startTime": 57.36,
+          "endTime": 57.84
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "152af5ed-1515-bcd6-0a46-19675794b724",
+      "index": 19,
+      "startTime": 58,
+      "endTime": 59,
+      "text": "It's my mother's name.",
+      "words": [
+        {
+          "text": "It's",
+          "startTime": 58.04,
+          "endTime": 58.28
+        },
+        {
+          "text": "my",
+          "startTime": 58.36,
+          "endTime": 58.44
+        },
+        {
+          "text": "mother's",
+          "startTime": 58.44,
+          "endTime": 58.84
+        },
+        {
+          "text": "name.",
+          "startTime": 58.84,
+          "endTime": 59
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "58fa64de-d0b1-55a2-055e-b79cdc33b9bb",
+      "index": 20,
+      "startTime": 59.04,
+      "endTime": 60.6,
+      "text": "I remind you of your mother.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 59.16,
+          "endTime": 59.32
+        },
+        {
+          "text": "remind",
+          "startTime": 59.32,
+          "endTime": 59.72
+        },
+        {
+          "text": "you",
+          "startTime": 59.72,
+          "endTime": 59.88
+        },
+        {
+          "text": "of",
+          "startTime": 59.88,
+          "endTime": 60.04
+        },
+        {
+          "text": "your",
+          "startTime": 60.04,
+          "endTime": 60.2
+        },
+        {
+          "text": "mother.",
+          "startTime": 60.2,
+          "endTime": 60.6
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "9054be44-ce2e-a26e-c865-7f0f97d1880c",
+      "index": 21,
+      "startTime": 61,
+      "endTime": 62.68,
+      "text": "Obviously, I should have thought this through more.",
+      "words": [
+        {
+          "text": "Obviously,",
+          "startTime": 61,
+          "endTime": 61.32
+        },
+        {
+          "text": "I",
+          "startTime": 61.4,
+          "endTime": 61.480000000000004
+        },
+        {
+          "text": "should",
+          "startTime": 61.480000000000004,
+          "endTime": 61.64
+        },
+        {
+          "text": "have",
+          "startTime": 61.64,
+          "endTime": 61.72
+        },
+        {
+          "text": "thought",
+          "startTime": 61.72,
+          "endTime": 61.96
+        },
+        {
+          "text": "this",
+          "startTime": 61.96,
+          "endTime": 62.12
+        },
+        {
+          "text": "through",
+          "startTime": 62.12,
+          "endTime": 62.44
+        },
+        {
+          "text": "more.",
+          "startTime": 62.44,
+          "endTime": 62.68
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "b65ed58d-a2d6-b4ac-3370-55904fbee66d",
+      "index": 22,
+      "startTime": 62.84,
+      "endTime": 64.84,
+      "text": "Could you give me one second?",
+      "words": [
+        {
+          "text": "Could",
+          "startTime": 62.84,
+          "endTime": 63.16
+        },
+        {
+          "text": "you",
+          "startTime": 63.16,
+          "endTime": 63.4
+        },
+        {
+          "text": "give",
+          "startTime": 63.4,
+          "endTime": 63.72
+        },
+        {
+          "text": "me",
+          "startTime": 63.72,
+          "endTime": 63.96
+        },
+        {
+          "text": "one",
+          "startTime": 63.96,
+          "endTime": 64.28
+        },
+        {
+          "text": "second?",
+          "startTime": 64.28,
+          "endTime": 64.84
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "4483af07-90e5-e860-f227-ab3b312b7942",
+      "index": 23,
+      "startTime": 68.04,
+      "endTime": 68.76,
+      "text": "I'm Tim.",
+      "words": [
+        {
+          "text": "I'm",
+          "startTime": 68.04,
+          "endTime": 68.44
+        },
+        {
+          "text": "Tim.",
+          "startTime": 68.44,
+          "endTime": 68.76
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "13a8d955-5639-06b4-ffb5-8dbedf70c456",
+      "index": 24,
+      "startTime": 68.92,
+      "endTime": 69.88,
+      "text": "I'm Mary.",
+      "words": [
+        {
+          "text": "I'm",
+          "startTime": 68.92,
+          "endTime": 69.24
+        },
+        {
+          "text": "Mary.",
+          "startTime": 69.24,
+          "endTime": 69.88
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "9251af8d-ce08-fd75-6f43-f7ab172a364d",
+      "index": 25,
+      "startTime": 71.08,
+      "endTime": 72.12,
+      "text": "I love your eyes.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 71.08,
+          "endTime": 71.32
+        },
+        {
+          "text": "love",
+          "startTime": 71.32,
+          "endTime": 71.56
+        },
+        {
+          "text": "your",
+          "startTime": 71.56,
+          "endTime": 71.8
+        },
+        {
+          "text": "eyes.",
+          "startTime": 71.8,
+          "endTime": 72.12
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "5472624e-b485-7041-a718-5c973177540b",
+      "index": 26,
+      "startTime": 72.28,
+      "endTime": 72.84,
+      "text": "Do you?",
+      "words": [
+        {
+          "text": "Do",
+          "startTime": 72.28,
+          "endTime": 72.6
+        },
+        {
+          "text": "you?",
+          "startTime": 72.6,
+          "endTime": 72.84
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "b22b89a8-dc18-b52c-94ff-e26b46c432d3",
+      "index": 27,
+      "startTime": 73,
+      "endTime": 74.6,
+      "text": "I love the rest of your face too.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 73,
+          "endTime": 73.24000000000001
+        },
+        {
+          "text": "love",
+          "startTime": 73.24000000000001,
+          "endTime": 73.4
+        },
+        {
+          "text": "the",
+          "startTime": 73.4,
+          "endTime": 73.56
+        },
+        {
+          "text": "rest",
+          "startTime": 73.56,
+          "endTime": 73.72
+        },
+        {
+          "text": "of",
+          "startTime": 73.72,
+          "endTime": 73.8
+        },
+        {
+          "text": "your",
+          "startTime": 73.8,
+          "endTime": 74.03999999999999
+        },
+        {
+          "text": "face",
+          "startTime": 74.03999999999999,
+          "endTime": 74.2
+        },
+        {
+          "text": "too.",
+          "startTime": 74.28,
+          "endTime": 74.6
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "362fed41-4ea2-02be-47ab-ffd8eb73de3d",
+      "index": 28,
+      "startTime": 74.76,
+      "endTime": 77.96000000000001,
+      "text": "Haven't even looked further down, but I'm sure it's all fantastic.",
+      "words": [
+        {
+          "text": "Haven't",
+          "startTime": 74.76,
+          "endTime": 75
+        },
+        {
+          "text": "even",
+          "startTime": 75,
+          "endTime": 75.24000000000001
+        },
+        {
+          "text": "looked",
+          "startTime": 75.24000000000001,
+          "endTime": 75.48
+        },
+        {
+          "text": "further",
+          "startTime": 75.48,
+          "endTime": 75.8
+        },
+        {
+          "text": "down,",
+          "startTime": 75.8,
+          "endTime": 75.96000000000001
+        },
+        {
+          "text": "but",
+          "startTime": 76.03999999999999,
+          "endTime": 76.2
+        },
+        {
+          "text": "I'm",
+          "startTime": 76.2,
+          "endTime": 76.36
+        },
+        {
+          "text": "sure",
+          "startTime": 76.36,
+          "endTime": 76.52
+        },
+        {
+          "text": "it's",
+          "startTime": 76.52,
+          "endTime": 76.76
+        },
+        {
+          "text": "all",
+          "startTime": 76.76,
+          "endTime": 77
+        },
+        {
+          "text": "fantastic.",
+          "startTime": 77,
+          "endTime": 77.96000000000001
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "210ca1dd-5579-7fd5-c1e0-e7f3bd7ddadf",
+      "index": 29,
+      "startTime": 78.68,
+      "endTime": 81,
+      "text": "I'm sure it'll be better next time.",
+      "words": [
+        {
+          "text": "I'm",
+          "startTime": 78.68,
+          "endTime": 79
+        },
+        {
+          "text": "sure",
+          "startTime": 79,
+          "endTime": 79.24000000000001
+        },
+        {
+          "text": "it'll",
+          "startTime": 79.24000000000001,
+          "endTime": 79.56
+        },
+        {
+          "text": "be",
+          "startTime": 79.56,
+          "endTime": 79.72
+        },
+        {
+          "text": "better",
+          "startTime": 79.72,
+          "endTime": 80.12
+        },
+        {
+          "text": "next",
+          "startTime": 80.12,
+          "endTime": 80.68
+        },
+        {
+          "text": "time.",
+          "startTime": 80.68,
+          "endTime": 81
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "7105f241-746b-c42a-6e3e-d65decd16e24",
+      "index": 30,
+      "startTime": 82.52,
+      "endTime": 83.24000000000001,
+      "text": "Well done.",
+      "words": [
+        {
+          "text": "Well",
+          "startTime": 82.52,
+          "endTime": 83
+        },
+        {
+          "text": "done.",
+          "startTime": 83,
+          "endTime": 83.24000000000001
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "2f1bca57-833f-4875-b1e1-2f111c1a8236",
+      "index": 31,
+      "startTime": 83.48,
+      "endTime": 85.88,
+      "text": "Something I'll make a real mess of it the first time.",
+      "words": [
+        {
+          "text": "Something",
+          "startTime": 83.48,
+          "endTime": 83.96000000000001
+        },
+        {
+          "text": "I'll",
+          "startTime": 84.03999999999999,
+          "endTime": 84.28
+        },
+        {
+          "text": "make",
+          "startTime": 84.28,
+          "endTime": 84.44
+        },
+        {
+          "text": "a",
+          "startTime": 84.44,
+          "endTime": 84.52
+        },
+        {
+          "text": "real",
+          "startTime": 84.52,
+          "endTime": 84.68
+        },
+        {
+          "text": "mess",
+          "startTime": 84.68,
+          "endTime": 84.92
+        },
+        {
+          "text": "of",
+          "startTime": 84.92,
+          "endTime": 85.08
+        },
+        {
+          "text": "it",
+          "startTime": 85.08,
+          "endTime": 85.24000000000001
+        },
+        {
+          "text": "the",
+          "startTime": 85.24000000000001,
+          "endTime": 85.4
+        },
+        {
+          "text": "first",
+          "startTime": 85.4,
+          "endTime": 85.72
+        },
+        {
+          "text": "time.",
+          "startTime": 85.72,
+          "endTime": 85.88
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "a0b55656-a54d-3aba-7856-9768fcb7b873",
+      "index": 32,
+      "startTime": 88.68,
+      "endTime": 91,
+      "text": "Some days you want to relive forever.",
+      "words": [
+        {
+          "text": "Some",
+          "startTime": 88.68,
+          "endTime": 89.08
+        },
+        {
+          "text": "days",
+          "startTime": 89.08,
+          "endTime": 89.4
+        },
+        {
+          "text": "you",
+          "startTime": 89.4,
+          "endTime": 89.56
+        },
+        {
+          "text": "want",
+          "startTime": 89.56,
+          "endTime": 89.72
+        },
+        {
+          "text": "to",
+          "startTime": 89.72,
+          "endTime": 89.88
+        },
+        {
+          "text": "relive",
+          "startTime": 89.88,
+          "endTime": 90.36
+        },
+        {
+          "text": "forever.",
+          "startTime": 90.36,
+          "endTime": 91
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "98c23809-89a0-8e38-4874-124805029d56",
+      "index": 33,
+      "startTime": 91.72,
+      "endTime": 92.6,
+      "text": "Will you marry me?",
+      "words": [
+        {
+          "text": "Will",
+          "startTime": 91.72,
+          "endTime": 91.96000000000001
+        },
+        {
+          "text": "you",
+          "startTime": 91.96000000000001,
+          "endTime": 92.12
+        },
+        {
+          "text": "marry",
+          "startTime": 92.12,
+          "endTime": 92.44
+        },
+        {
+          "text": "me?",
+          "startTime": 92.44,
+          "endTime": 92.6
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "5d0d83e6-2b55-018a-ff82-548c612cf505",
+      "index": 34,
+      "startTime": 93,
+      "endTime": 95.64,
+      "text": "Think I'll go for yes.",
+      "words": [
+        {
+          "text": "Think",
+          "startTime": 93,
+          "endTime": 93.4
+        },
+        {
+          "text": "I'll",
+          "startTime": 93.4,
+          "endTime": 93.88
+        },
+        {
+          "text": "go",
+          "startTime": 93.88,
+          "endTime": 94.2
+        },
+        {
+          "text": "for",
+          "startTime": 94.44,
+          "endTime": 94.75999999999999
+        },
+        {
+          "text": "yes.",
+          "startTime": 95.24000000000001,
+          "endTime": 95.64
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "14491426-9c19-37b9-e9ec-674aa7d53ccc",
+      "index": 35,
+      "startTime": 96.03999999999999,
+      "endTime": 97,
+      "text": "Some days.",
+      "words": [
+        {
+          "text": "Some",
+          "startTime": 96.03999999999999,
+          "endTime": 96.44
+        },
+        {
+          "text": "days.",
+          "startTime": 96.44,
+          "endTime": 97
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "ad300c6e-8bed-9759-a077-ac71d1d1c63e",
+      "index": 36,
+      "startTime": 97.32,
+      "endTime": 98.75999999999999,
+      "text": "You only want to live once.",
+      "words": [
+        {
+          "text": "You",
+          "startTime": 97.32,
+          "endTime": 97.64
+        },
+        {
+          "text": "only",
+          "startTime": 97.64,
+          "endTime": 97.80000000000001
+        },
+        {
+          "text": "want",
+          "startTime": 97.80000000000001,
+          "endTime": 97.96000000000001
+        },
+        {
+          "text": "to",
+          "startTime": 97.96000000000001,
+          "endTime": 98.12
+        },
+        {
+          "text": "live",
+          "startTime": 98.12,
+          "endTime": 98.44
+        },
+        {
+          "text": "once.",
+          "startTime": 98.44,
+          "endTime": 98.75999999999999
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "9a5fd2c9-ced6-3c6c-2636-ede8a668299c",
+      "index": 37,
+      "startTime": 99.08,
+      "endTime": 102.28,
+      "text": "I am so uninterested in a life without your father.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 99.08,
+          "endTime": 99.4
+        },
+        {
+          "text": "am",
+          "startTime": 99.4,
+          "endTime": 99.64
+        },
+        {
+          "text": "so",
+          "startTime": 99.64,
+          "endTime": 99.96000000000001
+        },
+        {
+          "text": "uninterested",
+          "startTime": 99.96000000000001,
+          "endTime": 100.84
+        },
+        {
+          "text": "in",
+          "startTime": 100.84,
+          "endTime": 101
+        },
+        {
+          "text": "a",
+          "startTime": 101,
+          "endTime": 101.16
+        },
+        {
+          "text": "life",
+          "startTime": 101.16,
+          "endTime": 101.4
+        },
+        {
+          "text": "without",
+          "startTime": 101.4,
+          "endTime": 101.80000000000001
+        },
+        {
+          "text": "your",
+          "startTime": 101.80000000000001,
+          "endTime": 101.96000000000001
+        },
+        {
+          "text": "father.",
+          "startTime": 101.96000000000001,
+          "endTime": 102.28
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "65e9958e-d0a2-c001-b14a-74cd96fb4637",
+      "index": 38,
+      "startTime": 102.44,
+      "endTime": 104.44,
+      "text": "It never occurred to me that I might lose you.",
+      "words": [
+        {
+          "text": "It",
+          "startTime": 102.44,
+          "endTime": 102.6
+        },
+        {
+          "text": "never",
+          "startTime": 102.6,
+          "endTime": 102.92
+        },
+        {
+          "text": "occurred",
+          "startTime": 102.92,
+          "endTime": 103.32
+        },
+        {
+          "text": "to",
+          "startTime": 103.32,
+          "endTime": 103.4
+        },
+        {
+          "text": "me",
+          "startTime": 103.4,
+          "endTime": 103.56
+        },
+        {
+          "text": "that",
+          "startTime": 103.56,
+          "endTime": 103.72
+        },
+        {
+          "text": "I",
+          "startTime": 103.72,
+          "endTime": 103.80000000000001
+        },
+        {
+          "text": "might",
+          "startTime": 103.80000000000001,
+          "endTime": 104.03999999999999
+        },
+        {
+          "text": "lose",
+          "startTime": 104.03999999999999,
+          "endTime": 104.28
+        },
+        {
+          "text": "you.",
+          "startTime": 104.28,
+          "endTime": 104.44
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "85f9b37d-1aea-468a-c4b6-77722995f60b",
+      "index": 39,
+      "startTime": 104.6,
+      "endTime": 107.16,
+      "text": "I never said you could fix everything.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 104.6,
+          "endTime": 104.75999999999999
+        },
+        {
+          "text": "never",
+          "startTime": 104.75999999999999,
+          "endTime": 105.08
+        },
+        {
+          "text": "said",
+          "startTime": 105.08,
+          "endTime": 105.32
+        },
+        {
+          "text": "you",
+          "startTime": 105.32,
+          "endTime": 105.56
+        },
+        {
+          "text": "could",
+          "startTime": 105.56,
+          "endTime": 105.80000000000001
+        },
+        {
+          "text": "fix",
+          "startTime": 105.80000000000001,
+          "endTime": 106.28
+        },
+        {
+          "text": "everything.",
+          "startTime": 106.28,
+          "endTime": 107.16
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "8aad0218-5d91-62ce-1902-a4fafcba71b7",
+      "index": 40,
+      "startTime": 107.96000000000001,
+      "endTime": 109.96000000000001,
+      "text": "Not without consequences.",
+      "words": [
+        {
+          "text": "Not",
+          "startTime": 107.96000000000001,
+          "endTime": 108.28
+        },
+        {
+          "text": "without",
+          "startTime": 108.28,
+          "endTime": 108.84
+        },
+        {
+          "text": "consequences.",
+          "startTime": 108.84,
+          "endTime": 109.96000000000001
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "1c351072-7d0b-34de-2553-3014c26ff8b5",
+      "index": 41,
+      "startTime": 110.44,
+      "endTime": 111.44,
+      "text": "It's so good to see you.",
+      "words": [
+        {
+          "text": "It's",
+          "startTime": 110.44,
+          "endTime": 110.75999999999999
+        },
+        {
+          "text": "so",
+          "startTime": 110.75999999999999,
+          "endTime": 110.92
+        },
+        {
+          "text": "good",
+          "startTime": 110.92,
+          "endTime": 111.08
+        },
+        {
+          "text": "to",
+          "startTime": 111.08,
+          "endTime": 111.16
+        },
+        {
+          "text": "see",
+          "startTime": 111.16,
+          "endTime": 111.32
+        },
+        {
+          "text": "you.",
+          "startTime": 111.32,
+          "endTime": 111.4
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "7e3eb8a1-256c-d0b2-ee13-bab0d19a54e8",
+      "index": 42,
+      "startTime": 111.52,
+      "endTime": 113.2,
+      "text": "We've never met before.",
+      "words": [
+        {
+          "text": "We've",
+          "startTime": 111.56,
+          "endTime": 111.88
+        },
+        {
+          "text": "never",
+          "startTime": 111.88,
+          "endTime": 112.28
+        },
+        {
+          "text": "met",
+          "startTime": 112.28,
+          "endTime": 112.6
+        },
+        {
+          "text": "before.",
+          "startTime": 112.56,
+          "endTime": 113.2
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "39d308b4-cdfe-1c5e-eb62-a82fa4246ca8",
+      "index": 43,
+      "startTime": 113.4,
+      "endTime": 114,
+      "text": "Oh no.",
+      "words": [
+        {
+          "text": "Oh",
+          "startTime": 113.44,
+          "endTime": 113.76
+        },
+        {
+          "text": "no.",
+          "startTime": 113.76,
+          "endTime": 114
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "7a7fc929-4964-4d4e-aea4-d457259631d2",
+      "index": 44,
+      "startTime": 114.12,
+      "endTime": 114.96,
+      "text": "What do I do?",
+      "words": [
+        {
+          "text": "What",
+          "startTime": 114.16,
+          "endTime": 114.4
+        },
+        {
+          "text": "do",
+          "startTime": 114.4,
+          "endTime": 114.64
+        },
+        {
+          "text": "I",
+          "startTime": 114.64,
+          "endTime": 114.8
+        },
+        {
+          "text": "do?",
+          "startTime": 114.8,
+          "endTime": 114.96
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "1d69e2fa-3d7a-4749-45b3-6f0328aca11f",
+      "index": 45,
+      "startTime": 115.12,
+      "endTime": 118.24,
+      "text": "You have to use it to make your life the way you want it to be.",
+      "words": [
+        {
+          "text": "You",
+          "startTime": 115.12,
+          "endTime": 115.28
+        },
+        {
+          "text": "have",
+          "startTime": 115.28,
+          "endTime": 115.44
+        },
+        {
+          "text": "to",
+          "startTime": 115.44,
+          "endTime": 115.52
+        },
+        {
+          "text": "use",
+          "startTime": 115.52,
+          "endTime": 115.76
+        },
+        {
+          "text": "it",
+          "startTime": 115.76,
+          "endTime": 115.92
+        },
+        {
+          "text": "to",
+          "startTime": 115.92,
+          "endTime": 116.08
+        },
+        {
+          "text": "make",
+          "startTime": 116.16,
+          "endTime": 116.32
+        },
+        {
+          "text": "your",
+          "startTime": 116.32,
+          "endTime": 116.48
+        },
+        {
+          "text": "life",
+          "startTime": 116.48,
+          "endTime": 116.72
+        },
+        {
+          "text": "the",
+          "startTime": 116.72,
+          "endTime": 116.88
+        },
+        {
+          "text": "way",
+          "startTime": 116.88,
+          "endTime": 117.04
+        },
+        {
+          "text": "you",
+          "startTime": 117.04,
+          "endTime": 117.2
+        },
+        {
+          "text": "want",
+          "startTime": 117.2,
+          "endTime": 117.36
+        },
+        {
+          "text": "it",
+          "startTime": 117.36,
+          "endTime": 117.6
+        },
+        {
+          "text": "to",
+          "startTime": 117.6,
+          "endTime": 117.92
+        },
+        {
+          "text": "be.",
+          "startTime": 117.92,
+          "endTime": 118.24
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "cfab78ea-a477-182a-605c-55d38e46a9f3",
+      "index": 46,
+      "startTime": 123.36,
+      "endTime": 127.03999999999999,
+      "text": "I never know what the future holds, just like everyone else.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 123.36,
+          "endTime": 123.68
+        },
+        {
+          "text": "never",
+          "startTime": 123.68,
+          "endTime": 124
+        },
+        {
+          "text": "know",
+          "startTime": 124,
+          "endTime": 124.24
+        },
+        {
+          "text": "what",
+          "startTime": 124.24,
+          "endTime": 124.4
+        },
+        {
+          "text": "the",
+          "startTime": 124.4,
+          "endTime": 124.56
+        },
+        {
+          "text": "future",
+          "startTime": 124.56,
+          "endTime": 124.96000000000001
+        },
+        {
+          "text": "holds,",
+          "startTime": 124.96000000000001,
+          "endTime": 125.28
+        },
+        {
+          "text": "just",
+          "startTime": 125.44,
+          "endTime": 125.68
+        },
+        {
+          "text": "like",
+          "startTime": 125.68,
+          "endTime": 125.84
+        },
+        {
+          "text": "everyone",
+          "startTime": 125.84,
+          "endTime": 126.4
+        },
+        {
+          "text": "else.",
+          "startTime": 126.4,
+          "endTime": 127.03999999999999
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "dfde6530-66a6-6b28-ebbc-ae2e7eee23d1",
+      "index": 47,
+      "startTime": 129.12,
+      "endTime": 131.2,
+      "text": "Time catches up to all of us.",
+      "words": [
+        {
+          "text": "Time",
+          "startTime": 129.12,
+          "endTime": 129.68
+        },
+        {
+          "text": "catches",
+          "startTime": 129.68,
+          "endTime": 130.24
+        },
+        {
+          "text": "up",
+          "startTime": 130.24,
+          "endTime": 130.48
+        },
+        {
+          "text": "to",
+          "startTime": 130.48,
+          "endTime": 130.64
+        },
+        {
+          "text": "all",
+          "startTime": 130.64,
+          "endTime": 130.88
+        },
+        {
+          "text": "of",
+          "startTime": 130.88,
+          "endTime": 131.04
+        },
+        {
+          "text": "us.",
+          "startTime": 131.04,
+          "endTime": 131.2
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "3793a559-4c03-b44d-bd75-7acf0a2cae20",
+      "index": 48,
+      "startTime": 131.44,
+      "endTime": 131.92000000000002,
+      "text": "My son.",
+      "words": [
+        {
+          "text": "My",
+          "startTime": 131.44,
+          "endTime": 131.52
+        },
+        {
+          "text": "son.",
+          "startTime": 131.76,
+          "endTime": 131.92000000000002
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "10fc82a6-af49-7aae-a0ab-f8ed7faed0cc",
+      "index": 49,
+      "startTime": 132.48,
+      "endTime": 133.44,
+      "text": "My dad.",
+      "words": [
+        {
+          "text": "My",
+          "startTime": 132.48,
+          "endTime": 132.8
+        },
+        {
+          "text": "dad.",
+          "startTime": 132.8,
+          "endTime": 133.44
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "39d82d77-17d1-353c-cb6c-315d2f4ee3ab",
+      "index": 50,
+      "startTime": 135.68,
+      "endTime": 141.6,
+      "text": "I try to live every day as if it was the final day of my extraordinary, ordinary life.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 135.68,
+          "endTime": 135.76
+        },
+        {
+          "text": "try",
+          "startTime": 136.08,
+          "endTime": 136.4
+        },
+        {
+          "text": "to",
+          "startTime": 136.4,
+          "endTime": 136.48
+        },
+        {
+          "text": "live",
+          "startTime": 136.48,
+          "endTime": 136.72
+        },
+        {
+          "text": "every",
+          "startTime": 136.72,
+          "endTime": 136.96
+        },
+        {
+          "text": "day",
+          "startTime": 136.96,
+          "endTime": 137.28
+        },
+        {
+          "text": "as",
+          "startTime": 137.28,
+          "endTime": 137.52
+        },
+        {
+          "text": "if",
+          "startTime": 137.52,
+          "endTime": 137.68
+        },
+        {
+          "text": "it",
+          "startTime": 137.68,
+          "endTime": 137.84
+        },
+        {
+          "text": "was",
+          "startTime": 137.84,
+          "endTime": 138
+        },
+        {
+          "text": "the",
+          "startTime": 138,
+          "endTime": 138.24
+        },
+        {
+          "text": "final",
+          "startTime": 138.24,
+          "endTime": 138.56
+        },
+        {
+          "text": "day",
+          "startTime": 138.56,
+          "endTime": 138.8
+        },
+        {
+          "text": "of",
+          "startTime": 138.8,
+          "endTime": 139.04
+        },
+        {
+          "text": "my",
+          "startTime": 139.04,
+          "endTime": 139.28
+        },
+        {
+          "text": "extraordinary,",
+          "startTime": 139.28,
+          "endTime": 140.08
+        },
+        {
+          "text": "ordinary",
+          "startTime": 140.24,
+          "endTime": 140.96
+        },
+        {
+          "text": "life.",
+          "startTime": 140.96,
+          "endTime": 141.6
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "f4601d98-ef50-5ca5-d477-b6190447d8e5",
+      "index": 51,
+      "startTime": 142.16,
+      "endTime": 143.52,
+      "text": "I hope I see you again.",
+      "words": [
+        {
+          "text": "I",
+          "startTime": 142.16,
+          "endTime": 142.32
+        },
+        {
+          "text": "hope",
+          "startTime": 142.32,
+          "endTime": 142.64
+        },
+        {
+          "text": "I",
+          "startTime": 142.8,
+          "endTime": 142.96
+        },
+        {
+          "text": "see",
+          "startTime": 142.96,
+          "endTime": 143.12
+        },
+        {
+          "text": "you",
+          "startTime": 143.12,
+          "endTime": 143.2
+        },
+        {
+          "text": "again.",
+          "startTime": 143.2,
+          "endTime": 143.52
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "34df46d9-39fe-ca51-2c31-a5a0382ebf62",
+      "index": 52,
+      "startTime": 143.76,
+      "endTime": 144.24,
+      "text": "You will.",
+      "words": [
+        {
+          "text": "You",
+          "startTime": 143.76,
+          "endTime": 144
+        },
+        {
+          "text": "will.",
+          "startTime": 144,
+          "endTime": 144.24
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "8209c797-2646-cb09-c149-d1ea7995c99c",
+      "index": 53,
+      "startTime": 144.4,
+      "endTime": 146.24,
+      "text": "My whole life depends on it.",
+      "words": [
+        {
+          "text": "My",
+          "startTime": 144.4,
+          "endTime": 144.64
+        },
+        {
+          "text": "whole",
+          "startTime": 144.64,
+          "endTime": 144.88
+        },
+        {
+          "text": "life",
+          "startTime": 144.88,
+          "endTime": 145.12
+        },
+        {
+          "text": "depends",
+          "startTime": 145.12,
+          "endTime": 145.6
+        },
+        {
+          "text": "on",
+          "startTime": 145.6,
+          "endTime": 145.92000000000002
+        },
+        {
+          "text": "it.",
+          "startTime": 145.92000000000002,
+          "endTime": 146.24
+        }
+      ],
+      "timestamp": "2026-04-14T05:41:47.189569-07:00",
+      "verified": false,
+      "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+    }
+  ],
+  "history": [
+    {
+      "id": "c96a34cc-32cc-4ad1-8ee5-2838d553366f",
+      "action": "modified",
+      "actionTimestamp": "2026-04-14T13:34:36.673-07:00",
+      "segment": {
+        "id": "916af215-9e7d-b30a-c49a-c5a0c8e75ebd",
+        "index": 10,
+        "startTime": 31.2,
+        "endTime": 39.68,
+        "text": "But if it was, which it's not, which it is, how would I actually You go into a dark place, clench your fists, think of the moment you're going to, and you'll find yourself there.",
+        "words": [
+          {
+            "text": "But",
+            "startTime": 31.2,
+            "endTime": 31.36
+          },
+          {
+            "text": "if",
+            "startTime": 31.36,
+            "endTime": 31.52
+          },
+          {
+            "text": "it",
+            "startTime": 31.52,
+            "endTime": 31.6
+          },
+          {
+            "text": "was,",
+            "startTime": 31.6,
+            "endTime": 31.84
+          },
+          {
+            "text": "which",
+            "startTime": 31.92,
+            "endTime": 32.08
+          },
+          {
+            "text": "it's",
+            "startTime": 32.08,
+            "endTime": 32.24
+          },
+          {
+            "text": "not,",
+            "startTime": 32.24,
+            "endTime": 32.32
+          },
+          {
+            "text": "which",
+            "startTime": 32.64,
+            "endTime": 32.72
+          },
+          {
+            "text": "it",
+            "startTime": 32.8,
+            "endTime": 32.88
+          },
+          {
+            "text": "is,",
+            "startTime": 32.88,
+            "endTime": 32.96
+          },
+          {
+            "text": "how",
+            "startTime": 33.2,
+            "endTime": 33.44
+          },
+          {
+            "text": "would",
+            "startTime": 33.44,
+            "endTime": 33.6
+          },
+          {
+            "text": "I",
+            "startTime": 33.6,
+            "endTime": 33.76
+          },
+          {
+            "text": "actually",
+            "startTime": 33.76,
+            "endTime": 34.160000000000004
+          },
+          {
+            "text": "You",
+            "startTime": 34.4,
+            "endTime": 34.56
+          },
+          {
+            "text": "go",
+            "startTime": 34.56,
+            "endTime": 34.72
+          },
+          {
+            "text": "into",
+            "startTime": 34.72,
+            "endTime": 34.88
+          },
+          {
+            "text": "a",
+            "startTime": 34.88,
+            "endTime": 34.96
+          },
+          {
+            "text": "dark",
+            "startTime": 34.96,
+            "endTime": 35.28
+          },
+          {
+            "text": "place,",
+            "startTime": 35.28,
+            "endTime": 35.52
+          },
+          {
+            "text": "clench",
+            "startTime": 35.68,
+            "endTime": 36.24
+          },
+          {
+            "text": "your",
+            "startTime": 36.24,
+            "endTime": 36.4
+          },
+          {
+            "text": "fists,",
+            "startTime": 36.4,
+            "endTime": 36.800000000000004
+          },
+          {
+            "text": "think",
+            "startTime": 36.96,
+            "endTime": 37.2
+          },
+          {
+            "text": "of",
+            "startTime": 37.2,
+            "endTime": 37.28
+          },
+          {
+            "text": "the",
+            "startTime": 37.28,
+            "endTime": 37.44
+          },
+          {
+            "text": "moment",
+            "startTime": 37.44,
+            "endTime": 37.68
+          },
+          {
+            "text": "you're",
+            "startTime": 37.68,
+            "endTime": 37.92
+          },
+          {
+            "text": "going",
+            "startTime": 37.92,
+            "endTime": 38
+          },
+          {
+            "text": "to,",
+            "startTime": 38,
+            "endTime": 38.160000000000004
+          },
+          {
+            "text": "and",
+            "startTime": 38.24,
+            "endTime": 38.4
+          },
+          {
+            "text": "you'll",
+            "startTime": 38.4,
+            "endTime": 38.64
+          },
+          {
+            "text": "find",
+            "startTime": 38.64,
+            "endTime": 38.800000000000004
+          },
+          {
+            "text": "yourself",
+            "startTime": 38.800000000000004,
+            "endTime": 39.36
+          },
+          {
+            "text": "there.",
+            "startTime": 39.36,
+            "endTime": 39.68
+          }
+        ],
+        "timestamp": "2026-04-14T05:41:47.189569-07:00",
+        "verified": false,
+        "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+      }
+    },
+    {
+      "id": "ac41bcb9-755b-4348-8ed7-fa7820fb20ee",
+      "action": "modified",
+      "actionTimestamp": "2026-04-14T13:34:40.619-07:00",
+      "segment": {
+        "id": "5296d1cc-fd67-4ee8-b5d7-e0babc7bc389",
+        "index": 11,
+        "startTime": 32.64,
+        "endTime": 39.68,
+        "text": "which it is, how would I actually You go into a dark place, clench your fists, think of the moment you're going to, and you'll find yourself there.",
+        "words": [
+          {
+            "text": "which",
+            "startTime": 32.64,
+            "endTime": 32.72
+          },
+          {
+            "text": "it",
+            "startTime": 32.8,
+            "endTime": 32.88
+          },
+          {
+            "text": "is,",
+            "startTime": 32.88,
+            "endTime": 32.96
+          },
+          {
+            "text": "how",
+            "startTime": 33.2,
+            "endTime": 33.44
+          },
+          {
+            "text": "would",
+            "startTime": 33.44,
+            "endTime": 33.6
+          },
+          {
+            "text": "I",
+            "startTime": 33.6,
+            "endTime": 33.76
+          },
+          {
+            "text": "actually",
+            "startTime": 33.76,
+            "endTime": 34.160000000000004
+          },
+          {
+            "text": "You",
+            "startTime": 34.4,
+            "endTime": 34.56
+          },
+          {
+            "text": "go",
+            "startTime": 34.56,
+            "endTime": 34.72
+          },
+          {
+            "text": "into",
+            "startTime": 34.72,
+            "endTime": 34.88
+          },
+          {
+            "text": "a",
+            "startTime": 34.88,
+            "endTime": 34.96
+          },
+          {
+            "text": "dark",
+            "startTime": 34.96,
+            "endTime": 35.28
+          },
+          {
+            "text": "place,",
+            "startTime": 35.28,
+            "endTime": 35.52
+          },
+          {
+            "text": "clench",
+            "startTime": 35.68,
+            "endTime": 36.24
+          },
+          {
+            "text": "your",
+            "startTime": 36.24,
+            "endTime": 36.4
+          },
+          {
+            "text": "fists,",
+            "startTime": 36.4,
+            "endTime": 36.800000000000004
+          },
+          {
+            "text": "think",
+            "startTime": 36.96,
+            "endTime": 37.2
+          },
+          {
+            "text": "of",
+            "startTime": 37.2,
+            "endTime": 37.28
+          },
+          {
+            "text": "the",
+            "startTime": 37.28,
+            "endTime": 37.44
+          },
+          {
+            "text": "moment",
+            "startTime": 37.44,
+            "endTime": 37.68
+          },
+          {
+            "text": "you're",
+            "startTime": 37.68,
+            "endTime": 37.92
+          },
+          {
+            "text": "going",
+            "startTime": 37.92,
+            "endTime": 38
+          },
+          {
+            "text": "to,",
+            "startTime": 38,
+            "endTime": 38.160000000000004
+          },
+          {
+            "text": "and",
+            "startTime": 38.24,
+            "endTime": 38.4
+          },
+          {
+            "text": "you'll",
+            "startTime": 38.4,
+            "endTime": 38.64
+          },
+          {
+            "text": "find",
+            "startTime": 38.64,
+            "endTime": 38.800000000000004
+          },
+          {
+            "text": "yourself",
+            "startTime": 38.800000000000004,
+            "endTime": 39.36
+          },
+          {
+            "text": "there.",
+            "startTime": 39.36,
+            "endTime": 39.68
+          }
+        ],
+        "timestamp": "2026-04-14T13:34:36.672-07:00",
+        "verified": false,
+        "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+      }
+    },
+    {
+      "id": "b537c060-bb66-43ff-8629-c08c14a36882",
+      "action": "modified",
+      "actionTimestamp": "2026-04-14T13:35:32.743-07:00",
+      "segment": {
+        "id": "df1a2f2e-28cb-4ccd-b774-9126c5ffa874",
+        "index": 12,
+        "startTime": 33.2,
+        "endTime": 39.68,
+        "text": "how would I actually You go into a dark place, clench your fists, think of the moment you're going to, and you'll find yourself there.",
+        "words": [
+          {
+            "text": "how",
+            "startTime": 33.2,
+            "endTime": 33.44
+          },
+          {
+            "text": "would",
+            "startTime": 33.44,
+            "endTime": 33.6
+          },
+          {
+            "text": "I",
+            "startTime": 33.6,
+            "endTime": 33.76
+          },
+          {
+            "text": "actually",
+            "startTime": 33.76,
+            "endTime": 34.160000000000004
+          },
+          {
+            "text": "You",
+            "startTime": 34.4,
+            "endTime": 34.56
+          },
+          {
+            "text": "go",
+            "startTime": 34.56,
+            "endTime": 34.72
+          },
+          {
+            "text": "into",
+            "startTime": 34.72,
+            "endTime": 34.88
+          },
+          {
+            "text": "a",
+            "startTime": 34.88,
+            "endTime": 34.96
+          },
+          {
+            "text": "dark",
+            "startTime": 34.96,
+            "endTime": 35.28
+          },
+          {
+            "text": "place,",
+            "startTime": 35.28,
+            "endTime": 35.52
+          },
+          {
+            "text": "clench",
+            "startTime": 35.68,
+            "endTime": 36.24
+          },
+          {
+            "text": "your",
+            "startTime": 36.24,
+            "endTime": 36.4
+          },
+          {
+            "text": "fists,",
+            "startTime": 36.4,
+            "endTime": 36.800000000000004
+          },
+          {
+            "text": "think",
+            "startTime": 36.96,
+            "endTime": 37.2
+          },
+          {
+            "text": "of",
+            "startTime": 37.2,
+            "endTime": 37.28
+          },
+          {
+            "text": "the",
+            "startTime": 37.28,
+            "endTime": 37.44
+          },
+          {
+            "text": "moment",
+            "startTime": 37.44,
+            "endTime": 37.68
+          },
+          {
+            "text": "you're",
+            "startTime": 37.68,
+            "endTime": 37.92
+          },
+          {
+            "text": "going",
+            "startTime": 37.92,
+            "endTime": 38
+          },
+          {
+            "text": "to,",
+            "startTime": 38,
+            "endTime": 38.160000000000004
+          },
+          {
+            "text": "and",
+            "startTime": 38.24,
+            "endTime": 38.4
+          },
+          {
+            "text": "you'll",
+            "startTime": 38.4,
+            "endTime": 38.64
+          },
+          {
+            "text": "find",
+            "startTime": 38.64,
+            "endTime": 38.800000000000004
+          },
+          {
+            "text": "yourself",
+            "startTime": 38.800000000000004,
+            "endTime": 39.36
+          },
+          {
+            "text": "there.",
+            "startTime": 39.36,
+            "endTime": 39.68
+          }
+        ],
+        "timestamp": "2026-04-14T13:34:40.619-07:00",
+        "verified": false,
+        "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+      }
+    },
+    {
+      "id": "65e9389e-858d-40a0-97bd-af67f9b64598",
+      "action": "modified",
+      "actionTimestamp": "2026-04-14T18:38:31.055-07:00",
+      "segment": {
+        "id": "c7122435-7615-a0cd-16c5-1bb32cf91780",
+        "index": 4,
+        "startTime": 16.8,
+        "endTime": 18.64,
+        "text": "Tim, my dear son.",
+        "words": [
+          {
+            "text": "Tim,",
+            "startTime": 16.8,
+            "endTime": 17.28
+          },
+          {
+            "text": "my",
+            "startTime": 17.6,
+            "endTime": 17.84
+          },
+          {
+            "text": "dear",
+            "startTime": 17.84,
+            "endTime": 18.400000000000002
+          },
+          {
+            "text": "son.",
+            "startTime": 18.400000000000002,
+            "endTime": 18.64
+          }
+        ],
+        "timestamp": "2026-04-14T05:41:47.189569-07:00",
+        "verified": false,
+        "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+      }
+    },
+    {
+      "id": "9dbadcff-8e37-4f7a-ae51-42be96a5a002",
+      "action": "modified",
+      "actionTimestamp": "2026-04-14T18:38:31.055-07:00",
+      "segment": {
+        "id": "7097cfcc-6ac2-e251-4468-df61d8ba25bf",
+        "index": 5,
+        "startTime": 18.8,
+        "endTime": 24.240000000000002,
+        "text": "This is going to sound strange, but there's this family secret that the men in the family can",
+        "words": [
+          {
+            "text": "This",
+            "startTime": 18.8,
+            "endTime": 18.96
+          },
+          {
+            "text": "is",
+            "startTime": 18.96,
+            "endTime": 19.2
+          },
+          {
+            "text": "going",
+            "startTime": 19.2,
+            "endTime": 19.36
+          },
+          {
+            "text": "to",
+            "startTime": 19.36,
+            "endTime": 19.52
+          },
+          {
+            "text": "sound",
+            "startTime": 19.52,
+            "endTime": 19.84
+          },
+          {
+            "text": "strange,",
+            "startTime": 19.84,
+            "endTime": 20.240000000000002
+          },
+          {
+            "text": "but",
+            "startTime": 20.400000000000002,
+            "endTime": 20.56
+          },
+          {
+            "text": "there's",
+            "startTime": 20.56,
+            "endTime": 20.88
+          },
+          {
+            "text": "this",
+            "startTime": 20.88,
+            "endTime": 21.12
+          },
+          {
+            "text": "family",
+            "startTime": 21.12,
+            "endTime": 21.44
+          },
+          {
+            "text": "secret",
+            "startTime": 21.68,
+            "endTime": 22.240000000000002
+          },
+          {
+            "text": "that",
+            "startTime": 22.240000000000002,
+            "endTime": 22.48
+          },
+          {
+            "text": "the",
+            "startTime": 22.48,
+            "endTime": 22.72
+          },
+          {
+            "text": "men",
+            "startTime": 22.72,
+            "endTime": 22.96
+          },
+          {
+            "text": "in",
+            "startTime": 22.96,
+            "endTime": 23.04
+          },
+          {
+            "text": "the",
+            "startTime": 23.04,
+            "endTime": 23.28
+          },
+          {
+            "text": "family",
+            "startTime": 23.28,
+            "endTime": 23.92
+          },
+          {
+            "text": "can",
+            "startTime": 23.92,
+            "endTime": 24.240000000000002
+          }
+        ],
+        "timestamp": "2026-04-14T05:41:47.189569-07:00",
+        "verified": false,
+        "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+      }
+    },
+    {
+      "id": "62697e7a-d96b-4751-b79c-6d803947035b",
+      "action": "modified",
+      "actionTimestamp": "2026-04-14T18:38:31.055-07:00",
+      "segment": {
+        "id": "e5eb8cec-7000-5ead-f780-f00785de05ae",
+        "index": 6,
+        "startTime": 25.2,
+        "endTime": 26.560000000000002,
+        "text": "travel in time.",
+        "words": [
+          {
+            "text": "travel",
+            "startTime": 25.2,
+            "endTime": 25.68
+          },
+          {
+            "text": "in",
+            "startTime": 25.92,
+            "endTime": 26.240000000000002
+          },
+          {
+            "text": "time.",
+            "startTime": 26.240000000000002,
+            "endTime": 26.560000000000002
+          }
+        ],
+        "timestamp": "2026-04-14T05:41:47.189569-07:00",
+        "verified": false,
+        "asrModel": "nvidia/parakeet-tdt-0.6b-v3"
+      }
+    }
+  ],
+  "embeddings": [
+    {
+      "segmentId": "7541ec8b-8107-1af4-6f40-f63691a86506",
+      "speakerEmbedding": "oBGQvpsRDr4ZTr6+GxDcvlzPHj2gB8C8hmuWPQjciz2aHiI+1b0CvhVWnz1C+yA+rFdiPRpO4TxOTg+8oGMsPnJOFj6otso+svnNvTTkk77S/62+BgyyvpNnsz62N6C9iADoPURgsT5WbBK+dtsNPsB/SjvWvKw+rVvCPgFa9b0AWR27/ZJYPtGmJL7kobs9crcAvoBCwTsDSms+QsUvvlcsmT4np18+2xOmPbYrFj5rL609NcJfPjwveT4mTc69bLmtvs4dnz7iraY+AIphO3/wOz14po0+M+G8vqoU2j3C7GE9MEebPY6w3zwSkwm9BHm3PlDnRb1wEtG+DHJHPkYZAb68sME+Ngyevm9EIb5APEe7gnUtPoODpj3vBE6+OYaJPfI0ij2SsKI+6k6oPlDCwj2Yvkc9FgeJPdNUEr70imm+hmUZPqCDWzz0B5++7Pw1PmyQ6T68s4i+97sEvjBYGLyk7jS+miKYPYShqb6hTYe+ZCNXPnrdAj/4zig+2Lhgvpv9mz6tMY6+KisBPXCslz0b8XA+WllzPuo8BT48zx4+Fg34vfXmjr5wqgk+cl3FvUCQVT4UAEo+MF8LPjqUJz3Y7q8+dhFRPv3Ebz1OVnS+190kvjfQqD3wx2w+Q/yGPRwMZL7Y2vI9AE+Lu+pL6ryYowc/5K1WPcBi2rrdxDg+7yPKvclFs754lx49YAwZvpI14L1eVgM+NBszvaiMqT4IOB89rrBlPb7Mfr0mBbs90tw9PH6GiD14S9e99OLyPU5piz6CagU+lq8aPgQ4Kj4cZfW8VoSLPqIK1718z6a9ISpgvmeSPj1dhjM+++PCPk9uZr6AIZ68yjM4PqDu0bymMBy+zCw6vDobJD4E5yO9lCh5vsTYDj4k21a8BpNfPl67VT4AmrU+yIVkvHdyv75QcHK8F44dvmiTKr4KEIu+Qp6fvcuWtj0gAAA+nJPRPbplP70eiZO99yxVPpeBtb76OLK9zmsDv5G7o72lw++9jOsQPlGDij7KbnA9aOUCPeQ9oDwRdC6+YuNCPdmnvz5+K5q+4GtdvTJ2KT5zyqs+66mDPsKGBb683/C9eHGKPTVfKL5qNaA9zYkAvwAEmj3OJac9H4GbvUiqCrvitqe957muvpUJ4z0amA0+61UhPkIvEz6u7bo9GsA1va/1nD4m66S+SG9jPMBHpj22z829MPTSPUjlUzzI2re87E6RPtHOqr6cYUM9gn4+PpBnRbyMwZk95PU4vVDorL0CJZo+GS1BPl91C760zpw93OgzvjAQer10Ze+8LrmPvmBoHr0A7/s64LIHu7lqyb3ZAqS9fKw1PY5Noz4wIx8+rsqZvbIVPj2dlZA9nvRrPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -5.75755500793457
+        ],
+        "2": [
+          12.630671501159668,
+          17.478994369506836
+        ]
+      }
+    },
+    {
+      "segmentId": "0049e884-27d7-421c-6cb0-715a2bb8d21b",
+      "speakerEmbedding": "gJ9DvZysgb2qsIi+Ng1nvhIuQD4QIyk+fK1fvQC/EDpQuKG79PqSvdMFSL2CiBk9stu4veYFWT4GFTm96MSFPAPZRT4X5dc+APHPvfcSm75Y9Jk8zMQ+vTIUNT70vU2+lnmePWWh4D6x4Fa+ACCrOEDdgL4qCzk+2oYkP8STNr5+YRE+UCHcvKb65D3A4o09Y73dvYDbPT5olSi9gJJHvtA5Mj645OA9xWFUvvvkEj6aGo89etKBvo6oBj6XRS8+8lbzvr4CzD6gzw8++DfSvcCeHT5eE60+wtz0vlDvpj6iGro9Duc3PhD0gz0Ijlq8SWrFPi78Xr6cmXq+vYTzPXE/g71g+gg/wM7LPGFkwb66bBg+8pv1vd512z0p4M+91dE/voQ0yb1wEpU+oJc9PkxVBT7V9wS9iOesPA6U8L3B2KI9WYIbPohRm7z25bC95FSQPt95Ez4ga4+9ecnqPRquHL4iWqa+jOz8vXNZqD2UhMa8Qv1HvtTVDz+QPEQ8/uyYPhrmVj5kHQu+DAVLvr2+DL5sYaA+2EGGPiJZFD77wwq+9nzavkaCZ75QNIy9zwoDPlR9Zj6uriE9EJCBPuKRfT4JsHM+EXE2vk3yrD15AIi+AJaFvtwoHT13E6I+O+afPmcpa77+J8890lLHPo4ghb4hcBQ/H+aQPmKm5b7VF/q8VurfvrQTIr+g8i0+Se5svjlRjL7GYIg+bLWkvkjkez2yAkG+ynFVPfqKFT6csBc+RD9tvSCXL75ghyq8yl7APaS1XL1a978+Kw6UPj0tvj7em3g9t4wHP0wlPL6MDlE++Awgvg5XIL3ipMG+HHSEPk4RB78AzD8+RmuOPqpdvDwwvlO+Jkm7vXpH+z4bqWq+QuIDvR5m2T0/N+m8GcSMPnfbnj0YlEI+iGwJvmDVvb40BkA9tbW5PYAr+LzICf+9nps5vmxoSbxF2sS9bN18Phipxz5fnwS+kU++PT51iL55e/q91xkyv091lr6oGUk8fpOnPLlaUD0bpfw9qYXzPcIgA74glc67RnY8Paa/GD34cDe/sHHQvuRdID6WdMW+sNdpPUqILT1PRBi+s+kkPlOahr6ylze+fB8HvwjLKL1oP8k9wqvfPdB+yLykxiI96ursvrXNDz4MOt89XUOiPYo8YL6/6Qw+8piZvQpYlz4y3K2+pnFEvp63nDxmor+9waw4PmbQk76glDA9aFnvPUNvq75bmfA+Mei8PjDmmrz5DAc+5EGSvpRFED5unpk+WMFMPhkI8b6D1J697YWUvmzkk71AAC+85nbjPdQyrLyVHY09sPHqPFQ9pr2IwZg+AzxnPlK6KT/sao69BjyBvmDLgT7g5i0++MDoPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -5.66100549697876
+        ],
+        "2": [
+          12.332019805908203,
+          17.406497955322266
+        ]
+      }
+    },
+    {
+      "segmentId": "707d0a39-c64b-b3dd-9638-9976073c881e",
+      "speakerEmbedding": "4BwfPOoiA77/hIU9clZwvhFuw75+ofI9tBhTPTgGrL1WzIG9lI6VPF4Ayz1UDwa88qvRPU0qGb4QpCS9wFEZvoEoBb6YYJA+SfoPPjjBsD3s0lI9fIr3vW6RTj5RFCg+ZGDkPcPKnD1U0ni9kkDvvLKhz73cLqw89hEhPq/f/b0I6Cq++GRSvqCvrLtwY0c8168tvjR/3zvK5YA+FBSAvsj6Sj6ouYe9f4MtPn+5OL6+JLe9sMVvvh6pgj6I+PA+zSMKvj61sr2jVos+yeznvZAqBj7SPIc9b9u1vVpxgD6gmi6+FWtLPlYCND6s+CG9lpmHvSuAOj4UnTy+kl+UPiu/pL0JCb+9Cz03vmBCGzsAcS8+rtTTPbyntD22dlE9+hunPdrmgr3A7aY7S6GYvbcpHz7sY4a9LtwIPn6XZL7s/Q4+A7C1Pei/zr3CaDY+HzYSPmtikb3vJay9mmMhvfJoxL1YUB6+ViUpvljX/bvz+2q+i+uZvfBf7bywNnk9hRLIPXoJvr1ifk8+tTMdPfCSAzxAZPa9qJmHPmgtQD6hmEE+gs5vvggeI7vxoYW8EPGtvTKMiD17ClW+4yUvviDa+L2bsB4+UlbtvdDlXD7OHtQ9IK63vCPe9r0QKcC+EHWpva3YKb46W8o92mW/PviesDxeNqw+lfALvo0iyr76zZm9dsmCvgBXcb4YuVE9xPb9vHjVETxx3SY+EbuMPZ4ITbyFg7s95j39veh5HjxLB549VBQTPtGYDz4oRXi+GoX9vUxVcj58/zs8QEYZO0xgAj7iu7q8rufmvdioX74WtzM+86ESPie5Ez1jwgM+gMJXOww2h76kNCq9gM8ivUbQGz5wC3E9JjJivtV+Pr3aSm8+SmoLPVDhED06LQQ8c1CNPRYw0j2pmAY+RZ6UvlSUlb4MWQq+bBqOPlFHGT3cKqu9LPaJPX+JPj32m/e9WLWtvRAfDbsgQac8aCQqvuj0xb1nlI0+vtMZvvQBZb0f6ns+D8+nvaQeB72yhru9GkhFPd0a8j3tLG29V9+0PT6qkz4Qm3O+4n9TPu7bk74liA++ldSGPbMWMr48wgA+mGzdvB4NH74lr9Y9moHOviA2Yj2GPN89KISqPs7yE71+NcO+SJTrvZmtFT5dYEK+wOTZO0Es972/ybY85KUYPECA6zzo4je8rvkgvbST6D3asSe+vKasPTxgNL66/SK+JPIvvkRlYb408U49EheDPg0SBr6WYYI9uBJYvcektT1jlbc9DPT9PCUOVr0gq947Qy5QPkcwjT0gDTG+mqruvISmfj2rAzM9+gxqvvCBwDtGL+O9mbJ/vfzP+L0/Mzk+bDsxPmunlj24Caw9BIJSPg==",
+      "umapEmbeddings": {
+        "1": [
+          -6.372468948364258
+        ],
+        "2": [
+          11.91256046295166,
+          16.864164352416992
+        ]
+      }
+    },
+    {
+      "segmentId": "7e2357bc-cd5d-91d1-bb23-76a02c11a1c4",
+      "speakerEmbedding": "ZDcAPrIBgb6w5fa+LiiavvRGxD7QpSM8gJP4vGk32z3ckH2+81EEvpJxqT6YmMm8MAQtPrVRg702Nli9qDfFPuDjILzH9Ao/nreDvpiagr5ciaO8by0dPevTuD6GYk++xCMhPgvKZT7xfWi9Op6dvbvZBD3Y/jO8Gh9nP5bzPL3SsTS93iADPhyFA74I0cE+tAMrvhASU7tLF1M+vRUev3Uyq714SFa+pFf8vLouhT4eZxm+DTK3vgDdgT6SWvU+3Qh0vlxh0j5mqgC9suwNvjICgz4xkQq+ulVEv6BL/D5mdEe+/2VDPQiptzwp7iI+rwwKPyfja75o7Pq+CNMTPnhyWLzZm94+GS0IvoAylL76Jxo+SOjUPAjCSr0ATnc6PesZvmTLQL10sqU+XzWtPZ0LKT5OYy89N4AGvobcsL04cQc99FPkvXAcZDxghwG+y4ODPgTnAD+dO1m+wDTzu2bHjb16GPq+Tvr+vZgkYD1+z7Y9r1brvSpxJj8xcxA+78BYP4CcXj6XikG+6VWfvhio47zX/ge+oA2bPgJXHL0qVVC+W/5Jvhxofz2W6ZE+FxSmvXDJpj7hgHQ9xiiyPkx1Bb7Z6zk/cLfbvIADnDteYti+6BzYvtzzX76ZqcS92Ci+Ph+pQL4I54c8zj7gPk294b5ANyw/Ol7APZhcyr50YLW+4rdOvhzmDL+WiFc+hHyQviCHl74mou0906l5vgkgBj40EeU9jK05vjYJFz7YAnG+NA0kPj74gb1C8oE+wOwou1MPVz7Bt5c+gqWyvUR+Yj61OyW+QJECPnDWmT0rYTK+TMyhvTzyYr4/wJe+rOdIPozPJ7+QRIw89dQvvUqzMj5ct5y+zDCCPJA2gD4/DxY+ifBavpDfmj5EG1u++8vjPhDTPj2FJWs+T80Avujsbr6nwhi+ALbMPVL1076HPQm+fOMHvnbnRr4gAaM7Gvj5vR18mj5CRU6+RFSWPkCfJL7VBjM+1kx9vxsDq75yHks+nYezvhyKAT7BFvG9La7IPlQsN7z90YK+RlBnPhyzBD5pfTG/GltHveraYz5yuIS+lxwbvtgGKj1Wrbu9CsxpvoTn0r5AGhA9X2J+v8S+AD1Qzyu8iMqRPuTFjb72ESo+tZgmvq2pT74ott09DEMUPs0yjL5g7WO7HMEFvESB0DzY+QK/OHznva+aTL0scbE95WEpvkpXwb7mKkS+FmYNP7i0sL3Cr74+6oMSP8y9Vz60ky8/dPUNvpZPmD0Rmas+S3a1PdR+CL9u9xe/iLUnv5gJ8b1wWEi9HseoPJYHgT0Z/ZM+mIYwvnevgr2I0fa8KoBxPUCXLD9mt8y+n/QIv+AmXrzdOMY+K4C+vQ==",
+      "umapEmbeddings": {
+        "1": [
+          -6.028898239135742
+        ],
+        "2": [
+          12.036700248718262,
+          17.013946533203125
+        ]
+      }
+    },
+    {
+      "segmentId": "c7122435-7615-a0cd-16c5-1bb32cf91780",
+      "speakerEmbedding": "bfWvPRyNOL6kfkc+w5VbvUxyPj7+zZ++kraTvsV1tj2KcHM+pkulvo5GAz5yuAw+26DQvVgFo76aVgM+x81Wve/Ygz41Bqe9nonTvZeWT772uyQ99vmzveDXKb0SzoS9aawkvmbBRT6Iw/Q9dG/MPYEiET7EHPi8oOOEPmKyuz76jwQ+OC/bPXGwTT0OhpC9otMnPrJXYr0olew8KFEMPWwEIT021CE9mtyDvaOBmD0nRSy+nTk3PhAhM75mX3e9nEcTPqejcz0ABBa7QLFZOr4QAz5U7Bs+rCdNvlYVmL3/Omg+Lgs9PiBcrz1wug89gMGIvTJXP7795FK+pxsMPjR39L2GJio+KvVyvoAs6Dwz73G+sE1jPK7DUb7GMxu+iHHWPfWREL28oTQ9Z/YNPhMPrz0oYmo8jsSxPTH0YT6ahxs9h8RTPsdBH77sWgI+NGKIPitNwD6AX8q+Lwe8vKhQATyTCVM+Z7oFvsEOvL5sgf49kn5LvBizNb4wsYk7zovTPT8THz5J5Bs+2NlPPI3IGz43ihe+b2QEvv3AQj6pqsc9zoGFvV7fZz1L3VQ+EO/NvedaIT5gYD4+QM3QPXkId75QBWw8zcWhPc8jZr4avj++OhHwPeWxrz7g4W28IEadvDIclz5i8GI+lO7Svendvr0s5qW8IStIPVDB7j0ULzK+HEdmPka1mz02tMK9tJBSvUoaOr6Aeay+UbvtvSFdSL4tGfc9tr6hPDoNVj6C/46+ZH35vehtWj04ISO+jEQDPhjyizxQV5a8HG+Yvb59nb3pehW+QAbIO6KzBD7qrQC95NecPsYHKj6gTXs9wBF+vAFxf77WbGo+oDqevEWL+72orra8NNpJPY/erb1q50e9imznvX1c971QbyW+udS0vuKPRr1nNCK94ojUPRW1HL7T1oM+nqgfviD4N71ESCu94EBFvKGEA74Y8I89BHK+vKD6Bz6Blaa+gKMGPmTVtzymhoA+4J6aO1lD9j0q/BS+yiRQPhW6dT3O7x++ACL8ujr1Jz4wy2k9kPPbPWDooz1sDje9MyoMvvVQmT0IO7A+GF6Zvqabxj3BNR0+1r8/voN+7L2qCug9svA5vsCjcLwnhIO+fxo7vgzPKr4Uorq90QbBvWrf57zgmN474rFtPZQKZT1B0/q9gBRRPMDLub7GBo++sCKrvh885D3kDDW+sKMtvpARR76o3Ly+9B8FvgIg7LxalzC+pNm2vngIkr3oxFS9DIdUvUiV/Lykwua9WltQvuUMuT5AU1G9ssEvvmCfMz63Qh89noRJvd5pCDzET3U90a4nPSUvaj1g5JA+wfKtvh1bQ70xA2++MpXHPViJy7zQl8c8LqgRvQ==",
+      "umapEmbeddings": {
+        "1": [
+          2.452746629714966
+        ],
+        "2": [
+          12.488492012023926,
+          7.8761515617370605
+        ]
+      }
+    },
+    {
+      "segmentId": "7097cfcc-6ac2-e251-4468-df61d8ba25bf",
+      "speakerEmbedding": "/Y6APdo//70OVKU+gsyhvu47AT69MVW+yIy5vrQtAb7k+DA+UpD5vjddFL5CEgu+3J+8vRdRLb54zmA+HheSPiYxqT6w7J08RDW7PYcdED2eH4w9mLz6vlxTUT4CPBS97s7fvrDNdjx8+BU+pLyEvTvT2D6Yxzs9ElMIP7YtFD4IhAE+zCNvPmr2Aj4GWU6+klEEvoCvLLpkYzM9m2ZuPmTGBj70ciW9Jl+PvSBghbwLUKC+6NXZPlSAkz6Kkga+2kFQPjuZHr4eSZs+yk7KPQxTxj0NER6+u7qVvpiB17xZSuC9gjuqvXrAbT4mo8E+1EmPvvSdH772qQU+MRasPUivb75PSkY9HOL6vNj+rr0ssO49sJvUvN40IL5jpkQ+oTUAPqpxmL0caaK+mCJKPtwGYL2u2z8+jUwAvvO1Hz7SaWo+WChYPu5wkr5nCpE9ZsfAPhHPwD7/4si+pm4WvpDYDz4aVkc95BtKvmc70r70OeK9ShgTvjh+Cr4O336+gvKePsEHRj7aTFi9esCwPf8iSj06x4q9jkKFPhxp1L2CIAA/omkIv14iFL4d5Rs+JqinvazXrL302go/elmAPcTVHL4srP690JK3PsGrkb5qN3i+PnHjvfDU3D5ouxy+r1qhvuDp57tEtBM+FiHLvbcoMD6MwrE+iLdGvOReiD5QNb2+fTMjPcD/Tb6mOGQ+HsjlPaOpBr625BG/sGXfPTzEcT2QVl0+TZUcvgujOj3noD2+yOqKPVIymL2ID3u+Ys6BPbz1Qr1lBpu9jj6cvadww73rTCK+fjljPZkkxD2msU0+w6IHPjy3jT1QKw89G5U9vlzIB72WxGg+vw65vjRknr0SKVQ+3s8Yvnd3Tb6eVb89Cg6CvnAwODy8Oo89X/K6voQtPD5g+Gs+LouQPhj+VL30Ds8+kg9fvdiFJT2wtRm+pD+Hvbzkr71Y8gU+SUMavlO2hb7cdW2+TMSVPuCg8ztClbS9oAmxvsvUoj7t0V29fsGjPrAOuz5u4ra9gCsbO/CgCr5hV9S9iNWbPBLuGr7pPYq9xtEDvsT5rjw4kZE+/zSlvSk1Ab7LURY/TuySvVKIYb4kXwA+mKCFvkqkar7HNG0+dCrDvVCDIb7JItS8pD8mvlj4JLymRmi+f1o9vi+Ahr3MLmU9EOVaOw6ViL4vCoC+XAN9vtopbj5uBSW+DEfKvftBfj7JKs++iK6cPGy18L1suZk9ZJYvPraVFr7XS42+wOXzPBrniD1+H5a9pvcXPvZzv71IxpE8I+22vkLTFD8Aw5E9BqodPjxigTwMPYU+kBknPRg8AT96A4c92BGtvax7tzyGTJE9EG+VvQWk1L7W6ee9pIDUvA==",
+      "umapEmbeddings": {
+        "1": [
+          1.7875959873199463
+        ],
+        "2": [
+          11.999489784240723,
+          7.6437764167785645
+        ]
+      }
+    },
+    {
+      "segmentId": "e5eb8cec-7000-5ead-f780-f00785de05ae",
+      "speakerEmbedding": "AlmrvZguYL60sJI+lEs+vhbdkj5Jxju+6gUxvRKmoT18/EI+hUhmviTQm71UhM489YGMvqkxlb3a24a9+TQ6Pr2+zT4tnaE+KFISPQCnHr4cjLi9Fxt2vgBEiryQXPa7nP/Cvjz61DzKO7y90TjZvWB7GT5w2wA+oDWtPuc+Pj7gBSi8rtipPgDl0z6C1aG+0NigvpMNmb2UPcG96G9pPAKNET7uCAG+ACj2OyKTKj6MorW+cM3RPtHxnD6phii9UnTMPbzCcL4Mqs8+LGSSPsqX1j1YSvw8MZMhvt7vsb5dt1C+rLHqvajQuTxHPBE/YDRSu5f3rr262nA9RJV+PhCjtT1suvs9WjEQPvkjy72Fo2q+bfKgvVxmG72Q1qu9+O3aO2zf7T0FP3W+XD+RPQRBq74Q7iA+RMmWu4SDBT6wYRy+XluAPl4J0T0wNLg8L0xsPkUYlj4mB9a+vLuKvpWOpT2Y3mQ+DFYhvpAxPrzKh669tKRwvQxAtb4mCaO96Ftpvf7IuD7NMbg9MsBNvZApo7w8vTK+E6FEvsILqb22wiY+nxLwvttoBr6Ali88HsmEvu9Uxj7+6do+nobJPJonDT74T8y8qG1NPXa5rL6ta5e+AFQmuEZNVz6GY9W+vEdMvr8Cqz7Caeg9jOgwPox4vL3PgBI+1X7mPoOaar2BHjG/mb+svagnh70ysQ4+gIHEOyGH1L7dWqS+wMymPt7q1r1GP7c+0ilUPSEIBD9Txp6+ukb9Pd4Wnr2My6u+mz8mvhNwCz7A6S69emJ6vlGr0j3AkoY9vinGPQ5NkTz0z548vC+EPcSIG7023zg9rQ4APsB1a770fHY+qEuDPaRMfb6IM269MLDZvBUdsr7SK8W8gFIovjxjer3U0O49keKkviI6CT7pg9K9xuccPbpepL7mxck++4yEPZLESD2z1/y9moT8vaWHFj6GdP0+aCLoPMdYDD6gG647eJzKPSAvL76qhW69009DvjItuz7KEPi8++moPTyA7rwjxSw+B6bxvdNUzr19Xgq+QGadPZRRI75U9TO+HjOLvoqFaj78xaA+NrPWvUy9fb1vXSg/ZnMBvlYDzL4gZoO8eNOEvkTYXr1An1y828lHPv5Rw76833a9r7a+vuaCUr4WsYc9oRaBvvCLjDukxDU8onKcPnCfrL7DVVC9vMrBvv/p0z1m9Um+MuYpvlBm3zysjqK+mZIZvSlZ4D1tU58+QWGFvUrtsb5Rx8q+Pw7SvaAW7D2AugU6jFCyPFYe3T3ynrQ9zNkoPStl6D4yDeG9//6bPrlMFT3ihtU9rgOUPDx5HD5qcY0+8Hj6vbhkbj7lvKO9tgCCPusBxr4QwFe88Fj4PA==",
+      "umapEmbeddings": {
+        "1": [
+          1.0110176801681519
+        ],
+        "2": [
+          11.976113319396973,
+          8.026086807250977
+        ]
+      }
+    },
+    {
+      "segmentId": "8c3e14b6-ac5f-e57a-9efe-de866413a9c4",
+      "speakerEmbedding": "arRQvgqdlb40f3e+bH/KvaAkiT6iNQq9SqUcvsC97LowFUw+62l/vrnMez5wpHw8BBNavkh4rT4gHCW9AhImvjS8Lr1h3QU+l1ohvhZ7xz3oTUE9wWlLvth3Hz72QTy+xbNSPtSVpT5IatS9/cb2PfLwyb39BrY+IrxYP4hS0r0Yhk09nq7MvRCc1T2CfS4+hOaePDnu8L0Qjbo9UDNqPM20Q75kxqq90IN+Pjy60z7uY4w9/poovUzzTz6aF1o+1L++PLJRLT6GGkw+IuTdPSXjkD0iZss8B0aKvuCkmD7Zkrs9GPgcPWBnNj5AQ3Y9TE4kvjMEPb72XH6+0m0RPvLM3b0Y6Bs/9gvBPRIQUr7g/5w+BRpYvlCgcTySHNE86TdpPYA75DyjV6Q9SOzgvGBmSj4HuLk92FwmvTj1sDwwgUC9H3prPZQWzD3Y/iw90AuMO4wtJj5H3oG+niUDPj+QQj1ArbS9kEp2vCHhZj1A9qA+CbHEvdIIiT7Nz5C9evK0PmPciL5XBQ++oqZqvgA19zyUzZG+G9OlPogUOj2EnAM+MjdqvtDC3Du6Tbg+MpskvicxgD7ycIo+oO8cPNZP9j32e74+thUcvkROyj1Auhs+xAcqvZwGir5MdZg9lP6CPuzWzz1UjR09ePK4PZY3ab5oBJc+OppHvlTYGb6ORp6+HmEXPsg25b7i7fO9Ic0RvsyWh72Azoq+WvUIPiv9Y72chZa+qNCWPmAV/T6Al+m9zL8WvtbUcD6QCEq8tkuTPmbg1T2wbmw840afPU0Tiz7qBTG9koMFPelXCr/ihAi+y57APX/bpr5BwOA9umLqvb7Nc749CcQ9dswePvy3C72MQSk+f9gKvsaXjz4YXwa+ur+evRB5Xz5a4nA+MISkPPwRBj44Raa8ZgY4vlNjoz3InfG9BSaaPdGVUL0YD0s+yBFDvHhZljyA2Rk+OWfNvswE4j2smCU+EM9nPP533b0AR/C+GLoov+P8o75Mjis90ewkvR03Yz1k9Z4+pnuTPZve0b2jSyE+cbJxPrJppr2d+BK/aIa8vrKaHz6b5Um9wsnUPRRSB76P/xs9vYypPY6BT777gYo9tmaDvSCLjjsv35o+fBJ/PiyhrDx320W+tx6Ovh2Ujj6gC2U9psCePB4Nfz0AHH+4QDCXOosTEz6lsUA+5FOEPfRU8T14HIO9WrM+vu5q671g7WK+rzOMPSZwOr60yga9jqSJPsVmj75gOG6+JE6Mvp8p9D2TOuC9amOivYNxNL5RSNq9TxBBvrzVg75UuJ++opAnvrBBuDyMwJO9PilLPoJFnDzEk10+nk3lPpYTBb7EtZ6+mTobvhpmnT51jsy9Y6MRPg==",
+      "umapEmbeddings": {
+        "1": [
+          -4.974634170532227
+        ],
+        "2": [
+          12.441283226013184,
+          16.686996459960938
+        ]
+      }
+    },
+    {
+      "segmentId": "649acfe0-a64e-cfc8-0d21-a3f94eefaaa1",
+      "speakerEmbedding": "1/GRvtQQyD3wrna8ENSNvsqr+D3IHpY9ADwxPnh2Pz7J4KW97nMTPoykxz0W/wy+SRvJPobij74NfxG+vvdAPnwQdD4r0qI94KjTuyRXUr5geh2+CfUjvujiJD4W8xW+vbSUvi95hr3AzIU+3h95vfnjmD5HnJI+v6LqPSQ+Zj52kuS+gGQ+vHiFxD6P4TO+DPbNvfdy9T2VV7Q++LmJvoKtjD4osaM9AGcdPvTRAT9YEVw8bF7GPTfODz5IM3Q+0LQIvPx0mr40wAg/fHorvqIJMT8KCaE9zyG/vhBCKLxIt9i+B5u2vb6MwD6ufxk/UDLuPP5RXz3Y9248gMNFvevlmz0FP58+Rkfsvfq7g76erhO+F6ERPqD0+D3XXAm+6Xo2vrQHqr6lZ4y9VgM0PSgVAT/kYXK+U30wve5Fk710Cc++brjEPv8Xrb46pM0+8ZyCPrk+yr3QwXO+1j+lvdp3iz0lWl0+rrYdvab7W709aRo+PdtRPgRRlz40S2a9Btv9PSbicj4ydu4+IH0/PRAhOrzPIIm9/pKJPsGgO77thMQ+XxC5PeCB97zZc0w+3XeCPdL9bT5mZqU+zJ3ZvIznqr4w+hE9r4yevq/l1L7AaOU9uHK1PGZHcT5ZJmI9TOd0vrzjMj2cJkE++VCsPQJYNz5fp1y+4tfwPtaPRD1FUAW/eMauvVscFD7eEVY+WtQhvhJQgD5kCP29heJfPpc+jT6Mvz0+TXofven2IT5Czxk+EpEJvv4IJr7wMfm8mOM+PiQCHb3El1U+KPGxvgTTtD6ne+E9vQ4JPozrmD3kXkM+al9aPkACGr7nxXg+WGs5vmAiiD0v/5a++PJGPg3bTr7l0AI+JkoSPvQFLr1A+xg9yeI9vroa9b2EnkS9+CgdvuYcnj642HC88wAjPafPNT5ijNg+TvyCPjz6rL526Yu9KtYzvsD3bDxobIk+9sG5vp2YSb4YbTa+Iu6gPeLWQz1B8Oq+GimfvfuEmj5ZEDc+KZTPvWjQVD4A+pi++d8FPgzWWj1adZu+2g4zPsK4Gj6Sa0M+Ly8Ivvg5q72LgGI+ptq6vgI+xr0UfLg+yqDxvTiJ7b4oydw+pmYevwwwvT4VPms+B8jpPUBoFzy+77A+AL0sPbSPgr7zpsm94IKhu94a4z1LrP49+CDaPjniCL6ysZo9NdWcve4j/j1W/tO9F2dmvsDUpL3VVAU97xkTvt7TLL1MFAE+LqqXPjjkMz7CRm8+nZb1PXZ/Db7ctgO//VEivtfuED4Q1ui9EC9lPqZGCT3EbeS8VH4Svl5Orr2J3MS9pk/rvtgU7T54YJi9w+gDvqL9rT60AuO97Ea0PjBPDjw8YE8+HhUOPg==",
+      "umapEmbeddings": {
+        "1": [
+          1.0237337350845337
+        ],
+        "2": [
+          12.163873672485352,
+          8.436454772949219
+        ]
+      }
+    },
+    {
+      "segmentId": "0a073529-dc65-6203-cc9a-c9478662a5b3",
+      "speakerEmbedding": "mO+WPBIHy71QTXW9YMDlvrLMSr3koUO9PNKwvu4KOz2OvXy+XK6BvcMIij1jO6K9Rt+UvrQZnj4ma708cmi0PvcWuD0YVG4+iWGpvhAbmT2XZYa+LvclPqr7vz4ctYA9K2tUvew6pD0w5io9dslUvgo6Kz1GeYo86JCLPomcMT7Ke1E+RPghPnhkwj0SM1u+9Og/vnm06j3QOYc+0L6cvWa7ij4SSzq+P2n6vbA2Hj6izrq+/gCEPqjduT0W4By+sLbOPPZflj6y8bg+IH1tPqNXeT5YGV8+hhkMv6wrGD34XN89m8rCPbTwur7E6pg+HzjuPRlZmr0EISi+ZsK9PiBeBDsDf8I+QFIOvapsHb6qj9K9MC5HvuDAQLwKziI++GoEPoBjyr1tbp6+KQO3PlgtHb5A6IS62qKHPq46u75sL/w8zNATPtTziz1ifAk9GFMCvPZmyD04SRo9tAggvggxJz7+DUi+/ptBvk6giL2c4my8mKBdvjtBdz5aT2e9JhDBPuDT4TxxxoO+mhE4vaTHPb7+IHo+lNLxPQD43T37E18+hQpjvgrBU746JRK+osGCPv9GDL7RIuk9ADRuumDODruUV9k9xv30vXQtHj4JEUG+DEAdvPlHiL3yNEw9bg/jvXxImj0JmS2+Ts0DPk5JB75eA1Y+q1SXPa9SC726Xo++ZNFivlvPTL4kdW296ytcPnK3R76QZJ+8wBrEOwCG67vwNr4+fRKQvSCnuD6sjkA9SG3luwAn1b0QIZm+zi+gveAyErzo1PU9jbehPe5dqD1tW76+j/wRvngLxLzkxRo9iXuSvcxBRr6bwdu9hmMKvkNUj77SXN09VarRvbpn+70IYqW+9SuLvuTx3r0EOa88ZsvFvuAabj21jkC9Ji3avbzq3j7M2Q8+SPcyPKX1Rr7so+49ZOdMPnrCqb6U0XA9YtrWvcvUd76ITnc+MDcBPSa8+r1iS1U9MCnHPETVgT51JN29oZDmvm6agb4QVyS9Za1KveZWjzwUE7A+JlfEvlg8J71mycu9QUqBPtQio70zRtO+K4v+vRI6DT+Dv04+hvskvg5un77nSqm9KNdUvMLNar1IHEc99qaKvURnlL0APng74FsJvDhxlr44Acy8pKNNvoAkYju6ZsQ9LvQhPapCy72oh5Y9pwLevQj6vT55nRA+hIxRvubLob2+JZS+rlyYvjDVL77W6hi+0IFjPp4KwrxcB4Q+31TfPeaOMz2WaqA+QKZkvQRrKj1cecg9yEbWPTy2hL6Ivme9kgyIvsDEKT4g4a48TuCYvfiKzL0dH1I+FMs0vvA6kLy+ec88BpurPU7F7D6KQxs+gtsbvm5lOr5fWnM+Nn/Yvg==",
+      "umapEmbeddings": {
+        "1": [
+          -7.766785621643066
+        ],
+        "2": [
+          13.507681846618652,
+          17.867591857910156
+        ]
+      }
+    },
+    {
+      "segmentId": "ee3ae2b1-9294-4df7-876e-a58d9f1fbab8",
+      "speakerEmbedding": "j742vuSN0L3DVoi+HOq5vsb2TT6PLWM+dLDVPNQKbjwv5hW+OsohPnhJxLygnS+8vt2Pvi+qBT8d+qu9SnJdPp+uRL7J0zc+ZnqgvsFVBj6hry6+nt91PgLbxD788be8G+jBPsYwZz4ObZe+qfmRPeovkb1DYWA9UhERPieZIz7eDwo/v6E7PmA34jwMeo++bOdWvtMSQr4y+bY+FsMsvV6MlD4MSAM9RDUlPvRRyD4Y0nS9gxtqPmgQGD64SSK9N2f6vXmPVj7wEDi85D9OPoAFrLuXfzI+B72Gvnol/z2U40w+C4hlPoJi/748ddc9737fPqJ9+r2Op8m+zsDtPujjfrxNAxE/ZhSlvY5bmL5Sqyu+aXnYvQWqJb7suiq+4KC/vODVOT4gmWA9KY+OPgBIWDn6bA8+flErvrT1sL7wn7u9KIUePmlKjD3w9KC+DkLZvfIsBz5g9x88n/iLvaMiAL64e52+niorvheoHL6YEsk8L4GGvt3zaj7oBm67wDLGvTBMpzydGJ2+qrlyvRAhqb6EMGI+aAwtPeeL1z3E5D8+ACsJu+dnED4KXgc9jxSDPgBDaLyEjmo+f6HDPql6VD6+1M4+lNCzvMM/7D625ki+AuMNvsbWjb4CVG++tRoPvswIib3uqTo+JMqxPtU+Yr6Flb8+6pTRPfCWLr4M3ra+8kbJvoo4U7+osjK+Mw0zvuKpir4E2IQ+uXYOvqhHk71MPA6+oae+vcoM/T1NVPc9in+UvsIA6b1BDKA9eX2DvkXxcz6ovyy8LtGOPktaFT4cSSI9QFkGPsAYfTtAWSU+GPmsvvM0aD4A1+g7kORGPvzEBb8hDJ894Me3vhdcl72uDKm+xj0zviAjmj7c54q+YA43vna63T1wtk+8ziO1PqUtgz5g2k4+3ndyvmtBwr6EVQW+BinhPT3ELL6CRFw9pH0FvrhcTD5+iIM+DKQTPtRIHj1Mk6o8xqSgPsyQn73uJXI90rsHv62Nqr7g7Qs7FFrsPeSclb3bw7Q+Vw0bPW7iqL6w6367hCUWvS0NYz5q/gC/gKsiuqkpHT6mUKG+0YIsPlGYa76UbSK9adSovbhbA76EM009F7EXvjZ72z2UEjM+uGgdPbR84z1BeG4+JH3Xviwq2D3YPFw+wnB/vrQoF71ENrk+Lq09vQmVDj+SI68+qeaPPv3YTL7klwc+MPGhu+D4STwu8bq9nIlLPkwdGL7Lbz4+MkkBvqyhEz60O489WIYtvfCrYT3uqBI+qu4kPq7Wjr5mExa+/GI8voZkyr2/kjm+xge4PmsVpTwXHc4+67F2PGaHkL48JlK+eCvmPNYuBz8Fegw+EF7NveHYj75UwHE+PvyZvQ==",
+      "umapEmbeddings": {
+        "1": [
+          -7.129852294921875
+        ],
+        "2": [
+          13.006196975708008,
+          18.024187088012695
+        ]
+      }
+    },
+    {
+      "segmentId": "c1cd0f37-4bbb-47df-9847-cd34c5bbc183",
+      "speakerEmbedding": "3Jp7PlHYJ75yTJs9ttdNvfBsTj2JLvw94OOGPbx5Gr5ehrw8qX6DvVLktb37+Bc+DbRYvoLKnT39WQe+BKZiPl8W1j3kAxW+iFOJPqAg5L2uAsO9KHsJvVRpHb1eyGu+gNS5uR2rA77n5QO+kLqqvowRYL0YDpk+Vnr7vebmE70anxE+XG2fPqKlZz2ewJs9nHFqvU4Z/r3KHEM+JL2lvqhGQT7R8eQ9hkgiviAT4j0xbgU+fNVePosVrT3PpeW9WQ90vrT0ID4csMW8tmbsPVXxaD6cG5A9QBxZPH31sT1JHxq+Ol8PPoUMDD5wNsy9WchNvmWbB77+1vA9d/M+PvyWy71YpQW+8IMJvt2+jD7cHTg9izKvviqnZr2U0z49TtHAPuDfaDsAu3q+1mmlPc2VDD4e9nQ97CSrvUOqp73gogU8XDJHPg4XqL7ZohG+qH+PvKiUGD3ZQwO+YemVPcASGz181h++jjlDPrN2Lr7Nrpe9WaMwvis6OD3+uZo928EnvZtPWj1ruHK+mGl2PRoHs77Erc69eujTPd07CT3EBG++/syKvnC3ND53TfU9+k5pPfxX3r3DSWo+pn82vVKYZT4vkVW+/hwPPg8gVj6GGbA+zJqnPECmKL1NURe+jNs1PhBII7/04yW+xW0WvjxstD3iWAK9RtUFvv+f7j0y/f29N5PfvRQ6Ib4USoK9Yf9Nvt0mtT3oTea9RNe0PKL8sb2+E84+DW/UvnjFnD53H2c+wuXHPb3lJz4YYsg822lSvlifr7w565u9PrpAPcR/qD3AcmG7BsSpPQAwNjuq1uw91Bs3Pv4Pdz5B7a49qmLfvTJJyD021nm9Vm4zvbLuUL53O3U9nCTvPb2+3b0mAhM9F3tKvp74hz5aMgs9mgCoPiOfWD7lnLU9gE4uvny8jD5sBsK9Qp0VvttKJz3a5YM91gqhvc6iur48rGs9vqqbvpYOFL4ESpe8wLTOvJ7CgrwOfVu+w+DUPUClz7yXORe9PNE6PhYFar7w84a7HNBMvc6meL7+MeO9AEa6uOlcpL1n322+zNsJviFJq7xQQFS+g9QrvgMwjj2Uex6+mAz/vHiQoT6x94S+L6CXvQeQSb4NgMw8i5fFvgCD8zzOG22+hPgfvdrGEj6NBYK+6ol4vnqMcL2tLVA9ggvlvqK/y73uu0s+roGpPbLB873Ye0q+1GNkvF58ML6umEc+dJs3Ppp2rr28mQG+XUa9PgjcPj4mJsU92OSMPVrohT4svYc+6dbKPRkE/r40w+M+KiNOvjPEND7//u09PFw4Pkw/wTwYSZo+OspDvspOjL2UESM+CMSNPu6hAz48r7G9WjSyvq7vmL0AUOO8bn9nvg==",
+      "umapEmbeddings": {
+        "1": [
+          -4.445455074310303
+        ],
+        "2": [
+          13.314154624938965,
+          16.449758529663086
+        ]
+      }
+    },
+    {
+      "segmentId": "1008b947-57ea-4014-b27b-4d8ada9aacdc",
+      "speakerEmbedding": "6Jy2vLIrU702tUs9kspevkiSMTyXTxK+kVOGPpuduD7Eg5S+AoaIvXiGfz7ejKs9lvHwPeGhsj2/LLo9ULJXvvBtar6b9yQ9QIZtPWgJ8Ly0Hhi+PuxtvsB8tbpzTRS+IN7NO8+8pj18PPQ8+vd1vuAaVTygJcS7JJhBvBSFDb+T26K+n3+bPpLdzz2ENCq+8MATPlBa6r3g82297hbmPT+IwL1whEa9O6AOvm7ujD2m5Uu9tDO6PQygID68pFU+6GuvPXxDdz3wiHS8TmVTPmHgNz4hKYm9ABo8OzlnoT068ow+Aq6FPbwSn75knn49nu7pvVAQzj2Udia9PbnfPfAGorx4J5E9YMXHvsSroL7TVro+rF6XPtOKPr480N0+XbZ/vcoaFT6Lfc++UBqHPvx7M74mVKq+ppEdPQA+GTyBCai9CCM6vmi1drwsPfw9qI48viFO0L1Mpn291NqOvSofXD5156a+QA9ePfOyEr6p10k9zviRPnijKj6wl1Y8AC5hOugk47xsA5g+AZiovmwZkb2wh0Q+S8sGPsIOvT1sZBO+WlQovShoL74qRDE+s4aJPiLxbj2rbKc+6FimvZ6Jlz2gQBe94TQoPtUcOT6goD27oG0Av7AF8bzylMu9Cq0hvrEFHL2MA949ZtaoPWhY1L266qo+LE2wPUhTnb5EUDs9uShyPmBAODwa2SQ+u7mQvblMzz0wXx4+jiqCvh73/rzgKz49lvSePlA9hzuSRta8l6b3PLAiyjxYjt48jt5zPg5KF76LQuO+7AavvBElID6PUCa+0SPjvRCaFL/VX5E+YL39vJuJnb3g2tQ75GqQvW9JOT7sgTa+JkhtPvwJ4bxYR6U9jG7nvIB3EDobKr88TPDjvdPm0z3zqVi+PAWJPugHHr5YCv+8Atk5vUFa4b7exhK+p9gRPppTuT0QOSW+REFbvjaunD1mRBm9aqrfvRDMi7xEVou+DtuIvIUzFb6TQU49tDcFvhN3JL3E9cs+TjTDPPdeHz4KFpi9rjprPSLNHT2SyXa9QgBrvsBGR77oW0Y8iMbQvEi2wjwqd+e+INwkPI658L1usEW+kAwcvXoUiT56S+u+51rtvRBFo7sXg9s+L3eevvWlWL5DNL4+PWd+vrgM3Ty22vI93a61vggfjj6cnL2+ZnrrvaaSxT29fDe+2MM6vvIzyL5T2mQ+TkZ1PlDgib4A4CI5Wd6JPrjeMr4JE14+FtSLvbwSXL1EAp6+LwAMvpA1YT6EHe08xr8JPtxmwb0mTZ8+ZMaHvsCPsT0ANXw8TsOrvGBmLD5zjj4+jhezPac29T0INT89zKw1Pg4GkT2CFrA98lyZviN4e76wKb8+uRt2Pg==",
+      "umapEmbeddings": {
+        "1": [
+          -3.609403610229492
+        ],
+        "2": [
+          12.26512622833252,
+          15.722578048706055
+        ]
+      }
+    },
+    {
+      "segmentId": "f9720165-d7a7-48c5-8c68-cce84303bd4d",
+      "speakerEmbedding": "B0RjPa3Ygj3Sn5q98MfsvWW+fT4QgJO+ulWhvCpQ7rzfkwg9/h/IvmRlUD1q4pi9hpdhPSiiF7zUojE+brPlPRJXMD4IvNi81gLxvbh1yr2Ajgw+wMpcO0QgMj6otq29o3VGvoSRMj4eZgU+aB+4vuwvvz4xfoM+XpbfPqA2lT07e54+2sebveCDKz0UmZq+yPY5vPbB4T1u8Is9bN6LPDbByj3+YVS90BI0vh9Zwr3dBJq+nH2cPvxNuj3Q8ik85MRnviqpMz3cT8o+Mo0zPoAEmT5kZEA9b5MGvwomHj49GAe+4+/SPYZYCL6/MYA+jFm/PDK6QD3EjN48lv3aPn7n+b3s0YI+oE8rOzrHmb4NqpW+nDGPvRpnXL7gLHu7GKSRPZ9Nzb1sNDe+3HG7PpCgAL4mxkm9dEUKPjzIibyAt0M943sPPkmrxr5ou2I91iN0PnDuYD5/VZ697pWfvgkYrz6OmGM9+DfnPVRyjL4E+CI9CT80vlU6ZL13xv89T6vVPphmoj4F6Jo9mrkvviaMfz0SVxm+SAy6vLyrND18Xeo9ACSHvnbuDD5E9IM+g7PGPQUYGr3uLtI+9mzuPSFNib7z+7W92f2VPja02L7/zDK+LxarvYKYaj5cOGq++DBevvGysT2aWWW+srDwvXSRRb2sE0S9cYZgPoUghD3OYVO+DAFtPba3iL0on8Q8z0l9PaC5DzsG8tq+RqHHPcggDry84qU+WOzBvXI8Qj2XPfu9+rAZvoLqPr7lmu2+ahRIPnjFrT2w+ag8QsEWvsnjLb6PzSa+0rUGPvDxaj482Zc99NVavNCFJ72w2jg+rcFnvsyVUT39318+DUFlvp6vor4+W7U9gNIzvcYXHz62//q99HfYvoStqT3ovw69sCpivpLTYD3wehs7+EzKvQdqdr1vbnc+eDSFPqtASD6GvLG9+hkPvh8o2j3WCqE+AHH3PHApuLwjOuO9+BbCPs+SlT3QQjy+BaocvoDHlT0Aofm9jqtUPhwLnz7cZ1m+e3qSPdAX1T3VkeK9m6MJPl/7OL5aVKy9KmeTvSORij4p54c+FFXbvfrotbxzGhs/yi+VvuBEab4YD589OAV4vor37Dx7h14+pGAXPjVV775BGUE9gGFmvQdUJb7JHd29VsG2vb5kFL6GaRI+GEF+PZpJSb68pZ08WR+qvraA7z3oFso8j1T2vQ9thz2rBCy+nG9rvPBeILyoeeY8EWA+viMUmDzszjw8auPkvQjKpb1VU1S+hQglPYxpFr7g3xo+1ke/vpFRij4NDDQ+/Yx3PSjkTrtyoJ89+lyUvTSDoz6Arbu8Whk8vfDjHT2U9LO97tbkvf6/W72/uZG9B20Pvg==",
+      "umapEmbeddings": {
+        "1": [
+          1.4438267946243286
+        ],
+        "2": [
+          12.237330436706543,
+          7.891443252563477
+        ]
+      }
+    },
+    {
+      "segmentId": "77c1eea7-be23-aa9f-7d22-d83e8f1eb1b6",
+      "speakerEmbedding": "oMNdvarpnzzkE6u8dbxCPdxBlD4UENA89ZcEvlRCpDzoreO8iNEHvnlxHD7FOR8+K5e2vl6Xs7zdFxk+VGpaPmoyF74q9me9sm8fvgrRBj70NIy+5GoFPshrHr7PGz09jIvpvTBhEbwPhgG+5jmIves7Cr7SGLs+gHyePvTUAb5VjPy93XLJPTaeDj7gx0Q9y56DvggBtD0IYxQ+lvhTvSC4Wj2QQ02+09IwPQqhBj7WZ0A+9ysAvniDbz3hyIE+IM48viGFGj5eqNU+wKN4vFLP+j6N2HW9uJyZvnIySD2ALnm+/h5JvXdDAr64Wa8+5RnjPeSTkbzj0jA9Nk2zPU6Pvz1xYXs+1y2MPR6x3j02rB0+nArBPWNYKD6S49K9REU6PruCXL4wKpW7VncoPo5Kvj5eK109twuYPXolqb5vlQg+CFmuvHWLPT4u1PG87DGTvvhdYr77d1i+UouMPsMWGL3qQx2+z7qWPfizlj5QX9i8ZpJuPgnKrz7QRbC9Og0eP6q4+z2AipO7yZdovoZRDb4YE/69N5ODPpiI/D2jjxo+JMlVPBaOp77M6xo+msrivevDlb14jjk+oHyTPaXf2TyCJQ4+uCb2vhCNbr13Xys+WP9gPYQQ0L7c7Qo+eMspP7LqOL6//Y49XtUAPb7bq73AMQK7kG6IvKdzw74TRGy+pExavhaGqb7Iap8+FuNJvuprOz6RDYY+NBa+PvwyDL226Z09oruUvdPq1T7Iy568oieNvaMmDb7wHWM95WMVvmAKI7rqYwc9YFL5u0IKtz7iCAC+eCn1PWFONb4Kkv89hGnZPY66Xr5yowS+xX4xvfacC75urI89nJugvVLvu71udAa+4ClMvhrMYz0xxwG+DKwKvY81Mj4zNDA+hIjmPS2vYD3Kz6A93MiHPpBiiDumeFE+FFUsPQff3L25pkI+xkRYPsDjbru1zMe9ootavjwnDL5+5Iq+j+pqvpZbkb29Xbe+Doi0vuOcgL2ktKm9+Dl+PAkrHT0uQAK9EPXFvQlsUL6e1RE9DzIIvXz3tb2m16S+Gu/rvYk1iz4uCJe+EjAavj5WtL2+5V89J/3GPWrBSr5XHna+YRqavkl+ND4uxb8+ruW3PUeDB76WX9Q9YCcqvjYOUD4Er7O9zeqtvQAG0b7FDUY+MoBbvab9cj7GRXc99nbIPeQzZr4i1A29fJEmPVwr2b1BBFq+jlMZPia6Wb5vGvs+ZW+UPpbLrL0B7CM+Os8mvtTugD4XYwO91OP2PQh/tL62l9w9ThGDvjBiFL2Qv5+7tfzzvfxOq77+sDg+WABpvb4Hvb0Atwc72r4kPnaClD4ESpC9sDVtvhY1DL5aT7k9RJ2ePA==",
+      "umapEmbeddings": {
+        "1": [
+          -3.9964380264282227
+        ],
+        "2": [
+          13.044793128967285,
+          16.109060287475586
+        ]
+      }
+    },
+    {
+      "segmentId": "1b78e881-c9db-578f-368e-0aa190806330",
+      "speakerEmbedding": "8g6rPYx1Gb5kcf08rJbwvXkkET6SwpU9kAeIPIGGKz2SHx2+ZeVJviahx72iGwY+8I48vsiHFL1ceMm+IO85Prgmbb2PhxQ96AG5vf6ZT76wyXk8/ijlPeZXoT0jJbY9PbuuvojXDz5Wikc+ps2YvJomtj0apE4+xDOJPji2Tj2Ea4m+7BUQPmXzbD7l1qq9lvilvWIBsL2QWlG9GpWRPOeZFz28yIo9r73sPXxvKr34Ewa++BK0PaS5MD3yXxo+0P96PTzRRT3mWCA+JNyiOyRL0T1FYjS+ooqNvplLED7oJk6+VPLuPSCEwjxKKIM+gqGyPrDTpjy6Qm8+w5y+PbVtlj2stJ69pFKKPZTMTr3aaze+XkqTPszQvD3mAs08HouIvc7f1b1xkRW+CG24vPqAab5MqCS+4Ot9PfRQjL5ce6u8Gp0zPpuGkr1UUAw+O87yPerQ5T12YI2+1Q1Xvo2lAb5OEZE+c4OXPjz4CL7++iq+eAyivEpAeb10q0U++zCjPWVuz7yOSJA8WSLXvVqj2b3AItS7bet5vmQPJD5UHE890PhIvun2DL6CBpi98qCvvbAWRz44Zag+n/hPPlg9g75W0ZW9570RvgRhrb5flaW9ah/RvfRunbx8Kh+88PsUvXpB/D1KAB+9MF6EvWsbAz24ROC9qc0ePlCxXr3R6qu+5ZwFvhyfGL6kd7I+6LGUvaBVnL2SXig9mzHOPeZos74BJXE+yn+JvU5e0rxENoe+qv70PGoiuL1WyDW9pn8+vlA8Iz4ReIc+G2tRvvjTVbwWcZO+oHG1PbZE4T0QWVo9blp4vTAb4TzLlrg9aQTIPdw6x72gY6+9ihd6vugidrzgOjK8PHRcPu7gj70DC549sB84vIgci73Si+E9PUEavpiyTbxcz3E9bVwAvmhWvT1cILw9duElPujhHT6Y9lQ925RmPkaKQT56M6M+CgtKvUcenz0QePE8FG+LPPL9jj10lxE9oC9VPcRjmj79JkA9gJKgvXVgdD3opc28GQi3Pc7kkT5Kv748DqG3PTjcWb5+0gO9905zvkCCiLvY4bI9ABBAunA96T2Ybzc+vmCwvgkMdb7ODSO9Vi5yvu+jyb3YIDE8R1wnPuaYfL623xY+gCUXu3GLDj1EqCg+VLa6vSB+pT0g6qq9aSVWPi5pYr4C18y9tpkHPfymZ7wEdZW+xsgePSiajj25wFi9cCx1vFASEz4UzyA9bTSNvc4/lD7Efh09ZFnNvfiRkry+ez2+ttpDPrcGHz24Gpw9ODhevr0PND7EkXG+vUUgvgurGL7cepo9jNSJPmYhrj1wkhk+0hV7viGrKT72Ihk9hNYqPX45Sr6IkeS7s3/ivQ==",
+      "umapEmbeddings": {
+        "1": [
+          1.2309740781784058
+        ],
+        "2": [
+          11.760506629943848,
+          8.373394966125488
+        ]
+      }
+    },
+    {
+      "segmentId": "76e5a8e5-69df-fec4-635b-a8d984ef16fb",
+      "speakerEmbedding": "RV4Ovd/Dsr6fCy++9GGLvj7ScD6/ptE8GLyJPVRS+jyYd9W8n1VXvoSRYL0YwXi+wDTxO6pICz6ugVw+SYkuPnAzwzvN/9w+RFNGPfiNq70O6oI89Pj1vflLSj6+pKe9ep8ZPns3ZD4sJEW9jtVzPUDgKDwAMf05EpMmP1CuQru6sSI+VK9jPPxIqjsAK9M6nnV6vd1eET1I2G49lig2vor82Dwg19Y9bC/ivHcBnz4ORrQ9wKcxvEvahD3+Meo9i+40viiSnT7a7jc92sgSvW4Tmj3qWro9aspEvoJdhz7bX+69IAravaOKST21pvw9kDMpPjgViL3Omc+9aFDmPBICqD2i3qQ+S+4nve60kL1jt/89EJVAvlUazj2POIO+IDAsvriQcbzFFwQ+CoBDvXiyjz4Me8A8LCURPfindzydEN09sKA/Pv5yLr5QE/e8ruHEPe0Imz7IXna9fmuivVR+br38dXa+ceVTPa7riT3WHnq94OxYPRAuCT/UdA0+fSeCPur9TD5YWAU9oNNwO4JvK74TxsW98FY6PmRaNb19N2E+Tt/YvuhcTzw59Ro+BD0bPsQ1CT56A4E+U316PgDMrztGJas+Nr1GPVurTj7A/ay96l4uvqCKkL549zK9fGJjPZhtgr6/KgI+tEE1Pk/ZBr6f4ds++EI2PGIjqb0cjzq+UsvMvuAo+L7s5PQ9f/ZsvQAlIr4Y9Kc9c72XvQPP3j3kHTe9rNuFvX436j7ob947Lr02vUiWar3GCoY+JVQkPsS3KD7088Y9HzDUPZNRYj5MVMS8Nz8oPgDZRz1Gu969ucKbvjbIN75GNHg91lAxPRw5Kb7ePNA9v2HCvf+bWD1PFBy+7kEVvneHBD4Vztc9CJGKvaCSGj0UDAk+3cL/PmW35j1Ar5A+mEwPPiK/hb5G9rW9sLmSvXVbUL2g5TE7CNHNPM7+Aj7CpGQ+dnG7vdR7ST0X+fC9VAkFPmHHQD3A/hm+iHglv56Uhb6Ypo09yEqGvNAGXj1WT8I8iIQiPZVf2L3dcXs9qMU0PgBJ2Lo5j/G+C1zKvRAExDsAats6WfqIPertpL2gU0G9dimTvULyTb6Arkw6nF7GvuwkJrwMy3w9aKI3PRBZijwDLaC9fF38vYBK+TwKIiI+wQknvrz1a71wFck8lct7vmaKQD7AmiO+kKf5u4arbDwwSYY8NBSKPbR7eb4QW0286OCCPqYp0b6nrp4+XU5pPih94r1WrmQ9xRVavlxhhL07ZiY+FICjvRy8j75C5S6+OUxYvn+4LD5vkDK99h38PbAVpzzpMnI+lDbbvRNAnD3AccG7msddPsbKtT68jlC9igLSvubhhT2n1kk+0Ma1vA==",
+      "umapEmbeddings": {
+        "1": [
+          -5.278461933135986
+        ],
+        "2": [
+          12.739753723144531,
+          16.984554290771484
+        ]
+      }
+    },
+    {
+      "segmentId": "8f1a0325-0387-5c7b-8ae2-073a5e89e18f",
+      "speakerEmbedding": "YGDMPcFVBj1uSOa9wA6LOje1qT2Eiso9jpyavNJwG719rDE+omNkPSlfAz2oEnU9nnRevvharb5+gpg9q0sXPuj/2z0zozs+dmkWPlfJx7zkI728JMFSvcn2hb1egxk+RYUcvrifOb1KBR49Hm0Cvj6ZiD6QsUY+bN1hPnDtEL4AOQW9i0p3PTjDZrx+g5C9s06TvTgCGjy2te09uLUvPY79Yj6wJ/y8ssCDvVZzJT4AWDi6IjdYPuo7Oj4YGwA/+iKvvcTJwb1iyM28SJ2KPKBoij7uZqi9qCnKvpRWCL0in449uFNiPu68Hr5GPzk+NrgZPnPcoz10UW49QOHKu5Tdob50lvw7wpNzPWVvAj7VIS++GJgTPXZWLD636Rq+csaLPm5M+72wvBc9spctPuCrHj5woiU+1h7JPkja6r0T1GS9gvEKPlrkAb49pus93n3yvdydgj6c41m+JgEbPg5C9jxQM7Q9oDRAvqLRsDxBUXK+IChmO+ugsj3YV3A+BtEJPWA7U74wqUS8OvdXvrahOT4Dpae9jDmBPScKKz3GZME9qFyBvmLsGb72pRm9KAVXvGwMwDxAk7c7zw3SPRvi1z3gxrs8qJ8BPKLEhD1q4m297ilkPrwIA76gNrk+svWdPlhaMr7j45U+dAeXvfTGBL4DiLS9dTvyPeRqv73zPi2+KKP3vZhEjr5utTQ+QTIrvv4KqT02650+RniPPoomTz4OkEc+VMXmPUTd3rywlNi9WI71Ow4f5LwsAKy9uWJAPe5BAT6U95s+RSY7vZKaOD6Sr2C+GmK9vPRQr7y4PJQ+S7AOPqSETb0of/I94KGJPiMVSr5gSQQ7kCEavrjLIzzHxpe+nKmXPPSSnr4uDbI8/nsevJygg71asCs+t2AWPbRfhD6LDDO9IGS0O/aaDr7pbNA+JeCsvGeUEb44Vsi9+pCEPviVUD2AtaU+934RvppnaT2czye+gi22PSl0Wr4skBo+PB8svhintb2CxBI+jgZsvrh5M749SoC+UMQqvtVdCj5aShG9BsgFPRg9aTwxxum9rhlpvvDbEb4o8ru9GC4OvLCXqTtCNPc9WD4yvmrtub233nc+T1QlvjDN6zzovBO+wALbukz/lz3XOAS+TyFDvhV72L6kX6I8iBVFPSXIlL361S0+0pjSvF9ZBD5cFBU91DOMuxoDzT0rC4y+329Xvewc+TxYJJo98z8pPtxwzb2wSsE9mPtBPUvqHr4twpQ+plqAPF9nxr24L4478HHAvQvm2L0ADnw+4fVgvLk8ir5MkLG8gSu1vT64y7wCWqq96ArWO9rMmD7K/ru8XgllvWK2dT5dzla+aaOKPkBzCj5kxkO9OOq+vQ==",
+      "umapEmbeddings": {
+        "1": [
+          -2.1635780334472656
+        ],
+        "2": [
+          13.249089241027832,
+          14.492277145385742
+        ]
+      }
+    },
+    {
+      "segmentId": "00dbabe9-539b-aec3-32cc-5eedcf4ea166",
+      "speakerEmbedding": "/bBNvmB1bb44DS6+LHQ3PpwVHz6kC5g9JucYPcj807xyivU9oouBPfFT4j3BLqs9x5pbvr5Hnj2AVju7Lu2SvSTrBL6cviM+4OXJPjjtAD6Od9+8/UaOvsTmOr40/G++x1t1PYXUMT7iycA+Ya/lvgCeiDlgQTS+7FfpvFKPpz2ymOw9EGWIvKC1ZL4zvJM9o4vRPQ9H0L7Yqgc8uO5ivE/dI75ZGBu+wBprPajiNr1wRE++dk0TPWanir11EI6+npoSPugG0rxOoIy90RdyPqP6h70Ez4o+UTYDvuaRvD7AxRo+Ck3rvM76gD19Qwk+9ub5vPTS7rzcdju+cGmvvUUICb6mnxI+CvlWPujKwrvzAqA+M3GXvo0ICD3rOpe+6YuqPV0Adz7mple+oE13POwapryISGQ+8ZtqvkzK/DwSi+K9eh+svjrLpT4E75w82iwdPgBRdLw0UZU+2GvDvYqrgz6haSm91U4pPgRonz4GnBy+6moIvsmfvT4M0iS+YsEAPlIQmTw09jS+mOb8vDjWeD7okR29jWSDvctdkb7BRw0/oh8MPsP3rj1e+9o+dLx3PqmzB736dAW90jhCPYRvCL2gEP89bwIHPvV9ML6OB0Q9/2VMPuKEXj7I0tu88M1WPCN4Kb50gts8AaDqPZC+7712B7w99aetvap2Mb6sYym+o82DPWgiKz7aGR4+4E4ovsDRkzyS/+a+2B6ZPp6ilz1MWMc97GI9vWGODj9/yYy+tl70PciNDT4otYA9fWlsvqYrgr12Wpo98MKzO+58UD5qOGE+4HiRPqqvNj7Ia6S8RuC4PeaYuD56Oh4+lmxNPjSIQr4aiTQ+KFkdvcRRL748o2A9kgvPvjI9uL47V7e+0t7KvWEcqD0zZZU+nRksPlHseT3W84a8q4wmvjyHCr3P4Eg+tpp1vohBAL3g/Ay88Dh8vZXU9z1LGUy+AsH3vVgrvr7QVUa9tISGPsYJ2b5AoTC9kJiiPkU4HD482FU95vV+vsTReT24J089WHxvvP7FPD3ocHG9DIEmPUOd2r3nEu09QEeDO6lb2b1dOuo9HNoNvSlD4r4w9wS7+/RKvl4hjb72h8w98n9yvnqbUr4rlSq+sCGDvd3T5T1IJMi9Lg+cvTKiRD6IiD8+KWQovoDTsT7uopg+YLBkPFy7Xr5tCaA9f7fNvtfYgb2Pg6g9K3jGvjw6ar1UZR4+9uIQvlkhXr50i4++7hLuPXPADz4vbIU9fPE5PmzvhT4InAU+CQqmvXsaKz7Apjc9iPjxvDDITDvQzCe90OOlvHs30r5A+Z48Fc5/PgA8mL1w0vm9Ch5EvbDfEDzacPg8BKsMveztQD2AqC2+YqSEPQ==",
+      "umapEmbeddings": {
+        "1": [
+          5.009710788726807
+        ],
+        "2": [
+          12.974184036254883,
+          12.135276794433594
+        ]
+      }
+    },
+    {
+      "segmentId": "152af5ed-1515-bcd6-0a46-19675794b724",
+      "speakerEmbedding": "7HPGvK0w1T1/T/69afa/vpDbSLzyOx69iPZXPpr9gb2DdQE+Lc2kvdgkrzwSpO+9gNwSvpR+jD1SWZw+XmaBPqnqlz7Ghog9SpiLPT6O672gTRa752wBvmKlqL2wg5o9C2JTPnslvb3EgyG+fJhOvWrvpj7cUIk+IFKyPX0s6z2qd8M8IIEau4wtG77a0xK9PnL1vF0r3z2a+mM+LKX5PMlmDj5WpdG9bx8OPeiYKD4anqW9aKU9PJANaT0ie4M+utUtvo4wrj7sqYc+Z27VvPK10z0I98u80Oz2vosCAD6WDsk9yuPlPA6POb7wSYI+QHm0u+0RPD5Qab+9SMyTu1RN1r2+Bp09XJhMPAQKZL4adc49h2BlPqkk0T3csbm96h+IvXOQdL7kCDg+xZR/PtwB1z3mjQO8erI0vu9PIT74Q7G9NNPCPCS7vDzAyBa9Gp29vWy4k71PSJK+gAUROs55NL1g/YA8xWVZvvi7PD6AaKG9XEoOvYnqqj480LY99oyZPRZELj7cHZ6+ZCrHPbPk275klFg+k7CAPtqHN744gYC+eW+bvna8r74SDgS+7Cu6PTI+ij1esIA+WpH3PRikkT7WEPw9HACiPO12Xz70DTC8KcWcvcGlPT3XwXs+3j6vPh+AW7462Iu9oM01vHjMsz1h9jU+6RztPf4JIb04eZQ9IsypvZogK76wo4s+Sj59vWjAgbtyxE4+E2enPYgZWT024kU+aHkcvnib/bwDJjS+dZHFPUusFD4LIZs9iNfdu0wesb0+oDI+tr/zPWQD6D6B7iM9bUeEPpe1/r1hTFk9LTmxvqxgVz3yDd+9Wn20vJRpjb4Qq5Q7rH3nvPOxgz7qIEq+5gDcvaSgLj6n/A8+zINavtwIbT480kW+gyqOPijV4zxY1es9Eo+bvULjjr7hmko+JTa6PWiGib6tqey9MJf9PR7qk75QP4g7d3z0vSWl9D0LDpS9A48CPhA+HL6kZMI9rjYHvh5nDTyWzow9KZthvbIgFL52A0K9zHGYPuw87L1I84a9grCjvJhpDr1ONva9QIPtPFHMuj3WXvy9IPs2PoC0TrziGMa+wRYZPmo4iD6A65W+b1OHvuza9zxgczE88Bd7vVxECr3iDYk+sG5ju0ZVE73p7Gy+vtAzPRaYIb4sDjQ8TBH/vUBunz2y0cE90qkbvlK+GDz5/QE+bfwHPoazIr60uU+9u/fiPuAkEr7AsZ8+ViNRPjbM6r0IlWw+3qS6Pe8bkb4m8qq+Hj83PkC9hL6OKMc9IndvvbBswb3kkZw+xC3VvaUNZT5n2Ko8oYCLPYw6ND7AJu88e1XBPhtHmT6gfSm7kWABPmxiB7ztI1Y9LvMLPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -6.490021228790283
+        ],
+        "2": [
+          13.099465370178223,
+          17.113327026367188
+        ]
+      }
+    },
+    {
+      "segmentId": "58fa64de-d0b1-55a2-055e-b79cdc33b9bb",
+      "speakerEmbedding": "Q+PCvtqIFb5uLwk+vI6JvlBlzTxuK5q8yvGkPZT4Xz3DNbc9PMIHvj77VL4AHJm6yKbBvhdahz2mi7K+qIBKPIRnbT6APgY74k6vPS4l2z2Tf2I+TMOLvfHZ4b2igre9bBbePjJB5T5BJdo8rGHKvqNFhj344pm+/quxPnZMEr4VGZ09Nso+vsizmL2jIY89WjarvjL+a741JJq9F5DQPpBdKL6NfRm9nGFxvXbidz7wvXY8DfDcvTZ10b01g0C+c0EnvghZK7494TI+8cmFvWOUyr3SvfQ+FhBsvYDoAz/0+B+8l531vRlQMD4AvEW8p3xbPvb2Tj7I9Pq8NjRKvbCf6T5S43I+ZOy7PXoA7r0c1Qo9T0E/vsSmhz1yrrO+qzWnvkpL9z4D/Sm+zrOdvWCZcj4iXZs+/uHbvcfj1z3n7xs9vYqRvtjFlz4VwT89lH2XvJwxXb1BFhY9llIIPvTyEj5Oeyg9SmUpPmnihD4A+Gw8z0MsPisssj7OW/Q9MpywPtHWNb4gMac+PreNPdwoLT9BkD8+3nWTPqJ/K76bgbA+L5sgPtLiDT4MTIw+X4R7PooUH73lS4E+UFo5vIxXoD1Ajp+9qOszvmcgj75yE9E+s7S2Pi70wT62/o89xCVfvUoLPr4B6++9oUsHvgLKLD1IMjQ+dPJwPDQnOj16LWa+mnpPPjWAEb3g45s+RXulvkpohDyzJ4e+Ul1aPlh4JT7UeA899jQXvtxebT5LBHi+jNMAvgA9Az8uql4+G/XmvaVaS76AwCi8H7OiPZpGlD6iQ849EOTGPvQFGjzElo+94RaKPpJyh71w0ZK8QkNbPiICEj6mFRg91joDvoCJdLug7pE9sEYFPviOdb5tswe+xRzNvKGC8j2et4k9MLpeu6YjxT2U6cC9OlwePjgs8L3Pi2k+HIAaviTCRD0+C/w9+2dRPmg3RT7k/BA+lNL8PfamLL5YV+S9fVZaPlL+p74RICi+iqRrPkir8LwT2gy+4PGfvjPGNT4Ixxm+1CBKPQA1Lj4QUDS+wo7pvaVvvz0A82K7iMLAvEji8DwYRQW9/AIVvC24Jb7LN/c9QEfxvoIiaT5AZT87TN/7vkrygr4261++5+ZuPt5Isr2ejpa9KJckvsymkz0ftyw+luu8vUjirD6Mnac++hMGvlTRNL5Y/wK+Khu+veZ+NT5WP1u9HJFDvcbWWryiU4o9/wDRPatBcD67WKO9/DTZPbFgvT59/JW9kNHVPvYdhj5S7oS+K7wXPlXIEj7AnDs9Hgh8vTERNL3sGfI9HOvnu8poMb74o0I+HTKZPaY7iTx8cRA9pDVKvWpWqT3IsIa9KnFyPhAWujpoRkU+V8cUvg==",
+      "umapEmbeddings": {
+        "1": [
+          4.839887619018555
+        ],
+        "2": [
+          12.848489761352539,
+          11.83616828918457
+        ]
+      }
+    },
+    {
+      "segmentId": "9054be44-ce2e-a26e-c865-7f0f97d1880c",
+      "speakerEmbedding": "Si+oPXQWhj7lrwy+MJ2zvhzgbb3ImtK7at0qvaZM2j0SvGu+cNqpvWUUTT4rVFC+oTTAvuvONr6WQSw+YB7XPtGE4T6Owew+gu21Pe/uUD6snho+OHP4vRx08z4Gv5s+9cpsPqj3ED6otCW+D3KnvtH5VD7rHs09uLcLP4TTdr5svc098vwoPsDy/D0hoto9p4aDPlsftb4uzk8+FglDvtjCij2YI0m+4DyzvtjFAT3ww+K8TOpIvk6chb3SZyM/oN3mvdqQUz6Ekbw9KI0gPkxdsz5IuSk9RMWtvtK2AL4lZRA+KmegvbDKPL76F6A+wKayPVga5L2i01a+DL+ZPG4yAr9esu8+RDGZvp6M4L5Pox0+kkRVvjgNUr1G04K+DVOAPYCK6brdp8I+ALfMuvcPAj70Sjm90CPNvVr8Kr42F+29GAMJvcD8+L2oAsG8IzS8vXjiPz28tW4+bCDXvBXiAb5qjR6/VNl1vuoWAj0AWMI6nHGFvRZ7Kj8Uutk+eOY6Pu+Zfz4AUjc7T2qtvfuQCr4SmuY+IqdmvRa4nb00PKq9I2ACv9m+wb3T+zE+DI+PPm6/5j28YYc8+tqGPoqOgz42U4E+FJ6HvT4Gez7ejLa+KMjhvq7JoL4zJKq9JqQ6PsS2JD3nIaO+aD2DPqtMiL1IExs/WKhxvf82qL41rRi++vjrviUpK7+yMso+gDF2O5IBMD7hn9Q+yHgYPsC+qj5HzY4+Z6nJPmP9oD6woCQ9RPRDPODWOb2DNn++ur/DPVvwcD7D4I0+bLJLveiSq7vLaGe+MKjmPfGXvr6UCic+FogNvpILHT5QkPW+qJ2TvCe/+b5g/Hs8T/iDPnxTpD4k8Ry+84/rvagYAD/xyLO+xjcIvlY43z5aeWq+LB+PPkxXoz7gXOU8jHK2vpQcU74/3da94psNPzD2H74ugoc+5lhFvrz+2r5s/Qa+l+WnPpAixz0CohA+qAS0PRiqK7+MYKM+D2Amv/m+7b57NWq+3OiWvvdMpb6oTCY+kpmBvrpEAT74dtq+y9ROPnQb0zxSgLu+WR4ZvjrgoD6jUSQ+PHnuPazgiT7uhX2+BFqQvYLvhb0Qc5a+csExvg8o6j4w+9g9wLwWPjxjl74Sq4S+MJLuvU7MZr7EjF691Z/Xvc5goL6FgAs9BIZXvTYvCz5e8vm98L9FvlmegT1U35i+G9RkPYQ0S79yzQ++xXaFPsH+Nj7CgLw+4k6WPt7ifb6LRSI+UrfyPW2bSj6UTyQ9Bn5APkE6A7/QdJc94y9nPgr3kr7Qyjq+YOj1vR11Ob60p3Q+5L7jPpgewL2QYui7tsa9PlZz9D5PWg2+oNfGvVxoRz6io6a9iP+OvA==",
+      "umapEmbeddings": {
+        "1": [
+          -6.762109756469727
+        ],
+        "2": [
+          12.137163162231445,
+          17.216270446777344
+        ]
+      }
+    },
+    {
+      "segmentId": "b65ed58d-a2d6-b4ac-3370-55904fbee66d",
+      "speakerEmbedding": "yZ1Bvl6Lgr3e4m2+gKSnuznZiT7kBPy8u1wqPsCRfb6vwyo9sMLxva7+jT4qFjo+JRmXvv/fIb1m9v29xmOkPhSdhj3QjJ89ePuNvDR4kb6EUxo88nmFvic47D1JX4695N3evcBjQ73+GR2+MOA+POfUmD7A7Ma6Eky9PYEAED7goU299Mq6PWQ6Lz0q4oc+GAinvmCSxrobsCI+FlQxvabfJj4Y52U+8iWaPDIcVD5SuS+9WihaPihXi7ykPKW9GoyAPQw4tD0U+Zm8m7/lPeaInD7KUI89Ph6uviJcDT58K8i8n2mtvXqMOr1YtWI8CRmcPlK6oD02zDW+2fkePlFFGr5+WkO9u6LMPcE+mr2DUmQ9aAIRvSQ0Vr6m6uq9dVo1PmYm2j0fzak9hnYivqSCh73+nVc91OFmvYQTgjwGi/c8KFNdPfrpyT305Iu+VymgvbqosT0ryFy+5VW3PWZ+Bz343bi9QaFavnAvVr0obVG8gvlfPgA6/j1gyTK9H4EEva6u6T2yeec88RYIvQR+n77wehi+gsuVPZ0hFT78rEc+WFmbu4GbjL64HII+4j5EPcXncz50gNe9fyCTPlB8Mj6oA3c+duxePQS5Rz2X7Ti+Bh6UvUhV3b4AaJo8jqNhPhaFSr20kiK+kBbvuhQAo74qJDq+LnAPPpcTDr1EhkW+sBasuxeZnb4M3gY9H8alvXSmIL5wPUU98jFbPgAgWjgCRVW+MY8DPqBpFj2URdS8W/EHvvjLijxaVX8+XnexvVaBaD41a3w+HDwqvqSMvb3o4Mq7YSNPPkUWeb3wDEw+jaTFvRAP3Lsw7S892isVPsCfzL4Iszm+eH38vRVQ2r1rUUu95iEEPqIFXDzdb3m+AvWJvcKKnj7+IoU9flvFPZJKqD2mfTw+MOWEvnxmnL1+DpI9+WKwPehGQr4rJ5E9fmWSvXp3AL68zJM+TmAWvkG6CT6M/G2+xJH6PWw4Vb4MgKO9P6bLvvSzPj7cyUQ+ytITPnxdbL10c5O9EDBzPneW971yUJw+59sCPpT8XbwmfLm+qB8sPpSZvT2yBtW9uBMCPs2j4j2Ophw+LhKtvirTu75a3EO92mjGvbfSrz3TXFs+m1EgvsTvhT7axBs+gj6qvSCCurswfEQ8AlcsvbhmnT2godc9hve2PeGVMj5Ak/46+tg+PlYOtT1oS0I+zOWaPHg0kby1mwq+GLAOPuyUK71++xs94eBOvrt89z0YJhg8wDWkPhbmYT4j11E97pUhvgZd47yuhhU+aiBuvgBZfbz8rOu8optYvJOaBz4iQoK9vsxTPtiIqb11Vl498l4XPQ5NLT0LvLS+bPJTvNCyzbwEbek9j8wGPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -7.26693868637085
+        ],
+        "2": [
+          12.2157621383667,
+          18.15154457092285
+        ]
+      }
+    },
+    {
+      "segmentId": "4483af07-90e5-e860-f227-ab3b312b7942",
+      "speakerEmbedding": "JSd7PaJPNz4IAhA9p3SMvioJCT3Hxcq+Y99hva+3Rj6CwGO+3KKIPVakJD5IJ1c+G7dbvirUt76sP0A+oKLkPWQQp71AFak+Sn+GPuC82bz581w+grqIvprghz1Zfwk+83wZvSJjiz4ZEDE9eCvQvuD7gz7bwYk9EQyoPsopc75SX5q9AdbwvdljuL4wVYS8gJMFvoTjEL7c7Ae8Ms0nPh4/ij2ShwG9AprJvTDT3z3AUeG9cECpPkzimD6wCwA/uKMIPpI4DL4g2Qw9WncivuYPHj5agqA9bouIvhT4MrwUD4g+0q6hPfipmrsQqAg9hMk+vvpwTj7+zuw9oc+dvRz9F75FXl89rKbUvN+L4rzI4hC+1OPpPLbCqrzmbee8RuGAPrRCrr1YPby8OjpPPoLQuj2uDPc9/KkZPoC+2DwqIRu9QEBCvZ+htj1ui3c9BYSrvfz/Pj7zPby+MvV+Pt9PeT2sub29Vq8fvkfY/T2ON7E9lWjOPdtz1D2OSDo+2ELrPURpDr7NmCk+wnO5vlx6tz6yPOO9h0eUvUYoOj4yAgC+Ld9gvUqXUz0Uyzg+GRJvPgRaAjwuuGY9hKYavi1Slrw4yLq9OHQDPQbqAb7s94y9ZB/IPepLVT1nbYQ+Zne0PbJzV74WBTC+wGQHvm8glb6CxOY9nga+PbMElr7g0ZC9i4zxPTD2TD2KdCE+TDVlvcwc+zzvw6I9tsQOPjDm0z3wu8k+TnwzvaG9kr0N4E2+prsDvnlMsT4WMxu+QUAXvUrHWz4XdJs8hIHevaFvKT7OGmy9CB//vdgYhD2zK0g+UEV4PUrgRb5eL0o+Dn4Zvbt5VL0hhlk9aEgIPn6Vvr0AV4W8Ms5CveAzwb6sZBs+7pxZPXYW4j00Mfs8JDF/vnRZGj5CZVS+LoGKPrUzoL58PIg+95CmPfoK/TzeOxm+LuDWvdLqVj6ZeCO+TNkovQX6nr0ybCu+3p95vsiCw74Qns+96mPSvSJ3nbz+VqM9/+PnvdgoHb5cHp6+9LmZvXguED402AM+0fsDPigcaT0qg1I96ZHwPeDQjLvlFRa+ovLLPdygAj6FJpA9UBjKPCpIML7caHK8wssvvuvmiT4vf2C+LFtvvqTdBr2zqY6+OkeJvrST8r4s7609Emr2Pf5GmT2pZIa9RvImPeKkdb40JeW9BgvJvt5TZj2DvWG+0MJAvtQ1uLwozo6+YnoRvX9JBT4eURg9OLNfPboUhD2qeQk+4zljPpK8Az38ZBm+cgKjvWjUNL4gxPa7OGl0vFMkP76C2eC9mN6Yvbk/Kj54M7y+wGiRuyTdtT6C9g2+Wh50voJ6WDxsRMC+KsdfPvY4JT5/Xxs+UVlxPg==",
+      "umapEmbeddings": {
+        "1": [
+          -1.8095742464065552
+        ],
+        "2": [
+          13.154620170593262,
+          13.811214447021484
+        ]
+      }
+    },
+    {
+      "segmentId": "13a8d955-5639-06b4-ffb5-8dbedf70c456",
+      "speakerEmbedding": "pCEVvuhiWbyerxq+JAn9PYKZHD04J/A8zzU2PTgnCD75FyK9FUFtPU6Sbz7sEAc+huZAvlhiwzyU+MK9YQofvZhxdTvYcDk9FmqNPtBPUT5wG4C7Z/iJPLb2tb0mIAK+0QauPQTOgj5UaoI96NqPvrr5Hb6uJb69TNBIvoYadT4m9iK98Gu4vfcvJb5Dyoa9XYwyvRhSRr7vsJ48pkXSvY4jZjxdqyo9AL8OvBxX/L3vBfm9WS/YPRg4cz2quwe+smXOvMiZpL0pRVq9SKq4PaDvPb7KG5E+LHQuvujnkj4uo1I9GrwrPZro0z3ku7w9gMLmPBSOkL2VAfq9QKtAvLy+irsFv1K9mlktPSErnb2NDoI+3VJxvqR7vT1rCF+9Oe/nPAgobD5xHpO95yLSPX6GKT0aeHc+1gp4vjIirT3wFN68IGhsvuAbiz7YRwm930u0PTBja7yVLQo+RhdHvRgl9j0QtaK9IhTTPGsdHD7WdAy+QOKeu03ojj7CUgy+QP/1OroakT1+9Yy8RdEOPWyaKT5gUDS9YIY9vQDeTblpnDA+X1l5PswkkDuc1Jo+LZ2ZPullL75NCSe+ivESvqB/d7t7lg8+RA/lvONQG75h88q98nwhPuBhKT1QKNU7Fk1TPXdIjL1EC++9SsRxPTXQs72SuFq81TGRPfQfBT7y0v697P37vWPXWj54XOe93DiUvnn8lLwMZ3S+YeH8PQxrkT2VSK09aNh1vt0iwj1SVoq94KQ+PIph/D28xXq+c9vrveA+zbqUp9Y96Q7Hva+uBT6IRfA9xxhkPjy/ET4w08W85dJJPeMacD72QpU94o0KPUnHjL3QJ4E+1BARvP4Jrr7oilQ8Y2ABvm4bYr2uDLK9pu/OvdxvcLsU7IE+xNmUvO0MEz4YFhi9foeNPdYIxDzKpJ497IS5vaxsI70lwaS9hA8EvFTfcj2Qh969sLUgvfxKmr1zm4M9dAOSPdPLlr1cUIa+aRQfPiC4jTugr/Q9PKYSvv7hRz6SwVS+rhmpPVTLJL0AT328vi+9PfpURL4QMwe9v/RCvhe6Sb74wos97AYJvdYeSL6X54m9f/0OvU98v747CYy9TtkzvvYwXb1kF/c91DLsu1xZRT3CSBK+vAcsvNU8Jj6SEiA9rga6vCe3fD6QYQs+FrlHvR/lPr59Ou49A3IHvpR72Txl44c9Zv2BvjC8pzs/H4E+RrpgvZK9y72oZx++ZLizPYpOAz6ALwg906EkPh6HqD4NpD69IAVFvcNeAD7GS7+9blHHvV7osTwIEu+8V1jbvYEKib4AFQu8CM2BPVUmlL2czDy+eMVIvYJ37TxxU4a90elTPSADFztW5RC9ANnQPQ==",
+      "umapEmbeddings": {
+        "1": [
+          5.408256530761719
+        ],
+        "2": [
+          13.11765193939209,
+          11.969805717468262
+        ]
+      }
+    },
+    {
+      "segmentId": "9251af8d-ce08-fd75-6f43-f7ab172a364d",
+      "speakerEmbedding": "hnNrPXi+ND0aYxW+u8COvnqCwT42En29Sp8CvhADzT7hMJM9yrnuvU2RLz7sddY94Be+PLrzzT7wGAo8nni4PiRR57zUTic+LqB0vj6xiD0S9Su9sFUjvR7phb20mi2+8qlMPsLEeb3BNb49jSySvUjjmL4+hOE918SVPiAAKjoaFFC9SqLavD8U8T3kZx68T9Oyvk8rUj0MOFS9imQ/Pl+It71g7+q7xsatvf29vD3+dLu98qIqPjWk0T2O/mq9LnAZPrY8ZD6R0gU+/EaHvadMxz5yoDU+R9p0viQoUDwP3iA+8+c1PmjFeLvQzlq8/2ZJPnK6FDywb3276R4SvHH5Pr5rlyC9U15nvnyGdD6QL988crAKPW+l5b0yWL094K2hO7o8kz68zwq9MegQPoKfbD0gBA++TgvKPev0LjzjFMk9E921PeA24Lsw3CG+4f4ePv03Mj7tQbm+XdQtvpB4Sj4AdP85qM1xvc8IQz1MQ4w+sZ11PrlDVD5fYWw9lmf9PZpbqj48f/i76Ke4vAAEzbvqB3i+FhmDPuztez3H4X6+OelLvvdTgL4j1qs9QoQ1vboGwr0XTng+DCg2Pc19F77cBqk9jQ/WvfwPJL5aZJa99kuMvgGUmT42KEo+i/8rPnISib2tqZ09JkqpPcQkUT6kklM+kpKbvcoy4L6Qy+K81hdAvoOjTr6y8FU+hOQAPmri2L0iGSQ+XBUUPjITg7zkn9G8UftaPhQzlD3Yq5O+w7PNPR5lAr1QTGA+hAbFPv7SFr6klM69/kN2PsRkMj53TEE+Nu8SPt3hpr0hmD0+yG55vO63gr01+j4+XAgQPbpvhD2Mzho9hHDSu0tVw71Afhu+4iTVPSeL6b1oGQK978CGvuT3vj2ulpU+oflDPlZvYb4Elx8+JvexPgcBYr5Q2BE+DDhNvb6I7b02MRa+CCOuOzP6Hb6SWYA+gA1mvgZF8b0Gp9e9F0KHPgTVB7w8HP+97RJWvtgJ2Lsr5KY9dvCQvbiqXzwQ6as8bf2cPT8jNL4YeHk89sUCvoBaob1KqjC+LqgrvmAwkb1Xewm++DJCvZwUnLsgvSe+fBSUvRQBOD61UEW+tZwAvpZatzyUhXU9nRrMvr4CYr2xoMS9kLCCvg+cu73qxhE+vNyzvozvm7wF/Cq+73zJPft32j09CEO+CFfrvGJwRD0CBfy9WD4dvLh10LzuHpK+kDeCvdQCc75Kxzc+qI2QPdwHiD5BFaE9OPVUvv0IgD68Lk48RlEmPd4bur4QaMg+WL8uvlzCIz7cJQ88bzIIPvK+Eb6X/O89rJWdvUz9xD2Zfpw+rBmFPZuruz6Pkhy9Y5wsvkuKUb0wp5U+pg+BPg==",
+      "umapEmbeddings": {
+        "1": [
+          -3.2137959003448486
+        ],
+        "2": [
+          13.956775665283203,
+          15.763130187988281
+        ]
+      }
+    },
+    {
+      "segmentId": "5472624e-b485-7041-a718-5c973177540b",
+      "speakerEmbedding": "JBImvtAFYr6g6qa+8GJtPPw+k7zoiXg9qr3wvRzmHL7SFTI+bpK4PQpOgj3DPru7myQAPYD5tz0ZvVW+2b08vkDQQTsIqZc9ervaPiP80r2cAgo+KO0xvvvGFb2wSeu853kXPrR8UD3goAI+Dk3bPLo2Ij1KJ2O+e5b9vbWei77ZOAC+pOY6PW4++b43f8Y+LurbPQS7ob5yv6w90YV/PtgExL0ANAO68Hgdviw5cbyFRNK9rXSVvm6FEj2Lcjs+wVe+vhb5r73K2a89VvFHvujLbbwlY4m++UYCvqY40j5rFJC8wOTbukXpgb2GDZW9rPsLPi6SJT7wHHw8nvEzPhCu/TuOTAs9ozG5vcYHkL1DW2++MREsPcz0rD6wnR0+uphEvks+mz6AlE++j/XnvYpq6zxeYUE9lo9yvr5z5z1avFS+SSxGvhxDEz0gKBQ8LQZxPsSKJr6A0z07JOp2PpJBnz2nI309ju4JPgqGBr3jqUG+sMmTvUozG73/y4a+FyoTP7j1376IQHk+enwWPmzNXj4Nhm4+fE+1PWD8aTy2NPE9eZ9TPuo2LL6LERM9jWzePoboKj5xkHc+ZVT8vYUGmr2MqQE+8tkMvg4Fgr3YW5A7wnbHPQ8Nbj6u7FK+6W77vVrExD2Z2L29hyRTPUhVwb7Gmn0+ZbDCvWhxGL4UfYQ8OTT5vd/O0b1gjvy8RhUMvrAvUj1kUnO+1ogavfhltTzUCh49DGDFvofFaz7XF2e+AMA8OCg4EbwWylQ96OWtvuW9tb3YpKC++OTQvCzOBr2DTYg+iC+WvXjCLz2T9AG+aII6Pqmi4j0EFz29qi1BPmzATzw4/lS725yuvciagL1af7U9zXjGvg02mD1qqnu+wONgPUc00z1NoOQ9thpkPg8e+b2VzM2+AbkYvhwDmj6mKh++Bi+hPQyAbT2s95I+yqDxvTev/j3BUTO+TmxgPkeYYL73Ay8+wIRdO8y+y72lsDa9FAlUPgonzb2h6LI+sioIvtZnOr7kNso9ksxiPgSao71w5i+9cDALPv87q75mID6+cizgPFD/3DyfJQ2+NECNvECnob4rpAC+tIBlvkcYxL1aSXs9NCM4vtuM1j0iWg++uLrsvAy5BT3aMIg+9F3aPIprmD6Xt6y9wj/ovGpTpT2gDIE+/W2mvbajgD3gIfg7XYS1vuID2L0M5As+plBEvjUfBb4HX/I9+DYbPEDfCj3i6EW9fBPrvcqZij7mJxW+Yt7WPtAelrzaUSm+CFRYPuOhxb2wngU8gNgNPthIoDyQXju+/uTMvPB94L2oDD8+qCS8Phg2YL7ULS2+0Ik2Pghdrz7PGEg9+EhRvbivkj4VD3k+YOKYvQ==",
+      "umapEmbeddings": {
+        "1": [
+          5.316873073577881
+        ],
+        "2": [
+          13.199650764465332,
+          11.692209243774414
+        ]
+      }
+    },
+    {
+      "segmentId": "b22b89a8-dc18-b52c-94ff-e26b46c432d3",
+      "speakerEmbedding": "YOIxvKCoQztfBUu+Eomavm5oTT2sLhM8mRmlvVhqOD7DTym+0kRtvvx45j2mJow9CAWMu/oXdj3O3dO9LDD9vF78Er7CSXs+W6TCPWz63D34FCm+mqabvo6uMr1Z01q+Tlv7PZeskT4EQYo8Yq3gvZHoeL785bA+wCuMPsDfhb6kGoK+NH42PvYcLT468u09Jxw7viOf671qufU9HzgHPvj9lDyjNBu+ef6oPsfXFj5ZpdU9KKibvQAprLpa9tk+wOfqOrYZ5D24THE9GAHcvBC6jT4W2b89lsLDvoK25j20pgO8/TmovR04uT6Xi7c9KyioPZiloDzilGO+ZbyRvqLQIz47IOE+GQLAvjyCob7Z20g+Hfa6vhB1xr1AXHU+iruePsTWvb15Gqu+dg7cPXLUij0y+xU+kvCqPS5e/b1uskm+prknPrRQmz6Ef+69QdUZvta2hz4AUmC7GwV1Puo0+j2r4xO+FeUsvkBcDz60YQ09F3sKvr12hT7SEwI+2qJBPtDD4LwakCS+69SovhgDG7uz5yA+K59sPv4wab1Q6aw8JAuvvdDEqL6+r/o9PtYePf5ToT6ti9I9HECYPPYLhz6CLBk+tZlOPnBHjj6OT8s+YnSsvjoASz2OicE9ecJWPsJ/4z0oxeO9hpPkPcY5p766uTs+QqbYPeAym778coM9rFViPWCSm75p8YQ+HOBxvkCXqDu0dZM+WziyPfgPhL7eMXE9JmBgPVJiFD2WQ1u+3rdMvoZAlT4GLc2++DyfPX51Hz4EN0K+GoAKvWbJPD4ttQG+7oRdPQCAr77+hxw+nOfaPWi7gzzg9Ew9pSd0PiXumb4mn36+0Q/DPYBupTuAWqq+UfBgPvTbYT4V1be9OMUnvVahhD6k6co91DyJPoysrD0o/Ou9d5UvPnSanL5fkR09esc1PTEq0T1+tum9EE0VvaHn6DwA9oI90EAgvcAfjTrF5BO+acwzPi6iSL5URRW+BkWzvkrFK74gVeY9Wywpvvx5vD3yN+09kHtTPbh6jTzt4OO9TX6HvnvH6b156ay+cMm/Pc86lD2px1q+LhqqvX2ExL4QjI894G+BvGhqmr3Zl3O+XBkRvkDD6zviXuk+0ofVPfs5ib4kW6u84ESavgoUojyzdIA+oueXvep+U73oHqS94x6RvcUAPD4Snaa+iMwGPuK5tT1jHVs9f3CqPpB9lr4LDC6+vIzNPh50rb2H1qE+3iIGvpgcEL0cFTM98/hNvrymyD5CHmi9HNVUPianGL8bmpI9NudGvkjSgT0IBZG88DpRvlGrlL1I+vm84o+qPYTGLD3MghY9oyEZPjSSRT7cfGs8YZojPuC2gT2gv6O8NmYEPg==",
+      "umapEmbeddings": {
+        "1": [
+          -4.661187648773193
+        ],
+        "2": [
+          12.229891777038574,
+          16.13119888305664
+        ]
+      }
+    },
+    {
+      "segmentId": "362fed41-4ea2-02be-47ab-ffd8eb73de3d",
+      "speakerEmbedding": "T4Iivh7lAj2jbSC+zAlavkBybjzugog+BXD0vVuiIj6gqt+9FuqgPbBHH77owYi9kvJSvnZiPz5YURA+sAhhPgFT7r2gohA+i6zBvoI6QL0OGEu+CCTwvNiRyjw+r7o8/ptfPrbB3z0m4w69dgUXvp8dDb6jcBY+m6fUPimKK76yJ2e+OAU0Pkpeaz3UGt29U41gvW4LZD2nLp4+L+3TvQIprD5cZko+e4cxPoDXxD1VWUq9Jo4LPk31bT7A2I8+DD4bvgjaCT8q9xg+smMDvQl9TT6yTZI+VDkbv1gDsz1eB409pGUMvtECl76atWE+8IS9PrCjnj0tmRa+pEWLPuzcVjzHNSc/lIk9voCmmb7Cv7Q9vm+4PXwVVj0QRgc8SMXcvExZSr3K0SQ9yFIdPQ58o7wEWD894OKdOz0Zkb5se7i9YIqQPW4jsz5w1Ds9R3YPvW4GCT4+nbW9ujLWPY4rk75uhSW+LiJ8Pmb9Qb1oUiE9v1UTvsIyED7Icqs97ukjPtghvz47G+m9dxGWvgFoJb5u06Y+FFT4POzmQz7omYK9/tpOvkhZtb5A49Y9pO6wPczSv7zUzAc+yBFOPgij6jzukV8+/vRcvoRiQz7SMSy+iG3mPNDQz7x+L8k+2M6ZPrYyk75u/bu9nF6QvRwlIr6tHG0+mmTwPdBDW75MhSQ9tEqrvm4+9L7u0FU+JJ6APHeWEL4NEpc+lhyuPShR7bzj5H49jksAvtMk4j1qbO09giaFPfWd1L0A46q7UrYMPliU97wGlpA9FHukPjoRBD2c1e+9j2GYPmbCtL7/jt49jO2JvuAygz4H2k2+awQJvjJ5w779NRg+SSxOPhBZo70kLrO+qrEeva6eED6irHi+3OJVvg0tIz7eUQs+4E/bPPydp71/waA+stRDPlTQYL7VFJo+sgP3vYCqOrwv5PY98CEVvsBrAj1zZy093jlXPmF4Xb60fKg9elOvPf4gLb6cIB0+7cfQvuYBIr7YpzG9Az/vPdIIyL3fJMc9TOA4PYddkr1QyH69w9uxvZx/z70+4bW+/pkuvlRB0j64mYI9fe3fvVDCeLw000u+aHYAPv96HL53chu+CN/svW38wT2yOYI+uvc1vk79wT0gbqw9mKBZvlT5xj10WAQ+gmlevnK1/r2Fs1Q+0JsovYg5Zj4oCAO92gIvvjRf5jxdLjK+BmanPjS/jr4yKaK9EIGnvWS1wb672G8+FIdivWyOZz1cSSA+VrajvYoqlD02A9Q9UveNPjQ5wL5KNrI+dIV2vuS8rzw4xDM9LTNivRSYIr3YMVI+IJorPv0MCj4artk9S0NFPjJA4j4O3cS9NyjBvabUcD3KR/Q9tDIIvQ==",
+      "umapEmbeddings": {
+        "1": [
+          -7.87705135345459
+        ],
+        "2": [
+          13.403402328491211,
+          17.36458396911621
+        ]
+      }
+    },
+    {
+      "segmentId": "210ca1dd-5579-7fd5-c1e0-e7f3bd7ddadf",
+      "speakerEmbedding": "qC2xvCKR4b3GJgu+Kgtxvmgz0z0c4Bi8DOCGvtBWgz5AxCG7RNmAvR1zvD5VsgE+mnjUPNFZ8r0Avjo7vA4oPhan0z0A3jY+k1xYvuAaqz2oP06+HwhdvpqwGD5sOSy+LJhtPVtkML5fGaY94kgBvsT5lr34siQ+10r6Po6eYr6uJKi9LelgPjQkubwfFpM+CDhPvTJgfb7o2IY9eFJ3vry0hj2waJA75h/SPVsUTz7iNrg8J7AwvcBWgrrS/FE+tIuevRl08D5HsLG8iqsWvQYl7z74w+69A68VvxfTJT5xURu9vtVcvYgoFz36NoE+5e2YPr7ZyTyK6cS+tVivvZAICb6WyMk+mmLWvYtGl70SvLo+5CmWvTARCzw8nUI9JhvSPXxedT22Qps++QHVPUyVRD4refU9vkWVPeAXojzSzzU9oJxVPYznaL4QoQ8+R/wSPbNdkT5zjDa+ktiBvHSe47yC7DE+76+9PU/fqb6xdmu9fETfPURu7j6QX7a8L6KzPp00tj5t90a+/mVdvcvPq74aISg+hl4pPT8yyL2E+bE+sbB4vuujor3HMXM+yKloPbxGiD7UdMg+2ggrPrUPOj2T14k+wjSYvju4KT6CKpk9p106vhxLxb2Cmac9gsfvPibLjb7iMi8+yNktPlHQBj4DwMo90vs7vkBX4T0lEzC+TE4ovvQkkr7S2zM+rNaQvnhLPTy+8hU9fBNhvfiecr3iJEA+0Ip7PHr0Ij/sJcy9Z6KbvXtACj3Mo2a9bos/vqqDmj3aPpc9whAKvjMQpz5WXUe+/AbyvIVyTb7k0Z69CmBmPjWsOz7Wg6i+vP/VvRilNL647vI9wQ2MPHFMGb4mSZa9fzWQPTSlOD3XZuY9AER8vnJwRT4sW7M9vB3zPi7vyz1Mk8w9NQmlvZ4iz7wcmeq8yAw3PuLGLr3rram9e59wPrn8Or4QjcO7G43KvZDJk72RTEW9QEdNu8Jydr626Bw93bcmv1FyPb6cVGe+q9EJvqtgZj5geEg8zeKGPh5fDL4M30O+hlYDPso7WD4qfaS+sHauuziOC74gMCa+umBgvu7o273qsnC+NBnBPZ6Iar6b8gk+75qCvvtZCj7pOb4+sGpHvRBWn7uSEvO9ImEgvtxutjzQ9sU8mADLPU9HYr5n25m9KUoNvty1fD0qH9C+f0VHPvLlWb73rxS9gG+NPTdvm742byM9OAvBPaubzr2snJk91D9aPTLXP74uQTM+9sqIvuCsiD6oCJi+cQQLPvw5hb7gQxW9JN2kvloXkL2wFKO+PudRPaWdUr5spkE+7+DePZ0OOz0iaIe90SRSPsMUrz6IveG8mFuEvrz7hz6mWy89Dc8XvQ==",
+      "umapEmbeddings": {
+        "1": [
+          -4.764084339141846
+        ],
+        "2": [
+          12.834874153137207,
+          16.40606117248535
+        ]
+      }
+    },
+    {
+      "segmentId": "7105f241-746b-c42a-6e3e-d65decd16e24",
+      "speakerEmbedding": "dj3YPdY7Xb6v0og9YDgouy7hvz2aD4i9kOOIvXhoR7sknAy997rVPXjmvz20nNc9TcJdvibODb5Ghwm9RwkAvWgRQ7ysFOO9zRlgvSh18D1qcro9PD9rvQMojr2ACBG6EFX8PZhdgr3oxEy8CPJpvka4W71CIew9kECXPZx18L0ioQ894sXmPZRNK700m3a9BppJvoSSvb1pfDW+CiRLPc4/Dj627hE+yeRqPqCwgLsWLoe9sDZxPn47JT1roau9PtqivTJwnz4geum9Lnw8PsCDhj32fY89SHrHPatFXz2At0i8QheyPTJCez54IB++Qm8KvjQRST0gKlq+ah9pPUn7GD2oG688PHhQvL3ogT0zlas90NoxPczBLb6y9om9S3ZNPhbguj3+w5q9VCcFvvc4ZL3+RaW9TnGsvXzN8T3ELn88bJsYvu4lQz6OM7Y9gM4Vuv6mLz7xgsi9qhE+vrcHIr6gi8E7tm5dvE96Oz0E3kC9fg8YPoGvCr7IQzy9hm6lvaII0z1dL9y9cSU5vXUGBj1kWDe9BFS4PcCvxD2Ph6Y9buRCvQuFoD0YSkg+UDmWvr8njb1gzFa7e1RCPmdgYb4hSFg+uJh5u4AmmLka0+g9TncbvUoZszyA+yy8OCjPvP9qqT1m2CI+5CjqPKjk8L1Epjk+DE/BvmJsd73e1rG+AuvKPO//Vj3H3BS+yuv5vWE9lb0ETHI9RuIXPUiYED5U1C0+eLMavPEtNr3gKpM83IOOvVnwzz22N5M9/pSCvROx9z1tHxQ+mRtkvTCg5T2Vuto9c0UovrWda76vhqG9VkNaviOUrj1b88I9UZb0vc40mL1g5eA9OyQGvqIXVT20kwC9gNXhPEzm9TzKMjO+i3axvQwMRzzsnoq8EJJ7vRQUAD78M9m9QJiNO8VsWD3CrM09ylOIPXLOO72rXJq8Agp/vTxrnL24UeE8eXlVvkDfub2Qg3c9pjOMvRvqLL0i8oc+GlfEPfBo5DvOGwS++AfZPKe3W72bue29QIZaPg7QQ72ILRs9NVRgPo6U6Dy3Xh88Kuo2Pg9sIT7QrAQ9RB2MvPBrN770SCw8o24JvjyciT24mpU8bGIrvmYIZj2OAyI+queIPYeEBj4hkAG90lQNvoEPdL26ACC99VOZPdGFG74AP8w60n6fvfigpr2gFcI8o6EZvsLPLj4AEre5kZiOvQ3nZb4HQgW+b5w2PtZ+lr0qgd67MKeLvdBTHL5s3Jw92iEuPlpaDj1alpQ9ELsmu1hkCr2tJ8k9dIDnPIQtgD00PTi9KkkPvrFX/jynhZI9GCsEvsUvVb6I16m6k45TPY7uiT2gfQ07UzeePdruWr4iOQ2+dIo2PQ==",
+      "umapEmbeddings": {
+        "1": [
+          4.0064473152160645
+        ],
+        "2": [
+          12.884570121765137,
+          12.722899436950684
+        ]
+      }
+    },
+    {
+      "segmentId": "2f1bca57-833f-4875-b1e1-2f111c1a8236",
+      "speakerEmbedding": "YwBovq2hDz2xGAc9bT4fvvCSgr1s5tQ7nrV/PDE3Hz3IDOq84nhFvlGTAT7Ia+w85ewivqgk373TZhO+n2kxPPMNgL2EzAy9aISdPYC/ID7V0P28BLzfvRh9E7vLlEo9ayBaPpnHez5Eh9o9sc5zvts4Rj4pyGC9st2EPZ7rNr1eH1i9X1eTPRyx3r3WRhS9CsGBvpD7XLukg5Q8zFm9PTcUGr04scO8Su0bvQg6hb04uVG9ek8+PYYN8bxUBJY8lJpRvlT1kLzjG1w+RuQPvSbDzrxUcT8+BK9ivWQNCD6vqQ0+cGMiu7iaW7yRpo+8IYt6Pf3nkL3Y1ba8NlUEvfLrAj7qRem8/E1IvWutDr2xII49pkaNvcoX7L0g07Y8M3PpvcLERz4Ib428OMJ0vaoExDxop5o8XSWeviHQBz4TYv29EgUnvrzOQj6XLBW+FG5HvZ4S4T2kt3E9jM94PWQbhj2e3SK9oKutO/mrDD7nrhe+9HiEPbIVBT6L/Mu8HEyDPYJFx71u8FI9OBezPSMbeD6w8tO8C+z9PXphFD28VWM9hFkLPmLvTT2UCzI+rnbBPbkd3b2js3I9rIjQvC3wP73O0Sg9vDkIvXAJejygy+C91+9UPut9Az3K1S6+drSOvE3e2L3jSxG+I4fHvUrYN75MzWs+gLEgOmPLB77Iz/K9lK1zPQMHUT1wFwW+Fwo1vbJnzL00BAy+TvhnPSdV3zwad8U8oAOCOV4V3b0trty9VCQBveaa+T1bHZ29pX+zvQTRBD4G+oo90EEbu2yEg71E7UA+dNOkPYZ15r0sjRS+gj+BPReTkj1MV9894n60PfZVzjxRJNa9HGbOPUL4kz0Abso8vlgMviSnHj72W069Xhn1vdIiXT6vybw9XDLXPB7HEjygk667d/UDPpBMRztxGvs9kuaCPSoeOr3QyH49lFFmvdxkjbuuAPS9xExMvs5+Ib3G8ok8/vQUPcHtJ74v/Ga9WjlxPSBOWLvT7y49vLoSvOPwd71+Hl29qmofProNTT2oIOO9wFNtPlAJirtOS/q8h+R9PpywJTxbkso91LSHPfm4PT2I4uG7kjWxvDIfV77id+g9XkWlvT7TjL2OjEi9muxvPGl/hj3+EFa+otlBPOn0Wr0+RuC9Sv8svWRJVj64nTQ+oGBKvfM7Sr5SybA987UbvnLCrL1ALto5nGwdvV43xDxWxBC+JnMaPiDy0j1qN7Q9OdmKPdE2tj1g6Sm+C6UePhZgAj5qtYi9JEytvT4qoj1U36g9AlgdvK3ItbwcTn88jHY0vqJwr70nJc09GHhbvMLdk71Jhba8ugYIPXBu6b06ZWa9r+nDPQ7n5b1/hD29RYiRPQ==",
+      "umapEmbeddings": {
+        "1": [
+          4.4595160484313965
+        ],
+        "2": [
+          12.6701078414917,
+          12.135383605957031
+        ]
+      }
+    },
+    {
+      "segmentId": "a0b55656-a54d-3aba-7856-9768fcb7b873",
+      "speakerEmbedding": "mTl/vWCilL5H3CO+dE7QvsaTMD7BxtE9BD2SvaSPx73AYjC8OQMvvrLPGj7+m0W9GeRtPb6fUj44tLW+otkSPoYgLz5rLa4+wLMPPcF4Fr7s+uM9J5XavbDOVD5Sixg9IPn1PDD+eD0mPyw9GHRQPXo3Wr79di2+oJgAP1ilxL4EjJm8EId3PKDcP73Yqow+wvqCvn2mCz1ugx89qEyXvlyhpD0PZow99l6MPfR7YD4A0mU+efAcvvQ0g7xmZlQ+Y4mDvQjtRrzArqw7H4sKvVB6d71Crm4+rRx8voIYCT7/mag9IP64PUrq4T3Uh5Q+ldL1PVB/crvFC2a+N3DEvebG3z3MgpQ+d44aPaCzob6o/IE+omptvvYgnT5HuSS+e6ZfPvTfHD5q3s09lB9rvoqvRz5qbiE+mpi+vcgdzD0s2ny97IbhPXILVr4VC6C+kvIZPgqIYjzi+m497GJpvYkJWj7yfAm+fr06vlaBoryFqTc+7mzJPMDCED/VB4Y+UEGNuy0gpT5I0Cu8GGoAvd53Hb7ctEw+UEqcPhBxfb0r7gM+mNUcvlfEo76I2UC+PbkIPnKsvT4YmxW+LOilPlGajT6yhlk+CLGyPPWvbj5Fboi+yVwgvu4qx75kJnO8ik4fPpEA+r0A2H29VcAAP6Dy9bw+5CY+ODeEuxWqXL7adls9mDnrvRZb+b6m0hw+zPQHvjz5+r1U4aM+lBGsPf5vXD2pVFq+tMVCPlqvJT7W1zm+9+XmvXA2oz25VbE9yJZ2PJziHz5Tm1A9cDVuPED7Tz6pvt6+bQqhPkQqSb0Gc6g9WhxDvTTzSL4oelG+qHh5Ptxtt74cRIG9NtrpPW/grz7Y7+29YwIUPtJCzj4MRts9pBrEPZBXrjtyLPw9djrPPsRfXz7i/4M+tEHgvErWlb4ASGq4JPSzPPlRdL68t1299mK3PbJIib46i5Y+5G5XvkUAHT7fuSY9ujsYPopeZb4UEry88BINv5cEu74EPU8+yOpavq9/Hz5w2u06QL9TO2znHb6ZehI+pda6PVPn0j2kMuy+mLgYPZWbXb5ENIi9CxyKPf6kL754KGS+oDLBPXbxTr4PhiG+wglivpy+n73izIQ+3EJZPcQuJT6q0Xg9F6WJvmxZzT2xHAa9yFbpvXqPNr1NQ06+i2UJvT7dED6XQSm+mL+KvZ6fIb4AUZY7FFDkPe/Pjb4K6Ce+3K8hPn/SBb5AhzI+MLmFPVqXKL5Eq5U+hfNkvjJzlj23FH8+kJEDvkPCrL7ObN+9zf+cvu33JT7hwVy+fBkhvqN8cT2ORwE+ZouqPYi3yDxMdHi9SCS4PbnM8T7O39e9Evlnvt+RQj5mBc89RBsMPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -6.015346527099609
+        ],
+        "2": [
+          11.7073392868042,
+          17.69651985168457
+        ]
+      }
+    },
+    {
+      "segmentId": "98c23809-89a0-8e38-4874-124805029d56",
+      "speakerEmbedding": "7JL1vOCcXjs6qwG+tulkPbX0pz0lMmY+J8cFPqSUMj5itSG9VFchvXkRvb0kySq+FJUSvpXOh70HD5I9JM11PpupWT0BrxI+fgA9vjLofbzI5b27+kwLviSsCj4J6R882pTLPfNhZz3SG7Q8UOapvTCsJjwKbCA+y8eyPuV8ib2Sv8W8+DO7O8k9t70+F42971G2vRxjND3CQ749AAndPDRsJD4/5/09o4UcPgvXnL1azIG9+mvJPemeMT7+/IY+/LUsPLqIWj7yCnk9/NUevB1WjT5c+tM9EG+9vmYWAT4QPVE8v5ocviAidj0RTdQ9tnCXPXEitz1O24E9+zzkPTIiHL2Hkcs+r9ZNvidYND1MM4W8QNwcO6HLhj5CIMM+w5IjPuhYCr6I5iu+w0klvZFSdT4s4wI87B1fPrhtizxcI7q8zsyUPsgtRT11UDQ93EGdPd7pHj4yngE+U/4MvuEYiD2X7ES+GB/IvBQIgTyMIim+30sKPhJ2Nb1/4y++2564Pjmurz1+lxW+Vu8cvgEhEj7TA0c+gidUPh89zz3JjA29+wSrveTRLb6MAHM9+2zQPqfnoL11EKU8itEKvoxu+DuVAOc99WLjPXZFhL2wHWK9Xwi9PRLyAz1XSZk+IYa3PZJLO75wI4Q9qHMBvlDQHb4z5vg91+2+PTaT9DzsYCm9vvcrvh4NLL7Ze+y9XH3dPU8O7TysDIM8cJw8PqtFGT7zMQU+CTgWvqr5mD2FlRS+Soq5PWE5HT1AvZM6nupEPqBw07xmLUG+rlCHPTpU/T1PBhy+tBDzvM4BGr7oyzE+AJmKvaRKi7xe97S9gKHdvVpSA74gz9E7Cp2uPQGjhb6wAB++TFYgvBri572jiQG+YJvZu8yrer01kkU+oMEzPLqLaz0rcz49SNPBPlEVkD10rLU8GNGbvIJokD0wPoa8pR65vc5/771yvdA95ApTvRq+Ab7SQLc8XDH6PQR4Ez5YqrK+RkCGvjIktD3QIlI+rYIlvaamqr3ygeI8GJkBPuWZkr0kXQa+pvQcPbVwmL7S8VO+VyV0vskoeT2cFC29XwSrvX7aAL74iGC+j+D8Pbzdn77uhCQ+fXcQvurLxD2Spa+8nNDVvBiD1DvFDl+99hahvdgk7b1e6089shzuPeAcy7w6MpG9SrUcvgSfkTy0khi+QcHcPd5oPb4cVmM9duD7vT16VLyCqDI9MMliPY80076KtOW9GujVPcS3Tb1CoD4+DsRHvsc3tz1mUDa+JpKzvef9jL7Kg3Y99EHVvdTzab2oCIU89GNsPRazSb6COkq+SikJvs5zWD2eRRI9UEfiu4wEFT4O/2u9QGYavJGBYz38TA8+3/7uvQ==",
+      "umapEmbeddings": {
+        "1": [
+          -7.3230133056640625
+        ],
+        "2": [
+          13.94531536102295,
+          17.389972686767578
+        ]
+      }
+    },
+    {
+      "segmentId": "5d0d83e6-2b55-018a-ff82-548c612cf505",
+      "speakerEmbedding": "XSGtvVg3s73Opya+PPn/va8NDD608eq93ngNPUBqTzrn+qm9JBuZvR7HkDwESnk9T4oVvvw2X70yojK+q+dMPVAjCb4bvI69qt/zPYuJxD04jV879hYtvqQE0zxIQmu9dZVFPcjgFT7Omo88ZnQ6vlFBM716pgm+CBotPhCIG75QTKo8DlMQPXpwbL25+q08S/gsvVLXTb0vc2u9u71rPazMI76RQSC9ekEPPTRAZL3AKmo7GjKePU6dFL4yjy69sCmdO5H+/T0qaUa9R4m5PeLMBD1+9n497VzUvRacPz6BFKE8QoxIPWixRD1+cgg+36/yPXhQhD3SAca9DkOVPbvl4z2zPyw+ECHXPAAhQzpcFkU+N5NCvQCC4bzncly+/D0UvhRnOD6wP9W9HimaPGj0y7qYW5k9YQDMvXTAyrswkOI8n41svsYY0DwuEL09lQ7oPbipsby0AyS+OHWIvEHvpL0MJoY9kPj+PTzRzT0Plni9kjPqPaWgcD6N6a88L+ocvXBMrb2qLAU+tOBOvQqD1z1vTjQ9knSPPQBzLLs4OI29tNKGO2wVir10RWY+Xl9nPtY5A7yuz9I9zkHYvTgR3L1wK4e7JnnQvcGbDb2Ltii9PxniPZatFT4wiii8qPIgPCet6z24dOq9n3erPeB3VLoLHl4+fgxvvQ5zOz6mcQI+CcJdPQgi673+ZFQ+0pWLPdBpRL7ORd294j3aPDJV1Lx4nBQ+3UL/vRTaLT41+hm+mBCjvE49WT5VvYk9ClNXvWg/LbvEvAm9KBiouwbC+D04V3i84DGiO7kgwr3NA5o98DWLuoJQnz3A8hq+AtMSPVAggz24X/M89K0yvUZ2CD20ndo9toeWvJ7FzL0k0XM8BM33PdK+hT05Ilw+yi7lPRL1KD2x0n+9nYoIPXY7Bb5K1/A9YRekvSL2G75ykEA+3PimPTLKjT0qaPE9CbIgPQyxcDzsAec8SnzXPXrgW75AYdq7zkvXvajJPD13fFq+zOPhPFg0ljyIhye+2NAtPWrllD1wTuk79CfMu4OyTT0OtGq9AzEPPoweFL0wyB47s7+PPd6uNr4v4S49F3IKvsSqt7wgxnm633yvvbavez3Q+CK+jFe7u5l3M72EujS+mjimveYvSD1AGo+6gv2uvT9vwD3J8AM+IMKTvOKtLr6eLyC9AvErvqLow72Qvsm9aDvOvRLlk718SRs9NFehPU+Uv7xmvba8zyWlvbKb2D0Ywtm9nguBPriWij1LjdO9JOVZPo5kvj2SxTc9VkUyPvOVzLzovgc9nFiIvazgFb2SHPs9gB4FPCDz7T0+VRA91BYePFhVazv9EgO+Ps9JPk9UxDy4thc9HRrTPQ==",
+      "umapEmbeddings": {
+        "1": [
+          5.415850639343262
+        ],
+        "2": [
+          13.424681663513184,
+          12.183259963989258
+        ]
+      }
+    },
+    {
+      "segmentId": "14491426-9c19-37b9-e9ec-674aa7d53ccc",
+      "speakerEmbedding": "XEgdveEozb1iHwa+Q6jPvoDwpLs+pzy9uMLePN7Teb7c3iK9RMhIPc6Blz7/tB6+6K0kvcijuj3b19W9pcQcPhFYmD2iYCM9NIZcvaxMoL65b80+EDjjvYeToj4n06G9oOktvKmNlj22284+gLnGu4Q+ub3WRwG+q68APwAMSb648Cu+BaiWPiBStLwGmss+AOoYuR1coL1IKq4+0duJvmRzez0f/po+ZlNmPgK+FL7Hljg+8Ij6u5YSHr5i/7k+YBwLvubH3L1e4Wc+/yYAPgSzhL1Odyc9exfXvj83Cj4ta+I9vYR1Pohy5z42zBw+qtNSPiDCLj4uGHu+RIPevW39Br4DOTg94hBlviC7+76RoIw+Sb/bvSH35j1wuTg9oICJO2A1zjyXWGY+0GDKvBqXSj7s/su8Jl9DvkuPnL2xUhw+CKWyvQ9pkb7oJqO9blf9PbApTj7o2Sq+NgklPjUrZb5S71a9qMszvtzhuD7M1Wm+goW7vQlEFT9YCF0+xh04vVgRn70+Exa+ZUSpPfIZ+b1Chd89Gxf9PWNyeD2gesC+futqPg/LEL60OAS+1D2Lvj6rHD5aEPE91KuEPnxZaD45fSe+4KF5PRXerj4Wq+2+v0khvmBHjj3AAvU+P7vlPWSIu77wCMs9uoMtP+v1tz34oIo9pK/pvSborL2qsTq9D94gPUTwVL6uVPK9Oq8WvpiR270NBo8+voW4PWT5YL4SzpO+1Nd6PnryHb4cPSS9xtxmvnYM4L1YCSO9jGqcPTjqgL3onnc+8LFlPPacgD2uRuK9GidnPjY0nz7qXsM9oIYZu3DEQD5496G8oI5bPs6kYL6kLX6+cOtovljRaz6YshY+pEW4PVug0z7cm4E8UDJAPMCGNjrbKRC+We3dPfiUgz2qNOw+ZKSXPEw1CzyzN6m+rv7XPetvoL5sJmS+IGq/vfq7fL5yb6k+yFSMvL5t/z4Qf4C8eOMAPRpCDL2IifM8PGqdvpbLpL7oBNS8hlX8PbA6XT5geJM+mImzPNCJF7tAIbE9fnWsvWQSjT39A1C+HlswPhjBmDxCbhu+U37tPcoYhr1vq1y+KDGMvWqFmb1Dtcq+pqblvXDsM73Goie+fCWdvnC1Rb4lH6a9bVPDvj5+qL1pNCi+JG+WvYKeo759Iz69P3PdvdgAIb7an1m+fYWQPHRGPr6on0K74KVJPh1XpT0sc/y8CpuzPjG8lr1ILX68gjW0PqqMxD66+oE+AIYEujMjnr2+Kpg94oHgPT2Tzr0jrgE+Kfu0vuC/rrzYofk8DmOqvlc9kr750+I9QOslPniGRT5oJ7G9KOg2vYPNSj588JS9oItUPXpboD5jGjc9PPNKPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -5.841893672943115
+        ],
+        "2": [
+          11.750517845153809,
+          17.459558486938477
+        ]
+      }
+    },
+    {
+      "segmentId": "ad300c6e-8bed-9759-a077-ac71d1d1c63e",
+      "speakerEmbedding": "zEjFPYJ7X73GKVa9OUjCvSK+Rj7pEzi+4C4BPhczWD0IMzo92r2tvsw9YL1coTC90GtZvoA+Nzvev9w9TCXNPkVwDj6hzeI+56OCPkDKdrymlYM+6otLPaiywz5uyYq81hHLPsyfEz7TFCm+UpjwvXA8CDxCzDi9OLJMP5DUZ75SIBw/6J++PgZp3T1spmk+3G6gvjRQ4r1f+JM+GTofv0Y5lz7wHbI8O4ATvdohBz7QKO87qPVVPZ7Dlz3qySk+DOyUPH59TD42NoA+0HhJPt6fLz4mJow+eW8kvlIMVD7wC+m7YNsHu6IP9T3+wLs+fmg0PoElH77y6EE+Ur8BPsamBD0AEAQ/jJVmPMQZVb6ABmc+XkQRvmZXgD2vw6O+M8qKvq4P672fYMs+SCisvFyBFT+Gba69LAyfPSM7uD3Wz3Y+wMQXPJq7Kr6r4cu9HGWgvNi1pD3Djy2+BkY4PpqlET7ljF++8uCIvQCJHz4GjCC9ZNq0vbBz8z5SJpI9hr9xPsuRBz9yywi9BgfRvVD+Ar7EUSO9ccg4Ptrb7byc69a90KMpvh1/nbwSbk8+njlYPkjAOj12mG0+yKekPrzFNz5+C6s+Wq9RvnsmFj/gvh69AKJZuQM/jb4ktMa9gEM6Pr3/4r5+vkm9khaVPsDS3TpxjJU+CBSYPnDgYbvnCHu+0Coqv/TZCb6eVeM9lrwLvg8MB77KmmA+SJVqvGKfvD12SQO/V8IqvnP7tD6AWXI8PgjjvQsCeb7iMhU+cDoePIBjFD7hJ18+zMBCvhds5D4GlYm9vWnWPgA4+TxrL6u97HDwvtK8oz1VjIa+nHKVPYsksb4lTkM+mL45vjDaVjyedaK9TBF1PiBASD6YuWy+70mIvqTSOD2alCg+yzwXP1Tbkz4i0QU+7lWgPTcEVj0CQTm+I2DbPqihcb4ZQjU+QKawOwQJ5r1ZPGQ+hDixPNxVqj6Ipgg9cv0wPkjvozwMuH29ml50vzR/Ab+siLG97pMFvaiih70gWfQ6GXWhPow9SL7c7EG9QmzcPYAoADvOTum+SGFmvk5wob6kEqq+0wOFPg7YTT5dtL6+1J9RPS56Ob5AoHe7aU8Xv4sIij3cpsa9rFiLPUJXoDySMLM9NHDvvQigbj3S6E0+t1j6vditA741MS0++uy8vtw/SbytPw2+09WPPjrzRr5L0aw+ds6kvZiecb7Jk1A+fCGTvWFtzL7m6dM+VVPhPuA8Dz1gMaM+GkN6vgAc3jwMZJY+QmRmvjHybL6UE4q+IMaJvWuuGz7dw969hkNnPlZ3qz0rAbw+IFMmvkMmXL6xh3a+pEaJPdt0AD+qzCk9+GP4vudvbD28CyY+c9NUPg==",
+      "umapEmbeddings": {
+        "1": [
+          -5.45503568649292
+        ],
+        "2": [
+          12.575003623962402,
+          17.773496627807617
+        ]
+      }
+    },
+    {
+      "segmentId": "9a5fd2c9-ced6-3c6c-2636-ede8a668299c",
+      "speakerEmbedding": "0093vYB3dbxYm3U9z+M5vqnTYT407cq+INVlu9K6Wj6wWBS9mL5gvIcVCT7Ls5I9QJtJvoyUlLyIofw9XE/+PWN1DT6u/pQ+/vp8vg4bqL0eZ8m+THK5vtSw2j3xBqa9hPapPHBFpDsgziG70jrqvkbcijxilaY9/K8CPobMzr6AZ047HF8gPlR4Mb0+/Sq+EAhQPNLA075wAmy+irFEPkoA2DxPcze9nvxkPR5WDr5cFNo9CCmdvAS/9z2ebUa+Ct6uPU8UAz6ENBu9lPRDPe8Buz5r2t29DL1kvojmMry4HNI+kCUdPjXepb1Iik28v9/nvZdVAr6i+qa+HmECvphZtL6n5qU94UGNvmD79D0AvDI8lNidvXt4Ib6EQQw+uD4NPk2EzDxtXEQ+FbCbPjj9Vjy2oYe9gD3TuwHAAD6Oifi9Enc2vgGI4j21GxS+mSybvYqNhD74kZe+oFS1PazAAL3OaQg+yqrTvdy5LL2bo0a+BhdKPaybC77com49rjUcPiaiSD6IWc07OkDOvs54k73OypW9cH6MPc31Er4mDZ08huHTvdgqnj0YBk68vZkfvo/zuT1Ubj0+aTo4vuzmFj78ega9KagQvhfnGT6xoKA+KDhavpYRLD5Vogq+6pOjvaSiFbwfVaE+jm/PPhix/L1pOwI+75UJPtFASL64XS69fcSJPlIPxr56Uh0+Wr+CvaRt6z2Mb8K9VRD4PWnl0z3CsQk+UtkFvdQqXT7yT6W95G8svVYxaz5SWtC9/kDxve26kD1oSCe8HySivSCNvj3U6gs9cBufvMzBj73BHq28t2A6PpiTWT3w5se8gPHfOTjp/j1M5fQ9+BQjvXgRRb0QWPg8F6PKvnyKeb2hh/K8FMAOviGtWD1hnPM92uFIPWgiGT4idaA+xn8ZvV7NSr7MJ40+OQGbPrIVGL6CM3k9C1KDvoVyL75YM4w9mCmsvhSj2b3icSG+yTgVPgZHVr51k909q0KIPX3xl71ZTGW9KM70vQOEkT2K7b29A1a3PkINrb3ZCCy+v34Svr60h71+V5a+NlXYPS7OrT3q7Ge+1Nn2vN0PsL5i+XY+PfG8Pkhl673oQDs+rYOWvvjw6T2QlSo9Oa7mvdbITb0+0p29Bt8hvu9aub1okEu9kLzjPQARODuw2N07OfQAvu+vh70c24S+KMlHve5Hlb6N8DC9MK6wPYmEZ76K1VW+nFzmuyhiWjzeBg0+EDqbPVb3vr00SIi+9sNQvqJVm73oo7o8MjbIPREqQz42rrQ+EkFEvbqdPD7h6Jo9PiiEPUeDXL2hrJY9+0upPcjKpjw/aVM+1vDlvf5D3r3UESg+YOrTO3IyMr5HMZM9GVUSPg==",
+      "umapEmbeddings": {
+        "1": [
+          -2.742753505706787
+        ],
+        "2": [
+          12.574009895324707,
+          15.210836410522461
+        ]
+      }
+    },
+    {
+      "segmentId": "65e9958e-d0a2-c001-b14a-74cd96fb4637",
+      "speakerEmbedding": "msEUPr3ek75PoIu+YHn7vvjpGT8p7iY+VOpkvVi7fbwQQ6e93cJsvqhwpj5r5IG9sHENvrqHSj5p8V8+WCiDvK0Elj0w2ZU8jxqtvlgOB70AUYo+WM8JvpBkBj/gdBe86IyMPaVq2r7s/Qa+8MMfvVwC+LyAYwY+hbscPzIsRb0+rAg+pDlsPWsRnr4+CvM9EgJmPtA/MT5Tkgc9m0GEPVDKzb3yqr8+JNyZPoQMm71YQRG+cMyuPIzaLz7hlgA/qr99PigoLT5Kew8/g6KSvYDzTD6ZHRk+MBf/vrpBFz1MW2O9cXIZva5XFD7MQCA+QEB6vIAZtT6Pkrq+MQ/iPce7hr4br5g+bDb7vaZHpL3Tlqg+qDKGvbbOTD4QA0G++tAoPq6i2b0Q5cy8SMWHPRqyIT62uYM9PKjGvU6r1b3QS+q9zI44vZjIsz7oLKQ8PFG/vEwnoD6nhsa+bvk3vYjYLL0nHYm+yXUIPkgterzMEgO+gP9iu+Nb8T5x0GK+RXwGP156xT2eNRC+FDY4voAalr6H8AC+1vihPt22Rr3MQB++O8BXvqCrCr+gPag7Q2BtPhIZrL34+Lq9mJqYPvK2Nj4TZio+GqWMPhYjOT7USoA+Io41veRrHb6NEbQ+wM9rPihAIL5geIw8RvOmvWn5SD7ay7A+4B5xvBwVKb4wRXu8xsB1vrh1wb68caM9pHg4PZ2OtT1zzpE+TLbUPvbnjL63boG+BJS8PYDI5D7PTKa9VXZCvVrgoby++b8+RP7lPlb6gj6FyC0+h3WHPh6Rkj5iIl0+e3eSvpZsNT6b+L49YV4Bv3DirD5AaiW9FqUNPl8ETb4p/Qm+pRRFviq+77y2PA6/RgjxvLD+GL3wwis+65+nvQQ3BT8Pf1E+lpy4PkAIPD2KJbU+nALaPuQolTyOoeY9aErrPEeihb5GNpY+EGi6vFbqub1iGzs+4gZWvla3AL4jVw49uLs9PcLPqz0FXli+UEsVvwzeFL4/++c9XlGivo+cOz6WuY29rojePnriEb7gVfe9b50sPsAaGz3o+PK+Cp9uvpAFhj4QZPG8kd0iPihf6L4AHAO/3RQbPmr89L4USAw9lYmcvtSzHD7qPAM+3gDSvs65Lb3h9si+pIUXvkCS6Dwa2H69HovIvZAfeDwkaM4+fn1bvqRjcT7KtNm+nmCPPjhrzDzuEXA+2QCcveW6Vb5+n4e9YwrdPpwXYjy10qg93pOKPojDYb5hMck+2BBHvdJaQb4vQrs9SqdnPtTFgb1cgnw+OqRwvrwoMj4eTpu91kouvuCPkbvE+zS90t6svZgjszwHoSC+miK1PrBnJz6vS4A9qL7RvmDofLzAHoO6Np4BPg==",
+      "umapEmbeddings": {
+        "1": [
+          -6.181341171264648
+        ],
+        "2": [
+          13.349103927612305,
+          16.781641006469727
+        ]
+      }
+    },
+    {
+      "segmentId": "85f9b37d-1aea-468a-c4b6-77722995f60b",
+      "speakerEmbedding": "NL1Nve8WsL4WKTE+/HT4vbUlzj1OkgG9uEfJvv1gk72cyqs+6nq6vtiobjxcSAO+5Cw6vovOYb6bUjg+pzSoPrBBsz7saj68F3d3PooVtj2Aj6a9zVR+vuG0ED8LWEU+Ig0dv5i7jL3kAW09HNrPvuQTPz4q8A8+zegNPzi+Gb4on8U+yOmRvpCqyT0ORTG+sLNCvE6phj6b1Uo+LOI6Pjqgkj6A9/c6LXBZPpghHL7DSZO+OUj1Peo+XD7vS04+wNyWPdjKur5LP84+HFutPn7jTj6Auha6LWKAvmLWmr1XLbS+IMW9uwgvwj16EsE+oJ+zvuOjg70mtS+954alPW0oAb70BBo+AioDPuDjRbuYh/I92jo4vqrJYL4qbzO9tg1fPRxDQT2ASyO/2S9IPoKaZL3AiME6SKo9PmKpBT2gTS0+MERUPuBZor4ATFU+Bq2IPqIqez7zX5e+sACgvMKSrD4wLJY9GBwBPlzJ6r6UGp2+bGP0PVynBb5QZEi8cP8FP5S9v73sywA97taCPSLKhj4oCoa90kJkPtyzlb2kDIg+nDvEvk7L/L2AQ7e8QdIIvuaGTr60DA0/kmNmPlhTBb5Hr4m+4INaOyLISb6qgxI+6muPvrH5yz5v0ri+QsbQvgQ0nj3mAYs91dCxPTZ1KT7k6FU9k9KJvToy+D4CTbu+BOJkPkqy7r7y36A+/n/QPdKghD1MizO+bou7PVaaK77mjgA9GvK2vQRCI75AWB0+Ojimvjg4L73ilbW+sjByPpKjpD1QOCK+2hdCvWKzh75yJ56+dR59vsZHFD2x+QQ+tBA1vkBpTr1cd4G9S4EmvldQhD6kSDM9UGP3vopauD1Gwb4+ickfPog5CDzYW3S8GNuzvMrlaD7Kdj4+CYg3vqiKYj5JO4k+ajffvQAgYD5Fshs/HX3WPYyTWj0cJUE9ptVuvopVZr6+wbA+mCxoPahi7L0Dbey+vLavPtLfij7K2Fk+Ki6LvtuYuT2KerW+sTkHPxjX6z7GroG+2JXUPJDW+Dxm8cA8BtuTvs4/Nr26ncu9NFFQPlqhN73p07M+i/mtvR54p71Qh9U+rVDcvqaJ0L4Ix728t/OWvkG9g74UzFs+7AbGvYzQSr0puG6+mYPTPcCyKr0JW9e+I8QJvlA/Jb1//KK+OAJxvnf4ob4QGJm+VQ8Ivps2Mj4U7SK9CUGAvczOOj7eaem97hBnPpMwPj7I+Kw9WADKvrSiHL6CryW9obMPPlD4tbyU34W+lpmYPvTQqD05hJM+GtnkvY5whj5Ohuc9rxgevmhTDT0uCk29XVILvvK8mz5Ea8w9lOdIvVwDWD7qQbQ9hmXjPUKmHT5zg8O+TALGPg==",
+      "umapEmbeddings": {
+        "1": [
+          1.962307095527649
+        ],
+        "2": [
+          12.3725004196167,
+          7.4327239990234375
+        ]
+      }
+    },
+    {
+      "segmentId": "8aad0218-5d91-62ce-1902-a4fafcba71b7",
+      "speakerEmbedding": "BI8PvYZ+Ub7sGFw9yt55vlzorj0uSRi+vTmVvpagur4cSi09uhMRvulvhT3ij9U8cMdcPkXFFD1tjgG+JZYaPpBnAz7KA+093TIbPpx4xTwAOEe5rlPVvZYbDz5whG0+HjqIvpSiFDyDbg4++tPSvfQlGj5qGse94T6iPu8lKz0zlFE9Fl/CvfA28DyaPhY+ANKQu53Ncj794K497ORXPoX6Uj6E4js+GmqNPV6mi74Tvsa9JYqcPU6SRD4NsT6+oAtdPmQRHr4UtJA+sgFFPeXmDj7rqdq9PJoEvXgOdL1g4a++doarvYP4lj215jc+HMeMPeqjMj3B5G4+5/r3PXQ66T04GVC8KKWovFGeEj5RonM+TESUveonX77cypE91PCaPpo6KT7ClYK+8DyAPYPeF77KA1i+UEEQvbTmVL4JOaY+vP7uPT2nur4QMLy98th7PverqD4d9tm+SNOfPNsnpD5ornu+qUCkPpAAAL3AMAC70mUUvZymjL7algu+6Xe7PmR5mz4ilJ898hlKvVhkZDzBbya+ijLlPv8YJ72sHmM+Nv96vbr5Ur46yCa9ao+vvc7JDL4RCrU+qNSvPhV0pr302AS+Ase1PbuJub7mQlu++pf1vcy/oLw8w2i+zkpsvghKgb4OVtM9RFi8vZjaBD4BQo89s14EPiPpoD7whw6+LihnvWMXjb1A+qI7zHRtPs2HPT6I6kC+qHacPHp1gb4sJKK9RhO5vWjOqL2qv6k93scPvswAQz19mme+hAGHPZGaR71gvKu9/BT9vemGmL5334C+hhEvvirfaT6Pz1w+uAtkPDC5Nb5BoCK+zetIPczHar0ka/28gJj4vDddVz4sewg+QP6gO2x3bT07mrM9qPQIvEUalT06mAq+q44MPm1J4D169As+2ijSvbsWBj6NXh4+a9u8vWXBlD2MQYG8wPppvdPRQr4o0cU+GCC4vDap6b08BKK+WAT5PixNnj6sJBO9gAUTvv2ymz7swDE+NGaZPoEWJj4hkV6+tYy+PUdQPb4Tbyw+Dk5NPe1p4D2saE6+UZLJPce3AL7vFTc+4DR4PJppMr7Ejvk+mGf9voBUBb6qhls9gHp4vdzlhL4AGss98MGLPAb/ML1eHVe+msEyvlqHCD14YLG9+A+pvkKNWD7hKxK+z42QvpaNpL2D/9y9E/qfvlibLD0gyqc8xrXCPUbeyz3XZZK+52+8PYRdubw9qsk94JikOwZQHD4638880H4DPR7Ptj3MWD29LGF4vYAw2TnoCTI+5M3vvei+ET+iKJ69gCOUu68cYz6cVS8+bGSsvQyyEj+imo29ZPy/vQRIZ7y+74O9Jb0TvmAgp70lg/w9RKZ5Pg==",
+      "umapEmbeddings": {
+        "1": [
+          1.6376231908798218
+        ],
+        "2": [
+          12.472818374633789,
+          7.532179832458496
+        ]
+      }
+    },
+    {
+      "segmentId": "1c351072-7d0b-34de-2553-3014c26ff8b5",
+      "speakerEmbedding": "kF3mvRIhjzwyKkC+BlkYvtj5rj5a0le+kgurvVo3Tj7l2CM+AsIqvVzGgD5ZR249kUQhPWlgUD5A4dk69B/Euz7iK76YWj4+fYz5vRKaJr7Vyqi+DDedvPUTcL361Eg+nsQqvQaIDz6gQ4672h4VviCmsb5QaC8+RNemPj6ujL5MKy2+pk7pver0E727bhE+dKQSvrEAuL0e1TI9136bPqomJz4cXTW+UT+DPfVhh77uvak9WHSquxeYYT5xhgM+KjUgPspuyT6WdCA+5Oe4PKhKuT7YXVs9aHwxvojhtrt03Lc9FWACvuTUyL20BpU+AlS7PcJOq7yEpXG9fw/0vrSbGT6ZKzU+2blpPd3LID4SHwm+nGwXvkCjQrphuJw9GrhIvZbomj0z6J0+ypKwvVIoxD3uPSw9aU4IPluw275g69i9cKKBvLjRGz2avIo9CqDqvaDJeT4zEZa+ku1KPWSRbT38v2Q+ADbGOCq8Nz1cYvY8YzywPf0aMT7IAz4+uFnxPdJPND53hlQ9tIGgvuOT2TyZksQ9Iq2gPrBGJ7xMbyC9LBRQvKT4lb3bpzK+4GrcvXr8vr27L/G90XovPlZdMr6Ks049ACqaOs8Pw709vDY+M+J2vlYCLb2G+rA+dGHSPp0wxD3XX5k9YCI8Pof4pj3EMv09MMrsPXtIWr6A6HG+orWavoPWC792trU+ErhRPneO1z1ugFQ+9nXRPp9hkT3IUyo9VkaKvfZyrbwYops+AZNoPu9vGL0bRFS+Db1JPkbhED5+iX4+kCu8PSzxij5Mq868DsN4PoMXVb1GkIe+1WlkPk/2lr0Kq6K9ZA4IPkp9VDzAACM7HBU1Pipku70AUg6+VxmfPSABGL7or6E9koxzvpb4qj34hjU+btrXPQgoqbuqv1Q+/bepPlXSgb4qLJI+vnOZPTMCDD3H7m8+3ALDPW7cjj7CMys+XjmEvnO9Rj1wSpC+fnsrPjbMqjzMQ8i9g1KDvkJDzb2OTio+Ugo7vrSPoz50qFC+QuPsvagJE77oh/C9vfSXvr+ZPr7IvVY9CPSRPOAaRz5RCws+vbr+POLFAL8ypc89eAIIPj6gjr1BEI49xsnmvmw2NT7wtq09+o5BPQRKY76eYZq9EmafvVdGnT1gXCQ+KOLAPoAeOTyMopI8dwoYvVhEtz5vyhK+k1ypPcOHXD7+zaG+aHQPvJGXCr60gxi+ihmUPnavFr0axHc+xYcTPqC+gD1Gl+U9HvE9vvAgVD0ghVy8FucCPoiwZbxploo+S80WvX3t8zxq2TQ9bmhgvu6ANb4IIpu+7h9mvTDC0Tvob5a8Uhi1PQDayT5MvPi9KAEyvH4qHT7H03k+MBDzPA==",
+      "umapEmbeddings": {
+        "1": [
+          -2.9502625465393066
+        ],
+        "2": [
+          13.123591423034668,
+          15.605170249938965
+        ]
+      }
+    },
+    {
+      "segmentId": "7e3eb8a1-256c-d0b2-ee13-bab0d19a54e8",
+      "speakerEmbedding": "yDlyvuaai77QBno+qQoNvoTyM70i/ri+QDCQvo3Xo76OWzE+7jQevjg1KD1I2MA8Y0RwvvjtmLyRLgy+Cau3PUifA7yXXHE99AjzvGOnQT5KAgc/+jk5vmKo+r4muVS+UHUZPBDSBb4UJZE+YHiMvMIYmj3M98S9EPaPPZhdI73gOki8HOs9PfnCAL7Dp9099UVbPZy+Rb6+39S9NfRJPgiS6b1vZG++GSwdvUlLvT0EHO29TdtgPmISrr0um2++HjAhPlZNCr6+k9k9bqMsPsQ3Fr0Uwv08yc5bvnCsLj64pde7/6hZPjzfVD5oEcE9VzANPlj9Iz70KT++pK2tPepoxz2UvZy90oBhPjTE9byoVhy8x6xbvkXX6r0ZcHe+UNA6vkZedD7BFKK9IxUVvnz8W74awDi+UJYAPdhquL2iDO891TwTviYLgj6Pa5S+HgWMPnj++Lxak2U9UW4CvsymyLy7tbu9pMrPvfTypz2aiIC+wwWdvhBzVrx8dZC+UPNFPGIitT36Hpi9mE0SPQhIjz55QkU90ourPVQmAb2g7BW7K26Lvbp2iT1yXlQ+EEg6PpgklT6BALI+S9i1Pe/ur77XgQK+mGjHuxBt/72AKgS+3n3wPd9ghT7yFiy+sO3vPTL6fTxIaS+85/oAvWAX1LvghME8bj5Fvsdz2L4yfMy9tN7jPYzocD7COqA+bKg2vCwh5j1RZnS+YOsfvErnHT4yxTK+i60RvqBJWz4m9nq9Vi0IPvm5Ej5baV8+/iPEvYeriz0wLyg+YMuCuvCVQj44poI8lgQdPCptzT1YSiU+inBUvaZulj5YkQ+8S748vect770aYBC+M78yvq6rcr4EKGY+D0cfPamZS701Uca+6VqpverTVT6N5os9cNQmPkw2hD2QHEI8rg2wvhjLNb4hVQc+xfkDPpQ1pb0rrQA+gL/TOcRFVz5K9iu+1hcVvoDnG7pTJUg9BixRPtaJ+b7Its09lq+iPnDN9Lw4eV+8Gv9YvvK10j2KtmM+PGq6vbTq87yQ63G8+CbnvLSGVL54OLM9XkquPJpI+L28o1+9Xi92PUxEBr5ZPWm9YKRevnAJjz0pCS6+sVwdvU1wg74gpfc9INxTPiRIgj6PXo+9wfKmvc73tT6UUhY+gfgLviRZhj786uE+dDRDPvgZiL3KeQK+ERuBvkLcNb5ZnxI+XJCGPSiShD5LDiQ+BPHWvLgChj6joyO90GwcvB6iNL4Ex8G9jw0QPdxU/rxgzCG+wObmvDbPMz5D+Tw+l+/4veBKmL5YSNC8jE+JvaFlZL2WLii+jDCkvADdjjwYTMo98QROvfqXpD3Asqc8AC56vVieqr2e1KC+8jxEvQ==",
+      "umapEmbeddings": {
+        "1": [
+          4.710082054138184
+        ],
+        "2": [
+          13.536890983581543,
+          11.745856285095215
+        ]
+      }
+    },
+    {
+      "segmentId": "39d308b4-cdfe-1c5e-eb62-a82fa4246ca8",
+      "speakerEmbedding": "QHdRvIsGhr3oJne8BXCbvQaXpT2MQoC9g0hYPZ0fKj4E2hS9Voz5PeqAvT2RXb89MfsIvgQi4z3jc5a9pJtqvbgV0j3Bd1W9MBHrvOYaGb4Ar1C62HqFvPp/tD11qCW+svQGPaZAxD056yc+Gs1YvdD5FLybFXo9puZPPnjxCr12bQ++BriUvfRUOz6+PlM9qWm+PZzrmzzCWQO+tIzXvRopurtIFjo+lPPBvAwFUDz2IPC9xLZVvbP7Rz3izVa9vGdRPJC5qD0q5HY93ZbgPdT/BT7/4FQ9UepwvTORHT3OR6499udlvX1DkLxSWUw9IX7pPVCivT36+H+8+GKEPVa5mzw4HWQ9AAutuXDHR72qMjc93rKtPea0HzzAndg7CqGKvX8Umr2rgwk+WRcCvbQaVT1miZi9ARNdPaDPsj2T7n69LAGavAg417v4L4K8S1wBPgCAObmW4LO9GChxPYjvA74jQsc9yKVzPVmW0zxNviC9bpijPXyGIj29W3s+qMKSvToGBj3qqVQ9m396vcSPrb0sUHk8oOzSO/tTWj4MPv+8wd1KvpJ+4r3CptE8dQfJveI9TD03FMY90GwMvqj1ob2E5Xa9e+ohvQ+V8TzRogS+UOLCO8wN57yF/J89XMtLvZEc6701hQa9UgDNPO7oCb2cGoq8lXPUvezSbL0+QIC9pi2WvO2mRr6G9xk+ffOuPM8+ur1YFWQ7fqaxvX98sr1Hdzu9rP/2PB70aLyYkTE7DoofPXw13z303iE+elENvYGSx72wbBI9VNi6PFzv8T3qFZI9HY8UPp0jzbwkoj88oWWGvWy8ID2YtvS8/aOGvLVnrr1AcjQ8Mo60PeDTer3cJeo99tNQvS3Gx71TE5C9uo76vXQMmDwNI9Q9FlDfvL6WOL3Vt0s9wV0svRb0t7xeYre7glVAPTSZlb00q3y9UA3qvaSZZL4E/5E8XJXgveiyRT6Cmda8I12APPeVA74+HSY+LrKYvZgGQz5RR9A8MnsLPN68Jz0IVA+9hGADvcc7T76uoCC9c+U7PQC8dbneakK9DJIUvcDIVD2EfO68SCvtPUoqlL3THhW9VkWVvY9vsTwARw65iLYNvpKljz3CaRC+IHFJvJoguD3miuq9DD0DPZTGp71luII8sFpePGLuSj3wqgW7EMjYPGBDUr1KVyC9XOnNvbzLEj7z4wq+iKv0vEOgLb5QDsC98hW7vPr/Mb7x1Sm+CumvPEKAN70slpI8dAusPfP6yz1Afh46nIMGvBK9zz1mVxY+kF+SveBRir3Q8FG9bBjLPdD0sD0Mb5K8MtvWPVDLEju8bAg9bIDfvLa1jDzu+cy9Wp3fPLaU3z178jE+UmF5PQ==",
+      "umapEmbeddings": {
+        "1": [
+          -0.43522146344184875
+        ],
+        "2": [
+          14.08279800415039,
+          14.887347221374512
+        ]
+      }
+    },
+    {
+      "segmentId": "7a7fc929-4964-4d4e-aea4-d457259631d2",
+      "speakerEmbedding": "iLLDvLXHID3kZEI+RirJvs4Xuz66eEU9X5WwPLSiJD6VrY89rQmfvlkKPL5Kbsw9odaNvvSrrLzfwHs9cSoEP0grGL7IrI4+HAZGPGARBrs2Q209upW2vsqr5T3J/AK+CCjyvGzywT0W50c+D2ZqvkHpH74SAS4+5PgxP2jLlz7oJ8K9iUScPrCKq7zWflc+94NtvnZnJT5IiaE9Tb2xvt4HAD6+O4Q9cIpNPWBLy7uvP6W+rtSHPkABnDy3+Ug+YwN4vfS5DD1mUgY9JQ2avsy3Xj43PN2+YM8nvQNBZj0h3TM+FreQPshQC75gcFo+U9x+PvwX6b4KxZQ+u0c7vhcpDL2Aurs+V/X/PS6aQz6qVXU9jJKXPOHiiD4Y08O9r5E6vbDLmrsLpdQ9XI7WPegSPT6rDcY9he6qvaZAZb5Aefk60DTZPepaab3cwHQ+BNHGPYJ9Wz726eS9bHwCvo6UgL3cpUa8fq/ovbydmb0Opwk+3HDpPOCjpT1+z6+9DAeEPcNgFD6Y9ba9DFesPaD1FzxwA0W+sp7avf6ZwD2QSYg99X3QveCWKL6XJLY+hafRPWcnsb6kJUI+oHKhuxxEzL18bX8+JGW3PABTnz0HIS8+Yo5GPUhf/rw/kpU96GRZPjiyIL44Arc7CEjkPQ79hL3OAeE9KIJ7vVgp+r7HfoS+M73jvVj0zb5YKuE85MaAPCg2Sb6SXVM+PEeEPqUsDb5rYYg+8UWxPWGg5D6oX6W+wpthvv2d5b6m1W6+cqPOveIhWT5oYyk95Fy0vLzf+j76fhi+uWygPXhy3D3ebZY+9TvVPSruoD2Aaei8D8RBPowWez3mZ9U+NMfYvnR2tTz1Sm6+Iq0XvmHAKb6GyHo+aFBovfx8Xj0zHEE+GsSIPWACwDxENnU97moQPlCiGzxObr69El+5PQAIyTlLloO9P0NuPkBT0ztEDX4+PmuavrymGL0JU6i+IkOLvEHhUb5lXI++C36hvlYn7r1a4J+8osXevYqeVD6yDHa9oJ0YPZNNMb7CtDG9zDZtPnHOjr5MZ2q+htmQviPmfL7bNIw9RNumPYDJnr3giz67ipyKvW9fUb4WiZi9aVYKPUcShT0lbPE9nWG4voX2mL0BvCK+pz+IvqA8q7x8xlU9VGCJPBxJN742Rjy+GgBRvQEWkr7MJDi9EBGwPHwykz7EOka+y4NgPqQeqL0Swe48YP8NPWo1Pr7ygjg+5H6CPTiexj2AtlE90n8Xvlgpxb0QfJc+QoWHPSKCBr+9u0g+JfIgvrJi7z1/huK9N8jcvbiIV768hQQ9v9/CvQ4CbD4E0Ss9fJaovPJa3j3c79G9seNvvloP8DwlX/k9LYqUPg==",
+      "umapEmbeddings": {
+        "1": [
+          -3.445582389831543
+        ],
+        "2": [
+          13.831038475036621,
+          15.904471397399902
+        ]
+      }
+    },
+    {
+      "segmentId": "1d69e2fa-3d7a-4749-45b3-6f0328aca11f",
+      "speakerEmbedding": "bEwBvZbGgL6wKFA+b3P7vcWdvj5TKKk9oN+fvMcssz3oMe+98+53verFAL6E7MM+xJScvuRrfb6AOd6+HB2VvXDuGz7o14G8HLl/Pc6Yyr0zIIs+HNnIvNBvqzsKLDy+tdKTvW6iHT5iLGM+GjsyvqLZB74h+GA+bp/zPXQGQD48hTG91wgfPlRyuD5NFki9VqtRvtqppj3i/iq+mvssvsmoEz63bKs9QomLPS4Uj71Rj02+2VQmvmT7OT6FkG4+qM1UPR8XGr5GoaM+yNNNveF6eT5fuLi9qG6EvHR8xz2UbUA97KuKvcD5wbwn76S9ZUS8PgYr3jxoTeq8zrBbPZZr2D1iNuY9fIc+PmCZ47uAW1q7ftLYPdivUz7EbDs+clexPcgk1LwnEoK9MQnOvfA5K77oDae9IFWXu7bNHz3ViMc9FLOIPl+zDL7ADa0+6ILTPLCgPL7MtPe9xKyevlBW4DzDUZQ9LdO7PiB9Gr5Q0dm81pj9PVSraT7ER4o93vPTPfzf5TxG5ho+infqvWqoSz2vjuQ9iXaPvbvw0D2vujQ+ipBtPPj7Qr5mmPI9wkebPRuGST60GbQ+eo+Jvf6/K76XOh0+Jh0MvqrUV71u9o89kJwCvjheoD3QaRY876Obvaqqjr3iT4M++Mgsvq2bHT0K7qS88AOGPpeKXb7Ghvi9QAlkPsjPyL0FxdI+0DC7vHDM2TsJSWQ+A0HYPfqZr775A6I+8Ye7PaEiZD6ZmW09IBlAvLOX8r3vOAK+koSzvZzlnjwktI+9kbqLvtETnD69rFe+8jk4Pn5VNj628Hs9ueIkPgSBVDxcIOE9VMjNPHx/4rzG/bG8SliePQRhHr0ELP686E2sPEfkRz6tsRs+CAuuPEAz8juA1rg9wNyEvmn3oD0lIZo9meMNvuUXer3W1IA+Wsm4Pvqu7Tx4I0q8uAN1vEhWHT1yjtc9NYZovtvv1712PnG+LGiTPkAXrDxkMAs9eANyvU9FgD5McJw9pN1UvGbcSj7k9OK9fEzKPUzdjj5AnY49iPFfPPjh871vqj++rME8vgCFOTrytIU9UKyDvstUcL41Ois+bNnnvuFjWr6YZaq8Oj1yvu9eI73okmE+e5TIPey6zrwYZ1M++UAmvtrmW72LNbg9QI69PZ6dDT48ROO9YmwYPgeVkL58Qhs+wGkjvkB61buk08i+1mwrviU7Hz520BW+7OVYvSKGYr4c+fm92+EvPhZuTj7lGdC9CL5yPWH53j2Ayw29IrEcPQyCIz78QIM+bzkhvSYaNT5AjCc88PU8vvjsi71GJb49OSiSPsg+zz3K/k4+b+bOvl8yWr7Efku+2l1RvYWks72iLXE+yT0SPg==",
+      "umapEmbeddings": {
+        "1": [
+          0.7714582085609436
+        ],
+        "2": [
+          12.087418556213379,
+          8.62600040435791
+        ]
+      }
+    },
+    {
+      "segmentId": "cfab78ea-a477-182a-605c-55d38e46a9f3",
+      "speakerEmbedding": "Zu+vvaKqDb5l8By+G1umvl9lPz6c8C89gAM3uzq3Pr4ayPa9D13/vYjsET4119w9IwO9vVC41D04OFO9efB0Ptob8z2EXWg+EFekuypgTb7gYRY+h6R9vfb7eT64b1S+oGatvNCETT6wtvs8gI5Wu6pyM71bGDq+LCgBP9Qebz3geYy6IovIvT1JZr7/YOg9s1cAvf7IAT5s6jA+PV8nvkglT70Z/Cs+dCiBvS4Mnz7ET5S8vPwJvvIoEz3yrKE9Z2ZsvgTUbT52KgM9PsP1PcZLej7BQhE+UH+4vqeT8T3QsMY7E2MrPfLXuT3FU3Q+Mo2GPuq8X73CC8G+EAhtPdj2zr0uZ4U+Sp4VvV+zyL64yCE+TafYPLhNgb3SMg6+hhc7vTJrTT1EZPg9kAwkPZr0XT4RIji+AGMsu+oSyr0Ao1+8LS86PugG0b1ud7C9gNgnPFKdrT4mli++Zk+0veBLpjsC6um9/iqLvihHrD3ol0M8XDUAvjBeEj/wJb47cDP0Pbpfgj68Xhs92PW7vQS6FT0c09E9UwWYPgT1mrwGxuG94HtFPMAUA75dgAE+DMsNPt8TgD4kGmU9gCL9O0r6Tb18kf8+z3zFPSzONj2gCqi+wyOKvrotlL1PPjU+5FC2PsJGe76T/0o9dt5XPqGASL6crZw+MJPMPSxIab03Gx6+SU+Pvirm677ZhRs+Iqs0vrzQE75yejw9aLRmvmRYJ71SAwA+wGqpva5Ybr0qpTm+JKXivU29gr5Ec/U81iUhveRUVj6bEv88YcFnPp5vKT7lPjG+MqqOPlRp+D1eSm8+PPAPvuUkkz0obIO8SEeEPXB1o750KEW9uvy8vbxTmD2IFEy+cC6UPCS4Fz4I0Bw8uxJavtjjyDwzhEW+N2CjPqf1oT4fgbg+jLu6vNCNlL4cgkM9iHGOPcDHmbt7Z6W+KIMBvQJ1nTzmEZc+oD7cu55LmT7nnJu+KIsWPnOZeb5inqq9Z7/fvof/Ir4wJSo8El3EvVCVBD4bmqE9lhn0PT6HkL0wwce8vjUwPSpAob08qve+NJCsvlpTMz5A33i9wCMZu7AvYDx61SW+Zg9MvtfbU75Msr69HN0ovzIS+T3qUGw+QBPjPO/Q5r3TeLU9rRUFv9L9PD4MVqA9Sn4wPoXvV74/iZg9K56DvpiSKz6EfhW+Ys7PvdRclLxy1ly8pwSpPoz7U744uBi9PoAXPrSUML5/rIA+lAD9PcBa6z2MfPY9wBk1vAD2JLykvpI+VQYvvV6rxb6kWXa+/GKYviCfvTuRfWS9EaSYvdwUobxu9IA92M2bPGjNrz0ilf896lhEPdtJ9j6n4R++eiLKvrXEOj2RGMM9ilTrPQ==",
+      "umapEmbeddings": {
+        "1": [
+          -5.418369770050049
+        ],
+        "2": [
+          12.068431854248047,
+          17.795663833618164
+        ]
+      }
+    },
+    {
+      "segmentId": "dfde6530-66a6-6b28-ebbc-ae2e7eee23d1",
+      "speakerEmbedding": "c0GqvXpqkL6pEBU+9OdWvl7tlz7Ddyw9QCzXu3o5Bj6nt40+wXrxvg7fmz2E04w8kHUIvth2S71mFRG+dd3IPeywjjzgWTi9RFHGPiMvir4Hspg+i16evhrWBj3QFxw9m7elvTOncb2YNVg9moi8vgWwBj6hm4c+6FukPRrr+72sDxc+tM/GvVAXjLwMtGS9H19fvmneYz5GY/w9GHCbPCYgBj7Veiy9EZlOPXCYgzzYwKg97T9/PsLkYL7gRUY+iAGvu2mwgL4l8k4+H0ocvsGXNj5vdgE+cMytvSABQz5Ojo++SnXdPdDpBryMngM+iI3hPIz0HT5owaC8gAtwO8dWKz3QvPy7IH2BPVh8271AhiM82CFzvb0JXL4NNmG+AGMqPAjT/Dzs5gI9gCqEuhBj7zuu9K29aVwPvt6edT4I18g9XmdEPUgAZ74BdZo+V2OsPhbmUD66K5G+lGKhPe4jxD68HYE+kHysuwu8Rr6AbME8Kt0PPiDorT2AiY85gEZUvg9njz5o87I95P3tPF/MvL6cDSS+6lEMPrRRCb5Iyt48jsaPvjumFz6u6WA9Xte1vOrowz0cN18+mJKMPiwDhbwIY3e+qHg4vQoxmr6AL1o7bttTvWYBMj5soiy+apzJvWYPHj4wLce9mbOWvjRQcz0jzJs9kc6bvebqiT3ICN69JPGdvURHkjzQUYm9coAfPRI1s75vZHy+aD6EvgT/r7wAbZg7pHtjPc5rlD3SQOy9xihXvhFNs72i422+JDEPPsgkLr1W+mw+4Bt5vtIpar4va1e+ttJCPp4qyz2S7oe+qsvKPDChfT0IUO88Tum2vRvENz4ewRc+dqehvjbGnz00D3W9bED2PTxBjj6wySM+635hviK3pz2awms9uK8GvoRGhj7qoti9wpo0vYo7ib36ce8+UZN8PixndT3oI+a9+oxBvqDhTb64sgQ+z9k5Plzs2DxGbYK+5F2sPqg+hL4QL129M7iDvnBkODxGwo++hEIrPFTesT4XeYC+GIyyPIL8DD430E2+aP9KPYAVozzw9IU6ZsmxPZaeuz1Db6Q+PMDvvfvIC77kvYU+xknOvm5LR76Aj9y9OXcAvzIqU76EukS9//mCPqlSi75+9g0+uFAkvICIGzwIY3M93EJDPenuGD3gbpG+fnJ6vUKrhL509TY9MTEnvmT/WT5kkYe8+Jp3vfKdnb0oQau+CFkcPZyijrz4ghY8GHx9vng3Zbx4KDk8xv4MvgIsYb4IVpm9eYT5vfcTgz6g7Ho8qO4HPjLoqT6Fie29JwakPq7TJz62OSW+kLM2PEig1Dw+Bae9NA0bvRQpWDzSYZC9+GSKPrzkTjxwo4q7c4MfPg==",
+      "umapEmbeddings": {
+        "1": [
+          2.034472703933716
+        ],
+        "2": [
+          12.1243257522583,
+          7.329956531524658
+        ]
+      }
+    },
+    {
+      "segmentId": "3793a559-4c03-b44d-bd75-7acf0a2cae20",
+      "speakerEmbedding": "Pgy9PVGsUb0vA5I9cna4PATn/DzcEAG+LSgbPe1vEj7Mo2G97+2+vfysuDyHN8Y9QBzoPDQwfb2gefI8V1tNPRKVEz6dCy09EBfsPXe82D1tewI9W4wmvppN072pOYO8DZ5Fvf/jiLx4tY88SqOkPXLF8j3cI4g9XHURPPiQjT0Gu7W96XmdvNZOF728h7W9AAELu8SX3TtGZ3A9tImOPQYRMr7wAGo9AWQCvk/fmD1W3uu9X54OPp+kur2gw/k69fYDvY8EIL0SRC89gG8ROsC3Hz5AS9Y9LYAlvU1OJL2qye88onWcPTaFQT14Mvi8bjRkvox/er3Gkfc8euclvdBqfz3qldu8SeIDvXWFKT2+O5A9JFrJvJJ/vb1VBP890Z1wPYzgHz3PZX+9YAuou7niL7zQKvy6gBN6vOYnGj5BMyc9OdTFPZluAr5ahMS8+vfOPaC/xDuOA2e9rmTPvQAE/7wVXjE+IvdyPZDJm70N5fU8qmnkPf9EOb3cLA08GpKqvdAgsLxyI14+JP5FvToURz0Q2p+9AJw+O/hHpzxya2M9KFvLPY85zz0mcoU95d2HPCFFB76GaNc9ZMtEvVq6Gr5rqBi+WnbNPOT26b1oSY699NEOvuTVYz3kL6u8hBN5voVyQj32ioU9BCw2vohtwzss/wi+gDvhu0AFu7pP1sa8RIpFPGYcwL3PJZ+9xpJzPAaN8D3GZIS9wKYGPtpakTwQSVa91BT9OyLya73Y6mS+NEamvSAl9Tx2w009zQT7PS9bFz1xL0+9Y2pxvADoN7wAEKo7rJBCPcqED77ZabO9DIL/vE21i73INE+90KiQvWSCmj0wIIc+Cuf8vIH80LxQpAc+iJoTPdcHkz2wh6G7d19Ovc+NlT009Lg91E0zPSNGqT34L1S9MFjzPcSgG75K4EM+oBa5OyfTIT5cMXG93lcevf9hFb6wAf480JLZuxXPZT1RroO96F91PWiraL0NWki9VBmovecwGz3vyzE9TKLVvBmJLz79e8C9GnE3vQGnyTx3+Bk9DFNkvQ4EFL5GujA+6YSSvM/DJb5Y/Jk7WJVSPMiQAj5OSoO9QEteuwAzSLuarbE70CIVvHHeEz1VjJu93o1/vDvMXb347wc9354mPoZQQb0kGGk9/pyVvQrXyD0IMCM8PHOFu975U76KWPC9PzTIvDcbhj3h4fC9Su+CvPH5Zb0QuKQ9OpAbPeJJxT2Mee29wkNOPBm4/zxNcYS9nYixPWh7xL3Cbxe+nSonPR+iwz24xyg+zEeKPY5gQz021pa8WvbEPRUaRb4ML0m9b6iPvSLEaD1jrL083nkZvhHyob0UTQy+RqQAvl1FdT2Q9hc7dClhPQ==",
+      "umapEmbeddings": {
+        "1": [
+          2.3066563606262207
+        ],
+        "2": [
+          12.710677146911621,
+          7.782196044921875
+        ]
+      }
+    },
+    {
+      "segmentId": "10fc82a6-af49-7aae-a0ab-f8ed7faed0cc",
+      "speakerEmbedding": "YA4pvY+RNL2y5IK9xkXIvQAzlLkXpae9O7aEvYDMdrxDjOM9YXuovRL+dT2lIBY+ARvtvbD3pDwM3Eu9w3gZvb8hjj3gRvm9UKMNPcikGL6oyH09Mn0mviC2WzusfS+9BnqsvUbTfz3Lsmy96bFvvjAI7zumLPU8Tn9sPry6xrvH/BG9RqPmPFUZgT0qlxO8FDQ0vrxil7ycJIe9spO4vTa5hz1OxGm8rDjhvGZ7H77r1oi9p4MDvXjFhD2Em5097OugPacA+z0azbs+btciPnqYCD7YroO9gCrnPXZ6B70mZMu9T28JvqcGPj589D8+oFGIussZWT7gfou8JiaRPXKV0LyfjWo95pntvKrKDT2WtwM9fJlCvW1xMT6E4Ns8gKJXu+W+Pz0r3ME89q4DvuSf+j2OHa+97prFPeXQ271aXvw9MCawPAwcDL4gpDc8Se88PlRMwj04B3++iTbBvB+P0b3Al7E8xNbuvUT8Xj1uYBo9j7AAvgB56jtAQMM9Ew6GvY8+Jj4s2Zq9H+OhvRDqJTt21S09qJZ8PUs7Pz0Zgau+psXsvQJmkb1m+x6+DD2DvZqUrrwR61A9HMnVvTP9ubzZJ849ag05vcbj/73+SyW+GadmvTy6HzwnKiI+tBwhPnI6pL0sOMc94nArvHXlXz3JSP09P0y0PZjWU72VsvO9R8dgvHF4wL14S6E9xtk8vQgqAL6KV689+Do2PYkrEr0ECow9QuQCvuELlr3mroA8mMF0PRzZCbss0Ye9Q4IxvQRnSL3k4hs88DDaPduOkz5t39A8mgHoPT5Jpz0AUCU+8zsJPv0tHj6XSMG9evWHPfKyAbyClrG9BXUKPiSjqz12TzW9LLzRPLwcB773GsI8vmvYvS6Wv72nbxM+LHnKvXw9kLxDwcE8kEInPQsIHj4aMYO8gIoEPSC8AD29oZ29hJWwPf42fr7yQ9s9309BvpkkCz4kU6y7si8FvgWGgL3TpAU92JxfvuLJdz0A1aM8YXoLPZFQwD0kfKy8oIHnunDDtT1bOiO+2CxSPrIlbb07Fz2+wJDuuxcUML7MnGW9jI3jPTa7kbxY0tk9jI8gvf+ZW74aJ1q9SrmZvptVuT1wtzW8OO//PAJXvD0wcL07kGgEvr33FT5CITe85uI4PvZHJ77wpju7TXxUvUrRQr3hLDw+3ARMvfO7FD4EPr09xLd4vXSSlr0O4vq9avQZPPCVAr4wVHW8dI/HPW+2ZbzcrSg+dGTGPbhWRD1It5E9DqJuvczjRz3Kyx0+EPrLvAQFMDxOlgG9y5vRPTMnj724Joa8XujVPcBShTvEm4e8j5OnPQYw0D141oI8fBOGPWdW4jwPwAg+Tym8vA==",
+      "umapEmbeddings": {
+        "1": [
+          -0.6383568644523621
+        ],
+        "2": [
+          13.877286911010742,
+          15.091465950012207
+        ]
+      }
+    },
+    {
+      "segmentId": "39d82d77-17d1-353c-cb6c-315d2f4ee3ab",
+      "speakerEmbedding": "9rmQPZCb3rwWHUO+geG2vn0ZBj5Z8Lc9oKRcPQkcCj6mfe29pPEmvgLzAT1UnW+8lIYLvdzaMz5ar4c9a76LPgSYh7y8KLA+cLawOwoFOL4CXUa+uDq/vND++D0TfOa9iM4oPkRgoD433zq99JTVvJBu7r0cYfK8Ib4CP3+Drr2F14s+gF5yu4lMmr1ga7Y7vulAvljF7Tt6If49hI6NvghKgj1EB1k9wHlVPYoHgD5jKS0+8CuGvDIowrzwEia8wrGDvr7ZuD5A+Um9CsS4PKhi+Ty6izw+ImaMvvJ86j3+YXA9rKOMPS4BjL3AxQw+xgLMPhgVQL7IC+u9gwi2PcG9Jj3AVJc+Aj7TvRYiHL63f5O9GKw4PqQsSD4w1WG+JqJZPTqwar0lpDc9bESFPZSc9T1+cPc8MqXRvfYTCL4A84A8UrkUPjjEDr27rk2+xqEmPui/vT5QLby8r7lVPYqbBz7Kw3u9wEt4u+4lQb1uIPy84I84vWKukz6I8AA+nj8hPgINqz7OaIe+BrQ3vug9cLyGaJg9Y4BzPqyV/73fAIS9mKoyvihqVTwINgY+mjs6PoAgzT1oxLI9sh2XPZx2DD04Z7E+lCCNPe2N2T20kSK+sQhevhYb0bxQKIq7XqpzPuyMhL50D5E9xdCwPm7Nm75nVqs+SZqSPaoGSr5uigS9W1mhvlQn575gMcM957atvdfNhL5qLHA+XvQBvvhzg7xnQhs+aBaWPDzj0j0jQIW9feKEvdQaq70Ybwi9qDfPPWhIrD34SYO9PcpoPg8ktD3CNMa9BKkpPshwpDztk9Q9xKO3vajixT2QX2i+7R4YPbH1nr6c61a9HJspvfzoCrwHIhy+avY1PTh7QT6EsZy810A1vnhWW73hmz292N6+PmBLgjsefU0+KEFnPvZvZ74opm480AskPCgA7r3wvj++mDPVvHZhhb1NT1k+SjexvYQ4br15J3i+cC4UPhHRk73INVQ8lBfuvmr8i71rgqE9HDNIvHrWijzK4XI8cmh7PqSiY75sKvi80PjcPQTT7zywsb2+yJE2vcMY2T10GT6+J/cGPW2FEb6A1Bq9OmemPSKshL5o2OO8RmbevnxO8Lww5bU9Dw2Nvcx2mLxuIv48ZmnYvsCNs7tULAc+CJ9cvQKMg70AIgA95tp9vkr+dD7MMpS+HIi1vGTCVr6G9r09cbpJPnP3jL46Cs69GLyfPCoUtL6MOMM+oCahPVQZlT24mM89jprCvWAOwbwM2bQ+KFpFvB52vb6IqAK+NrCwvnAegT34Wbm83q50PXjdrTz2xog+GZKovQW4ZL2ADfi8WLYdPOtS3j5QNwq9DAdpvniRjjs3mlg+qg2svQ==",
+      "umapEmbeddings": {
+        "1": [
+          -5.105607509613037
+        ],
+        "2": [
+          12.930621147155762,
+          17.54418182373047
+        ]
+      }
+    },
+    {
+      "segmentId": "f4601d98-ef50-5ca5-d477-b6190447d8e5",
+      "speakerEmbedding": "rPkLvqjeL77SzNC+NrpRPTBGLj47V42+JI3mPJaM9T3FpAw9q+revZIIiz6HSfK8nBbLvXIxhj1gjIG+joKcPQA2hj7xnhM+HzEAPhhIaT7OuzG+jMN/PcR9aT7NXuK96SJXPjJ1YD6CLb092seevpgmprvAm1C+svchPiaMlb0SVr+9miGYPsERer6lNas9mitwPnJanL5sVAo9h5koPse57L04FPc9OKkKPv7gujzuITu+HW4DvcyR2bygtH065Y0FvmSoQb4yygM+RZaXPryZX71SqBM+qDuBPTFx0j7URZE9kPa/u5x3Az346RQ8mkhtPiof4j2W0xA+LPS7PozRJz36XDe+aOV1vWwjKbyct1q9thUBPYC9+D3yknO+vXSGvn89wz4EjUK+iGxMPrwiLz4cbQE9CH6Hvr0E6D08Vag9vmtovrAGV7s9egC+oDeHPQ1BEj4EGju9tjaRvVPwij2eDCY+m0rVPfALMT4QT42+ICIzviQEZDyePLY8ADaRvNvFk75yrUY+pL58vowWpT48oiK+ssh2PViNor2Mn5W+oI4nPk7sPD26z7k+7AnjPvLTMT1G9LM9nuvwvCupbj1OlzM+TNhRvphmBb5dpZ+9kxFdPfsYuD4AJBy7AJ9OvmAi6z3qYbG9JOewPsIsPr44Lr4+3I6wvXfPTT026N89aYkqvrRtWj72G9W9WU7WPdasnT0aM2++a35IPgllHL5dLtw9YzKdvjj9gT3aaVS+0vbkPeanFj5EEVK+oIv3vAhpXDxgCWS+mMwivgapT75jHBI+KnAUPiazGr7ORuc95fBEPtuoXT6KWaG9luJaPg79tD7ciZo8NygXvsAdKj2f5pQ9Ym0FvtgRPL5WXiy+lHm2vHpRWz5Ha8k9U6AsPrFTd74AZJS8MJmxPQJn3b0w/Wc8OBfrPUaYG74a+XI+GTvBvDocG75I1Pu82CcsvfC0o74Aw5G7ikQRvQDb2D0UjTs+lFQ+Pj6Ekj2Aq8098vn7vSeCOr5683a+Kz6uPez9J73GWxC+sNZKPN/Fqz3v60O+zmYEPlb3A74zC8w9Uj4WPlz2ab7kh42+TJgfvjyGnjx0MRO+PnEmviAmZ72SPAu+oEdRvoDEszsYkLO96A3IvGeeaD5mvP49f+M0vSgZgT5wPRQ+XCKGPZAoDD643LS9LKrpvkBYFLuVxS8+fjw6vpTcFD6g8EU9flqvPS7RWz38nxu+YL2nPUr3DL5ITas9sAKsPtTdCz69vOo9SuKSPlTU+LyVIMM+VLBgPVJJzb0QjGY8v78JvlBduD0Eei8+CGkXvT6yB76C7pO+IoIFPtu1Jj1TiQ2+rsLKPUJ4Gb10hhK9Q7kEPg==",
+      "umapEmbeddings": {
+        "1": [
+          5.030896186828613
+        ],
+        "2": [
+          12.907100677490234,
+          11.719758033752441
+        ]
+      }
+    },
+    {
+      "segmentId": "34df46d9-39fe-ca51-2c31-a5a0382ebf62",
+      "speakerEmbedding": "avOpvWwB0z3rL2u+PhSxvvG8hz6MFhC+FCIHvv3yeD4KkxY9ND5pvQibG77+IAE+xpFpvnbplb6GuRC+cPvQPUh7jjw4OaY+vzWHvRoyCz6uPjs+lPbxPT0TtT01lZq+bBBAvpq7ab6gVh4+W8BePqC01bvcblg+ExBGva1Kjz6s3hW+0SugPTZFGz4eYV+8xb3avoGklj06ZX8+AI6BvIbI+bw+sMm9Eg1uvai4ZT7AKhe+BBKUPf6M871v85E9fDyXPfssCb5eXZo+UHSBvmJLKj6PXhe9yKN/PYTvEj68zHE8rMc5vaD9vz1cF009h2yBvRAZVb1PLmi+wjUxPgCukTpqjK09xHxDPtaY771Otqo+yI9zvidV1z3cdA6+yPFnPtzSFr7QlvQ8xEdAPiTMQD0ALNA+0I+Ivqyyzj1G/fs+wIK1PKpUOr7hqP291qu/PkLIWr6OmCQ+H/qsPhmAu73Eyqw8ZKQhvCSE5L0xQF6+EQccPrLngz7kxm++A4XbPQnMYz5iAlC9sAsJPhyZTb2ahRy9BqABPUzmd75yhj8+7mnPPZk4FL5cCEE+lYzVvUR2cjwc1Vs+HtM/PYIcL76wW3Q+1/a9vmWbJz7Obvs9znjhvvh2brwd1UO+CLuyvtunQr22YEa9PHy0Pb/VPr4YwuC8KkvOvTakQT7wCrQ7HoowPnguNb2USLq9xHiZvLpaSr4mYsA9DpbUPsY9k76TJcE9PQMsvs5+YD4eyrg+zRmevrpirj1tQny+IvWwvTBYHzwoYbC+DFyjvWsSDD6QFg89zrZevvVdQL4zbIA+lHlLvhaavb2UPa29uPTBPBYN0T2gF3k9lJoLPugDBL2GyUU+gkKvvWBgqj7/0UA+jrpaPQC5/7tN34w9ZUlFPfLjQT5//CQ+0DbOvbYc8j2haHA9eEiNPkqHNLxocWM9BtLQvRimkL7AB4i+3GAYPnj0hjzsJFa9RpUFPigKJ76IGMm7ROoMvtS7Jz2KE0m+vOy2vKitmLwcnLC9mlgzPlIxf774Ioe9BOYLPWozLj4y7+G+mRe5vVbmHL7k6AO+eCc5PpeUzb3MZYU8OCz5PIqRybyhAPq9r2GGvr0rKT5KY6I9tBohvn7iq73cj2++572yvp5s2z6tfxm95UG0vf/7mj14Wr286whfvWZezD3ACqU9AmwOPbanUj4qI3g9TFwCPWcZm75rEGs+9gWGPdZYYr7Qr5m81Wo8PgKFsz0jYRO+H1qHPpnKkD6uLHs9toSfPUm98r537/c9oNAhvJWUdz6L8uc9Hxq3PaeyLD4P1bM9BZacvmpLiz3nTje+sufCvnBLkT152Ue9yFSLvs4bgL1m5kS92D9hPg==",
+      "umapEmbeddings": {
+        "1": [
+          -4.061082363128662
+        ],
+        "2": [
+          13.587547302246094,
+          16.211997985839844
+        ]
+      }
+    },
+    {
+      "segmentId": "8209c797-2646-cb09-c149-d1ea7995c99c",
+      "speakerEmbedding": "LVB2vtx/B70LBde9vgnyvr2M3z4B2mI+rnxvvcV6Az6Qq/K9oAD2OtB68ruYLtG+gWQZvsTpTj5i354+MkTVPkaykL07FAQ++EfOvvubFD7MU6s8yGyuvR716j28UEC+5j+XvR8uu74EB029ALd6PRCh1z1Er2A+vpKxPm9GhT78bcA9VHiyPBJeFr63y6Y+re2evrqZBz4QIQw/kv63vbyyRT4Q1oM+aKE7PmCLajx0tlg+ZvqBPsAdlbyb1rw+oHhbPRyc3T3Sm2E+gSsUPvbOYD74nci91RqivsQuAD7GuBa+1uGSvuDsGjwW85s+sFGvu9uYQT7yM6I86aaNPoAR0DxcKYc+z9POPdIDnL5YZry8HEOZPvCEnjugogw9qn+GPdzdL74onMo+iNuzPdt33D4Jx+0+JMyYvjjNML3o/fu8cJ1FvVp3LT6Ecxs+CNmSvQ5K1z6KMT++J3GuPoWmmT0cMJ68YHYAvmhsMj748W++iisVvnLciD4/9fo9uBDGPq3gnT5EABy/wr51Pocqob6LBTi+/akkPj7Gu76Y1jY9/i17vs2Du76uQT09Iqpkvkbjl768L7A+5gLEPb3B2j00vvU+Na8KvoUdHz5unaC+PhZFPtTqyL5AkKI83fWbPgbk9L6u36g+UuWlPfDx6rtQj/e9W4pFPqD+wLtoQYm8gGgiv17F7L7IYbs+zPULvfz6oLxl2Nw9OYCLPnDLF72y6iW+AFWEPADQ6z2+VA0+jpPlvVNMPr4mH/Y+shilPpIxfL4+OgK9NpdxPc64xD5rBYU+91Y9PujoFb1mw7M9htKovsKi5j20y6S+MZxwvgB3rb5EbDM95T/OvnSqIb4i1Fe+mhUZvoKeOT7pfnU+a/XGvuTTwT7sA5Y+HXPZPu3Ttz2i4aY+dD6tvIgSvj68tMm8ZLEWvpzVh766d/69p5yiPj0iVr6XVJ8+9JOwPQhulb4U34m+3rCdPfDxCT4QLdM8nFYfv2LTaL40u2s+6IqjPq3Dir61iMi9QJRAu5BgUb6o8u29vDnMPbBhwL78OYq+0IVovijXtT7YzpC8Kg2PPghvFb1zsTC+6GEGvqGi373IElq9JEn0vvjNGb0kQoG9ECDaPFt9ir7662q+jLcevVgwvD3Ou8u9KKeFvjb59L6gRXU+uJ+cviyd4D4u7DY+uiH8PZ64qb0QDQg+hgKIPqT8zL53aNm+mL6MPiBMvr4EJt8+NruaPgCn3rwwTTA+F7OYPkIrDz4QI2k+2LEZPbpsU78zNoU++9ASvhM03T0erf09JOoDPpDrJTsKEfQ+kvUWPQ/HfD5CO5G+65tcPlJtFD/QHli9giQ7PfhiSL6WIdA98N+ivQ==",
+      "umapEmbeddings": {
+        "1": [
+          -4.231219291687012
+        ],
+        "2": [
+          13.552433967590332,
+          17.068790435791016
+        ]
+      }
+    }
+  ],
+  "embeddingModel": "pyannote/wespeaker-voxceleb-resnet34-LM",
+  "uiState": {
+    "columnState": [
+      {
+        "colId": "actions",
+        "width": 58,
+        "hide": false,
+        "pinned": "left",
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "index",
+        "width": 75,
+        "hide": false,
+        "pinned": "left",
+        "sort": "asc",
+        "sortType": "default",
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "text",
+        "width": 200,
+        "hide": false,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": 1
+      },
+      {
+        "colId": "verified",
+        "width": 50,
+        "hide": false,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "speakerName",
+        "width": 150,
+        "hide": false,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "speakerSimilarity",
+        "width": 150,
+        "hide": true,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "rating",
+        "width": 120,
+        "hide": false,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "notes",
+        "width": 200,
+        "hide": true,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": 1
+      },
+      {
+        "colId": "startTime",
+        "width": 120,
+        "hide": false,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      },
+      {
+        "colId": "endTime",
+        "width": 120,
+        "hide": false,
+        "pinned": null,
+        "sort": null,
+        "sortIndex": null,
+        "aggFunc": null,
+        "rowGroup": false,
+        "rowGroupIndex": null,
+        "pivot": false,
+        "pivotIndex": null,
+        "flex": null
+      }
+    ],
+    "leftPanelWidth": 60,
+    "captionHeight": 295
+  }
+}

@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
+import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save with Media Path - Relative path updates', () => {
   let window: Page
@@ -15,10 +16,10 @@ test.describe('File Save with Media Path - Relative path updates', () => {
   test.beforeEach(async () => {
     // Create a temporary directory structure:
     // temp-media-test/
-    //   ├── test.captions_json (original captions file)
+    //   ├── test.captions_json5 (original captions file)
     //   ├── audio.wav (media file in same directory)
     //   └── subdir/
-    //       └── saved.captions_json (save-as location)
+    //       └── saved.captions_json5 (save-as location)
 
     tempDir = path.join(getProjectRoot(), 'test_data/temp-media-test')
     await fs.mkdir(tempDir, { recursive: true })
@@ -26,9 +27,9 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     subdirPath = path.join(tempDir, 'subdir')
     await fs.mkdir(subdirPath, { recursive: true })
 
-    testCaptionsPath = path.join(tempDir, 'test.captions_json')
+    testCaptionsPath = path.join(tempDir, 'test.captions_json5')
     mediaFilePath = path.join(tempDir, 'audio.wav')
-    saveAsPath = path.join(subdirPath, 'saved.captions_json')
+    saveAsPath = path.join(subdirPath, 'saved.captions_json5')
 
     // Copy media file to temp directory
     const sourceMedia = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
@@ -110,12 +111,12 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     // Step 6: Parse the saved file and check the mediaFilePath
     const savedContent = await fs.readFile(saveAsPath, 'utf-8')
 
-    const savedDoc = JSON.parse(savedContent)
+    const savedDoc = parseCaptionsFileContent(savedContent) as { metadata: { mediaFilePath?: string } }
     console.log('\nParsed metadata from saved file:', savedDoc.metadata)
     console.log('  mediaFilePath:', savedDoc.metadata.mediaFilePath)
 
     // THIS IS THE KEY ASSERTION:
-    // When saving from temp-media-test/test.captions_json to temp-media-test/subdir/saved.captions_json,
+    // When saving from temp-media-test/test.captions_json5 to temp-media-test/subdir/saved.captions_json5,
     // the media file at temp-media-test/audio.wav should now be referenced as ../audio.wav
     expect(savedDoc.metadata.mediaFilePath).toBe('../audio.wav')
     console.log('✓ Media path correctly updated to relative path from new location!')

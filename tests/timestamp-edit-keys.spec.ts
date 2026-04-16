@@ -4,7 +4,7 @@ import type { Locator, Page } from '@playwright/test'
 async function loadCaptionsAndWaitForFirstRow(page: Page, captionsContent: string): Promise<void> {
   await page.evaluate((content) => {
     const store = (window as any).$store
-    store.loadFromFile(content, '/test/test.captions_json')
+    store.loadFromFile(content, '/test/test.captions_json5')
   }, captionsContent)
 
   // Wait for store + grid to reflect the new document (avoid race vs AG Grid render).
@@ -55,12 +55,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should increment start time by 0.1s when pressing + key during edit', async ({ page }) => {
     const window = page
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 1.0, endTime: 4.0, text: 'Test caption' }]
     })
 
-    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson5)
 
     // Find the start time cell (should show "1.000" in simple format)
     // Use ag-cell to target data cells, not header cells
@@ -85,12 +85,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should decrement start time by 0.1s when pressing - key during edit', async ({ page }) => {
     const window = page
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 2.5, endTime: 5.0, text: 'Test caption' }]
     })
 
-    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson5)
 
     // Find the start time cell
     const startTimeCell = await firstCell(window, 'startTime')
@@ -114,12 +114,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should increment end time by 0.1s when pressing + key during edit', async ({ page }) => {
     const window = page
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 1.0, endTime: 3.0, text: 'Test caption' }]
     })
 
-    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson5)
 
     // Find the end time cell
     const endTimeCell = await firstCell(window, 'endTime')
@@ -143,12 +143,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should not allow decrementing below 0', async ({ page }) => {
     const window = page
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 0.05, endTime: 2.0, text: 'Test caption' }]
     })
 
-    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson5)
 
     // Find the start time cell
     const startTimeCell = await firstCell(window, 'startTime')
@@ -170,12 +170,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should support multiple +/- presses in sequence', async ({ page }) => {
     const window = page
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 5.0, endTime: 8.0, text: 'Test caption' }]
     })
 
-    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson5)
 
     // Find the start time cell
     const startTimeCell = await firstCell(window, 'startTime')
@@ -205,12 +205,12 @@ test.describe('Timestamp Editing with +/- Keys', () => {
 
   test('should display times in simple seconds format (ssss.000)', async ({ page }) => {
     const window = page
-    const captionsJson = JSON.stringify({
+    const captionsJson5 = JSON.stringify({
       metadata: { id: 'doc_1' },
       segments: [{ id: 'seg_1', startTime: 90.5, endTime: 165.75, text: 'Caption at 90.5 seconds' }]
     })
 
-    await loadCaptionsAndWaitForFirstRow(window, captionsJson)
+    await loadCaptionsAndWaitForFirstRow(window, captionsJson5)
 
     // Verify times are displayed in simple format
     const startTimeCell = await firstCell(window, 'startTime')

@@ -1,25 +1,29 @@
-"""Command-line interface for computing speaker embeddings for `.captions_json` files.
+"""Command-line interface for computing speaker embeddings for `.captions_json5` files.
 
 Example usage:
-uv run embed_cli path/to/captions.captions_json
+uv run embed_cli path/to/captions.captions_json5
 """
 
+import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
+import numpy.typing as npt
 import torch
 import typer
 from pyannote.audio import Inference, Model
 from tqdm import tqdm
 
 from audio_utils import extract_audio_to_wav, load_audio_segment
-from captions_json_lib import parse_captions_json_file, write_captions_json_file
+from captions_json5_lib import parse_captions_json5_file, write_captions_json5_file
 from schema import CaptionsDocument, SegmentSpeakerEmbedding, encode_embedding
 
-app = typer.Typer(help="Compute speaker embeddings for .captions_json files")
+logger = logging.getLogger(__name__)
+
+app = typer.Typer(help="Compute speaker embeddings for .captions_json5 files")
 
 
 def get_hf_token() -> Optional[str]:
@@ -94,6 +98,7 @@ def embed_document(
     inference: Inference,
     model_name: str,
     min_segment_duration: float = 0.3,
+    umap_dimensions: Optional[list[int]] = None,
 ) -> CaptionsDocument:
     """Compute speaker embeddings for all segments in a document.
 
@@ -107,6 +112,7 @@ def embed_document(
         inference: Pre-loaded pyannote Inference object.
         model_name: Embedding model name (stored in document).
         min_segment_duration: Skip segments shorter than this (seconds).
+        umap_dimensions: Optional list of integer dimensions for UMAP reduction.
 
     Returns:
         Updated CaptionsDocument with embeddings populated.
@@ -130,13 +136,70 @@ def embed_document(
         embedding = compute_embedding(inference, audio, sample_rate)
         segment_id_to_embedding[segment.id] = embedding
 
+    # Compute UMAP reductions if requested and enough segments
+    umap_embeddings_map = {sid: {} for sid in segment_id_to_embedding.keys()}
+    segment_ids = list(segment_id_to_embedding.keys())
+
+    if umap_dimensions and len(segment_ids) > 1:
+        if not logging.root.handlers:
+            logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+        logger.info("Loading umap-learn (deferred import; can take a few seconds)...")
+        import umap  # noqa: PLC0415 - import only when UMAP runs; package is slow to load
+
+        logger.info(
+            "Computing UMAP for %d segment(s), dimensions %s",
+            len(segment_ids),
+            umap_dimensions,
+        )
+
+        # Stack all embeddings into (num_segments, embedding_dim)
+        X = np.stack([segment_id_to_embedding[sid] for sid in segment_ids])
+
+        for dim in umap_dimensions:
+            # Number of neighbors must be less than number of samples
+            # default n_neighbors is 15.
+            n_neighbors = min(15, len(segment_ids) - 1)
+            # Spectral initialization fails if number of samples is too small relative to components
+            init_method = "spectral" if len(segment_ids) > dim + 2 else "random"
+
+            logger.info(
+                "UMAP n_components=%s (n_neighbors=%s, init=%s) - fitting...",
+                dim,
+                n_neighbors,
+                init_method,
+            )
+            try:
+                reducer = umap.UMAP(
+                    n_components=dim,
+                    metric="cosine",
+                    n_neighbors=n_neighbors,
+                    init=init_method,
+                )
+                reduced: npt.NDArray[Any] = reducer.fit_transform(X)  # type: ignore[assignment]
+
+                for i, sid in enumerate(segment_ids):
+                    umap_embeddings_map[sid][str(dim)] = [
+                        float(val) for val in reduced[i]
+                    ]
+                logger.info("UMAP n_components=%s finished.", dim)
+            except Exception as e:
+                # If UMAP fails (e.g. edge cases with too few samples or identical points)
+                # just skip this dimensionality
+                logger.warning(
+                    "UMAP computation failed for n_components=%s: %s", dim, e
+                )
+
     embeddings = []
     for segment_id, embedding in segment_id_to_embedding.items():
         embedding_b64 = encode_embedding(embedding.tolist())
+        umap_data = umap_embeddings_map.get(segment_id)
+
         embeddings.append(
             SegmentSpeakerEmbedding(
                 segmentId=segment_id,
                 speakerEmbedding=embedding_b64,
+                umapEmbeddings=umap_data if umap_data else None,
             )
         )
 
@@ -145,39 +208,27 @@ def embed_document(
     return document
 
 
-@app.command()
-def main(
-    captions_path: Path = typer.Argument(
-        ...,
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-        help="Path to the .captions_json file",
-    ),
-    model: str = typer.Option(
-        "pyannote/wespeaker-voxceleb-resnet34-LM",
-        "--model",
-        "-m",
-        help="Pyannote embedding model to use",
-    ),
-    min_segment_duration: float = typer.Option(
-        0.3,
-        help="Shortest segment to embed",
-    ),
+def embed_captions_path(
+    captions_path: Path,
+    *,
+    model: str = "pyannote/wespeaker-voxceleb-resnet34-LM",
+    min_segment_duration: float = 0.3,
+    umap_dimensions: Optional[list[int]] = None,
 ) -> None:
-    """
-    Compute speaker embeddings for each segment in a captions JSON document.
+    """Load ``captions_path``, compute speaker embeddings (and optional UMAP), write in place.
 
-    HF_TOKEN environment variable is optional (only needed for gated models).
-    Writes embeddings into the `embeddings` field of the captions JSON document.
+    Plain Python API for programmatic use. Typer does not process this function; optional
+    arguments use normal defaults (unlike calling a ``@app.command()`` handler directly).
     """
+    if umap_dimensions is None:
+        umap_dimensions = [1, 2]
+
     temp_dir_obj = tempfile.TemporaryDirectory()
     temp_dir = Path(temp_dir_obj.name)
 
     try:
         typer.echo(f"Parsing captions JSON: {captions_path}")
-        document = parse_captions_json_file(captions_path)
+        document = parse_captions_json5_file(captions_path)
         metadata = document.metadata
 
         if not metadata.media_file_path:
@@ -202,11 +253,18 @@ def main(
         typer.echo(f"Loading embedding model: {model}")
         inference = load_embedding_model(model)
 
-        typer.echo("Computing embeddings...")
-        embed_document(document, audio_path, inference, model, min_segment_duration)
+        typer.echo(f"Computing embeddings (with UMAP dims {umap_dimensions})...")
+        embed_document(
+            document,
+            audio_path,
+            inference,
+            model,
+            min_segment_duration,
+            umap_dimensions,
+        )
 
         typer.echo(f"Writing embeddings to captions JSON: {captions_path}")
-        write_captions_json_file(captions_path, document)
+        write_captions_json5_file(captions_path, document)
         n = len(document.embeddings) if document.embeddings else 0
         typer.echo(f"Done! Wrote {n} embeddings to captions JSON")
 
@@ -215,6 +273,46 @@ def main(
         raise typer.Exit(code=1)
     finally:
         temp_dir_obj.cleanup()
+
+
+@app.command()
+def main(
+    captions_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Path to the .captions_json5 file",
+    ),
+    model: str = typer.Option(
+        "pyannote/wespeaker-voxceleb-resnet34-LM",
+        "--model",
+        "-m",
+        help="Pyannote embedding model to use",
+    ),
+    min_segment_duration: float = typer.Option(
+        0.3,
+        help="Shortest segment to embed",
+    ),
+    umap_dimensions: list[int] = typer.Option(
+        [1, 2],
+        "--umap-dimensions",
+        help="List of dimensionalities to compute UMAP embeddings for (e.g., --umap-dimensions 1 --umap-dimensions 2)",
+    ),
+) -> None:
+    """
+    Compute speaker embeddings for each segment in a captions JSON document.
+
+    HF_TOKEN environment variable is optional (only needed for gated models).
+    Writes embeddings into the `embeddings` field of the captions JSON document.
+    """
+    embed_captions_path(
+        captions_path,
+        model=model,
+        min_segment_duration=min_segment_duration,
+        umap_dimensions=umap_dimensions,
+    )
 
 
 if __name__ == "__main__":
