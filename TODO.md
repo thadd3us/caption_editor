@@ -1,10 +1,13 @@
 Bottom right caption panel:
-* Should word-wrap
 * Should default to at least 40% of the window height.
-* There should be a way there to edit the start and time of that segment, and replay just it.
 * It would be nice to be able to edit the text there, instead of just in the table.
+* Buttons to navigate to previous and next segment.
+* Button to play just this segment.
+* There should be a way there to edit the start and end time of that segment, and replay just it.
 
 
+
+* Should word-wrap
 * I want integeral segment indices in the table, and to be able to sort by them.
 * Better preservation of which rows are selected.
 * Do we need the play button in the table?  Maybe just use the one at the top?
