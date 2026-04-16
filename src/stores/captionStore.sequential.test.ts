@@ -234,6 +234,94 @@ describe('Playlist Playback Store', () => {
     expect(hasNext).toBe(false)
   })
 
+  describe('reverse-order playlist (descending sort)', () => {
+    /**
+     * Reproduces the bug where playing segments in reverse chronological order
+     * (e.g. index column sorted descending) causes all segments after the first
+     * to be "skipped" because the seek decision logic in MediaPlayer.vue
+     * never seeks backward.
+     *
+     * The logic calculates: timelineSilence = nextSeg.startTime - prevEnd
+     * For reverse order, this is negative, which is always < 0.5s threshold,
+     * so seekToNextStart is false and the media keeps playing forward.
+     */
+
+    const SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC = 0.5
+
+    /**
+     * This is the seek decision logic extracted from MediaPlayer.vue onTimeUpdate().
+     * It returns true when the media player should seek to the next segment's start.
+     */
+    function shouldSeekToNextStart(
+      prevSegEndTime: number,
+      nextSegStartTime: number
+    ): boolean {
+      const timelineSilence = nextSegStartTime - prevSegEndTime
+      return timelineSilence < 0 || timelineSilence > SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC
+    }
+
+    it('should seek when playing forward with a large gap (baseline)', () => {
+      // seg1 ends at 2, seg2 starts at 5 → gap of 3s → should seek
+      expect(shouldSeekToNextStart(2, 5)).toBe(true)
+    })
+
+    it('should NOT seek when playing forward with a tiny gap (baseline)', () => {
+      // seg1 ends at 2, seg2 starts at 2.3 → gap of 0.3s → should NOT seek
+      expect(shouldSeekToNextStart(2, 2.3)).toBe(false)
+    })
+
+    it('BUG: should seek when playing in reverse order (backward in time)', () => {
+      // Playing seg3 (ends at 8) → seg2 (starts at 3): need to seek backward
+      // timelineSilence = 3 - 8 = -5, which is < 0.5, so current code returns false
+      // but it SHOULD return true because we need to jump backward in the media
+      expect(shouldSeekToNextStart(8, 3)).toBe(true)
+    })
+
+    it('BUG: should seek backward even for small backward jumps', () => {
+      // Playing seg2 (ends at 5) → seg1 (starts at 4): need to seek backward 1s
+      // timelineSilence = 4 - 5 = -1, which is < 0.5, so current code returns false
+      expect(shouldSeekToNextStart(5, 4)).toBe(true)
+    })
+
+    it('should simulate full reverse-order playlist advancement', () => {
+      const store = useCaptionStore()
+
+      // Three segments in chronological order
+      loadTestDocument(store, [
+        { id: 'seg1', startTime: 0, endTime: 2, text: 'First', timestamp: '2024-01-01T00:00:00.000Z' },
+        { id: 'seg2', startTime: 3, endTime: 5, text: 'Second', timestamp: '2024-01-01T00:00:00.000Z' },
+        { id: 'seg3', startTime: 6, endTime: 8, text: 'Third', timestamp: '2024-01-01T00:00:00.000Z' }
+      ])
+
+      // Start playlist in REVERSE order (as if index column sorted descending)
+      store.startPlaylistPlayback(['seg3', 'seg2', 'seg1'], 0)
+
+      expect(store.currentPlaylistSegment?.id).toBe('seg3')
+      expect(store.currentTime).toBe(6) // seg3 starts at 6
+
+      // Simulate what onTimeUpdate does when seg3 finishes (at time 8):
+      // It needs to decide whether to seek to seg2's start (time 3).
+      // prevEnd=8, nextStart=3 → timelineSilence = 3-8 = -5
+      const seg3End = 8
+      const seg2Start = 3
+      const needsSeek1 = shouldSeekToNextStart(seg3End, seg2Start)
+
+      // BUG: This is false because -5 < 0.5, but we NEED to seek backward
+      // The media will just keep playing from time ~8 instead of jumping to time 3
+      expect(needsSeek1).toBe(true)
+
+      // Advance the store (store itself works fine, the bug is in the seek decision)
+      store.nextPlaylistSegment()
+      expect(store.currentPlaylistSegment?.id).toBe('seg2')
+
+      // Same bug for seg2→seg1: prevEnd=5, nextStart=0
+      const seg2End = 5
+      const seg1Start = 0
+      const needsSeek2 = shouldSeekToNextStart(seg2End, seg1Start)
+      expect(needsSeek2).toBe(true)
+    })
+  })
+
   it('should cancel playlist playback without returning to start', () => {
     const store = useCaptionStore()
 

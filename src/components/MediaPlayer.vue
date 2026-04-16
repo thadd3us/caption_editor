@@ -252,8 +252,9 @@ function onTimeUpdate() {
     if (segmentEndTime.value !== null && mediaElement.value.currentTime >= segmentEndTime.value) {
       console.log('Segment playback complete')
 
-      // `timelineSilence` = next segment start minus previous end (negative if overlap).
-      // Large positive gap ⇒ skip silence by seeking; small/overlap ⇒ avoid seek (see threshold comment above).
+      // `timelineSilence` = next segment start minus previous end (negative if backward jump).
+      // Only skip the seek when the next segment is slightly ahead (0 to threshold);
+      // always seek for backward jumps (negative) or large forward gaps.
       const prevEnd = segmentEndTime.value
       const mediaT = mediaElement.value.currentTime
       const nextIndex = store.playlistIndex + 1
@@ -263,7 +264,8 @@ function onTimeUpdate() {
         : undefined
       const timelineSilence =
         nextSeg !== undefined ? nextSeg.startTime - prevEnd : Number.POSITIVE_INFINITY
-      const seekToNextStart = timelineSilence > SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC
+      const seekToNextStart =
+        timelineSilence < 0 || timelineSilence > SEQUENTIAL_PLAYBACK_GAP_SEEK_THRESHOLD_SEC
 
       const hasNext = store.nextPlaylistSegment(seekToNextStart ? undefined : mediaT)
       if (hasNext) {
