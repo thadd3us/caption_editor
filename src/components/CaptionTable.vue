@@ -102,6 +102,11 @@ import type { ContextMenuItem } from './ContextMenu.types'
 import type { UIState } from '../types/schema'
 import { decodeEmbedding } from '../utils/embeddingCodec'
 import { resolveRowActionTargetRows } from '../utils/rowActionTarget'
+import {
+  attachCaptionGridDebug,
+  exposeCaptionGridDebugAttach,
+  isCaptionGridDebugEnabled
+} from '../utils/captionGridDebug'
 
 const store = useCaptionStore()
 const gridApi = ref<GridApi | null>(null)
@@ -466,12 +471,38 @@ function onCellKeyDown(event: CellKeyDownEvent) {
   }
 }
 
+/** Opt-in AG Grid scroll/layout logging — see `src/utils/captionGridDebug.ts` */
+let captionGridDebugDetach: (() => void) | null = null
+
+function wireCaptionGridDebug(api: GridApi) {
+  captionGridDebugDetach?.()
+  captionGridDebugDetach = null
+  if (!isCaptionGridDebugEnabled()) return
+  captionGridDebugDetach = attachCaptionGridDebug(api, () => ({
+    currentTime: store.currentTime,
+    selectedSegmentId: store.selectedSegmentId
+  }))
+  console.log(
+    '[CaptionGridDebug] logging on — watch for [CaptionGridDebug] lines. ' +
+      'Disable: localStorage.removeItem("captionDebugGrid"); reload, or set window.__captionGridDebug=false and reload.'
+  )
+}
+
 function onGridReady(params: GridReadyEvent) {
   console.log('AG Grid ready')
   gridApi.value = params.api
 
   // Expose grid API to window for testing
   ;(window as any).__agGridApi = params.api
+
+  exposeCaptionGridDebugAttach(
+    () => {
+      if (!gridApi.value) return
+      wireCaptionGridDebug(gridApi.value)
+    },
+    isCaptionGridDebugEnabled
+  )
+  void nextTick(() => wireCaptionGridDebug(params.api))
 
   // Restore grid state if document was loaded before grid was ready
   setTimeout(restoreGridState, 0)
@@ -1018,6 +1049,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  captionGridDebugDetach?.()
+  captionGridDebugDetach = null
   store.gridStateProvider = null
   window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
   window.removeEventListener('keydown', onCaptionFindShortcut, true)

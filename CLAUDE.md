@@ -152,6 +152,7 @@ await page.evaluate(() => {
 ### AG Grid Known Bugs
 1. **Ghost rows**: Filter by content in tests (`text.length > 0`)
 2. **Row ordering**: Rows stay in insertion order, not array order (sort by time in tests)
+3. **Scroll / viewport jumps (intermittent)**: Opt-in logging — `localStorage.setItem('captionDebugGrid','1')` then reload, or `window.__captionGridDebug = true` and `window.__captionGridDebugAttach()` if the grid is already up. See `src/utils/captionGridDebug.ts`. Works in production builds (DevTools console).
 
 ## Python Tools
 
