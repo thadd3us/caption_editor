@@ -48,6 +48,7 @@
         </span>
       </div>
     </div>
+    <!-- suppressScrollOnNewData: keep vertical scroll when rowData is replaced each store update (autoHeight / ✓) -->
     <ag-grid-vue
       class="ag-theme-alpine"
       :theme="gridTheme"
@@ -58,6 +59,7 @@
       :rowSelection="rowSelectionConfig"
       
       :getRowId="getRowId"
+      :suppressScrollOnNewData="true"
       @grid-ready="onGridReady"
       @first-data-rendered="refreshGridStats"
       @filter-changed="refreshGridStats"
