@@ -7,7 +7,7 @@ Caption Editor lets you run a modern, multi-lingual speech recognizer and speake
 
 🎬 **Smooth Workflows** — Visualize, edit, and annotate model results as time-aligned captions with synced playback and scrubbing
 
-🔗 **Interoperable** — Store captions and metadata in easy-to-parse JSON sidecar files
+🔗 **Interoperable** — Store captions and metadata in easy-to-parse JSON5 sidecar files
 
 ⚡ **Modern** — Open-source Electron UI with native macOS integrations
 
