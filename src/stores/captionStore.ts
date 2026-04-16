@@ -512,7 +512,7 @@ export const useCaptionStore = defineStore('captions', () => {
 
   /**
    * Merge ASR transcription results into the current document.
-   * Replaces segments (and clears embeddings) but preserves document identity
+   * Replaces segments (and preserves embeddings from ASR result) but preserves document identity
    * (metadata.id, title, history, uiState, filePath, mediaFilePath).
    */
   function mergeAsrResult(content: string) {
@@ -524,9 +524,8 @@ export const useCaptionStore = defineStore('captions', () => {
     document.value = {
       ...document.value,
       segments: asrDoc.segments,
-      // Clear embeddings — they're invalidated by new segments
-      embeddings: undefined,
-      embeddingModel: undefined,
+      embeddings: asrDoc.embeddings,
+      embeddingModel: asrDoc.embeddingModel,
     }
     isDirty.value = true
   }

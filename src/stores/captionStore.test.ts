@@ -326,7 +326,12 @@ describe('captionStore', () => {
         segments: [
           { id: 'asr-seg-1', index: 0, startTime: 0, endTime: 2, text: 'New ASR segment 1', asrModel: 'nvidia/parakeet-tdt-0.6b-v3' },
           { id: 'asr-seg-2', index: 1, startTime: 2, endTime: 4, text: 'New ASR segment 2', asrModel: 'nvidia/parakeet-tdt-0.6b-v3' }
-        ]
+        ],
+        embeddings: [
+          { segmentId: 'asr-seg-1', speakerEmbedding: 'newbase64data1' },
+          { segmentId: 'asr-seg-2', speakerEmbedding: 'newbase64data2' }
+        ],
+        embeddingModel: 'wespeaker-v2'
       })
 
       store.mergeAsrResult(asrContent)
@@ -344,9 +349,11 @@ describe('captionStore', () => {
       expect(store.document.segments[0].asrModel).toBe('nvidia/parakeet-tdt-0.6b-v3')
       expect(store.document.segments[1].text).toBe('New ASR segment 2')
 
-      // Embeddings cleared (invalidated by new segments)
-      expect(store.document.embeddings).toBeUndefined()
-      expect(store.document.embeddingModel).toBeUndefined()
+      // Embeddings preserved from ASR result
+      expect(store.document.embeddings).toHaveLength(2)
+      expect(store.document.embeddings![0].segmentId).toBe('asr-seg-1')
+      expect(store.document.embeddings![1].segmentId).toBe('asr-seg-2')
+      expect(store.document.embeddingModel).toBe('wespeaker-v2')
 
       // Dirty flag set
       expect(store.isDirty).toBe(true)
