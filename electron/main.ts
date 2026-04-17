@@ -1154,6 +1154,7 @@ const activeProcesses = new Map<string, ActiveProcess>()
 
 // Handle file drops from system
 ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) => {
+  const t0 = performance.now()
   console.log('[main] processDroppedFiles called for', filePaths.length, 'files')
 
   type DroppedFileResult =
@@ -1207,5 +1208,6 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
     }
   }
 
+  console.log(`[main] processDroppedFiles done in ${(performance.now() - t0).toFixed(1)} ms`)
   return results
 })

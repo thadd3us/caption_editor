@@ -90,7 +90,8 @@ export const useCaptionStore = defineStore('captions', () => {
 
   // Actions
   function loadFromFile(content: string, filePath?: string) {
-    console.log('Loading captions from file:', filePath)
+    const t0 = performance.now()
+    console.log('[loadFromFile] start — file:', filePath, `(${(content.length / 1024).toFixed(0)} KB)`)
 
     // App.vue tracks "already tried auto-load for this metadata.id". A full reload with the
     // same id (e.g. after Compute Speaker Embeddings) must clear that or mediaPath stays null.
@@ -111,7 +112,10 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistIndex.value = 0
     playlistStartIndex.value = 0
 
+    const t1 = performance.now()
     const result = parseCaptionsJSON5(content)
+    const t2 = performance.now()
+    console.log(`[loadFromFile] parseCaptionsJSON5: ${(t2 - t1).toFixed(1)} ms`)
 
     if (result.success && result.document) {
       const loadedDoc = {
@@ -155,7 +159,8 @@ export const useCaptionStore = defineStore('captions', () => {
         captionHeight.value = loadedDoc.uiState.captionHeight
       }
 
-      console.log('Loaded document with', document.value.segments.length, 'segments')
+      const t3 = performance.now()
+      console.log(`[loadFromFile] done — ${document.value.segments.length} segments, total: ${(t3 - t0).toFixed(1)} ms`)
     } else {
       console.error('Failed to load captions:', result.error)
       throw new Error(result.error || 'Failed to parse captions file')
@@ -540,6 +545,7 @@ export const useCaptionStore = defineStore('captions', () => {
    * @returns Object containing counts of successes and failures
    */
   async function processFilePaths(filePaths: string[]): Promise<{ successes: number; failures: number }> {
+    const t0 = performance.now()
     const electronAPI = (window as any).electronAPI
     if (!electronAPI || !electronAPI.processDroppedFiles) {
       console.error('Electron processDroppedFiles API not available')
@@ -551,7 +557,8 @@ export const useCaptionStore = defineStore('captions', () => {
 
     try {
       const results = await electronAPI.processDroppedFiles(filePaths)
-      console.log('[captionStore] Processed file results:', results)
+      const t1 = performance.now()
+      console.log(`[processFilePaths] IPC processDroppedFiles: ${(t1 - t0).toFixed(1)} ms for ${filePaths.length} file(s)`)
 
       for (const result of results) {
         try {
