@@ -55,7 +55,11 @@ function isTranscriptSegment(value: unknown): value is TranscriptSegment {
 
 export function parseCaptionsJSON5(content: string): ParseResult {
   try {
+    const t0 = performance.now()
+
     const parsed = JSON5.parse(content) as unknown
+    const tParse = performance.now()
+
     if (!parsed || typeof parsed !== 'object') {
       return { success: false, error: 'Invalid captions JSON: expected an object' }
     }
@@ -78,6 +82,7 @@ export function parseCaptionsJSON5(content: string): ParseResult {
       }
       typedSegments.push(s)
     }
+    const tValidate = performance.now()
 
     const unique = validateUniqueSegmentIds(typedSegments)
     if (!unique.ok) return { success: false, error: unique.error }
@@ -105,17 +110,30 @@ export function parseCaptionsJSON5(content: string): ParseResult {
         ? (obj.rawAsrOutput as RawAsrOutput)
         : undefined
 
+    const tSort0 = performance.now()
+    const sortedSegments = sortSegments(typedSegments)
+    const tSort = performance.now()
+
     const document: CaptionsDocument = {
       metadata,
       title: typeof obj.title === 'string' ? obj.title : undefined,
-      segments: sortSegments(typedSegments),
+      segments: sortedSegments,
       history: Array.isArray(obj.history) ? (obj.history as any) : undefined,
       embeddings,
       embeddingModel,
       uiState,
       rawAsrOutput
-      // filePath is intentionally not persisted; it’s attached by caller
+      // filePath is intentionally not persisted; it's attached by caller
     }
+
+    const tEnd = performance.now()
+    console.log(
+      `[parseCaptionsJSON5] ${(tEnd - t0).toFixed(1)} ms total` +
+      ` — JSON5.parse: ${(tParse - t0).toFixed(1)} ms` +
+      `, validate: ${(tValidate - tParse).toFixed(1)} ms` +
+      `, sort: ${(tSort - tSort0).toFixed(1)} ms` +
+      ` (${typedSegments.length} segments, ${(content.length / 1024).toFixed(0)} KB)`
+    )
 
     return { success: true, document }
   } catch (err) {

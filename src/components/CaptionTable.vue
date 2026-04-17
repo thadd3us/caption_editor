@@ -154,6 +154,25 @@ function logProgrammaticGridScroll(
   action()
 }
 
+/**
+ * Debounced ensureNodeVisible — workaround for AG Grid bug where rapid
+ * ensureNodeVisible calls (e.g. during scrub-bar drags) corrupt internal
+ * scroll tracking, causing the viewport to jump to a stale position on
+ * the next rowData update. Known AG Grid issue:
+ * https://github.com/ag-grid/ag-grid/issues/1315
+ * See also: #8628, #3105, #7273
+ */
+let _ensureVisibleTimer: ReturnType<typeof setTimeout> | null = null
+function debouncedEnsureNodeVisible(rowNode: any, position: 'top' | 'bottom' | 'middle' | null) {
+  if (_ensureVisibleTimer) clearTimeout(_ensureVisibleTimer)
+  _ensureVisibleTimer = setTimeout(() => {
+    _ensureVisibleTimer = null
+    if (gridApi.value) {
+      gridApi.value.ensureNodeVisible(rowNode, position)
+    }
+  }, 30)
+}
+
 // AG Grid v33+ Theming API (do not import legacy CSS themes)
 const gridTheme = themeAlpine
 
@@ -786,7 +805,7 @@ watch(() => store.selectedSegmentId, (segmentId) => {
     selectRowIfNeeded(rowNode)
     logProgrammaticGridScroll(
       'selectedSegmentId sync: ensure selected row is visible',
-      () => gridApi.value!.ensureNodeVisible(rowNode, null),
+      () => debouncedEnsureNodeVisible(rowNode, null),
       { segmentId }
     )
   }
@@ -808,7 +827,7 @@ watch(() => store.currentTime, (currentTime) => {
   if (rowNode.isSelected()) {
     logProgrammaticGridScroll(
       'auto-scroll (playhead): selected row — ensure visible',
-      () => gridApi.value!.ensureNodeVisible(rowNode, null),
+      () => debouncedEnsureNodeVisible(rowNode, null),
       { segmentId: segment.id, currentTime }
     )
     return
@@ -818,7 +837,7 @@ watch(() => store.currentTime, (currentTime) => {
   selectRowIfNeeded(rowNode)
   logProgrammaticGridScroll(
     'auto-scroll (playhead): jump to segment under playhead (select + scroll)',
-    () => gridApi.value!.ensureNodeVisible(rowNode, null),
+    () => debouncedEnsureNodeVisible(rowNode, null),
     { segmentId: segment.id, currentTime }
   )
   setTimeout(() => { isAutoScrolling = false }, 100)
