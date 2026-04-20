@@ -29,7 +29,7 @@ In short: I wanted to combine AI-assisted labeling with the ability to easily co
   * [Apollo 11 Intro](https://images-assets.nasa.gov/video/Apollo_11_Intro_720p/Apollo_11_Intro_720p~small.mp4) ([from NASA](https://images.nasa.gov/details/Apollo_11_Intro_720p))
   * [Apollo 11 Moonwalk Montage](https://images-assets.nasa.gov/video/Apollo_11_moonwalk_montage_720p/Apollo_11_moonwalk_montage_720p~small.mp4) ([from NASA](https://images.nasa.gov/details/Apollo_11_moonwalk_montage_720p))
   * [Apollo 13: Home Safe](https://dn721601.ca.archive.org/0/items/nasa_tv-Apollo_13_-_Home_Safe/Apollo_13_-_Home_Safe.mp4)
-  * [Sintel](http://peach.themazzone.com/durian/movies/sintel-1024-surround.mp4) [from Blender](https://durian.blender.org/download/)
+  * [Sintel](http://peach.themazzone.com/durian/movies/sintel-1024-surround.mp4) ([from Blender](https://durian.blender.org/download/))
 
 2. Open the file with Caption Editor.
 
