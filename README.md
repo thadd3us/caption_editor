@@ -22,6 +22,8 @@ In short: I wanted to combine AI-assisted labeling with the ability to easily co
 
 ## User Quickstart
 
+0. [Download](https://github.com/thadd3us/caption_editor/releases/download/v1.5.31/Caption.Editor-1.5.31-arm64.dmg) the app and copy it into Applications.
+
 1. Find or download a media file.  Some examples:
 
   * [Apollo 11 Intro](https://images-assets.nasa.gov/video/Apollo_11_Intro_720p/Apollo_11_Intro_720p~small.mp4) ([from NASA](https://images.nasa.gov/details/Apollo_11_Intro_720p))
