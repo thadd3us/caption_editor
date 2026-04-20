@@ -22,9 +22,18 @@ In short: I wanted to combine AI-assisted labeling with the ability to easily co
 
 ## User Quickstart
 
-1. Cmd-O to open a media file.
+1. Find or download a media file.  Some examples:
 
-2. Menu item: "AI Annotations ... Caption with Speech Recognizer" (this also computes speaker ID embeddings on each ASR segment)
+  * [Apollo 11 Intro](https://images-assets.nasa.gov/video/Apollo_11_Intro_720p/Apollo_11_Intro_720p~small.mp4) ([from NASA](https://images.nasa.gov/details/Apollo_11_Intro_720p))
+  * [Apollo 11 Moonwalk Montage](https://images-assets.nasa.gov/video/Apollo_11_moonwalk_montage_720p/Apollo_11_moonwalk_montage_720p~small.mp4) ([from NASA](https://images.nasa.gov/details/Apollo_11_moonwalk_montage_720p))
+  * [Apollo 13: Home Safe](https://dn721601.ca.archive.org/0/items/nasa_tv-Apollo_13_-_Home_Safe/Apollo_13_-_Home_Safe.mp4)
+  * [Sintel](http://peach.themazzone.com/durian/movies/sintel-1024-surround.mp4) [from Blender](https://durian.blender.org/download/)
+
+2. Open the file with Caption Editor.
+
+![Open with Caption Editor](docs/open_with_caption_editor.png)
+
+3. Menu item: "AI Annotations > Caption with Speech Recognizer" (this also computes speaker ID embeddings on each ASR segment)
    * This is quite complex and may or may not work on your system.
    * The first run will be slow and download a lot (~GBs).
    * It downloads [uvx](https://docs.astral.sh/uv/) for your platform, then uses `uvx run` to:
@@ -35,7 +44,7 @@ In short: I wanted to combine AI-assisted labeling with the ability to easily co
       * [parakeet-tdt-0.6b-v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3)
       * [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM)
 
-3. Select multiple adjacent segments to merge (if necessary).
+4. Select multiple adjacent segments to merge (if necessary).
 ![Merge adjacent segments](docs/merge_segments.png)
 
 4. Split segments that should be separate (if necessary).
