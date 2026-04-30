@@ -1,5 +1,12 @@
 MODEL_WHISPER_TINY = "openai/whisper-tiny"
 MODEL_PARAKEET = "nvidia/parakeet-tdt-0.6b-v3"
+MODEL_VIBEVOICE = "microsoft/VibeVoice-ASR-HF"
+
+# Modal app name for the VibeVoice remote ASR worker. Deploy with:
+#   uv run modal deploy transcribe/vibevoice_modal.py
+# The worker self-destructs after VIBEVOICE_MODAL_IDLE_SECONDS of inactivity.
+VIBEVOICE_MODAL_APP_NAME = "caption-editor-vibevoice-asr"
+VIBEVOICE_MODAL_CLASS_NAME = "VibeVoiceASR"
 
 MODEL_VOXCELEB = "pyannote/wespeaker-voxceleb-resnet34-LM"
 

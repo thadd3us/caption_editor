@@ -584,24 +584,46 @@ def main(
 
         typer.echo(f"Audio duration: {sf.info(audio_path).duration:.2f}s")
 
-        typer.echo(f"Loading model: {model_name}")
-        try:
-            asr_pipeline, is_nemo = load_asr_model(model_name, device)
-        except RuntimeError as e:
-            typer.echo(f"Error: {e}", err=True)
-            raise typer.Exit(1)
+        from recognizer import is_vibevoice_model
 
-        typer.echo("Transcribing...")
-        raw_asr_segments = transcribe_audio_file(
-            audio_path,
-            asr_pipeline,
-            is_nemo,
-            model_name,
-            chunk_size=chunk_size,
-            overlap=overlap,
-            max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
-            max_segment_duration_seconds=max_segment_duration_seconds,
-        )
+        if is_vibevoice_model(model_name):
+            from recognizer import VibeVoiceModalRecognizer
+
+            typer.echo(f"Using Modal-hosted VibeVoice worker: {model_name}")
+            typer.echo("(chunk_size/overlap ignored — VibeVoice ingests the full file)")
+            try:
+                recognizer = VibeVoiceModalRecognizer(model_name)
+            except RuntimeError as e:
+                typer.echo(f"Error: {e}", err=True)
+                raise typer.Exit(1)
+
+            typer.echo("Transcribing remotely (cold start ~1-2 min on first call)...")
+            raw_asr_segments = recognizer.transcribe(
+                audio_path,
+                chunk_size=chunk_size,
+                overlap=overlap,
+                max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
+                max_segment_duration_seconds=max_segment_duration_seconds,
+            )
+        else:
+            typer.echo(f"Loading model: {model_name}")
+            try:
+                asr_pipeline, is_nemo = load_asr_model(model_name, device)
+            except RuntimeError as e:
+                typer.echo(f"Error: {e}", err=True)
+                raise typer.Exit(1)
+
+            typer.echo("Transcribing...")
+            raw_asr_segments = transcribe_audio_file(
+                audio_path,
+                asr_pipeline,
+                is_nemo,
+                model_name,
+                chunk_size=chunk_size,
+                overlap=overlap,
+                max_intra_segment_gap_seconds=max_intra_segment_gap_seconds,
+                max_segment_duration_seconds=max_segment_duration_seconds,
+            )
         asr_segments = post_process_raw_asr_segments(
             raw_asr_segments,
             chunk_size=float(chunk_size),

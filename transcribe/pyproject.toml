@@ -30,6 +30,9 @@ dependencies = [
     "imageio-ffmpeg>=0.6.0",
     "json5>=0.14.0",
     "umap-learn>=0.5.11",
+    # Remote GPU worker for microsoft/VibeVoice-ASR-HF (9B model, doesn't fit
+    # locally on most laptops). See transcribe/vibevoice_modal.py.
+    "modal>=0.64",
 ]
 
 [project.scripts]

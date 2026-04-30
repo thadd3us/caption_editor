@@ -171,6 +171,86 @@ class TransformersRecognizer:
         )
 
 
+class VibeVoiceModalRecognizer:
+    """Sends the full audio to a deployed Modal worker running microsoft/VibeVoice-ASR-HF.
+
+    The worker is a separate ``modal deploy`` artifact (see
+    ``transcribe/vibevoice_modal.py``); this class is a thin client that looks
+    it up by name. No torch/transformers upgrade is needed locally.
+
+    VibeVoice handles up to 60 minutes of audio natively, so we bypass the
+    chunked driver entirely: ``transcribe()`` ignores ``chunk_size`` and
+    ``overlap`` and ships the whole file in one request.
+    """
+
+    def __init__(self, model_name: str, device: str | None = None):
+        # device unused — inference happens remotely on the Modal GPU.
+        del device
+        import modal
+
+        from constants import VIBEVOICE_MODAL_APP_NAME, VIBEVOICE_MODAL_CLASS_NAME
+
+        try:
+            cls = modal.Cls.from_name(
+                VIBEVOICE_MODAL_APP_NAME, VIBEVOICE_MODAL_CLASS_NAME
+            )
+        except modal.exception.NotFoundError as e:
+            raise RuntimeError(
+                f"Modal app '{VIBEVOICE_MODAL_APP_NAME}' not deployed.\n"
+                f"Deploy it once with:\n"
+                f"  cd transcribe && uv run modal deploy vibevoice_modal.py\n"
+                f"You will need a Modal account and `modal token new` first.\n"
+                f"Underlying error: {e}"
+            ) from e
+        self._svc = cls()
+        self.model_name = model_name
+
+    def transcribe(
+        self,
+        wav_path: Path,
+        chunk_size: int = 60,
+        overlap: int = 5,
+        max_intra_segment_gap_seconds: float = 0.50,
+        max_segment_duration_seconds: float = 10.0,
+    ) -> List[ASRSegment]:
+        # chunking args ignored: VibeVoice ingests the whole file at once.
+        del (
+            chunk_size,
+            overlap,
+            max_intra_segment_gap_seconds,
+            max_segment_duration_seconds,
+        )
+
+        with open(wav_path, "rb") as f:
+            audio_bytes = f.read()
+
+        raw_segments = self._svc.transcribe.remote(audio_bytes)
+
+        out: List[ASRSegment] = []
+        for s in raw_segments:
+            words = [
+                WordTimestamp(
+                    word=w["word"], start=float(w["start"]), end=float(w["end"])
+                )
+                for w in s.get("words", [])
+            ]
+            out.append(
+                ASRSegment(
+                    text=s["text"],
+                    start=float(s["start"]),
+                    end=float(s["end"]),
+                    words=words,
+                    chunk_start=0.0,
+                    speaker=s.get("speaker"),
+                )
+            )
+        return out
+
+
+def is_vibevoice_model(model_name: str) -> bool:
+    return "vibevoice" in model_name.lower()
+
+
 def create_recognizer(
     model_name: str, device: str | None = None, mock: bool = False
 ) -> Recognizer:
@@ -183,6 +263,9 @@ def create_recognizer(
     """
     if mock:
         return MockRecognizer()
+
+    if is_vibevoice_model(model_name):
+        return VibeVoiceModalRecognizer(model_name, device)
 
     is_nemo = "parakeet" in model_name.lower() or "nvidia" in model_name.lower()
     if is_nemo:

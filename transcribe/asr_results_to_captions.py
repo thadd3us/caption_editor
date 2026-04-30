@@ -43,6 +43,7 @@ class ASRSegment:
     end: float
     words: List[WordTimestamp]
     chunk_start: Optional[float] = None
+    speaker: Optional[str] = None
 
 
 def parse_nemo_segment(segment_data: dict, word_data: List[dict]) -> ASRSegment:
@@ -516,7 +517,7 @@ def asr_segments_to_transcript_segments(
                 endTime=segment.end,
                 text=segment.text.strip(),
                 words=words,
-                speakerName=None,
+                speakerName=segment.speaker,
                 rating=None,
                 timestamp=None,
                 verified=False,
