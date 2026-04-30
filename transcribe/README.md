@@ -209,6 +209,54 @@ The tool automatically detects NeMo models (models containing "parakeet" or "nvi
 python transcribe_cli.py audio.wav --model nvidia/parakeet-tdt-0.6b-v3
 ```
 
+### 1b. microsoft/VibeVoice-ASR-HF (remote, via Modal)
+
+VibeVoice-ASR is a 9B-parameter speech LLM with native speaker diarization. The
+weights are too large for a typical laptop, so we run it on a Modal-hosted GPU
+worker (`transcribe/vibevoice_modal.py`). Word timestamps come from a
+torchaudio MMS-FA forced-alignment pass on the same worker.
+
+**One-time setup** (Modal account + token, then deploy):
+
+```bash
+cd transcribe
+uv sync                                          # installs `modal` locally
+uv run modal token new                           # opens browser for auth
+uv run modal deploy vibevoice_modal.py           # ~3 min image build
+```
+
+**Smoke test against a known-speech fixture** (matches what CI would run):
+
+```bash
+cd transcribe
+uv run modal run vibevoice_modal.py::smoke \
+    --audio-path ../test_data/OSR_us_000_0010_8k.wav
+```
+
+Expected: 33s of Harvard sentences in, 2-3 segments out (Speaker 0), real
+per-word timestamps. First call cold-starts in ~15-30s with cached weights;
+each subsequent call within 5 min reuses the warm container.
+
+**Through the normal CLI** (writes a `.captions_json5` file like Parakeet):
+
+```bash
+cd transcribe
+uv run python transcribe_cli.py ../test_data/OSR_us_000_0010_8k.wav \
+    --model microsoft/VibeVoice-ASR-HF \
+    --output /tmp/harvard.captions_json5 \
+    --no-embed
+```
+
+The recognizer ignores `--chunk-size` / `--overlap` for this model — VibeVoice
+ingests the whole file in one request (up to 60 minutes).
+
+**Lifecycle and cost:** `scaledown_window=300` in the worker means the
+container shuts down 5 min after the last call; the deployment itself
+persists. To fully tear down: `uv run modal app stop caption-editor-vibevoice-asr`.
+A few smoke runs cost about $0.50-1.00 of L40S time; the 18 GB HF cache
+Volume costs ~$0.10/month while it exists (`modal volume delete
+caption-editor-hf-cache` to reclaim).
+
 ### 2. Hugging Face Transformers Models
 
 The tool also supports any model compatible with the Hugging Face `automatic-speech-recognition` pipeline, such as:
