@@ -36,13 +36,15 @@ APP_NAME = "caption-editor-vibevoice-asr"
 CLASS_NAME = "VibeVoiceASR"
 
 MODEL_ID = "microsoft/VibeVoice-ASR-HF"
-HF_CACHE_DIR = "/cache/huggingface"
+CACHE_ROOT = "/cache"
+HF_CACHE_DIR = f"{CACHE_ROOT}/huggingface"
+TORCH_HUB_DIR = f"{CACHE_ROOT}/torch"
 SCALEDOWN_SECONDS = 300  # idle timeout
 GENERATE_TIMEOUT_SECONDS = 60 * 60  # one hour, for long audio
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .apt_install("ffmpeg")
+    .apt_install("ffmpeg", "git")
     .pip_install(
         "torch==2.5.1",
         "torchaudio==2.5.1",
@@ -55,7 +57,7 @@ image = (
         "numpy<2.4",
         "huggingface_hub>=0.25",
     )
-    .env({"HF_HOME": HF_CACHE_DIR})
+    .env({"HF_HOME": HF_CACHE_DIR, "TORCH_HOME": TORCH_HUB_DIR})
 )
 
 app = modal.App(APP_NAME)
@@ -65,7 +67,7 @@ hf_volume = modal.Volume.from_name("caption-editor-hf-cache", create_if_missing=
 @app.cls(
     image=image,
     gpu="L40S",
-    volumes={HF_CACHE_DIR: hf_volume},
+    volumes={CACHE_ROOT: hf_volume},
     scaledown_window=SCALEDOWN_SECONDS,
     timeout=GENERATE_TIMEOUT_SECONDS,
 )
@@ -88,7 +90,11 @@ class VibeVoiceASR:
             MODEL_ID,
             dtype=torch.bfloat16,
             device_map="cuda",
-            attn_implementation="sdpa",
+            # The VibeVoiceAcousticTokenizerEncoderModel sub-module hasn't been
+            # ported to sdpa as of transformers main 2026-04. Using "eager"
+            # everywhere works; the LM itself can still flash via the kernels
+            # transformers picks at runtime.
+            attn_implementation="eager",
         )
         self.model.eval()
         print(
@@ -119,6 +125,9 @@ class VibeVoiceASR:
         Word timestamps are produced by MMS-FA forced alignment on each segment.
         If alignment fails for a segment, words are synthesized uniformly.
         """
+        import os
+        import tempfile
+
         import soundfile as sf
 
         t0 = time.time()
@@ -129,8 +138,16 @@ class VibeVoiceASR:
             f"[{time.strftime('%H:%M:%S')}] received audio: {len(audio_np) / sr:.1f}s @ {sr}Hz"
         )
 
-        # 1. Run VibeVoice (its processor handles its own resampling internally)
-        segments = self._run_vibevoice(audio_np, sr)
+        # The VibeVoice processor's apply_transcription_request expects a file
+        # path / URL string (or list thereof) — passing a (np, sr) tuple raises
+        # "Invalid input type". Round-trip through a tmp WAV.
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            sf.write(tmp.name, audio_np, sr)
+            tmp_path = tmp.name
+        try:
+            segments = self._run_vibevoice(tmp_path)
+        finally:
+            os.unlink(tmp_path)
         print(
             f"[{time.strftime('%H:%M:%S')}] VibeVoice produced {len(segments)} segments in {time.time() - t0:.1f}s"
         )
@@ -157,12 +174,11 @@ class VibeVoiceASR:
 
         return segments
 
-    def _run_vibevoice(self, audio_np, sr: int) -> list[dict[str, Any]]:
+    def _run_vibevoice(self, audio_path: str) -> list[dict[str, Any]]:
         import torch
 
-        # The processor accepts (array, sample_rate) tuples directly; it handles resampling.
         inputs = self.processor.apply_transcription_request(
-            audio=(audio_np, sr),
+            audio=audio_path,
         ).to(self.model.device, self.model.dtype)
 
         with torch.inference_mode():
@@ -190,6 +206,11 @@ class VibeVoiceASR:
             except (TypeError, ValueError):
                 continue
             if not content or end <= start:
+                continue
+            # VibeVoice emits literal "[Silence]" / "[Music]" / "[Noise]" tokens
+            # for non-speech regions. Drop them — downstream code expects words
+            # that can be aligned and edited.
+            if content.strip().startswith("[") and content.strip().endswith("]"):
                 continue
             out.append(
                 {
