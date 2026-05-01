@@ -142,8 +142,23 @@ class VibeVoiceASR:
         # The VibeVoice processor's apply_transcription_request expects a file
         # path / URL string (or list thereof) — passing a (np, sr) tuple raises
         # "Invalid input type". Round-trip through a tmp WAV.
+        #
+        # We force-resample to the documented target rate before writing.
+        # Note: VibeVoice's segment-level Start/End timestamps are unreliable
+        # (the model often emits rough/quantized times that don't match the
+        # actual audio — verified at 8/16/24 kHz inputs). We use them only as
+        # a hint for ordering; real timing comes from a global forced-alignment
+        # pass below. Sample-rate choice here therefore doesn't affect timing
+        # quality, only ASR accuracy.
+        VV_SR = 24000
+        if sr != VV_SR:
+            import librosa
+
+            audio_for_vv = librosa.resample(audio_np, orig_sr=sr, target_sr=VV_SR)
+        else:
+            audio_for_vv = audio_np
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            sf.write(tmp.name, audio_np, sr)
+            sf.write(tmp.name, audio_for_vv, VV_SR)
             tmp_path = tmp.name
         t_vv0 = time.time()
         try:
@@ -151,6 +166,9 @@ class VibeVoiceASR:
         finally:
             os.unlink(tmp_path)
         vv_seconds = time.time() - t_vv0
+        # VibeVoice sometimes emits a duplicate "tail" segment whose Content
+        # repeats the last sentence(s) of the previous one. Drop those.
+        segments = _drop_duplicate_segments(segments)
         print(
             f"[{time.strftime('%H:%M:%S')}] VibeVoice produced {len(segments)} segments in "
             f"{vv_seconds:.1f}s (RTF {vv_seconds / audio_seconds:.3f}x, "
@@ -167,17 +185,29 @@ class VibeVoiceASR:
         else:
             audio_16k = audio_np
 
-        # 3. Forced-align each segment
-        t_fa0 = time.time()
+        # Stash the raw (model-emitted) timestamps before we overwrite them
+        # with FA-derived ones, so callers can compare / debug.
         for seg in segments:
-            seg["words"] = self._align_segment(
-                audio_16k, seg["start"], seg["end"], seg["text"]
-            )
+            seg["raw_start"] = seg["start"]
+            seg["raw_end"] = seg["end"]
+
+        # 3. One global forced-alignment pass over the entire audio + concat
+        # transcript. VibeVoice's per-segment Start/End are unreliable for
+        # read-speech, so we ignore them for timing and re-derive every
+        # boundary from the FA word stream.
+        t_fa0 = time.time()
+        self._align_globally(audio_16k, segments)
         fa_seconds = time.time() - t_fa0
         print(
             f"[{time.strftime('%H:%M:%S')}] forced alignment finished in {fa_seconds:.1f}s "
             f"(RTF {fa_seconds / audio_seconds:.3f}x)"
         )
+        for i, seg in enumerate(segments):
+            print(
+                f"  seg[{i}] raw=[{seg['raw_start']:6.2f},{seg['raw_end']:6.2f}] "
+                f"fa=[{seg['start']:6.2f},{seg['end']:6.2f}]  "
+                f"{seg['text'][:60]}"
+            )
 
         total = time.time() - t_start
         print(
@@ -202,12 +232,24 @@ class VibeVoiceASR:
                 do_sample=False,
             )
         gen_ids = output_ids[:, inputs["input_ids"].shape[1] :]
+
+        # Log the raw decoded text (before structured parsing) once per call so
+        # we can tell whether timestamp issues come from VibeVoice itself or
+        # from our parsing/forced-alignment. Truncated for sanity.
+        try:
+            raw_text = self.processor.decode(gen_ids, return_format="raw")
+            raw_str = raw_text[0] if isinstance(raw_text, list) else raw_text
+            print(f"[vibevoice raw] {raw_str[:1500]}")
+        except Exception as e:
+            print(f"[vibevoice raw] decode raw failed: {e}")
+
         parsed = self.processor.decode(gen_ids, return_format="parsed")
 
         # parsed is a list (one per batch item) of lists of dicts.
         if not parsed:
             return []
         items = parsed[0] if isinstance(parsed[0], list) else parsed
+        print(f"[vibevoice parsed] {len(items)} items: {items}")
 
         out: list[dict[str, Any]] = []
         for item in items:
@@ -237,41 +279,57 @@ class VibeVoiceASR:
             )
         return out
 
-    def _align_segment(
-        self, audio_16k, seg_start: float, seg_end: float, text: str
-    ) -> list[dict[str, Any]]:
-        """Forced-align one segment's text against its audio span. Returns word dicts.
+    def _align_globally(self, audio_16k, segments: list[dict[str, Any]]) -> None:
+        """Forced-align every word of every segment against the full audio.
 
-        Falls back to uniform-split words on any failure.
+        Replaces each segment's ``start``/``end``/``words`` with FA-derived
+        values. ``raw_start``/``raw_end`` (the original VibeVoice times) are
+        left in place so callers can compare. Mutates ``segments`` in place.
+
+        Falls back to uniform splitting per-segment if global alignment fails
+        (rare — FA tolerates any input text since we tokenize per-character).
         """
         import numpy as np
         import torch
         import torchaudio
 
-        words_text = text.split()
-        if not words_text:
-            return []
+        # Flatten all segments into one word sequence, remembering which
+        # segment each word belongs to so we can re-distribute after FA.
+        flat_words: list[str] = []
+        seg_word_counts: list[int] = []
+        for seg in segments:
+            ws = seg["text"].split()
+            seg_word_counts.append(len(ws))
+            flat_words.extend(ws)
 
-        sr = self.fa_sample_rate
-        i0 = max(0, int(seg_start * sr))
-        i1 = min(len(audio_16k), int(seg_end * sr))
-        if i1 - i0 < sr // 10:  # < 100ms
-            return _uniform_words(words_text, seg_start, seg_end)
+        if not flat_words:
+            return
 
-        clip = audio_16k[i0:i1]
-        # Build per-word token id sequences from MMS-FA char dict.
+        # Build per-word char-token sequences from the MMS-FA dict. If a word
+        # has no alignable chars we drop it from the alignment input and patch
+        # it back in afterwards with synthesized timing.
         token_seqs: list[list[int]] = []
-        for w in words_text:
+        droppable: list[bool] = []
+        for w in flat_words:
             chars = [c for c in _normalize_for_fa(w) if c in self.fa_dict]
             if not chars:
-                # Word has no alignable chars — give up cleanly
-                return _uniform_words(words_text, seg_start, seg_end)
-            token_seqs.append([self.fa_dict[c] for c in chars])
+                droppable.append(True)
+                token_seqs.append([])
+            else:
+                droppable.append(False)
+                token_seqs.append([self.fa_dict[c] for c in chars])
 
-        flat = [t for s in token_seqs for t in s]
+        keep_indices = [i for i, d in enumerate(droppable) if not d]
+        if not keep_indices:
+            self._uniform_fill(segments)
+            return
+
+        flat = [t for i in keep_indices for t in token_seqs[i]]
         targets = torch.tensor([flat], dtype=torch.int32, device="cuda")
         wave = (
-            torch.from_numpy(np.asarray(clip, dtype=np.float32)).unsqueeze(0).to("cuda")
+            torch.from_numpy(np.asarray(audio_16k, dtype=np.float32))
+            .unsqueeze(0)
+            .to("cuda")
         )
 
         try:
@@ -281,26 +339,96 @@ class VibeVoiceASR:
                     emission, targets, blank=0
                 )
         except Exception as e:
-            print(f"forced_align failed ({e}); falling back to uniform")
-            return _uniform_words(words_text, seg_start, seg_end)
+            print(f"global forced_align failed ({e}); using uniform fallback")
+            self._uniform_fill(segments)
+            return
 
         token_spans = torchaudio.functional.merge_tokens(alignments[0], scores[0])
-        # Group tokens into words by the lengths of token_seqs
-        ratio = (i1 - i0) / emission.shape[1] / sr  # frames -> seconds
-        out_words: list[dict[str, Any]] = []
+        # frames -> seconds
+        ratio = len(audio_16k) / emission.shape[1] / self.fa_sample_rate
+
+        # Walk token_spans alongside the kept words and assign times.
+        all_word_times: list[tuple[float, float]] = [(-1.0, -1.0)] * len(flat_words)
         cursor = 0
-        for w_text, seq in zip(words_text, token_seqs):
-            spans = token_spans[cursor : cursor + len(seq)]
-            cursor += len(seq)
-            if not spans:
-                out_words.append({"word": w_text, "start": seg_start, "end": seg_end})
+        for global_idx in keep_indices:
+            n = len(token_seqs[global_idx])
+            if n == 0:
                 continue
-            w_start = seg_start + spans[0].start * ratio
-            w_end = seg_start + spans[-1].end * ratio
-            out_words.append(
-                {"word": w_text, "start": float(w_start), "end": float(w_end)}
+            spans = token_spans[cursor : cursor + n]
+            cursor += n
+            if not spans:
+                continue
+            all_word_times[global_idx] = (
+                float(spans[0].start * ratio),
+                float(spans[-1].end * ratio),
             )
-        return out_words
+
+        # Patch any dropped (un-alignable) words by interpolating between
+        # neighbours.
+        for i, (s, _e) in enumerate(all_word_times):
+            if s < 0:
+                # find nearest aligned neighbours
+                prev_t = next(
+                    (
+                        all_word_times[j][1]
+                        for j in range(i - 1, -1, -1)
+                        if all_word_times[j][0] >= 0
+                    ),
+                    0.0,
+                )
+                next_t = next(
+                    (
+                        all_word_times[j][0]
+                        for j in range(i + 1, len(all_word_times))
+                        if all_word_times[j][0] >= 0
+                    ),
+                    prev_t,
+                )
+                all_word_times[i] = (prev_t, next_t)
+
+        # Distribute back into segments and set start/end from word boundaries.
+        cursor = 0
+        for seg, n in zip(segments, seg_word_counts):
+            if n == 0:
+                seg["words"] = []
+                # Keep raw_start/raw_end as-is; nothing better available.
+                continue
+            seg_words = []
+            for j in range(n):
+                w_text = flat_words[cursor + j]
+                ws, we = all_word_times[cursor + j]
+                seg_words.append({"word": w_text, "start": ws, "end": we})
+            cursor += n
+            seg["words"] = seg_words
+            seg["start"] = seg_words[0]["start"]
+            seg["end"] = seg_words[-1]["end"]
+
+    def _uniform_fill(self, segments: list[dict[str, Any]]) -> None:
+        """Last-resort: spread VibeVoice raw start/end uniformly across each segment's words."""
+        for seg in segments:
+            words_text = seg["text"].split()
+            seg["words"] = _uniform_words(words_text, seg["raw_start"], seg["raw_end"])
+
+
+def _drop_duplicate_segments(segments: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop a segment whose text is fully contained in the previous segment's text.
+
+    VibeVoice sometimes emits a "tail" segment that just repeats the last
+    sentence of the previous one (we observed this on Harvard-list audio).
+    The duplicate has bogus timestamps, so its presence can drag a global FA
+    pass into the wrong region.
+    """
+    out: list[dict[str, Any]] = []
+    for seg in segments:
+        text = seg["text"].strip()
+        if out and text:
+            prev_text = out[-1]["text"].strip()
+            # Drop if this segment's text is contained in the previous one
+            # (or vice versa, which would mean the previous was a stub).
+            if text in prev_text or prev_text in text:
+                continue
+        out.append(seg)
+    return out
 
 
 def _normalize_for_fa(word: str) -> str:
