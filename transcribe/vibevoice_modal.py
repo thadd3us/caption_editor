@@ -130,12 +130,13 @@ class VibeVoiceASR:
 
         import soundfile as sf
 
-        t0 = time.time()
+        t_start = time.time()
         audio_np, sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
         if audio_np.ndim > 1:
             audio_np = audio_np.mean(axis=1)
+        audio_seconds = len(audio_np) / sr
         print(
-            f"[{time.strftime('%H:%M:%S')}] received audio: {len(audio_np) / sr:.1f}s @ {sr}Hz"
+            f"[{time.strftime('%H:%M:%S')}] received audio: {audio_seconds:.1f}s @ {sr}Hz"
         )
 
         # The VibeVoice processor's apply_transcription_request expects a file
@@ -144,12 +145,16 @@ class VibeVoiceASR:
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             sf.write(tmp.name, audio_np, sr)
             tmp_path = tmp.name
+        t_vv0 = time.time()
         try:
             segments = self._run_vibevoice(tmp_path)
         finally:
             os.unlink(tmp_path)
+        vv_seconds = time.time() - t_vv0
         print(
-            f"[{time.strftime('%H:%M:%S')}] VibeVoice produced {len(segments)} segments in {time.time() - t0:.1f}s"
+            f"[{time.strftime('%H:%M:%S')}] VibeVoice produced {len(segments)} segments in "
+            f"{vv_seconds:.1f}s (RTF {vv_seconds / audio_seconds:.3f}x, "
+            f"{audio_seconds / vv_seconds:.1f}x realtime)"
         )
 
         # 2. Resample to 16kHz once for forced alignment
@@ -163,13 +168,22 @@ class VibeVoiceASR:
             audio_16k = audio_np
 
         # 3. Forced-align each segment
-        t1 = time.time()
+        t_fa0 = time.time()
         for seg in segments:
             seg["words"] = self._align_segment(
                 audio_16k, seg["start"], seg["end"], seg["text"]
             )
+        fa_seconds = time.time() - t_fa0
         print(
-            f"[{time.strftime('%H:%M:%S')}] forced alignment finished in {time.time() - t1:.1f}s"
+            f"[{time.strftime('%H:%M:%S')}] forced alignment finished in {fa_seconds:.1f}s "
+            f"(RTF {fa_seconds / audio_seconds:.3f}x)"
+        )
+
+        total = time.time() - t_start
+        print(
+            f"[{time.strftime('%H:%M:%S')}] total inference: {total:.1f}s for "
+            f"{audio_seconds:.1f}s of audio "
+            f"(RTF {total / audio_seconds:.3f}x, {audio_seconds / total:.1f}x realtime)"
         )
 
         return segments
