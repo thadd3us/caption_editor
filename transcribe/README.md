@@ -216,6 +216,43 @@ weights are too large for a typical laptop, so we run it on a Modal-hosted GPU
 worker (`transcribe/vibevoice_modal.py`). Word timestamps come from a
 torchaudio MMS-FA forced-alignment pass on the same worker.
 
+#### How timing works (and why it isn't VibeVoice's timing)
+
+VibeVoice emits utterance-level JSON of the form
+`[{"Start", "End", "Speaker", "Content"}, ...]`. Its **content grouping** and
+**speaker labels** are good — they decide which sentences belong together
+and who said what. Its **timestamps are unreliable for read-speech**:
+on the Harvard-sentences fixture (`test_data/OSR_us_000_0010_8k.wav`,
+~33s, single speaker) it claimed 10 sentences spanned only ~26.5s with a
+fake 7s `[Silence]` tail. Parakeet (golden, 0.6B NeMo TDT) shows the speech
+actually runs 0.24s → 32.48s. We confirmed the time-axis compression at
+8 kHz, 16 kHz, and 24 kHz inputs — the model produces the same wrong times
+regardless of sample rate, so it isn't a resampling bug.
+
+So the worker:
+
+1. Calls VibeVoice for content + speaker labels; **discards** its `Start`/`End`
+   (kept on each segment as `raw_start`/`raw_end` for debugging).
+2. Drops segments whose text is contained in the previous segment (VibeVoice
+   sometimes hallucinates a duplicate "tail" segment with bogus timing).
+3. Runs **one global** torchaudio MMS-FA forced-alignment pass over the entire
+   audio against the concatenated transcript, producing real word-level
+   timestamps.
+4. Re-derives each segment's `start`/`end` from the first/last word in that
+   segment.
+
+Result on the Harvard fixture, FA-derived vs Parakeet golden:
+
+| | Raw VibeVoice | After global FA | Parakeet |
+|--|--|--|--|
+| Sentences 1-7 | 0.00 – 13.00 | **0.50 – 22.40** | 0.24 – 22.88 |
+| Sentences 8-10 | 13.27 – 26.52 | **23.76 – 32.12** | 23.44 – 32.48 |
+
+FA-derived times are within ~0.4s of Parakeet, with real per-word timing.
+Segmentation (which sentences cluster together) still comes from VibeVoice;
+the standard `split_long_segments` post-processing can further split using
+the (now real) word boundaries.
+
 **One-time setup** (Modal account + token, then deploy):
 
 ```bash
