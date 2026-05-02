@@ -36,6 +36,9 @@ In short: I wanted to combine AI-assisted labeling with the ability to easily co
 ![Open with Caption Editor](docs/open_with_caption_editor.png)
 
 3. Menu item: "AI Annotations > Caption with Speech Recognizer" (this also computes speaker ID embeddings on each ASR segment)
+
+![AI Annotations > Caption with Speech Recognizer](docs/caption_with_asr.png)
+
    * This is quite complex and may or may not work on your system.
    * The first run will be slow and download a lot (~GBs).
    * It downloads [uvx](https://docs.astral.sh/uv/) for your platform, then uses `uvx run` to:
