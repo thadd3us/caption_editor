@@ -144,11 +144,15 @@ jobs:
         run: brew install bazelisk
 
       # Bundled next to transcribe-rs in Contents/Resources/bin/ (see
-      # scripts/stage-ffmpeg.py). `npm run build:ffmpeg` uses python3 + ffmpeg
-      # on PATH (no uv). Local dev can still use imageio via `uv sync` if
-      # imageio_ffmpeg is importable from the active Python.
-      - name: Install ffmpeg for bundling
-        run: brew install ffmpeg
+      # scripts/stage-ffmpeg.py). We deliberately DON'T `brew install ffmpeg`
+      # here: Homebrew's binary is dynamically linked to
+      # `/opt/homebrew/Cellar/ffmpeg/<ver>/lib/lib*.dylib`, so the resulting
+      # .app crashes on any machine without those exact paths. imageio-ffmpeg
+      # ships an osxexperts static build whose only dylib references are
+      # under /usr/lib — stage-ffmpeg.py verifies this via `otool -L` and
+      # refuses to bundle anything else.
+      - name: Install imageio-ffmpeg for bundling
+        run: pip3 install --break-system-packages imageio-ffmpeg
 
       # `npm run package:mac` runs `vue-tsc → vite build → vite build
       # --config vite.electron.config.ts → electron-builder --mac`

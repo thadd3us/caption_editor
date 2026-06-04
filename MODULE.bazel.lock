@@ -483,7 +483,7 @@
     },
     "@@rules_rust+//crate_universe:extension.bzl%crate": {
       "general": {
-        "bzlTransitiveDigest": "dYrRexFCw2D9zQvRBF54gTXKRYyYsuw22XQHC/cPYN8=",
+        "bzlTransitiveDigest": "T7OWYIvxjP3Zmkb/HT1jiL9Ho4av2wXovF11kLsgVUw=",
         "usagesDigest": "0FHnYnKHYTjTAsUV4ZyKOhSTdNJa/pAXwuE4sjo7k/w=",
         "recordedInputs": [
           "ENV:CARGO_BAZEL_DEBUG \\0",
@@ -507,8 +507,8 @@
           "REPO_MAPPING:rules_rust+,bazel_tools bazel_tools",
           "REPO_MAPPING:rules_rust+,rules_cc rules_cc+",
           "REPO_MAPPING:rules_rust+,rules_rust rules_rust+",
-          "FILE:@@//transcribe_rs/Cargo.lock ded22752079673b27fbe079b00a8a720a24aeda1428e67592a2404ba6aaa6f9e",
-          "FILE:@@//transcribe_rs/Cargo.toml d7c6921817be4fbc758213157f0469d396deea14324bca1485ddbf69813119de",
+          "FILE:@@//transcribe_rs/Cargo.lock c690cc45e1ff7063ec852f3343a06ea08a7994c538f9cd1d897cb63714cbe557",
+          "FILE:@@//transcribe_rs/Cargo.toml 068a6f1586c040463c0a96b317e06c203bb8bfeda924fd3de08e9997e4b8b3f2",
           "FILE:@@//transcribe_rs/caption-schema/Cargo.toml dfeb8b977afdc6003ab582f926b8da1b125c5e793350a286e2fffd3ffedb2ce8",
           "FILE:@@//transcribe_rs/caption-core/Cargo.toml 6f93fb8db7070998a7a7ba81cedf0f525c0a3801a341171a1f2c892c088fe3f3",
           "FILE:@@//transcribe_rs/transcribe-rs/Cargo.toml 9f4033d83c32b832f79fbd5407c29c4e9d96b011f74af34a6200111d19de4b76",
