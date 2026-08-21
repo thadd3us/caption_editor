@@ -97,6 +97,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   setLicenseAccepted: (): Promise<void> => ipcRenderer.invoke('license:setAccepted'),
 
+  /**
+   * App preferences (persisted in userData, shared by all windows).
+   */
+  preferences: {
+    getSync: (): unknown => {
+      try {
+        return ipcRenderer.sendSync('preferences:getSync')
+      } catch {
+        return null
+      }
+    },
+    set: (preferences: unknown): Promise<unknown> =>
+      ipcRenderer.invoke('preferences:set', preferences),
+    onChanged: (callback: (preferences: unknown) => void) => {
+      ipcRenderer.on('preferences-changed', (_event, preferences) => callback(preferences))
+    }
+  },
+
   ...(process.env.NODE_ENV === 'test'
     ? {
         clearLicenseAcceptedForTests: (): Promise<void> =>

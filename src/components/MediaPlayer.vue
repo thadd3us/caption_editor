@@ -63,11 +63,31 @@
       </div>
 
       <div class="caption-resizer" @mousedown="startCaptionResize"></div>
-      <div class="current-caption-display" :style="{ height: store.captionHeight + 'px' }">
-        <div class="caption-label">Current Caption:</div>
+      <div
+        class="current-caption-display"
+        :style="{ height: store.captionHeight + 'px' }"
+        @dblclick="beginCaptionEdit"
+      >
+        <div class="caption-label">
+          <span>Current Caption:</span>
+          <span v-if="isEditingCaption" class="caption-hint">Enter to save · Esc to cancel</span>
+          <span v-else-if="currentSegment" class="caption-hint">Double-click to edit</span>
+        </div>
+        <textarea
+          v-if="isEditingCaption"
+          ref="captionEditorElement"
+          v-model="captionDraft"
+          class="caption-editor"
+          data-testid="caption-editor"
+          spellcheck="true"
+          @keydown="onCaptionEditorKeydown"
+          @blur="commitCaptionEdit"
+        ></textarea>
         <div
+          v-else
           class="caption-text"
           @contextmenu="onCaptionContextMenu"
+          @click="onCaptionWordClick"
         >
           <template v-if="currentSegment && currentSegment.words && currentSegment.words.length > 0">
             <span
@@ -97,12 +117,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
+import { usePreferencesStore } from '../stores/preferencesStore'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
 const store = useCaptionStore()
+const prefs = usePreferencesStore()
 const videoElement = ref<HTMLVideoElement | null>(null)
 const audioElement = ref<HTMLAudioElement | null>(null)
 const duration = ref(0)
@@ -140,6 +162,91 @@ const currentWordIndex = computed(() => {
   }
   return -1
 })
+
+/**
+ * Inline editing of the current caption.
+ *
+ * Two deliberate design points:
+ *
+ * 1. **Display and edit are different elements.** `currentWordIndex` recomputes on every
+ *    `timeupdate`, so the word-span view is re-patched several times a second. Making that view
+ *    `contenteditable` would destroy the caret and selection mid-keystroke, so edit mode swaps in
+ *    a plain <textarea> bound to a local draft instead.
+ *
+ * 2. **The edit target is pinned by id, not by playhead.** `store.currentSegment` follows the
+ *    playhead, so with playback running the "current" segment changes while you type. We capture
+ *    the segment id at edit start and commit to *that* id, which is what lets playback continue
+ *    during editing (`pausePlaybackWhileEditingCaption` preference, default off).
+ *
+ * Committing routes through `store.updateSegment()` — identical to the table's text column — so
+ * word timestamps are realigned by `realignWords()` and the table updates reactively.
+ */
+const editingSegmentId = ref<string | null>(null)
+const captionDraft = ref('')
+const captionEditorElement = ref<HTMLTextAreaElement | null>(null)
+const isEditingCaption = computed(() => editingSegmentId.value !== null)
+
+function beginCaptionEdit() {
+  // A double-click inside the open editor bubbles up here; restarting would drop the draft.
+  if (isEditingCaption.value) return
+
+  const segment = currentSegment.value
+  if (!segment) return
+
+  console.log('Editing caption in player panel for segment:', segment.id)
+  editingSegmentId.value = segment.id
+  captionDraft.value = segment.text
+
+  // Keep the table in agreement about which row is being worked on.
+  store.selectSegment(segment.id)
+
+  if (prefs.preferences.pausePlaybackWhileEditingCaption && store.isPlaying) {
+    // Go through the store rather than `mediaElement.pause()`: the `store.isPlaying` watcher
+    // below pauses the element, and the resulting `pause` event settles `playbackMode` (including
+    // tearing down playlist playback) through the same path as any other pause.
+    store.setPlaying(false)
+  }
+
+  nextTick(() => {
+    const el = captionEditorElement.value
+    if (!el) return
+    el.focus()
+    // Caret at the end rather than select-all: most edits here are small corrections.
+    el.setSelectionRange(el.value.length, el.value.length)
+  })
+}
+
+function commitCaptionEdit() {
+  const segmentId = editingSegmentId.value
+  if (segmentId === null) return
+
+  // Clear first so the `blur` that follows Enter/Escape is a no-op.
+  editingSegmentId.value = null
+
+  const text = captionDraft.value.trim()
+  const segment = store.document.segments.find(s => s.id === segmentId)
+  if (!segment || segment.text === text) return
+
+  store.updateSegment(segmentId, { text, verified: true })
+}
+
+function cancelCaptionEdit() {
+  editingSegmentId.value = null
+}
+
+function onCaptionEditorKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    event.stopPropagation()
+    cancelCaptionEdit()
+    return
+  }
+  // Enter commits (captions are short); Shift+Enter inserts a newline.
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    commitCaptionEdit()
+  }
+}
 
 // Resizable caption area (backed by store for persistence)
 function startCaptionResize(event: MouseEvent) {
@@ -185,6 +292,43 @@ const currentCaptionText = computed(() => {
   const seg = store.currentSegment
   return seg ? seg.text : ''
 })
+
+/**
+ * Click a timed word to move the playhead to it — the same gesture the table offers on a row or
+ * a time cell (`CaptionTable.onRowClicked` / the start-time column's `onCellClicked`).
+ *
+ * `event.detail > 1` is skipped so the second click of a double-click (which opens the editor)
+ * does not also seek; the first click still lands, matching the table's time cells.
+ */
+function onCaptionWordClick(event: MouseEvent) {
+  if (event.detail > 1) return
+
+  const target = event.target as HTMLElement | null
+  if (!target?.classList.contains('word-span')) return
+
+  const wordIndexStr = target.dataset.wordIndex
+  if (wordIndexStr === undefined) return
+
+  const word = currentSegment.value?.words?.[parseInt(wordIndexStr, 10)]
+  // Words added or changed by editing carry no timestamp — nothing to seek to.
+  if (!word || word.startTime === undefined) return
+
+  console.log('Seeking to word:', word.text, 'at', word.startTime)
+  seekTo(word.startTime)
+}
+
+/**
+ * Seek both the store and the media element.
+ *
+ * The `store.currentTime` watcher only re-syncs the element when they differ by >0.5s (to avoid
+ * fighting `timeupdate`), so short hops need the element set explicitly — same as the table does.
+ */
+function seekTo(time: number) {
+  if (mediaElement.value) {
+    mediaElement.value.currentTime = time
+  }
+  store.setCurrentTime(time)
+}
 
 function onCaptionContextMenu(event: MouseEvent) {
   event.preventDefault()
@@ -554,21 +698,58 @@ video, audio {
 }
 
 .current-caption-display {
+  display: flex;
+  flex-direction: column;
   padding: 16px;
   background: var(--surface-1);
   border: 1px solid var(--border-1);
   border-radius: 6px;
-  overflow-y: auto;
+  /* Scrolling moved to .caption-text so the label stays put and the text fills the box —
+     which is what makes "double-click anywhere in the box to edit" hit a sensible target. */
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .caption-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
   color: var(--text-2);
   margin-bottom: 8px;
   letter-spacing: 0.5px;
+}
+
+.caption-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.caption-editor {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-1);
+  background: var(--surface-popover, var(--surface-1));
+  border: 1px solid #3a7afe;
+  border-radius: 4px;
+  resize: none;
+}
+
+.caption-editor:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(58, 122, 254, 0.25);
 }
 
 /*
@@ -595,6 +776,9 @@ video, audio {
  * it overflows (rare for real captions; ASR tokens are usually short).
  */
 .caption-text {
+  flex: 1;
+  overflow-y: auto;
+  cursor: text;
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-1);
@@ -605,7 +789,8 @@ video, audio {
 
 .word-span {
   white-space: nowrap;
-  cursor: context-menu;
+  /* Timed words are clickable (seek); untimed ones are not — see the override below. */
+  cursor: pointer;
   padding: 1px 2px;
   border-radius: 2px;
   transition: background 0.15s;
@@ -622,6 +807,7 @@ video, audio {
 .word-span[data-has-timestamp="false"] {
   color: var(--text-3);
   font-style: italic;
+  cursor: text;
 }
 
 .caption-controls {

@@ -4,6 +4,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import App from './App.vue'
 import './style.css'
 import { useCaptionStore } from './stores/captionStore'
+import { usePreferencesStore } from './stores/preferencesStore'
 import { installFloatingTooltip } from './utils/floatingTooltip'
 
 function applyThemeMode(mode: 'light' | 'dark') {
@@ -53,9 +54,10 @@ app.mount('#app')
 /* Body-level tooltips (see floatingTooltip.ts); must run after mount so document.body exists. */
 installFloatingTooltip()
 
-// Always expose store on window for tests and debugging
+// Always expose stores on window for tests and debugging
 const store = useCaptionStore()
   ; (window as any).$store = store
+  ; (window as any).$preferencesStore = usePreferencesStore()
 
 if (import.meta.env && import.meta.env.DEV) {
   console.log('Caption Editor mounted - Store available at window.$store')

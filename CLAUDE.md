@@ -192,6 +192,40 @@ crate.
 - Default model: `nvidia/parakeet-tdt-0.6b-v3`
 - Test override: Set `window.__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'`
 
+**Current Caption panel (under the media player)**
+- **Click a word** with a timestamp to move the playhead there — the same gesture as clicking a
+  table row / start-time cell. Words without timestamps (typed during an edit) are inert and get
+  a text cursor instead of a pointer. The handler ignores `event.detail > 1` so the second click
+  of a double-click doesn't also seek.
+- **Double-click** the box to edit: the word-span display is swapped for a `<textarea>`.
+  **Enter** commits, **Shift+Enter** adds a newline, **Esc** cancels, blur commits.
+- Two invariants worth preserving (`MediaPlayer.vue`):
+  1. *Display and edit are separate elements.* `currentWordIndex` recomputes on every
+     `timeupdate`, so the word spans re-render several times a second — a `contenteditable`
+     display would lose the caret mid-keystroke.
+  2. *The edit target is pinned by segment id*, not by `store.currentSegment` (which follows the
+     playhead). That is what lets playback continue while you type.
+- Commits go through `store.updateSegment(id, { text, verified: true })` — the same call the
+  table's text column makes — so `realignWords()` preserves word timestamps and the grid updates
+  reactively. Entering edit mode also calls `store.selectSegment(id)` so the table agrees on the
+  target row.
+
+**Preferences**
+- App-wide user settings (not per-document — `UIState` in the `.captions_json5` covers that).
+- Schema + defaults + `sanitizePreferences()` live in `src/types/preferences.ts`, imported by
+  **both** the Electron main process and the renderer. Unknown/wrong-typed keys are dropped on
+  read, so an old or hand-edited file can't break the app.
+- Persisted in `userData/preferences.json` via `preferences:getSync` / `preferences:set` IPC
+  (`localStorage` is unreliable for packaged `file://` loads — same reason as license
+  acceptance). Outside Electron the store falls back to `localStorage`.
+- A `preferences-changed` broadcast keeps other open windows in sync
+  (`adoptExternalPreferences()` — adopts without re-persisting).
+- UI: `PreferencesDialog.vue`, opened from **Settings…** in the app menu (macOS) or
+  **File → Preferences…** elsewhere, both bound to `Cmd/Ctrl+,`. Tests can open it via
+  `window.openPreferencesDialog()`; the store is at `window.$preferencesStore`.
+- To add a setting: add the field + default in `src/types/preferences.ts`, then a row in
+  `PreferencesDialog.vue`. No IPC or persistence changes needed.
+
 **Sequential Playback**
 - Plays segments in table order, skipping gaps
 - Playlist captured at start via `forEachNodeAfterFilterAndSort()`
