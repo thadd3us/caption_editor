@@ -166,6 +166,10 @@ const unsavedChangesState = ref({
   context: 'quit' as 'quit' | 'continue',
   resolve: (_value: UnsavedChangesResult) => {}
 })
+/** In-flight unsaved-changes dialog, so concurrent callers share one prompt. */
+let pendingUnsavedChanges: Promise<UnsavedChangesResult> | null = null
+/** Transcript path this window has claimed with the main process. */
+let claimedFilePath: string | null = null
 
 async function showConfirm(options: { 
   title?: string, 
@@ -435,26 +439,134 @@ watch(
 /**
  * Menu action handlers
  */
+function isCaptionsPath(filePath: string): boolean {
+  const lower = filePath.toLowerCase()
+  return lower.endsWith('.captions_json5') || lower.endsWith('.captions_json')
+}
+
+/**
+ * Keep the window chrome in step with the open document: title bar, macOS proxy icon,
+ * and the "edited" dot in the close button. Also (re)claims ownership of the transcript
+ * so the main process knows which window owns which file.
+ */
+watch(
+  [() => store.document.filePath, () => store.document.title, () => store.isDirty],
+  ([filePath, title, edited]) => {
+    const api = window.electronAPI
+    api?.setWindowDocumentState?.({ filePath: filePath ?? null, title: title ?? null, edited })
+    if (filePath && filePath !== claimedFilePath) {
+      claimedFilePath = filePath
+      void api?.claimDocument?.(filePath)
+    }
+  },
+  { immediate: true }
+)
+
+/**
+ * Ask about unsaved content changes before an action that would discard them.
+ *
+ * There is no `segments.length` guard here: a document whose only change is a freshly
+ * attached media file is still an unsaved change worth protecting. That guard used to
+ * exist to paper over media auto-load marking untouched documents dirty; the store now
+ * only dirties on a real attachment change, so the guard is no longer needed.
+ */
 async function confirmDiscardChanges(context: 'quit' | 'continue' = 'continue'): Promise<UnsavedChangesResult> {
-  if (store.isDirty && store.document.segments.length > 0) {
-    return new Promise((resolve) => {
-      unsavedChangesState.value = {
-        isOpen: true,
-        context,
-        resolve: (value) => {
-          unsavedChangesState.value.isOpen = false
-          resolve(value)
-        }
+  if (!store.isDirty) return 'discard' // Nothing to lose, proceed
+
+  // Re-entrant: a second trigger (e.g. a file drop arriving while the quit dialog is
+  // up) must join the dialog already on screen rather than orphan its promise.
+  if (pendingUnsavedChanges) return pendingUnsavedChanges
+
+  pendingUnsavedChanges = new Promise<UnsavedChangesResult>((resolve) => {
+    unsavedChangesState.value = {
+      isOpen: true,
+      context,
+      resolve: (value) => {
+        unsavedChangesState.value.isOpen = false
+        pendingUnsavedChanges = null
+        resolve(value)
       }
+    }
+  })
+  return pendingUnsavedChanges
+}
+
+/**
+ * Single entry point for replacing the open document from file paths — used by the
+ * Open menu, drag & drop, and files opened from the OS (Finder double-click, dock drop).
+ * All three previously had different behavior; the OS path skipped the unsaved-changes
+ * check entirely and silently discarded edits.
+ */
+async function openDocumentFromPaths(filePaths: string[]): Promise<void> {
+  if (filePaths.length === 0) return
+
+  // Refuse to open a transcript that another window is already editing — two windows
+  // holding independent copies means whichever saves last silently wins. The main
+  // process focuses the window that owns it instead.
+  const captionsPath = filePaths.find(isCaptionsPath)
+  if (captionsPath && window.electronAPI?.claimDocument) {
+    const claim = await window.electronAPI.claimDocument(captionsPath)
+    if (!claim.claimed) {
+      console.log('[App] Already open in another window:', captionsPath)
+      return
+    }
+  }
+
+  const result = await confirmDiscardChanges('continue')
+  if (result === 'save') await handleMenuSaveFile()
+  if (result === 'cancel') return
+
+  try {
+    const { failures } = await store.processFilePaths(filePaths)
+    if (failures > 0) {
+      await showAlert({
+        title: 'File Load Partial Failure',
+        message: `Failed to load ${failures} file(s). Check console for details.`
+      })
+    }
+  } catch (err) {
+    await showAlert({
+      title: 'File Load Failed',
+      message: 'Failed to process files: ' + (err instanceof Error ? err.message : 'Unknown error')
     })
   }
-  return 'discard' // No unsaved changes, proceed
+}
+
+/**
+ * Persist view-only state (grid layout, filters, playhead, selection) without prompting.
+ * Called on window close so the user returns to exactly where they left off, the way
+ * Lightroom does. No-op unless the document is already backed by a file and has no
+ * unsaved content edits (those go through the dialog instead).
+ */
+async function saveViewStateQuietly(): Promise<void> {
+  if (!store.viewDirty || store.isDirty) return
+  if (!store.document.filePath || !window.electronAPI) return
+
+  try {
+    const result = await window.electronAPI.saveExistingFile({
+      filePath: store.document.filePath,
+      content: store.exportToString()
+    })
+    if (result.success) {
+      store.markSaved()
+      console.log('[App] Saved view state (playhead/selection/grid) on close')
+    } else {
+      console.warn('[App] Could not save view state on close:', result.error)
+    }
+  } catch (err) {
+    console.warn('[App] Could not save view state on close:', err)
+  }
 }
 
 async function handleMenuOpenFile() {
   const result = await confirmDiscardChanges('continue')
   if (result === 'save') await handleMenuSaveFile()
   if (result !== 'cancel') fileDropZone.value?.triggerFileInput()
+}
+
+/** Files opened from the OS (Finder double-click, dock drop) and drag & drop. */
+async function handleExternalFileOpen(filePaths: string[]) {
+  await openDocumentFromPaths(filePaths)
 }
 
 async function handleMenuSaveFile() {
@@ -480,7 +592,7 @@ async function handleMenuSaveFile() {
 
     if (result.success) {
       console.log('Captions file saved successfully to:', result.filePath)
-      store.setIsDirty(false)
+      store.markSaved()
       if (result.filePath && result.filePath !== store.document.filePath) {
         store.updateFilePath(result.filePath)
       }
@@ -523,7 +635,7 @@ async function handleMenuSaveAs() {
 
     if (result.success) {
       console.log('Captions file saved successfully:', result.filePath)
-      store.setIsDirty(false)
+      store.markSaved()
       if (result.filePath) {
         store.updateFilePath(result.filePath)
       }
@@ -568,9 +680,16 @@ async function handleMenuExportSrt() {
 // ASR menu handler
 async function handleMenuAsrCaption() {
   console.log('[ASR] Caption menu item clicked')
-  const discardResult = await confirmDiscardChanges('continue')
-  if (discardResult === 'save') await handleMenuSaveFile()
-  if (discardResult === 'cancel') return
+
+  // Transcribing replaces the segments, but keeps the document's identity, title, and
+  // media attachment. So unsaved *segment* edits are what is at risk here — a document
+  // whose only unsaved change is a freshly attached media file loses nothing, and
+  // prompting about it would just be noise in front of the ASR dialog.
+  if (store.document.segments.length > 0) {
+    const discardResult = await confirmDiscardChanges('continue')
+    if (discardResult === 'save') await handleMenuSaveFile()
+    if (discardResult === 'cancel') return
+  }
 
   if (store.document.segments.length > 0) {
     isAsrConfirmDialogVisible.value = true
@@ -609,7 +728,9 @@ async function handleMenuAsrEmbed() {
     return
   }
 
-  store.setIsDirty(false)
+  // The file on disk now matches memory (including playhead/selection in uiState, which
+  // the embedding tool round-trips), so reloading it below restores the user's place.
+  store.markSaved()
   startAsrEmbedding()
 }
 
@@ -800,7 +921,7 @@ async function startAsrTranscription() {
       if (hadNoPriorDocument && result.captionsPath) {
         store.updateFilePath(result.captionsPath)
         // ASR's on-disk sidecar matches what we just merged in — no edits yet.
-        store.setIsDirty(false)
+        store.markSaved()
       }
 
       // Close modal on success
@@ -880,6 +1001,7 @@ onMounted(() => {
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
   ;(window as any).handleMenuOpenFile = handleMenuOpenFile
+  ;(window as any).handleExternalFileOpen = handleExternalFileOpen
   ;(window as any).showAlert = showAlert
   ;(window as any).showConfirm = showConfirm
 
@@ -894,9 +1016,14 @@ onMounted(() => {
         await handleMenuSaveFile()
         api.quitApp()
       } else if (result === 'discard') {
+        // No content changes to lose, but the user may have scrolled, sorted, or moved
+        // the playhead. Persist that silently so reopening lands where they left off.
+        await saveViewStateQuietly()
         api.quitApp()
+      } else {
+        // 'cancel' → stay open, and tell main to abort any in-progress quit.
+        api.cancelQuit?.()
       }
-      // 'cancel' → do nothing, stay open
     })
   }
 
@@ -949,24 +1076,7 @@ onMounted(() => {
   // Listen for files dropped via IPC
   if ((window as any).electronAPI?.ipcRenderer) {
     (window as any).electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
-      const dropResult = await confirmDiscardChanges('continue')
-      if (dropResult === 'save') await handleMenuSaveFile()
-      if (dropResult !== 'cancel') {
-        try {
-          const { failures } = await store.processFilePaths(filePaths)
-          if (failures > 0) {
-            await showAlert({
-              title: 'File Load Partial Failure',
-              message: `Failed to load ${failures} file(s). Check console for details.`
-            })
-          }
-        } catch (err) {
-          await showAlert({
-            title: 'File Drop Failed',
-            message: 'Failed to process files: ' + (err instanceof Error ? err.message : 'Unknown error')
-          })
-        }
-      }
+      await openDocumentFromPaths(filePaths)
     })
   }
 })

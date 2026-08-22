@@ -108,6 +108,49 @@ Saved/exported `.captions_json5` from `exportToString()` includes leading `//` h
 - Immutable document model
 - Segments always sorted by start/end time
 
+### Dirty tracking and view state
+
+Two flags in `captionStore.ts`, with deliberately different policies:
+
+- **`isDirty` (content)** — the transcript differs from disk (segments, speakers, title,
+  media attachment). Prompts before quit / open / drop. Set in **exactly one place**: a
+  `flush: 'sync'` watcher on `document`. The document model is immutable, so every
+  mutating action replaces `document.value` wholesale — do **not** add per-action
+  `isDirty = true` lines. Use `withoutDirtying()` for replacements that are not content
+  edits (e.g. `updateFilePath`, since `filePath` is runtime-only and never serialized).
+- **`viewDirty`** — only view state changed. Saved quietly on window close
+  (`saveViewStateQuietly()` in App.vue), **never** prompts. Scrolling or sorting must not
+  produce an "unsaved changes" dialog.
+
+`markSaved()` clears both; call it wherever memory comes to match disk.
+
+**Everything the user can adjust lives in `uiState`** and round-trips with the document:
+`columnState`, `filterModel`, `leftPanelWidth`, `captionHeight`, `playheadSeconds`,
+`selectedSegmentId`. Selection is keyed by **segment UUID**, not row index, so it
+survives sorting, filtering, and edits. The playhead is restored in
+`MediaPlayer.onMediaLoaded()` — the earliest point the element accepts a seek.
+
+**⚠️ `uiState` fields must be added in all three schemas** (`src/types/schema.ts`,
+`transcribe/schema.py`, `transcribe_rs/caption-schema/src/lib.rs`). Both pydantic and
+serde drop unknown fields, and `embed-rs` / `embed_cli` rewrite the whole document — a
+TS-only field would be silently erased by "Compute Speaker Embeddings". Guarded by
+`transcribe/ui_state_round_trip_test.py` and `ui_state_survives_round_trip` in the Rust
+crate.
+
+### Windows, documents, and quitting
+
+- One window owns a given `.captions_json5` at a time. `electron/main.ts` keeps a
+  `documentOwners` registry (realpath + case-folded key); `doc:claim` returns
+  `{claimed: false}` and focuses the owning window instead. Sharing the same **media**
+  across windows is fine — `media://` is read-only.
+- All document-open entry points (Open menu, drag & drop, OS `open-file`) funnel through
+  `openDocumentFromPaths()` in App.vue, so they share one unsaved-changes check.
+- Quitting asks each window **in turn**; any window's "Keep working" (`app:cancel-quit`)
+  aborts the whole quit. Window close interception is disabled under `NODE_ENV=test`
+  unless a spec sets `CAPTION_EDITOR_INTERCEPT_CLOSE=1` (see
+  `tests/electron/quit-coordination.electron.spec.ts`, which must tear down with
+  `app.exit()` rather than `app.quit()`).
+
 ### Captions JSON Format
 - Primary document format: `*.captions_json5`
 - Media file paths stored as **absolute** internally, **relative** when serialized

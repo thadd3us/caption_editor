@@ -61,9 +61,13 @@
       :getRowId="getRowId"
       :suppressScrollOnNewData="true"
       @grid-ready="onGridReady"
-      @first-data-rendered="refreshGridStats"
-      @filter-changed="refreshGridStats"
+      @first-data-rendered="onFirstDataRendered"
+      @filter-changed="onFilterChanged"
       @model-updated="refreshGridStats"
+      @sort-changed="onGridViewStateChanged"
+      @column-resized="onGridViewStateChanged"
+      @column-moved="onGridViewStateChanged"
+      @column-visible="onGridViewStateChanged"
       @selection-changed="onSelectionChanged"
       @row-clicked="onRowClicked"
       @cell-context-menu="onCellContextMenu"
@@ -1021,6 +1025,62 @@ store.gridStateProvider = getGridState
 // Track document ID to restore state only once per file open
 let lastRestoredDocumentId: string | null = null
 
+/**
+ * Any change to column layout, sort, or filters is view state: it should be persisted
+ * with the document, but must never raise an "unsaved changes" dialog.
+ */
+function onGridViewStateChanged() {
+  if (isRestoringGridState) return
+  store.markViewDirty()
+}
+
+function onFilterChanged() {
+  onGridViewStateChanged()
+  // A row that was filtered out of view could not be selected at restore time. If the
+  // filter change brings it back and the user has not selected anything else in the
+  // meantime, put them back on it.
+  if (gridApi.value && gridApi.value.getSelectedNodes().length === 0) {
+    restoreSelectionFromDocument()
+  }
+  refreshGridStats()
+}
+
+function onFirstDataRendered() {
+  restoreSelectionFromDocument()
+  refreshGridStats()
+}
+
+/** Set while applying persisted state, so restoring does not itself mark the view dirty. */
+let isRestoringGridState = false
+
+/**
+ * Reselect and scroll to the segment the user was on when the file was written.
+ * Keyed by UUID rather than row index, so it survives re-sorting, filtering, and any
+ * edits made since. Runs after column state and filters have been applied.
+ */
+function restoreSelectionFromDocument() {
+  if (!gridApi.value) return
+  const segmentId = store.selectedSegmentId
+  if (!segmentId) return
+  if (gridApi.value.getSelectedNodes().some((n) => n.data?.id === segmentId)) return
+
+  const rowNode = gridApi.value.getRowNode(segmentId)
+  // Absent means the row is filtered out. Keep `store.selectedSegmentId` so the
+  // selection reappears when the filter is cleared, but don't scroll anywhere.
+  if (!rowNode || rowNode.rowIndex == null) return
+
+  isSyncingSelection = true
+  gridApi.value.deselectAll()
+  rowNode.setSelected(true)
+  isSyncingSelection = false
+
+  logProgrammaticGridScroll(
+    'restore persisted selection from uiState',
+    () => gridApi.value!.ensureNodeVisible(rowNode, 'middle'),
+    { segmentId }
+  )
+}
+
 /** Restore grid state from document if present */
 function restoreGridState() {
   if (!gridApi.value) return
@@ -1033,20 +1093,29 @@ function restoreGridState() {
 
   const uiState = store.document.uiState
   if (!uiState) {
+    restoreSelectionFromDocument()
     refreshGridStats()
     return
   }
 
-  if (uiState.columnState) {
-    gridApi.value.applyColumnState({
-      state: uiState.columnState as ColumnState[],
-      applyOrder: true
-    })
-  }
-  if (uiState.filterModel) {
-    gridApi.value.setFilterModel(uiState.filterModel)
+  isRestoringGridState = true
+  try {
+    if (uiState.columnState) {
+      gridApi.value.applyColumnState({
+        state: uiState.columnState as ColumnState[],
+        applyOrder: true
+      })
+    }
+    if (uiState.filterModel) {
+      gridApi.value.setFilterModel(uiState.filterModel)
+    }
+  } finally {
+    isRestoringGridState = false
   }
   console.log('Restored grid state from document')
+
+  // After sorting/filtering are in place, so the row lands in the right position.
+  nextTick(() => restoreSelectionFromDocument())
   refreshGridStats()
 }
 

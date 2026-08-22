@@ -69,7 +69,17 @@ if (window.electronAPI?.onFileOpen) {
   window.electronAPI.onFileOpen(async (filePath: string) => {
     console.log('Opening file from OS:', filePath)
 
-    // Delegate to the same path-based ingestion used for drag & drop
+    // Delegate to App's shared open path so that opening a file from the OS goes
+    // through the same unsaved-changes check as the Open menu and drag & drop.
+    // (It used to call processFilePaths() directly, silently discarding edits.)
+    const openViaApp = (window as any).handleExternalFileOpen
+    if (typeof openViaApp === 'function') {
+      await openViaApp([filePath])
+      return
+    }
+
+    // App has not mounted its handler yet — fall back to direct ingestion. At this
+    // point there is no document open, so there is nothing to discard.
     try {
       const { failures } = await store.processFilePaths([filePath])
       if (failures > 0) {

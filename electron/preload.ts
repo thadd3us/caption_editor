@@ -171,9 +171,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * Application quit/close handling
    */
   quitApp: () => ipcRenderer.send('app:quit'),
+  cancelQuit: () => ipcRenderer.send('app:cancel-quit'),
   onAppClose: (callback: () => void) => {
     ipcRenderer.on('app-close', () => callback())
-  }
+  },
+
+  /**
+   * Open-document ownership: at most one window may edit a given transcript.
+   * Resolves `{ claimed: false }` when another window already has it open (and has
+   * been focused), in which case the caller should not load the file.
+   */
+  claimDocument: (filePath: string): Promise<{ claimed: boolean; focusedExistingWindow?: boolean }> =>
+    ipcRenderer.invoke('doc:claim', filePath),
+  releaseDocument: () => ipcRenderer.send('doc:release'),
+
+  /** Reflect the open document in the window title / proxy icon / edited dot. */
+  setWindowDocumentState: (state: { filePath?: string | null; title?: string | null; edited?: boolean }) =>
+    ipcRenderer.send('window:setDocumentState', state)
 })
 
 // Handle file drop events using webUtils.getPathForFile()

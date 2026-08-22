@@ -190,6 +190,19 @@ class UIState(BaseModel):
         description="Pixel height of the current-caption display area",
         alias="captionHeight",
     )
+    playhead_seconds: Optional[float] = Field(
+        None,
+        description="Playback position (seconds) when the file was last written",
+        alias="playheadSeconds",
+    )
+    selected_segment_id: Optional[str] = Field(
+        None,
+        description=(
+            "UUID of the segment selected when the file was last written. Keyed by "
+            "UUID so it survives sorting, filtering, and edits."
+        ),
+        alias="selectedSegmentId",
+    )
 
 
 class RawAsrWord(BaseModel):

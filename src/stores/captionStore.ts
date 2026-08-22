@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { CaptionsDocument, TranscriptSegment, UIState } from '../types/schema'
 import {
@@ -46,7 +46,52 @@ export const useCaptionStore = defineStore('captions', () => {
   const playlist = ref<string[]>([])  // Ordered list of segment IDs to play
   const playlistIndex = ref(0)  // Current position in the playlist
   const playlistStartIndex = ref(0)  // Starting position (for returning after completion)
-  const isDirty = ref(false) // Track unsaved changes
+  /**
+   * Dirty tracking. Two flags with deliberately different policies:
+   *
+   * - `isDirty` (content): the transcript itself differs from what is on disk —
+   *   segments, speakers, title, media attachment. Blocks quit/open with a modal.
+   * - `viewDirty`: only view state changed — grid layout, filters, playhead,
+   *   selection. Saved opportunistically on close, but never prompts. Scrolling
+   *   the table should not produce an "unsaved changes" dialog.
+   *
+   * `isDirty` is set in exactly one place: a shallow watcher on `document`. The
+   * document model is immutable, so every mutating action replaces `document.value`
+   * wholesale — there is no need for (and no way to forget) a per-action flag.
+   */
+  const isDirty = ref(false)
+  const viewDirty = ref(false)
+
+  /** Depth counter for document replacements that must not count as content edits. */
+  let suppressContentDirty = 0
+
+  // `flush: 'sync'` so `isDirty` is observable immediately after an action returns,
+  // rather than on the next tick.
+  watch(document, () => {
+    if (suppressContentDirty > 0) return
+    isDirty.value = true
+  }, { flush: 'sync' })
+
+  /** Run `fn` without letting its document replacement mark the content dirty. */
+  function withoutDirtying<T>(fn: () => T): T {
+    suppressContentDirty++
+    try {
+      return fn()
+    } finally {
+      suppressContentDirty--
+    }
+  }
+
+  /** Memory now matches disk (just loaded, or just saved). */
+  function markSaved() {
+    isDirty.value = false
+    viewDirty.value = false
+  }
+
+  /** Record that view-only state (grid layout, playhead, selection) changed. */
+  function markViewDirty() {
+    viewDirty.value = true
+  }
 
   // Grid state provider: CaptionTable registers a callback that returns current grid UI state
   const gridStateProvider = ref<(() => UIState | undefined) | null>(null)
@@ -54,6 +99,10 @@ export const useCaptionStore = defineStore('captions', () => {
   // Layout state (persisted in uiState)
   const leftPanelWidth = ref(60)  // Percentage width of left (table) panel
   const captionHeight = ref(120)  // Pixel height of caption display area
+
+  // Dragging the panel splitter or the caption-height handle is view state: persisted,
+  // but never a reason to prompt about unsaved changes.
+  watch([leftPanelWidth, captionHeight], () => markViewDirty(), { flush: 'sync' })
 
   // Computed
   // If the playhead is not inside any segment but is within this many seconds
@@ -149,7 +198,6 @@ export const useCaptionStore = defineStore('captions', () => {
       }
 
       document.value = loadedDoc
-      isDirty.value = false // Reset dirty flag on load
 
       // Restore layout dimensions from persisted uiState
       if (loadedDoc.uiState?.leftPanelWidth != null) {
@@ -158,6 +206,21 @@ export const useCaptionStore = defineStore('captions', () => {
       if (loadedDoc.uiState?.captionHeight != null) {
         captionHeight.value = loadedDoc.uiState.captionHeight
       }
+
+      // Restore where the user left off (Lightroom-style): playhead position and
+      // selected row. Selection is keyed by segment UUID, so it survives sorting,
+      // filtering, and edits made since the file was written.
+      if (loadedDoc.uiState?.playheadSeconds != null && loadedDoc.uiState.playheadSeconds > 0) {
+        currentTime.value = loadedDoc.uiState.playheadSeconds
+      }
+      const restoredSelection = loadedDoc.uiState?.selectedSegmentId
+      if (restoredSelection && loadedDoc.segments.some(s => s.id === restoredSelection)) {
+        selectedSegmentId.value = restoredSelection
+      }
+
+      // Memory now matches disk. Must come after the restores above so that
+      // nothing in this function leaves the document looking edited.
+      markSaved()
 
       const t3 = performance.now()
       console.log(`[loadFromFile] done — ${document.value.segments.length} segments, total: ${(t3 - t0).toFixed(1)} ms`)
@@ -180,7 +243,10 @@ export const useCaptionStore = defineStore('captions', () => {
       ...result.document,
       filePath: undefined
     }
-    isDirty.value = true
+
+    // Every segment is new, so any remembered selection refers to a segment that no
+    // longer exists (same reasoning as mergeAsrResult).
+    selectedSegmentId.value = null
   }
 
   /**
@@ -192,9 +258,13 @@ export const useCaptionStore = defineStore('captions', () => {
     console.log('Loading media file:', path, 'with file path:', filePath)
     mediaPath.value = path
 
-    // Store the ABSOLUTE file path in metadata
-    // We'll convert it to a relative path only when exporting/saving the captions JSON file
-    if (filePath) {
+    // Store the ABSOLUTE file path in metadata.
+    // We'll convert it to a relative path only when exporting/saving the captions JSON file.
+    //
+    // Only replace the document when the attachment actually changes. Auto-loading the
+    // media referenced by a freshly opened file resolves to the path already in metadata;
+    // rewriting it there would mark a document dirty that the user has not touched.
+    if (filePath && filePath !== document.value.metadata.mediaFilePath) {
       document.value = {
         ...document.value,
         metadata: {
@@ -202,8 +272,13 @@ export const useCaptionStore = defineStore('captions', () => {
           mediaFilePath: filePath  // Store absolute path
         }
       }
-      isDirty.value = true // Loading media changes metadata
     }
+  }
+
+  /** Quantize the playhead so serialized files do not diff on sub-millisecond jitter. */
+  function roundPlayhead(seconds: number): number | undefined {
+    if (!Number.isFinite(seconds) || seconds <= 0) return undefined
+    return Math.round(seconds * 1000) / 1000
   }
 
   function exportToString(): string {
@@ -253,12 +328,20 @@ export const useCaptionStore = defineStore('captions', () => {
       }
     }
 
-    // Inject current UI state (grid state + layout dimensions)
+    // Inject current UI state (grid state + layout dimensions + where the user is)
     const gridUiState = gridStateProvider.value ? gridStateProvider.value() : undefined
     const uiState: UIState = {
       ...gridUiState,
       leftPanelWidth: leftPanelWidth.value,
       captionHeight: captionHeight.value,
+      // Rounded so that ordinary playback does not churn the file on every frame.
+      playheadSeconds: roundPlayhead(currentTime.value),
+      // Only persist a selection that still exists, so a stale id never lands on disk.
+      selectedSegmentId:
+        selectedSegmentId.value &&
+        documentToExport.segments.some(seg => seg.id === selectedSegmentId.value)
+          ? selectedSegmentId.value
+          : undefined,
     }
     documentToExport = { ...documentToExport, uiState }
 
@@ -271,15 +354,18 @@ export const useCaptionStore = defineStore('captions', () => {
       ...document.value,
       title: title || undefined
     }
-    isDirty.value = true
   }
 
   function updateFilePath(filePath: string) {
     console.log('Updating file path:', filePath)
-    document.value = {
-      ...document.value,
-      filePath
-    }
+    // `filePath` is runtime-only (never serialized), so pointing the document at a
+    // different file on disk is not itself a content edit.
+    withoutDirtying(() => {
+      document.value = {
+        ...document.value,
+        filePath
+      }
+    })
   }
 
   function addSegment(startTime: number, duration: number = 5) {
@@ -295,7 +381,6 @@ export const useCaptionStore = defineStore('captions', () => {
     }
 
     document.value = addSegmentToDoc(document.value, newSegment)
-    isDirty.value = true
     return newSegment.id
   }
 
@@ -320,13 +405,11 @@ export const useCaptionStore = defineStore('captions', () => {
     }
 
     document.value = updateSegmentInDoc(document.value, segmentId, updates)
-    isDirty.value = true
   }
 
   function deleteSegment(segmentId: string) {
     console.log('Deleting segment:', segmentId)
     document.value = deleteSegmentFromDoc(document.value, segmentId)
-    isDirty.value = true
     if (selectedSegmentId.value === segmentId) {
       selectedSegmentId.value = null
     }
@@ -335,7 +418,6 @@ export const useCaptionStore = defineStore('captions', () => {
   function renameSpeaker(oldName: string, newName: string) {
     console.log('Renaming speaker in store:', oldName, '->', newName)
     document.value = renameSpeakerInDoc(document.value, oldName, newName)
-    isDirty.value = true
   }
 
   function bulkSetSpeaker(segmentIds: string[], speakerName: string) {
@@ -348,7 +430,6 @@ export const useCaptionStore = defineStore('captions', () => {
     }
 
     document.value = updatedDoc
-    isDirty.value = true
   }
 
   function bulkSetVerified(segmentIds: string[], verified: boolean) {
@@ -358,7 +439,6 @@ export const useCaptionStore = defineStore('captions', () => {
       updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { verified: verified || undefined })
     }
     document.value = updatedDoc
-    isDirty.value = true
   }
 
   function bulkSetRating(segmentIds: string[], rating: number | undefined) {
@@ -368,7 +448,6 @@ export const useCaptionStore = defineStore('captions', () => {
       updatedDoc = updateSegmentInDoc(updatedDoc, segmentId, { rating })
     }
     document.value = updatedDoc
-    isDirty.value = true
   }
 
   function bulkDeleteSegments(segmentIds: string[]) {
@@ -381,7 +460,6 @@ export const useCaptionStore = defineStore('captions', () => {
     }
 
     document.value = updatedDoc
-    isDirty.value = true
 
     // Clear selectedSegmentId if it was deleted
     if (selectedSegmentId.value && segmentIds.includes(selectedSegmentId.value)) {
@@ -392,16 +470,15 @@ export const useCaptionStore = defineStore('captions', () => {
   function splitSegmentAtWordIndex(segmentId: string, wordIndex: number) {
     console.log('Splitting segment in store:', segmentId, 'at word index:', wordIndex)
     document.value = splitSegmentInDoc(document.value, segmentId, wordIndex)
-    isDirty.value = true
   }
 
   function mergeAdjacentSegments(segmentIds: string[]) {
     console.log('Merging adjacent segments in store:', segmentIds)
     document.value = mergeAdjacentSegmentsInDoc(document.value, segmentIds)
-    isDirty.value = true
   }
 
   function setCurrentTime(time: number) {
+    if (currentTime.value !== time) markViewDirty()
     currentTime.value = time
 
     // Auto-select current segment
@@ -416,6 +493,7 @@ export const useCaptionStore = defineStore('captions', () => {
   }
 
   function selectSegment(segmentId: string | null) {
+    if (selectedSegmentId.value !== segmentId) markViewDirty()
     selectedSegmentId.value = segmentId
   }
 
@@ -532,11 +610,24 @@ export const useCaptionStore = defineStore('captions', () => {
       embeddings: asrDoc.embeddings,
       embeddingModel: asrDoc.embeddingModel,
     }
-    isDirty.value = true
+
+    // ASR replaces every segment, so the previously selected UUID is almost certainly
+    // gone. Keep the playhead (it still refers to the same audio) but drop the selection.
+    if (selectedSegmentId.value && !asrDoc.segments.some(s => s.id === selectedSegmentId.value)) {
+      selectedSegmentId.value = null
+    }
   }
 
+  /**
+   * Explicit override. `setIsDirty(false)` means "memory matches disk" and therefore
+   * also clears the view-dirty flag; prefer calling `markSaved()` directly.
+   */
   function setIsDirty(value: boolean) {
-    isDirty.value = value
+    if (value) {
+      isDirty.value = true
+    } else {
+      markSaved()
+    }
   }
 
   /**
@@ -601,6 +692,7 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistIndex,
     playlistStartIndex,
     isDirty,
+    viewDirty,
     gridStateProvider,
     leftPanelWidth,
     captionHeight,
@@ -617,6 +709,8 @@ export const useCaptionStore = defineStore('captions', () => {
     updateTitle,
     updateFilePath,
     setIsDirty,
+    markSaved,
+    markViewDirty,
     processFilePaths,
     addSegment,
     updateSegment,
@@ -645,9 +739,9 @@ export const useCaptionStore = defineStore('captions', () => {
       playlist.value = []
       playlistIndex.value = 0
       playlistStartIndex.value = 0
-      isDirty.value = false
       leftPanelWidth.value = 60
       captionHeight.value = 120
+      markSaved()
     }
   }
 })

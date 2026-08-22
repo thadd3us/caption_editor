@@ -185,6 +185,28 @@ export interface ElectronAPI {
    * Listen for application close request
    */
   onAppClose: (callback: () => void) => void
+
+  /**
+   * Abort an in-progress quit (the user chose "Keep working")
+   */
+  cancelQuit?: () => void
+
+  /**
+   * Claim exclusive ownership of a transcript for this window. Resolves
+   * `{ claimed: false }` when another window already has it open (that window is
+   * focused instead), in which case the caller must not load the file.
+   */
+  claimDocument?: (filePath: string) => Promise<{ claimed: boolean; focusedExistingWindow?: boolean }>
+
+  /**
+   * Release this window's claim on its transcript
+   */
+  releaseDocument?: () => void
+
+  /**
+   * Reflect the open document in the window title / proxy icon / edited indicator
+   */
+  setWindowDocumentState?: (state: { filePath?: string | null; title?: string | null; edited?: boolean }) => void
 }
 
 declare global {

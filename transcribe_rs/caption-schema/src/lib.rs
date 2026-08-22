@@ -132,6 +132,12 @@ pub struct UIState {
     pub left_panel_width: Option<f64>,
     #[serde(default, skip_serializing_if = "skip_if_none")]
     pub caption_height: Option<f64>,
+    /// Playback position (seconds) when the file was last written.
+    #[serde(default, skip_serializing_if = "skip_if_none")]
+    pub playhead_seconds: Option<f64>,
+    /// UUID of the segment selected when the file was last written.
+    #[serde(default, skip_serializing_if = "skip_if_none")]
+    pub selected_segment_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -310,6 +316,42 @@ mod tests {
         assert_eq!(parsed.segments[0].text, "hello");
         // Optional fields stay None on the round-trip.
         assert!(parsed.segments[0].verified.is_none());
+    }
+
+    /// The editor persists where the user left off (playhead, selected row, panel
+    /// sizes) in `uiState`. `embed-rs` rewrites the whole document, and serde drops
+    /// unknown fields, so anything missing from `UIState` here would be silently
+    /// erased by "Compute Speaker Embeddings". Keep in sync with
+    /// `src/types/schema.ts` and `transcribe/schema.py`.
+    #[test]
+    fn ui_state_survives_round_trip() {
+        let json = r#"{
+            metadata: { id: 'doc-1' },
+            segments: [ { id: 's1', index: 0, startTime: 0, endTime: 5, text: 'hi' } ],
+            uiState: {
+                captionHeight: 180,
+                leftPanelWidth: 55,
+                playheadSeconds: 91.5,
+                selectedSegmentId: 's1',
+                filterModel: { text: { type: 'contains', filter: 'hi' } },
+            },
+        }"#;
+
+        let parsed = parse_captions_json5(json).unwrap();
+        let ui = parsed.ui_state.clone().expect("uiState parsed");
+        assert_eq!(ui.playhead_seconds, Some(91.5));
+        assert_eq!(ui.selected_segment_id.as_deref(), Some("s1"));
+        assert_eq!(ui.left_panel_width, Some(55.0));
+        assert_eq!(ui.caption_height, Some(180.0));
+
+        // And back out again, unchanged.
+        let reparsed = parse_captions_json5(&serialize_captions_json5(&parsed, "hash")).unwrap();
+        let ui = reparsed.ui_state.expect("uiState survives serialization");
+        assert_eq!(ui.playhead_seconds, Some(91.5));
+        assert_eq!(ui.selected_segment_id.as_deref(), Some("s1"));
+        assert_eq!(ui.left_panel_width, Some(55.0));
+        assert_eq!(ui.caption_height, Some(180.0));
+        assert!(ui.filter_model.is_some());
     }
 
     #[test]
