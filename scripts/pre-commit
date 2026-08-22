@@ -11,6 +11,19 @@ set -e
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+# CRITICAL, do not remove. git sets GIT_DIR (absolute, in a linked worktree) when it
+# runs hooks. With GIT_DIR set and GIT_WORK_TREE unset, git treats *the current
+# directory* as the root of the work tree. So any `git` command this script runs after
+# a `cd` into a subdirectory sees a work tree rooted there: every indexed path that
+# does not also exist under that subdirectory looks deleted. `git add`-ing that diff
+# stages the whole repo as deletions, and the commit silently drops every file except
+# the handful whose paths happen to resolve under the subdirectory
+# (e.g. transcribe/BUILD.bazel, transcribe/README.md).
+#
+# Pinning GIT_WORK_TREE makes the `cd` irrelevant to git. Do not unset GIT_INDEX_FILE —
+# the commit in progress needs it.
+export GIT_WORK_TREE="$REPO_ROOT"
+
 echo "🔍 Running pre-commit checks..."
 
 # Auto-install dependencies if missing
@@ -28,17 +41,28 @@ npx eslint . --quiet
 
 # Python checks (transcribe directory)
 echo "🐍 Checking Python with ruff..."
-cd transcribe
-uv run ruff check .
-uv run ruff format .
-# Only stage files that ruff actually reformatted (dirty in the working tree).
-# Avoid `git add -u .` which, in sparse worktrees (e.g. Mux), marks every
-# file not present on disk as a deletion and silently folds those deletions
-# into the commit.
-git diff --relative --name-only . | xargs -r git add --
+(cd transcribe && uv run ruff check . && uv run ruff format .)
+
+# Stage only what ruff actually reformatted. Run git from the repo root with an
+# explicit pathspec rather than cd-ing into transcribe/ — see the GIT_WORK_TREE note
+# above for why a `cd` plus a bare `.` pathspec is dangerous here. `--diff-filter=M`
+# keeps this to modifications, so a deletion can never be introduced by the hook.
+git -C "$REPO_ROOT" diff --name-only --diff-filter=M -- transcribe \
+  | xargs -r git -C "$REPO_ROOT" add --
 
 echo "🐍 Running pyright..."
-uv run pyright
-cd "$REPO_ROOT"
+(cd transcribe && uv run pyright)
+
+# Final guard: a pre-commit hook must never turn a normal commit into a mass deletion.
+# If anything above staged more than a couple of deletions, refuse rather than let it
+# through — this has silently wiped the tree before.
+STAGED_DELETIONS="$(git -C "$REPO_ROOT" diff --cached --diff-filter=D --name-only | wc -l | tr -d ' ')"
+if [ "$STAGED_DELETIONS" -gt 10 ]; then
+    echo "❌ Refusing to commit: $STAGED_DELETIONS staged deletions."
+    echo "   That is almost certainly a clobbered index, not an intentional change."
+    echo "   Inspect with: git diff --cached --diff-filter=D --name-only"
+    echo "   If the deletions really are intended, commit with --no-verify."
+    exit 1
+fi
 
 echo "✅ All pre-commit checks passed!"
