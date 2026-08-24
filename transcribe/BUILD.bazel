@@ -117,6 +117,13 @@ transcribe_pytest(
 )
 
 transcribe_pytest(
+    name = "ui_state_round_trip_test",
+    test_file = "ui_state_round_trip_test.py",
+    data = _CHEAP_TEST_DATA,
+    deps = _CHEAP_TEST_DEPS,
+)
+
+transcribe_pytest(
     name = "asr_results_to_captions_test",
     test_file = "asr_results_to_captions_test.py",
     data = _CHEAP_TEST_DATA,

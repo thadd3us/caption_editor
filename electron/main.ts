@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell, nativeTheme } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, realpathSync } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { type ChildProcess } from 'child_process'
 import * as os from 'os'
@@ -298,12 +298,21 @@ function createWindow(): BrowserWindow {
   }
 
   win.on('close', (e) => {
-    // In test environment, allow direct closing to avoid hanging E2E tests.
-    // In production/dev, we intercept to allow "unsaved changes" confirmation.
-    if (!isQuitting && process.env.NODE_ENV !== 'test') {
-      e.preventDefault()
-      win.webContents.send('app-close')
-    }
+    // Let the close through once the renderer has answered (or the app is quitting).
+    if (forceQuit || closeApproved.has(win.id)) return
+
+    // E2E teardown calls app.quit() and expects windows to go away, so the
+    // interception is off under NODE_ENV=test unless a test opts in. Specs that
+    // exercise the confirmation itself set CAPTION_EDITOR_INTERCEPT_CLOSE=1.
+    if (process.env.NODE_ENV === 'test' && process.env.CAPTION_EDITOR_INTERCEPT_CLOSE !== '1') return
+
+    e.preventDefault()
+    win.webContents.send('app-close')
+  })
+
+  win.on('closed', () => {
+    closeApproved.delete(win.id)
+    releaseDocumentForWindow(win.id)
   })
 
   // Send any pending file to open once the window is ready
@@ -317,21 +326,168 @@ function createWindow(): BrowserWindow {
   return win
 }
 
-// Track quit state for close-handler
-let isQuitting = false
+// ---------------------------------------------------------------------------
+// Quit / close coordination
+//
+// Each window owns a document and answers for itself. A quit therefore has to ask
+// every window in turn and let any one of them veto the whole thing — the previous
+// version asked them all at once, so the first window to answer closed itself and a
+// later "Keep working" could not bring the others back.
+// ---------------------------------------------------------------------------
 
-// IPC handler to actually quit/close after confirmation
+/** Set once every window has approved; lets `close` handlers pass through. */
+let forceQuit = false
+/** Windows whose renderer has approved closing this one window. */
+const closeApproved = new Set<number>()
+/** Windows still to be asked during an in-progress quit. */
+let quitQueue: number[] = []
+let quitInProgress = false
+
+function startQuitSequence() {
+  quitInProgress = true
+  quitQueue = BrowserWindow.getAllWindows().map((w) => w.id)
+  askNextWindowToQuit()
+}
+
+function askNextWindowToQuit() {
+  while (quitQueue.length > 0) {
+    const id = quitQueue.shift()!
+    const win = BrowserWindow.getAllWindows().find((w) => w.id === id)
+    if (!win || win.isDestroyed()) continue
+    // Focus so the dialog appears on the window it is asking about.
+    win.focus()
+    win.webContents.send('app-close')
+    return
+  }
+  finishQuit()
+}
+
+function finishQuit() {
+  quitInProgress = false
+  quitQueue = []
+  forceQuit = true
+  app.quit()
+}
+
+function abortQuit() {
+  console.log('[main] Quit canceled by a window')
+  quitInProgress = false
+  quitQueue = []
+}
+
+app.on('before-quit', (e) => {
+  if (forceQuit) return
+  if (process.env.NODE_ENV === 'test' && process.env.CAPTION_EDITOR_INTERCEPT_CLOSE !== '1') return
+  e.preventDefault()
+  if (quitInProgress) return
+  startQuitSequence()
+})
+
+// A window's renderer approved closing (either "Save" or "Discard").
 ipcMain.on('app:quit', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
-  if (win) {
-    if (BrowserWindow.getAllWindows().length <= 1) {
-      isQuitting = true
-      app.quit()
-    } else {
-      isQuitting = true
-      win.close()
-      isQuitting = false
+  if (!win) return
+
+  if (quitInProgress) {
+    // Part of a quit sequence: don't close windows one at a time, or a later veto
+    // would leave the earlier ones already gone. Move on and close them together.
+    askNextWindowToQuit()
+    return
+  }
+
+  closeApproved.add(win.id)
+  win.close()
+})
+
+// A window's renderer chose "Keep working" — abort the entire quit.
+ipcMain.on('app:cancel-quit', () => {
+  if (quitInProgress) abortQuit()
+})
+
+// ---------------------------------------------------------------------------
+// Open-document registry
+//
+// Several windows may be open at once, and several may play the same media file —
+// media is served read-only over the media:// protocol, so that is harmless. Editing
+// the same .captions_json5 in two windows is not: both hold an independent in-memory
+// document and whichever saves last silently wins. One window owns a given transcript
+// at a time; anything else that tries to open it gets that window focused instead.
+// ---------------------------------------------------------------------------
+
+/** Canonical path → owning window id. */
+const documentOwners = new Map<string, number>()
+
+/**
+ * Canonical key for a transcript path: resolves symlinks and, on case-insensitive
+ * filesystems (macOS, Windows), folds case so `/A/Doc` and `/a/doc` are one document.
+ */
+function documentKey(filePath: string): string {
+  let resolved = path.resolve(filePath)
+  try {
+    resolved = realpathSync(resolved)
+  } catch {
+    // File may not exist yet (Save As); the resolved path is still a usable key.
+  }
+  return process.platform === 'linux' ? resolved : resolved.toLowerCase()
+}
+
+function releaseDocumentForWindow(windowId: number): void {
+  for (const [key, owner] of documentOwners) {
+    if (owner === windowId) documentOwners.delete(key)
+  }
+}
+
+/**
+ * Claim a transcript for the requesting window.
+ * Returns `{ claimed: false }` when another live window already owns it, in which
+ * case that window has been focused.
+ */
+ipcMain.handle('doc:claim', (event, filePath: string) => {
+  const win = windowForEvent(event)
+  if (!win || !filePath) return { claimed: true }
+
+  const key = documentKey(filePath)
+  const ownerId = documentOwners.get(key)
+
+  if (ownerId != null && ownerId !== win.id) {
+    const owner = BrowserWindow.getAllWindows().find((w) => w.id === ownerId)
+    if (owner && !owner.isDestroyed()) {
+      if (owner.isMinimized()) owner.restore()
+      owner.focus()
+      return { claimed: false, focusedExistingWindow: true }
     }
+    // Owner is gone without a 'closed' event (shouldn't happen) — take over.
+    documentOwners.delete(key)
+  }
+
+  // A window owns at most one transcript at a time.
+  releaseDocumentForWindow(win.id)
+  documentOwners.set(key, win.id)
+  return { claimed: true }
+})
+
+ipcMain.on('doc:release', (event) => {
+  const win = windowForEvent(event)
+  if (win) releaseDocumentForWindow(win.id)
+})
+
+/**
+ * Reflect the open document in the window chrome: title, macOS proxy icon, and the
+ * "edited" dot in the close button.
+ */
+ipcMain.on('window:setDocumentState', (event, state: {
+  filePath?: string | null
+  title?: string | null
+  edited?: boolean
+}) => {
+  const win = windowForEvent(event)
+  if (!win || win.isDestroyed()) return
+
+  const name = state.title || (state.filePath ? path.basename(state.filePath) : null)
+  win.setTitle(name ? `${name} — Caption Editor` : 'Caption Editor')
+  if (process.platform === 'darwin') {
+    win.setRepresentedFilename(state.filePath || '')
+    win.setDocumentEdited(!!state.edited)
   }
 })
 

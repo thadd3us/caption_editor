@@ -89,6 +89,8 @@ export interface UIState {
   readonly filterModel?: GridFilterModel
   readonly leftPanelWidth?: number // Percentage width of the left (table) panel (20–80)
   readonly captionHeight?: number // Pixel height of the current-caption display area
+  readonly playheadSeconds?: number // Playback position when the file was last written
+  readonly selectedSegmentId?: string // UUID of the selected segment; survives sorting/filtering
 }
 
 /**

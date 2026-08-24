@@ -238,9 +238,17 @@ function onCaptionContextMenu(event: MouseEvent) {
 }
 
 function onMediaLoaded() {
-  if (mediaElement.value) {
-    duration.value = mediaElement.value.duration
-    console.log('Media loaded, duration:', duration.value)
+  if (!mediaElement.value) return
+  duration.value = mediaElement.value.duration
+  console.log('Media loaded, duration:', duration.value)
+
+  // Restore the persisted playhead. This is the earliest point at which the element
+  // will accept a seek — the `store.currentTime` watcher below fires while the element
+  // is still empty and its seek is silently dropped. Never starts playback.
+  const target = store.currentTime
+  if (target > 0 && Number.isFinite(duration.value) && target < duration.value) {
+    console.log('Restoring playhead to', target)
+    mediaElement.value.currentTime = target
   }
 }
 
