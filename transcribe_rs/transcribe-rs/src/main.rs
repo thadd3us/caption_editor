@@ -222,10 +222,40 @@ fn main() -> Result<()> {
         .with_context(|| format!("write {}", output.display()))?;
     eprintln!("Wrote {} segments to {}", doc.segments.len(), output.display());
 
-    if !args.no_embed {
-        run_embed_step(&output, &args)?;
-    }
+    maybe_run_embed_step(&output, &args);
     Ok(())
+}
+
+/// Run the optional embedding step, reporting failure without propagating it.
+///
+/// Returns `()`, not `Result`, on purpose: transcription and embedding need
+/// separate exit paths. The transcript is already written and correct by the
+/// time this runs, so a failed embed must not make the caller believe the run
+/// produced nothing — `electron/main.ts` rejects the whole ASR promise on any
+/// non-zero exit and `App.vue` only merges `result.content` when
+/// `result.success`, so propagating here silently discards a finished
+/// transcript and throws away however long the ASR took.
+///
+/// Mirrors Python `transcribe_cli.py`, which wraps `embed_captions_path` in
+/// try/except and prints "Warning: Speaker embedding failed".
+///
+/// The unit return type is the guard: restoring a `?` here would not compile.
+/// Regression test: `embed_failure_is_not_fatal`.
+fn maybe_run_embed_step(captions_path: &Path, args: &Args) {
+    if args.no_embed {
+        return;
+    }
+    if let Err(err) = run_embed_step(captions_path, args) {
+        // Electron streams our stderr into the ASR output panel, so this is
+        // the channel the user actually sees.
+        eprintln!("Warning: speaker embedding failed: {err:#}");
+        eprintln!(
+            "The transcript at {} is complete and usable — only the speaker \
+             embeddings are missing. Re-run embedding later with: embed-rs {}",
+            captions_path.display(),
+            captions_path.display()
+        );
+    }
 }
 
 /// Run `embed-rs` against the freshly-written captions file, matching Python
@@ -639,4 +669,62 @@ fn download_parakeet_onnx(model_id: &str) -> Result<PathBuf> {
     let _ = api.get("encoder-model.onnx.data");
 
     snapshot_dir.ok_or_else(|| eyre!("no ONNX files resolved from {model_id}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A failing embedding step must not fail the whole run.
+    ///
+    /// The transcript is written to disk *before* embedding starts, so
+    /// propagating the error would make `main` exit non-zero after having
+    /// produced a complete, correct document — which the Electron app reads
+    /// as "transcription failed" and discards. Realistic triggers: a missing
+    /// `embed-rs` next to the binary, a missing wespeaker ONNX, an ORT load
+    /// failure, or a corrupt HF cache.
+    #[test]
+    fn embed_failure_is_not_fatal() {
+        let args = Args::parse_from([
+            "transcribe-rs",
+            "audio.wav",
+            "--embed-bin",
+            "/nonexistent/definitely-not-a-real-embed-rs",
+        ]);
+        let captions = Path::new("/tmp/does-not-need-to-exist.captions_json5");
+
+        // The step itself does report the failure...
+        let _err = run_embed_step(captions, &args)
+            .expect_err("spawning a nonexistent embed binary must fail");
+
+        // ...but the path `main` takes swallows it into a warning. This call
+        // returning at all *is* the assertion: `maybe_run_embed_step` yields
+        // `()`, so there is no error for `main` to propagate.
+        maybe_run_embed_step(captions, &args);
+    }
+
+    /// `--no-embed` short-circuits before the binary is ever resolved, so a
+    /// bogus `--embed-bin` is not even consulted.
+    #[test]
+    fn no_embed_skips_the_step_entirely() {
+        let args = Args::parse_from([
+            "transcribe-rs",
+            "audio.wav",
+            "--no-embed",
+            "--embed-bin",
+            "/nonexistent/definitely-not-a-real-embed-rs",
+        ]);
+        maybe_run_embed_step(Path::new("/tmp/unused.captions_json5"), &args);
+    }
+
+    /// `--no-embed` is opt-out: embedding runs by default, matching Python's
+    /// default-on `--embed`.
+    #[test]
+    fn embedding_is_on_by_default() {
+        let args = Args::parse_from(["transcribe-rs", "audio.wav"]);
+        assert!(!args.no_embed);
+
+        let opted_out = Args::parse_from(["transcribe-rs", "audio.wav", "--no-embed"]);
+        assert!(opted_out.no_embed);
+    }
 }
