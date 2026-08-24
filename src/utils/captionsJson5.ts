@@ -10,15 +10,7 @@ import type {
   RawAsrOutput
 } from '../types/schema'
 import { stableJsonStringify } from './stableJson'
-import { reindexSegments } from './captionsUtils'
-
-function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
-  const sorted = [...segments].sort((a, b) => {
-    if (a.startTime !== b.startTime) return a.startTime - b.startTime
-    return a.endTime - b.endTime
-  })
-  return reindexSegments(sorted)
-}
+import { sortSegments } from './captionsUtils'
 
 function validateUniqueSegmentIds(segments: readonly TranscriptSegment[]): { ok: true } | { ok: false; error: string } {
   const ids = new Set<string>()
