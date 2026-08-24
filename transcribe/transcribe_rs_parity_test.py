@@ -37,7 +37,13 @@ def _rust_bin(env_var: str) -> Path:
 
 @pytest.mark.expensive
 def test_transcribe_rs_on_short_wav(repo_root: Path, tmp_path: Path) -> None:
-    """End-to-end: Rust transcribe-rs reads a 10s WAV, writes a parseable doc."""
+    """End-to-end: Rust transcribe-rs reads a 10s WAV, writes a parseable doc.
+
+    `--no-embed` keeps this about transcription. Embedding is covered by
+    `test_embed_rs_writes_embeddings`, and since a failed embed is now a
+    warning rather than a non-zero exit, leaving it on would neither be
+    asserted here nor caught by the `returncode == 0` check below.
+    """
     bin_path = _rust_bin("TRANSCRIBE_RS_BIN")
     audio = repo_root / "test_data" / "test-audio-10s.wav"
     output = tmp_path / "out.captions_json5"
@@ -53,6 +59,7 @@ def test_transcribe_rs_on_short_wav(repo_root: Path, tmp_path: Path) -> None:
             "--overlap",
             "5",
             "--deterministic-ids",
+            "--no-embed",
         ],
         check=False,
         capture_output=True,
@@ -93,6 +100,8 @@ def test_embed_rs_writes_embeddings(repo_root: Path, tmp_path: Path) -> None:
     output = tmp_path / "out.captions_json5"
 
     # First transcribe (we need a captions_json5 with segments to embed).
+    # `--no-embed` because this test drives embed-rs explicitly below; without
+    # it transcribe-rs would auto-embed and we'd embed the same file twice.
     subprocess.run(
         [
             str(transcribe_bin),
@@ -104,6 +113,7 @@ def test_embed_rs_writes_embeddings(repo_root: Path, tmp_path: Path) -> None:
             "--overlap",
             "5",
             "--deterministic-ids",
+            "--no-embed",
         ],
         check=True,
     )
@@ -147,7 +157,14 @@ def test_transcribe_rs_output_matches_pydantic_schema(
     output = tmp_path / "out.captions_json5"
 
     subprocess.run(
-        [str(bin_path), str(audio), "--output", str(output), "--deterministic-ids"],
+        [
+            str(bin_path),
+            str(audio),
+            "--output",
+            str(output),
+            "--deterministic-ids",
+            "--no-embed",
+        ],
         check=True,
     )
 

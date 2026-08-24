@@ -1,5 +1,5 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
 load("//transcribe_rs:version.bzl", "APP_VERSION")
 
 exports_files(
@@ -24,4 +24,22 @@ rust_binary(
         "//transcribe_rs/caption-core:caption_core",
     ],
     visibility = ["//visibility:public"],
+)
+
+# Hermetic unit tests for the CLI itself (arg parsing + the embed-step
+# failure contract). Deliberately holds nothing that needs a model, the
+# network, or ffmpeg, so it runs in default `bazel test //...`. The
+# end-to-end behavior lives in //transcribe:transcribe_rs_parity_test,
+# which is `manual` because it needs HF downloads.
+rust_test(
+    name = "transcribe_rs_test",
+    aliases = aliases(normal_dev = True, proc_macro_dev = True),
+    crate = ":transcribe-rs",
+    edition = "2021",
+    rustc_env = {"CARGO_PKG_VERSION": APP_VERSION},
+    proc_macro_deps = all_crate_deps(proc_macro = True, proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        "//transcribe_rs/caption-schema:caption_schema",
+        "//transcribe_rs/caption-core:caption_core",
+    ],
 )
