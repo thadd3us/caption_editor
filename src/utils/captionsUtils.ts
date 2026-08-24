@@ -101,7 +101,7 @@ export function reindexSegments(segments: readonly TranscriptSegment[]): readonl
 /**
  * Sort segments by start time, then end time, and re-assign ordinal indices.
  */
-function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
+export function sortSegments(segments: readonly TranscriptSegment[]): readonly TranscriptSegment[] {
   const sorted = [...segments].sort((a, b) => {
     if (a.startTime !== b.startTime) {
       return a.startTime - b.startTime
