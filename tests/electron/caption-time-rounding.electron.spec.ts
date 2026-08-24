@@ -59,11 +59,19 @@ test.describe('Caption time rounding', () => {
   })
 
   test('clicking a caption whose startTime has floating-point imprecision should still show that caption', async ({ electronApp, page }) => {
-    // Generate a 95-second silent WAV (enough to cover the segment at ~90s)
+    // Generate a 95-second silent WAV (enough to cover the segment at ~90s).
+    //
+    // Use the ffmpeg staged under dist-rust/, not whatever is on PATH. The rest of
+    // the repo is deliberate about this — `transcribe-rs`/`embed-rs` use only the
+    // staged binary or CAPTION_EDITOR_FFMPEG, never PATH — and `npm run
+    // verify:dist-rust` fails the run before Playwright starts if it is missing, so
+    // it is guaranteed present here. A bare `ffmpeg` passes on a dev Mac with
+    // Homebrew and fails with "command not found" on a clean CI runner.
     await fs.mkdir(tempDir, { recursive: true })
     const silencePath = path.join(tempDir, 'silence.wav')
+    const ffmpegPath = path.join(getProjectRoot(), 'dist-rust', 'ffmpeg')
     execSync(
-      `ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t 95 -q:a 9 "${silencePath}"`,
+      `"${ffmpegPath}" -y -f lavfi -i anullsrc=r=44100:cl=mono -t 95 -q:a 9 "${silencePath}"`,
       { stdio: 'pipe' }
     )
 
