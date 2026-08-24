@@ -41,6 +41,20 @@ with no CI edit. What CI does *not* run: `requires-torch` (the five heavy
 `transcribe` tests), `requires-network` outside the e2e job, and anything
 `manual` (`//:e2e_playwright_expensive`, `//transcribe:transcribe_rs_parity_test`).
 
+**CI downloads no ML models, and it should stay that way.** The wespeaker
+embedding model is committed to the repo (`models/wespeaker-voxceleb-resnet34-LM-onnx/`)
+and staged by `npm run build:wespeaker-onnx`. Everything else — parakeet ONNX,
+whisper GGML — is fetched from HuggingFace at runtime into `~/.cache/huggingface`,
+which nothing caches, so any spec that touches a model re-downloads it on every
+run and makes a green build depend on HuggingFace being up. **Any spec that runs
+real ASR must be tagged `@expensive`** so `--grep-invert @expensive` keeps it out
+of the default suite. To check you haven't broken this:
+
+```bash
+npx playwright test --grep-invert @expensive --list | grep -i 'asr\|whisper\|parakeet'
+# must print nothing
+```
+
 `bazelisk test //...` locally is a **superset** of the `bazel` job — it also runs
 the heavy torch tests. Green locally therefore implies green in CI, not the
 reverse.
