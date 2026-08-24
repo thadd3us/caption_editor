@@ -89,6 +89,8 @@ bazel-out
 bazel-testlogs
 bazel-caption_editor
 bazel-code
+# Worktrees get their own `bazel-<worktree-dir-name>` convenience symlink.
+/bazel-*
 .bazelrc.user
 out/
 *.tsbuildinfo

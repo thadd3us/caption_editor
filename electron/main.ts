@@ -7,6 +7,7 @@ import { type ChildProcess } from 'child_process'
 import * as os from 'os'
 import { APP_VERSION } from './constants'
 import { findBackupPath } from '../src/utils/fileUtils'
+import { DEFAULT_PREFERENCES, sanitizePreferences, type AppPreferences } from '../src/types/preferences'
 
 
 const __filename = fileURLToPath(import.meta.url)
@@ -75,6 +76,14 @@ function createMenu() {
       submenu: [
         { role: 'about' as const },
         { type: 'separator' as const },
+        {
+          label: 'Settings...',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => {
+            focusedWindow()?.webContents.send('menu-open-preferences')
+          }
+        },
+        { type: 'separator' as const },
         { role: 'hide' as const },
         { role: 'hideOthers' as const },
         { role: 'unhide' as const },
@@ -126,6 +135,17 @@ function createMenu() {
           ]
         },
         { type: 'separator' as const },
+        // macOS convention puts Settings in the app menu; every other platform expects it here.
+        ...(isMac ? [] : [
+          {
+            label: 'Preferences...',
+            accelerator: 'CmdOrCtrl+,',
+            click: () => {
+              focusedWindow()?.webContents.send('menu-open-preferences')
+            }
+          },
+          { type: 'separator' as const }
+        ]),
         isMac ? { role: 'close' as const } : { role: 'quit' as const }
       ]
     },
@@ -517,6 +537,42 @@ ipcMain.handle('license:setAccepted', async () => {
   const p = licenseAcceptedFilePath()
   mkdirSync(path.dirname(p), { recursive: true })
   writeFileSync(p, JSON.stringify({ accepted: true, version: 1 }), 'utf8')
+})
+
+/** App preferences: same userData-file rationale as license acceptance above. */
+const PREFERENCES_FILENAME = 'preferences.json'
+
+function preferencesFilePath(): string {
+  return path.join(app.getPath('userData'), PREFERENCES_FILENAME)
+}
+
+function readPreferencesFromDisk(): AppPreferences {
+  try {
+    const p = preferencesFilePath()
+    if (!existsSync(p)) return { ...DEFAULT_PREFERENCES }
+    return sanitizePreferences(JSON.parse(readFileSync(p, 'utf8')))
+  } catch {
+    return { ...DEFAULT_PREFERENCES }
+  }
+}
+
+// Sync so the renderer can seed its store during setup without a first-paint flicker.
+ipcMain.on('preferences:getSync', (event) => {
+  event.returnValue = readPreferencesFromDisk()
+})
+
+ipcMain.handle('preferences:set', async (event, raw: unknown) => {
+  const preferences = sanitizePreferences(raw)
+  const p = preferencesFilePath()
+  mkdirSync(path.dirname(p), { recursive: true })
+  writeFileSync(p, JSON.stringify({ version: 1, ...preferences }, null, 2), 'utf8')
+  // Preferences are app-wide: tell every *other* window so open windows stay in sync.
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (win.webContents !== event.sender) {
+      win.webContents.send('preferences-changed', preferences)
+    }
+  }
+  return preferences
 })
 
 if (process.env.NODE_ENV === 'test') {

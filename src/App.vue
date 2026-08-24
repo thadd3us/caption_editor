@@ -86,6 +86,10 @@
       @agree="handleLicenseAgree"
       @exit="handleLicenseExit"
     />
+    <PreferencesDialog
+      :is-open="isPreferencesDialogOpen"
+      @close="isPreferencesDialogOpen = false"
+    />
   </div>
 </template>
 
@@ -104,6 +108,8 @@ import GenericConfirmDialog from './components/GenericConfirmDialog.vue'
 import BaseModal from './components/BaseModal.vue'
 import GenericAlertDialog from './components/GenericAlertDialog.vue'
 import LicenseAgreementDialog from './components/LicenseAgreementDialog.vue'
+import PreferencesDialog from './components/PreferencesDialog.vue'
+import { usePreferencesStore } from './stores/preferencesStore'
 import packageJson from '../package.json'
 import { exportDocumentToSrt } from './utils/srt'
 import { sidecarName } from './utils/fileUtils'
@@ -115,6 +121,14 @@ console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' 
 console.log(`========================================`)
 
 const store = useCaptionStore()
+const preferencesStore = usePreferencesStore()
+
+// Preferences dialog (opened from the Settings/Preferences menu item, or Cmd+,)
+const isPreferencesDialogOpen = ref(false)
+
+function openPreferencesDialog() {
+  isPreferencesDialogOpen.value = true
+}
 
 // License agreement
 const LICENSE_ACCEPTED_KEY = 'caption-editor-license-accepted'
@@ -1004,6 +1018,12 @@ onMounted(() => {
   ;(window as any).handleExternalFileOpen = handleExternalFileOpen
   ;(window as any).showAlert = showAlert
   ;(window as any).showConfirm = showConfirm
+  ;(window as any).openPreferencesDialog = openPreferencesDialog
+
+  // Preferences changed in another window: adopt without re-persisting.
+  ;(window as any).electronAPI?.preferences?.onChanged?.((prefs: unknown) => {
+    preferencesStore.adoptExternalPreferences(prefs)
+  })
 
   // Custom app close handling
   if ((window as any).electronAPI) {
@@ -1032,6 +1052,7 @@ onMounted(() => {
     const { ipcRenderer } = (window as any).electronAPI
 
     if (ipcRenderer) {
+      ipcRenderer.on('menu-open-preferences', openPreferencesDialog)
       ipcRenderer.on('menu-open-file', handleMenuOpenFile)
       ipcRenderer.on('menu-save-file', handleMenuSaveFile)
       ipcRenderer.on('menu-save-as', handleMenuSaveAs)

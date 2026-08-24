@@ -115,6 +115,16 @@ export interface ElectronAPI {
   clearLicenseAcceptedForTests?: () => Promise<void>
 
   /**
+   * App preferences persisted in userData. Values are `unknown` across the IPC boundary and
+   * are validated by `sanitizePreferences()` on both sides.
+   */
+  preferences?: {
+    getSync: () => unknown
+    set: (preferences: unknown) => Promise<unknown>
+    onChanged: (callback: (preferences: unknown) => void) => void
+  }
+
+  /**
    * Listen for files opened from the OS (double-click, right-click > Open With)
    */
   onFileOpen: (callback: (filePath: string) => void) => void
