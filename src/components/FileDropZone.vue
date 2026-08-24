@@ -17,38 +17,32 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useCaptionStore } from '../stores/captionStore'
-
-const store = useCaptionStore()
 const showDropZone = ref(false)
 
 // Use a counter to handle dragenter/dragleave correctly for nested elements
 let dragCounter = 0
 
-async function triggerFileInput() {
+/**
+ * Show the OS file picker and return the chosen paths. Returns `[]` when the
+ * user cancels or when there is no Electron API.
+ *
+ * Deliberately does NOT load the files. Every document-open path has to funnel
+ * through App.vue's `openDocumentFromPaths()`, which is the single place that
+ * runs the unsaved-changes prompt and takes the single-owner document claim.
+ * Loading here used to bypass both, so File → Open could put the same
+ * transcript in two windows and lose whichever saved first.
+ */
+async function triggerFileInput(): Promise<string[]> {
   if (!window.electronAPI) {
     console.error('Electron API not available')
-    return
+    return []
   }
 
-  // Use Electron file picker
   const filePaths = await window.electronAPI.openFile({
     properties: ['openFile', 'multiSelections']
   })
 
-  if (filePaths && filePaths.length > 0) {
-    const { failures } = await store.processFilePaths(filePaths)
-    if (failures > 0) {
-      if ((window as any).showAlert) {
-        await (window as any).showAlert({
-          title: 'File Load Partial Failure',
-          message: `Failed to load ${failures} file(s). Check console for details.`
-        })
-      } else {
-        alert(`Failed to load ${failures} file(s). Check console for details.`)
-      }
-    }
-  }
+  return filePaths ?? []
 }
 
 function handleDragOver(e: DragEvent) {

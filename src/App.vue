@@ -514,6 +514,17 @@ async function confirmDiscardChanges(context: 'quit' | 'continue' = 'continue'):
 async function openDocumentFromPaths(filePaths: string[]): Promise<void> {
   if (filePaths.length === 0) return
 
+  // Ask about unsaved changes BEFORE claiming. `doc:claim` gives a window at most
+  // one transcript, so a successful claim releases this window's claim on the
+  // document it currently has open. Claiming first and then cancelling therefore
+  // left the current document unowned — and because `claimedFilePath` still held
+  // its path, the watcher below never re-claimed it, so another window could open
+  // it and last-writer-wins. (A *refused* claim is safe either way: the main
+  // process returns before releasing anything.)
+  const result = await confirmDiscardChanges('continue')
+  if (result === 'save') await handleMenuSaveFile()
+  if (result === 'cancel') return
+
   // Refuse to open a transcript that another window is already editing — two windows
   // holding independent copies means whichever saves last silently wins. The main
   // process focuses the window that owns it instead.
@@ -524,11 +535,13 @@ async function openDocumentFromPaths(filePaths: string[]): Promise<void> {
       console.log('[App] Already open in another window:', captionsPath)
       return
     }
+    // Record what we claimed so the watcher below doesn't redundantly re-claim it.
+    // This also leaves the load-failure case recoverable: `document.filePath` stays
+    // put, so it no longer matches `claimedFilePath`, and the next watcher run
+    // re-claims the document this window actually still has open. (Without this
+    // line the two stay equal and that re-claim could never happen at all.)
+    claimedFilePath = captionsPath
   }
-
-  const result = await confirmDiscardChanges('continue')
-  if (result === 'save') await handleMenuSaveFile()
-  if (result === 'cancel') return
 
   try {
     const { failures } = await store.processFilePaths(filePaths)
@@ -573,9 +586,10 @@ async function saveViewStateQuietly(): Promise<void> {
 }
 
 async function handleMenuOpenFile() {
-  const result = await confirmDiscardChanges('continue')
-  if (result === 'save') await handleMenuSaveFile()
-  if (result !== 'cancel') fileDropZone.value?.triggerFileInput()
+  // Pick first, then hand off — `openDocumentFromPaths` owns the
+  // unsaved-changes prompt and the document claim for every entry point.
+  const filePaths = await fileDropZone.value?.triggerFileInput()
+  if (filePaths?.length) await openDocumentFromPaths(filePaths)
 }
 
 /** Files opened from the OS (Finder double-click, dock drop) and drag & drop. */
