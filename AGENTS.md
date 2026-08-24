@@ -22,7 +22,18 @@ bazelisk test //transcribe_rs/caption-core/...
 
 Inner-loop without Bazel is fine for **TypeScript** (`npm run test:unit`) and **Python** (`cd transcribe && uv run pytest tests/ -v`). For **transcribe_rs/** changes, prefer the Bazel targets above so crate-universe deps and runfiles match production builds.
 
-If `bazelisk` is not on PATH, use `bazel` (Homebrew) with the same target labels.
+If `bazelisk` is not on PATH, install it (`brew install bazelisk`) rather than
+falling back to a bare `bazel` — see below.
+
+### Bazel version
+
+`.bazelversion` pins the Bazel release (currently `9.2.0`). **Use `bazelisk`, which
+reads it** — a bare Homebrew `bazel` ignores the pin, and a different major can
+rewrite `MODULE.bazel.lock` into another `lockFileVersion`, producing a large diff
+that has nothing to do with your change.
+
+To upgrade: edit `.bazelversion`, run `bazelisk mod deps --lockfile_mode=update`,
+and commit `.bazelversion` and `MODULE.bazel.lock` **together** — they are a pair.
 
 ## E2E (Playwright + Electron)
 

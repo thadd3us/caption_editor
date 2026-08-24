@@ -117,10 +117,12 @@ jobs:
 
       # Bazel cache. Without this every release cold-builds ort + parakeet-rs
       # + knf-rs-sys (cmake/bindgen for kaldi-native-fbank C++), which is
-      # ~10 minutes on a fresh runner. Key from lockfiles only — do not
-      # include version.bzl (APP_VERSION bumps every release would otherwise
-      # force a new cache namespace each tag). Bazel still rebuilds targets
-      # whose inputs change (e.g. rustc_env version stamps).
+      # ~10 minutes on a fresh runner. Key from lockfiles and .bazelversion
+      # only — do not include version.bzl (APP_VERSION bumps every release
+      # would otherwise force a new cache namespace each tag). Bazel still
+      # rebuilds targets whose inputs change (e.g. rustc_env version stamps).
+      # .bazelversion is in the key because a Bazel upgrade can change the
+      # lockfile format and invalidate the external-repo layout wholesale.
       - name: Cache Bazel
         uses: actions/cache@v4
         with:
@@ -128,7 +130,7 @@ jobs:
             ~/Library/Caches/bazelisk
             ~/.cache/bazel
             ~/.cache/bazelisk
-          key: ${{ runner.os }}-bazel-${{ hashFiles('MODULE.bazel.lock', 'transcribe_rs/Cargo.lock') }}
+          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', 'MODULE.bazel.lock', 'transcribe_rs/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-bazel-
 
