@@ -57,7 +57,9 @@ git commit -m "Your message" --trailer "Co-authored-by: Sculptor <sculptor@imbue
 ### Quick Start
 
 ```bash
-# Run all tests (canonical entrypoint — TS + Electron + Python, cached)
+# Run all tests (canonical entrypoint — TS + Electron + Python, cached).
+# Superset of what CI runs: this also runs the `requires-torch` heavy
+# transcribe tests. See AGENTS.md → "Continuous integration".
 bazelisk test //...
 
 # Coverage

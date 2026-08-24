@@ -138,9 +138,15 @@ transcribe_pytest(
 )
 
 # -----------------------------------------------------------------------------
-# Heavy tests — `manual` so default `bazel test //...` skips them on
-# cold caches. Drop `manual` once pip.parse reliably materializes torch
-# + audio wheels on your dev + CI hosts.
+# Heavy tests — these pull the torch + megatron-core pip closure, which is
+# minutes of cold download.
+#
+# NOTE: despite what this comment used to say, they are NOT tagged `manual`,
+# so a local `bazel test //...` DOES run them. What skips them is the
+# `--test_tag_filters=-requires-torch` that CI passes
+# (.github/workflows/test.yml), which is the only thing giving
+# `requires-torch` any exclusion semantics. Whether they should also be
+# `manual` is open — see issue #22.
 # -----------------------------------------------------------------------------
 
 _HEAVY_TEST_DEPS = _CHEAP_TEST_DEPS + [
