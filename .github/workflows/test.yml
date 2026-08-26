@@ -1,0 +1,157 @@
+# Runs the test suite on every PR and every push to main.
+#
+# Until this existed, `release.yml` was the only workflow in the repo and it
+# runs no tests at all — it builds and publishes on `v*` tags. So nothing
+# checked ~8,100 lines of Playwright specs, ~4,500 lines of vitest specs, the
+# Python suite, or the Rust crates until someone ran them by hand.
+#
+# macOS runners because the repo is macOS-first in ways that are not
+# incidental: `transcribe-rs` enables parakeet-rs's `coreml` feature, and
+# `.bazelrc` hard-codes `/opt/homebrew/bin` into `--action_env=PATH`.
+# `release.yml` is `macos-latest` for the same reasons.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push to a PR makes the in-flight run obsolete. `main` is excluded
+# from cancellation so every landed commit keeps a result.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Everything that is hermetic under Bazel: vue-tsc, vitest, eslint, the Rust
+  # crates, the Python suite, and the version/hash consistency guards.
+  #
+  # Selected by tag rather than by a hand-written target list, so new test
+  # targets are picked up automatically and this file cannot drift out of date
+  # (the stale `//:all_tests` suite in BUILD.bazel is what that failure mode
+  # looks like). The two exclusions:
+  #
+  #   requires-torch    the five heavy transcribe tests, which pull the torch
+  #                     + megatron-core pip closure. Minutes of cold download
+  #                     for tests that cover CLI plumbing.
+  #   requires-network  the Playwright e2e suites, run by the `e2e` job below
+  #                     with the extra setup they need.
+  #
+  # No `npm ci` here: these targets consume the Bazel-linked `:node_modules`
+  # that `npm_link_all_packages` materializes from pnpm-lock.yaml.
+  # ---------------------------------------------------------------------------
+  bazel:
+    name: Bazel (typecheck, lint, unit, Rust, Python)
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Includes `~/Library/Caches/bazel-disk-cache`, which `.bazelrc` sets
+      # via `--disk_cache` and which release.yml's cache block omits.
+      # `.bazelversion` is in the key because a Bazel upgrade can change the
+      # lockfile format and invalidate the external-repo layout wholesale.
+      - name: Cache Bazel
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/bazelisk
+            ~/Library/Caches/bazel-disk-cache
+            ~/.cache/bazel
+            ~/.cache/bazelisk
+          key: ${{ runner.os }}-bazel-test-${{ hashFiles('.bazelversion', 'MODULE.bazel.lock', 'transcribe_rs/Cargo.lock', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-test-
+            ${{ runner.os }}-bazel-
+
+      # bazelisk reads .bazelversion, so the pinned Bazel is what runs here.
+      - name: Install Bazelisk
+        run: brew install bazelisk
+
+      - name: Test
+        run: |
+          bazelisk test //... \
+            --test_tag_filters=-requires-torch,-requires-network \
+            --test_output=errors \
+            --keep_going
+
+  # ---------------------------------------------------------------------------
+  # Playwright + Electron. Separate job because it needs a real source-tree
+  # `node_modules` (tools/bazel/run_playwright.sh shells out to npm scripts
+  # rather than running hermetically) plus a staged ffmpeg, and because it is
+  # the slow half — keeping it out of the `bazel` job means a type error or a
+  # failing unit test reports back quickly instead of queueing behind a build.
+  # ---------------------------------------------------------------------------
+  e2e:
+    name: E2E (Playwright + Electron)
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      # electron's postinstall re-downloads ~150MB of platform binaries on
+      # every cold runner otherwise. Same key shape as release.yml.
+      - name: Cache Electron binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/electron
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
+      - name: Cache Bazel
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/bazelisk
+            ~/Library/Caches/bazel-disk-cache
+            ~/.cache/bazel
+            ~/.cache/bazelisk
+          key: ${{ runner.os }}-bazel-e2e-${{ hashFiles('.bazelversion', 'MODULE.bazel.lock', 'transcribe_rs/Cargo.lock', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-e2e-
+            ${{ runner.os }}-bazel-
+
+      # run_playwright.sh hard-fails without a source-tree node_modules.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Bazelisk
+        run: brew install bazelisk
+
+      # `npm run build:rust` → `build:ffmpeg` → scripts/stage-ffmpeg.py, which
+      # sources the binary from imageio-ffmpeg. `npm run verify:dist-rust`
+      # fails the run if dist-rust/ffmpeg is missing, so this is load-bearing.
+      # Deliberately not `brew install ffmpeg`: see the note in release.yml.
+      - name: Install ffmpeg source for staging
+        run: pip3 install --break-system-packages imageio-ffmpeg
+
+      # Builds the app + Rust binaries, then runs the suite minus @expensive
+      # (the ASR/ML specs, which need model downloads).
+      - name: Test
+        run: bazelisk test //:e2e_playwright --test_output=errors
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

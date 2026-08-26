@@ -21,8 +21,20 @@ async function dismissLicenseAgreementIfPresent(page: Page) {
     await agree.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {})
 }
 
-test.describe('ASR Cancellation Reproduction', () => {
-    test('should remain responsive after cancelling ASR transcription', async () => {
+// `@expensive` on both the describe and the test, matching asr-menu / asr-embed /
+// full-pipeline. This spec runs real ASR: it sets __ASR_MODEL_OVERRIDE to
+// 'openai/whisper-tiny', which resolve_whisper_model_path() maps to
+// ggerganov/whisper.cpp:ggml-tiny.bin — a 74 MB HuggingFace download. It was
+// untagged, so it ran in the default suite and re-fetched that on every CI run,
+// making a network round-trip to HuggingFace a prerequisite for a green build.
+//
+// Its assertions do not justify that cost: it only checks that window.electronAPI
+// and store.mediaPath still exist afterwards. It never asserts the child process
+// was signalled, which is the cancellation bug the spec is named for. Replacing it
+// with a fast test that stubs the child process (the ipcMain-swap pattern in
+// drag-drop-integration.electron.spec.ts) would be strictly better — see #27.
+test.describe('ASR Cancellation Reproduction @expensive', () => {
+    test('should remain responsive after cancelling ASR transcription @expensive', async () => {
         // Create a temporary directory for test files
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'asr-cancel-reproduction-'))
         console.log('[Test] Created temp directory:', tmpDir)

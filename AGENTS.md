@@ -4,7 +4,7 @@ Human-oriented workflow and architecture: [CLAUDE.md](CLAUDE.md).
 
 ## Testing — use Bazel for Rust
 
-**Do not use `cargo test` for Rust in this repo.** Bazel is the canonical, cached path (same as CI and `bazelisk test //...`).
+**Do not use `cargo test` for Rust in this repo.** Bazel is the canonical, cached path, and it is what CI runs (see [Continuous integration](#continuous-integration)).
 
 ```bash
 # All default tests (TS tooling, Python, Rust, consistency checks)
@@ -24,6 +24,40 @@ Inner-loop without Bazel is fine for **TypeScript** (`npm run test:unit`) and **
 
 If `bazelisk` is not on PATH, install it (`brew install bazelisk`) rather than
 falling back to a bare `bazel` — see below.
+
+### Continuous integration
+
+`.github/workflows/test.yml` runs on every PR and every push to `main`, on
+`macos-latest` (the repo is macOS-first: `transcribe-rs` enables parakeet-rs's
+`coreml` feature and `.bazelrc` hard-codes `/opt/homebrew/bin`). Two jobs:
+
+| job | command | covers |
+| --- | --- | --- |
+| `bazel` | `bazelisk test //... --test_tag_filters=-requires-torch,-requires-network` | vue-tsc, vitest, eslint, Rust crates, Python suite, version/hash guards |
+| `e2e` | `bazelisk test //:e2e_playwright` | Playwright + Electron, minus `@expensive` |
+
+Targets are selected **by tag, not by a list**, so a new test target is picked up
+with no CI edit. What CI does *not* run: `requires-torch` (the five heavy
+`transcribe` tests), `requires-network` outside the e2e job, and anything
+`manual` (`//:e2e_playwright_expensive`, `//transcribe:transcribe_rs_parity_test`).
+
+**CI downloads no ML models, and it should stay that way.** The wespeaker
+embedding model is committed to the repo (`models/wespeaker-voxceleb-resnet34-LM-onnx/`)
+and staged by `npm run build:wespeaker-onnx`. Everything else — parakeet ONNX,
+whisper GGML — is fetched from HuggingFace at runtime into `~/.cache/huggingface`,
+which nothing caches, so any spec that touches a model re-downloads it on every
+run and makes a green build depend on HuggingFace being up. **Any spec that runs
+real ASR must be tagged `@expensive`** so `--grep-invert @expensive` keeps it out
+of the default suite. To check you haven't broken this:
+
+```bash
+npx playwright test --grep-invert @expensive --list | grep -i 'asr\|whisper\|parakeet'
+# must print nothing
+```
+
+`bazelisk test //...` locally is a **superset** of the `bazel` job — it also runs
+the heavy torch tests. Green locally therefore implies green in CI, not the
+reverse.
 
 ### Bazel version
 
