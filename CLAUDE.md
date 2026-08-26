@@ -214,7 +214,9 @@ crate.
   (`nearestPlaybackRate`) so a hand-edited value can't leave the `<select>` with no match.
 - The element is a **second** way to change speed: Chromium's `controls` overlay has its own
   speed submenu (behind ⋮) that writes `playbackRate` directly. `onMediaRateChange` mirrors that
-  back into the store, so the option list is kept a superset of Chromium's (hence 0.25x).
+  back into the store, which is why `PLAYBACK_RATE_OPTIONS` is exactly Chromium's own list
+  (0.25 … 2) — a rate the overlay can produce but we cannot represent would be snapped away
+  under the user's fingers.
 
 **Current Caption panel (under the media player)**
 - **Click a word** with a timestamp to move the playhead there — the same gesture as clicking a

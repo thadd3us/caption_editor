@@ -250,12 +250,12 @@ test.describe('Playback speed', () => {
     expect(written.uiState.playbackRate).toBe(1.5)
   })
 
-  test('offers the full set of speeds around 1x', async ({ page }) => {
+  test('offers exactly the speeds the native controls overlay does', async ({ page }) => {
     await loadDocumentAndMedia(page, 'options.captions_json5')
 
     const labels = await speedSelect(page).locator('option').allTextContents()
     expect(labels.map(t => t.trim())).toEqual(
-      ['0.25x', '0.5x', '0.75x', '0.9x', '1x', '1.1x', '1.25x', '1.5x', '1.75x', '2x']
+      ['0.25x', '0.5x', '0.75x', '1x', '1.25x', '1.5x', '1.75x', '2x']
     )
   })
 })
