@@ -264,19 +264,9 @@ describe('FileDropZone', () => {
   })
 
   describe('triggerFileInput method', () => {
-    it('should call Electron openFile API when in Electron', async () => {
+    it('should call Electron openFile API and return the chosen paths', async () => {
       const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.captions_json5'])
-      const mockProcessDroppedFiles = vi.fn().mockResolvedValue([
-        {
-          type: 'captions_json5',
-          filePath: '/path/to/test.captions_json5',
-          fileName: 'test.captions_json5',
-          content: JSON.stringify({
-            metadata: { id: 'doc_1' },
-            segments: [{ id: 'seg_1', startTime: 1, endTime: 4, text: 'Test' }]
-          })
-        }
-      ])
+      const mockProcessDroppedFiles = vi.fn()
 
       global.window.electronAPI = createMockElectronAPI({
         openFile: mockOpenFile,
@@ -286,18 +276,48 @@ describe('FileDropZone', () => {
       const wrapper = mount(FileDropZone)
       const component = wrapper.vm as any
 
-      await component.triggerFileInput()
+      const result = await component.triggerFileInput()
 
-      // Verify Electron openFile was called
       expect(mockOpenFile).toHaveBeenCalledWith({
         properties: ['openFile', 'multiSelections']
       })
+      expect(result).toEqual(['/path/to/test.captions_json5'])
 
-      // Verify files were processed
-      expect(mockProcessDroppedFiles).toHaveBeenCalledWith(['/path/to/test.captions_json5'])
+      // It must NOT load them. App.vue's openDocumentFromPaths() is the single
+      // entry point that runs the unsaved-changes prompt and takes the document
+      // claim; loading here would bypass both and let two windows edit one
+      // transcript. See CLAUDE.md → "Windows, documents, and quitting".
+      expect(mockProcessDroppedFiles).not.toHaveBeenCalled()
 
       // Cleanup
       delete global.window.electronAPI
+    })
+
+    it('should return an empty array when the picker is cancelled', async () => {
+      // Electron's showOpenDialog resolves undefined on cancel.
+      const mockOpenFile = vi.fn().mockResolvedValue(undefined)
+
+      global.window.electronAPI = createMockElectronAPI({
+        openFile: mockOpenFile
+      }) as any
+
+      const wrapper = mount(FileDropZone)
+      const component = wrapper.vm as any
+
+      await expect(component.triggerFileInput()).resolves.toEqual([])
+
+      delete global.window.electronAPI
+    })
+
+    it('should return an empty array outside Electron', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const wrapper = mount(FileDropZone)
+      const component = wrapper.vm as any
+
+      await expect(component.triggerFileInput()).resolves.toEqual([])
+
+      consoleErrorSpy.mockRestore()
     })
   })
 })

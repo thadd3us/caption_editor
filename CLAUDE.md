@@ -148,7 +148,14 @@ crate.
   `{claimed: false}` and focuses the owning window instead. Sharing the same **media**
   across windows is fine — `media://` is read-only.
 - All document-open entry points (Open menu, drag & drop, OS `open-file`) funnel through
-  `openDocumentFromPaths()` in App.vue, so they share one unsaved-changes check.
+  `openDocumentFromPaths()` in App.vue, so they share one unsaved-changes check **and one
+  document claim**. Components that pick files (`FileDropZone.triggerFileInput()`) return
+  paths; they must never call `store.processFilePaths()` themselves, or they reintroduce
+  a path that skips both.
+- **Order matters inside `openDocumentFromPaths()`: prompt, then claim.** `doc:claim`
+  gives a window at most one transcript, so claiming a new file releases the claim on the
+  currently open one. Claiming before the prompt meant a cancel left the open document
+  unowned, and `claimedFilePath` being sticky meant it was never re-claimed.
 - Quitting asks each window **in turn**; any window's "Keep working" (`app:cancel-quit`)
   aborts the whole quit. Window close interception is disabled under `NODE_ENV=test`
   unless a spec sets `CAPTION_EDITOR_INTERCEPT_CLOSE=1` (see
