@@ -19,6 +19,7 @@
         @timeupdate="onTimeUpdate"
         @play="onPlay"
         @pause="onPause"
+        @ratechange="onMediaRateChange"
         controls
       />
       <audio
@@ -29,6 +30,7 @@
         @timeupdate="onTimeUpdate"
         @play="onPlay"
         @pause="onPause"
+        @ratechange="onMediaRateChange"
         controls
       />
       <div v-else class="no-media">
@@ -133,7 +135,7 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 import { usePreferencesStore } from '../stores/preferencesStore'
-import { PLAYBACK_RATE_OPTIONS } from '../types/schema'
+import { PLAYBACK_RATE_OPTIONS, nearestPlaybackRate } from '../types/schema'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
@@ -363,6 +365,25 @@ function applyPlaybackRate() {
   const rate = store.playbackRate
   el.defaultPlaybackRate = rate
   if (el.playbackRate !== rate) el.playbackRate = rate
+}
+
+/**
+ * Adopt a rate the *element* changed on its own.
+ *
+ * The `controls` overlay Chromium draws has its own playback-speed submenu (behind the ⋮
+ * button), and it writes `playbackRate` directly. Without this the audio would run at the speed
+ * picked there while our <select> still read 1x and nothing was persisted to the document.
+ *
+ * Snapping keeps one source of truth; the `!==` guard stops the round trip with
+ * `applyPlaybackRate()` (which fires `ratechange` itself) from looping.
+ */
+function onMediaRateChange() {
+  const el = mediaElement.value
+  if (!el) return
+  const snapped = nearestPlaybackRate(el.playbackRate)
+  if (snapped === store.playbackRate) return
+  console.log('Adopting playback rate changed on the media element:', el.playbackRate, '->', snapped)
+  store.playbackRate = snapped
 }
 
 function onPlaybackRateChange(event: Event) {

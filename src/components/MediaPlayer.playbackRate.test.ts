@@ -90,6 +90,38 @@ describe('MediaPlayer - playback speed', () => {
     expect(element.defaultPlaybackRate).toBe(0.75)
   })
 
+  it('adopts a rate the native controls overlay set behind our back', async () => {
+    const { store, video } = mountWithMedia()
+    const element = video.element as HTMLVideoElement
+
+    // Chromium's `controls` overlay has its own speed submenu; it writes the property directly.
+    element.playbackRate = 1.5
+    await video.trigger('ratechange')
+
+    expect(store.playbackRate).toBe(1.5)
+  })
+
+  it('snaps a rate the overlay set to a value we do not offer', async () => {
+    const { store, video } = mountWithMedia()
+    const element = video.element as HTMLVideoElement
+
+    element.playbackRate = 1.4
+    await video.trigger('ratechange')
+
+    expect(store.playbackRate).toBe(1.5)
+  })
+
+  it('does not loop when it applies a rate to the element itself', async () => {
+    const { store, wrapper, video } = mountWithMedia()
+
+    // The <select> -> store -> element hop fires `ratechange`, which must settle, not ping-pong.
+    await wrapper.find('[data-testid="playback-speed"]').setValue('0.5')
+    await video.trigger('ratechange')
+
+    expect(store.playbackRate).toBe(0.5)
+    expect((video.element as HTMLVideoElement).playbackRate).toBe(0.5)
+  })
+
   it('disables the selector with no media loaded', () => {
     const wrapper = mount(MediaPlayer)
     expect(wrapper.find('[data-testid="playback-speed"]').attributes('disabled')).toBeDefined()
@@ -127,7 +159,7 @@ describe('playback rate persistence in uiState', () => {
   it('does not trust an off-list rate from a hand-edited file', () => {
     // Otherwise the <select> would show no matching option and the user could not get back to 1x.
     expect(loadDoc({ playbackRate: 8 }).playbackRate).toBe(2.0)
-    expect(loadDoc({ playbackRate: -3 }).playbackRate).toBe(0.5)
+    expect(loadDoc({ playbackRate: -3 }).playbackRate).toBe(0.25)
     expect(loadDoc({ playbackRate: 1.3 }).playbackRate).toBe(1.25)
   })
 

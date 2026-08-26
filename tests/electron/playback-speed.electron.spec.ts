@@ -21,12 +21,12 @@ test.describe('Playback speed', () => {
   })
 
   /** A real file on disk, so the document can be saved and reopened through the app's own path. */
-  async function writeFixture(name: string): Promise<string> {
+  async function writeFixture(name: string, segments?: unknown[]): Promise<string> {
     await fs.mkdir(tmpDir, { recursive: true })
     const filePath = path.join(tmpDir, name)
     await fs.writeFile(filePath, JSON.stringify({
       metadata: { id: `speed-${name}` },
-      segments: [{ id: 'seg-1', index: 0, startTime: 0, endTime: 5, text: 'Alpha' }]
+      segments: segments ?? [{ id: 'seg-1', index: 0, startTime: 0, endTime: 5, text: 'Alpha' }]
     }, null, 2), 'utf-8')
     return filePath
   }
@@ -55,10 +55,10 @@ test.describe('Playback speed', () => {
     await expect(page.locator('audio')).toBeAttached()
   }
 
-  async function loadDocumentAndMedia(page: Page, name: string): Promise<string> {
+  async function loadDocumentAndMedia(page: Page, name: string, audio?: string): Promise<string> {
     const filePath = await writeFixture(name)
     await loadDocument(page, filePath)
-    await loadMedia(page)
+    await loadMedia(page, audio)
     return filePath
   }
 
@@ -132,12 +132,130 @@ test.describe('Playback speed', () => {
     await expect(speedSelect(page)).toHaveValue('0.75')
   })
 
+  /**
+   * The one assertion that actually proves the feature works.
+   *
+   * Every other test here checks that we *told* the media element a rate — `playbackRate` is a
+   * plain property, and setting it would still "pass" if the decoder ignored it entirely. This
+   * one plays real audio and compares elapsed wall-clock time against elapsed media time, so it
+   * fails if the audio does not genuinely run faster or slower.
+   *
+   * Measurement starts only after the playhead is already moving: `play()` resolves before the
+   * decoder is up to speed, and counting that startup latency drags the observed ratio well
+   * below the true rate.
+   */
+  test('really decodes faster and slower, not just sets a property', async ({ page }) => {
+    test.setTimeout(60000)
+    await loadDocumentAndMedia(page, 'decode.captions_json5', 'OSR_us_000_0010_8k.wav')
+
+    for (const rate of [0.5, 1, 2]) {
+      await speedSelect(page).selectOption(String(rate))
+
+      const observed = await page.evaluate(async () => {
+        const el = document.querySelector('audio') as HTMLAudioElement
+        el.pause()
+        el.currentTime = 0
+        await el.play()
+
+        // Wait for the decoder to actually be rolling before starting the clock.
+        const startedBy = performance.now() + 3000
+        while (el.currentTime < 0.2 && performance.now() < startedBy) {
+          await new Promise(r => setTimeout(r, 20))
+        }
+
+        const wall0 = performance.now()
+        const media0 = el.currentTime
+        await new Promise(r => setTimeout(r, 1200))
+        const ratio = (el.currentTime - media0) / ((performance.now() - wall0) / 1000)
+        el.pause()
+        return ratio
+      })
+
+      // Wide band: this is a timing measurement on a shared machine, and the point is to catch
+      // "the rate never reached the decoder", not to audit the decoder's precision.
+      expect(observed, `media time should advance ~${rate}x per wall-clock second`)
+        .toBeGreaterThan(rate * 0.75)
+      expect(observed).toBeLessThan(rate * 1.25)
+    }
+  })
+
+  /**
+   * Sequential ("Play Segments") playback advances on `timeupdate`, which fires on a wall-clock
+   * cadence — so at 2x each event covers twice as much media time. A segment shorter than that
+   * step would be stepped over, leaving the table's highlight out of sync with the audio.
+   *
+   * With ordinary caption-length segments there is plenty of margin, and this pins that: every
+   * segment is still visited in order, and the amount by which the audio runs past a segment's
+   * end before the playlist catches up stays a fraction of the segment.
+   */
+  test('sequential segment playback still visits every segment at 2x', async ({ page }) => {
+    test.setTimeout(60000)
+    const segments = Array.from({ length: 6 }, (_, i) => ({
+      id: `seg${i}`, index: i, startTime: i, endTime: i + 1, text: `Line ${i}`
+    }))
+    await writeFixture('playlist.captions_json5', segments)
+    await loadDocument(page, path.join(tmpDir, 'playlist.captions_json5'))
+    await loadMedia(page, 'OSR_us_000_0010_8k.wav')
+
+    await speedSelect(page).selectOption('2')
+
+    const run = await page.evaluate(async () => {
+      const store = (window as any).$store
+      const el = document.querySelector('audio') as HTMLAudioElement
+      el.currentTime = 0
+      store.startPlaylistPlayback(store.document.segments.map((s: any) => s.id), 0)
+
+      const visited: string[] = []
+      const overshoots: number[] = []
+      for (let i = 0; i < 120; i++) {
+        await new Promise(r => setTimeout(r, 50))
+        const seg = store.currentPlaylistSegment
+        if (seg?.id && visited[visited.length - 1] !== seg.id) visited.push(seg.id)
+        if (seg && store.isPlaying) overshoots.push(el.currentTime - seg.endTime)
+        if (!store.isPlaying && i > 4) break
+      }
+      el.pause()
+      return { visited, maxOvershoot: overshoots.length ? Math.max(...overshoots) : 0 }
+    })
+
+    expect(run.visited).toEqual(['seg0', 'seg1', 'seg2', 'seg3', 'seg4', 'seg5'])
+    // Doubling the rate doubles the overshoot; 1s segments still leave ample margin.
+    expect(run.maxOvershoot).toBeLessThan(0.6)
+  })
+
+  test('adopts a speed set from the native controls overlay', async ({ page }) => {
+    const filePath = await loadDocumentAndMedia(page, 'native.captions_json5')
+    await page.evaluate(() => (window as any).$store.markSaved())
+
+    // Chromium's `controls` overlay has its own speed submenu, which writes the property
+    // directly. The app must notice, or the audio runs at a speed the UI does not show and the
+    // document never records.
+    await page.evaluate(() => {
+      (document.querySelector('audio') as HTMLAudioElement).playbackRate = 1.5
+    })
+
+    await expect(speedSelect(page)).toHaveValue('1.5')
+    expect(await page.evaluate(() => (window as any).$store.playbackRate)).toBe(1.5)
+
+    // And it is document state like any other speed change: saved, but not a content edit.
+    expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(false)
+    await page.evaluate(async () => {
+      const store = (window as any).$store
+      await window.electronAPI!.saveExistingFile({
+        filePath: store.document.filePath,
+        content: store.exportToString()
+      })
+    })
+    const written = parseCaptionsFileContent(await fs.readFile(filePath, 'utf-8')) as any
+    expect(written.uiState.playbackRate).toBe(1.5)
+  })
+
   test('offers the full set of speeds around 1x', async ({ page }) => {
     await loadDocumentAndMedia(page, 'options.captions_json5')
 
     const labels = await speedSelect(page).locator('option').allTextContents()
     expect(labels.map(t => t.trim())).toEqual(
-      ['0.5x', '0.75x', '0.9x', '1x', '1.1x', '1.25x', '1.5x', '1.75x', '2x']
+      ['0.25x', '0.5x', '0.75x', '0.9x', '1x', '1.1x', '1.25x', '1.5x', '1.75x', '2x']
     )
   })
 })
