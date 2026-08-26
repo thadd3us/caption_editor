@@ -60,6 +60,19 @@
           @input="onScrub"
         />
         <span class="time-display">{{ formatTime(duration) }}</span>
+        <label class="speed-control tooltip-btn" data-tooltip="Playback speed">
+          <select
+            class="speed-select"
+            data-testid="playback-speed"
+            :value="store.playbackRate"
+            :disabled="!hasMedia"
+            @change="onPlaybackRateChange"
+          >
+            <option v-for="rate in PLAYBACK_RATE_OPTIONS" :key="rate" :value="rate">
+              {{ formatRate(rate) }}
+            </option>
+          </select>
+        </label>
       </div>
 
       <div class="caption-resizer" @mousedown="startCaptionResize"></div>
@@ -120,6 +133,7 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { useCaptionStore, PlaybackMode } from '../stores/captionStore'
 import { usePreferencesStore } from '../stores/preferencesStore'
+import { PLAYBACK_RATE_OPTIONS } from '../types/schema'
 import ContextMenu from './ContextMenu.vue'
 import type { ContextMenuItem } from './ContextMenu.types'
 
@@ -330,6 +344,41 @@ function seekTo(time: number) {
   store.setCurrentTime(time)
 }
 
+/**
+ * Playback speed.
+ *
+ * Lives in `uiState` (see `captionStore.playbackRate`), so the speed that suits a particular
+ * recording comes back with it — and, being view state, changing it never raises the
+ * unsaved-changes prompt.
+ *
+ * `playbackRate` is per-element and resets to `defaultPlaybackRate` whenever a new source loads,
+ * and switching between the <video> and <audio> branch mounts a *fresh* element — so the rate has
+ * to be re-applied on `loadedmetadata` (`onMediaLoaded`), not just when the user picks a value.
+ * Setting `defaultPlaybackRate` too means an in-flight source swap resets to the chosen speed
+ * rather than to 1x.
+ */
+function applyPlaybackRate() {
+  const el = mediaElement.value
+  if (!el) return
+  const rate = store.playbackRate
+  el.defaultPlaybackRate = rate
+  if (el.playbackRate !== rate) el.playbackRate = rate
+}
+
+function onPlaybackRateChange(event: Event) {
+  const rate = parseFloat((event.target as HTMLSelectElement).value)
+  if (!Number.isFinite(rate)) return
+  console.log('Setting playback rate to', rate)
+  store.playbackRate = rate
+}
+
+/** "1x", "1.25x" — trailing zeros trimmed so the control stays narrow. */
+function formatRate(rate: number): string {
+  return `${parseFloat(rate.toFixed(2))}x`
+}
+
+watch(() => store.playbackRate, applyPlaybackRate)
+
 function onCaptionContextMenu(event: MouseEvent) {
   event.preventDefault()
 
@@ -385,6 +434,9 @@ function onMediaLoaded() {
   if (!mediaElement.value) return
   duration.value = mediaElement.value.duration
   console.log('Media loaded, duration:', duration.value)
+
+  // A freshly loaded source is always back at 1x — restore the chosen speed before anything plays.
+  applyPlaybackRate()
 
   // Restore the persisted playhead. This is the earliest point at which the element
   // will accept a seek — the `store.currentTime` watcher below fires while the element
@@ -652,6 +704,7 @@ video, audio {
 }
 
 .control-btn {
+  flex-shrink: 0;
   padding: 12px 20px;
   font-size: 20px;
   background: #3498db;
@@ -675,13 +728,40 @@ video, audio {
   font-family: monospace;
   font-size: 16px;
   min-width: 90px;
+  flex-shrink: 0;
   color: var(--text-1);
 }
 
 .scrubber {
   flex: 1;
+  /* Flex items default to `min-width: auto`, so the range input refuses to shrink below its
+     intrinsic width and pushes the speed selector off the right edge in a narrow panel. */
+  min-width: 0;
   height: 6px;
   cursor: pointer;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.speed-select {
+  font-family: monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  color: var(--text-1);
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.speed-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .caption-resizer {

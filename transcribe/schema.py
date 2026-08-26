@@ -203,6 +203,11 @@ class UIState(BaseModel):
         ),
         alias="selectedSegmentId",
     )
+    playback_rate: Optional[float] = Field(
+        None,
+        description="Playback speed multiplier for this document (e.g. 0.75, 1.0, 1.5)",
+        alias="playbackRate",
+    )
 
 
 class RawAsrWord(BaseModel):

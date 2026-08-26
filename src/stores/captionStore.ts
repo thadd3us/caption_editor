@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { CaptionsDocument, TranscriptSegment, UIState } from '../types/schema'
+import { DEFAULT_PLAYBACK_RATE, nearestPlaybackRate } from '../types/schema'
 import {
   createEmptyDocument,
   addSegment as addSegmentToDoc,
@@ -100,9 +101,19 @@ export const useCaptionStore = defineStore('captions', () => {
   const leftPanelWidth = ref(60)  // Percentage width of left (table) panel
   const captionHeight = ref(120)  // Pixel height of caption display area
 
-  // Dragging the panel splitter or the caption-height handle is view state: persisted,
-  // but never a reason to prompt about unsaved changes.
-  watch([leftPanelWidth, captionHeight], () => markViewDirty(), { flush: 'sync' })
+  /**
+   * Playback speed multiplier, persisted with the document.
+   *
+   * Per-document rather than a Preference: the right speed is a property of *this recording* —
+   * a fast talker or a noisy interview wants 0.75x while a clear dictation is comfortable at
+   * 1.5x — so it should come back with the transcript instead of following the user onto the
+   * next file.
+   */
+  const playbackRate = ref(DEFAULT_PLAYBACK_RATE)
+
+  // Dragging the panel splitter or the caption-height handle, or picking a playback speed, is
+  // view state: persisted, but never a reason to prompt about unsaved changes.
+  watch([leftPanelWidth, captionHeight, playbackRate], () => markViewDirty(), { flush: 'sync' })
 
   // Computed
   // If the playhead is not inside any segment but is within this many seconds
@@ -206,6 +217,11 @@ export const useCaptionStore = defineStore('captions', () => {
       if (loadedDoc.uiState?.captionHeight != null) {
         captionHeight.value = loadedDoc.uiState.captionHeight
       }
+      // Snapped, not trusted: an out-of-range rate from a hand-edited file would otherwise
+      // reach the media element and leave the <select> showing no matching option.
+      playbackRate.value = loadedDoc.uiState?.playbackRate != null
+        ? nearestPlaybackRate(loadedDoc.uiState.playbackRate)
+        : DEFAULT_PLAYBACK_RATE
 
       // Restore where the user left off (Lightroom-style): playhead position and
       // selected row. Selection is keyed by segment UUID, so it survives sorting,
@@ -334,6 +350,7 @@ export const useCaptionStore = defineStore('captions', () => {
       ...gridUiState,
       leftPanelWidth: leftPanelWidth.value,
       captionHeight: captionHeight.value,
+      playbackRate: playbackRate.value,
       // Rounded so that ordinary playback does not churn the file on every frame.
       playheadSeconds: roundPlayhead(currentTime.value),
       // Only persist a selection that still exists, so a stale id never lands on disk.
@@ -696,6 +713,7 @@ export const useCaptionStore = defineStore('captions', () => {
     gridStateProvider,
     leftPanelWidth,
     captionHeight,
+    playbackRate,
 
     // Computed
     currentSegment,
@@ -741,6 +759,7 @@ export const useCaptionStore = defineStore('captions', () => {
       playlistStartIndex.value = 0
       leftPanelWidth.value = 60
       captionHeight.value = 120
+      playbackRate.value = DEFAULT_PLAYBACK_RATE
       markSaved()
     }
   }

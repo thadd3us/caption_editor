@@ -138,6 +138,9 @@ pub struct UIState {
     /// UUID of the segment selected when the file was last written.
     #[serde(default, skip_serializing_if = "skip_if_none")]
     pub selected_segment_id: Option<String>,
+    /// Playback speed multiplier for this document (e.g. 0.75, 1.0, 1.5).
+    #[serde(default, skip_serializing_if = "skip_if_none")]
+    pub playback_rate: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -333,6 +336,7 @@ mod tests {
                 leftPanelWidth: 55,
                 playheadSeconds: 91.5,
                 selectedSegmentId: 's1',
+                playbackRate: 1.25,
                 filterModel: { text: { type: 'contains', filter: 'hi' } },
             },
         }"#;
@@ -343,6 +347,7 @@ mod tests {
         assert_eq!(ui.selected_segment_id.as_deref(), Some("s1"));
         assert_eq!(ui.left_panel_width, Some(55.0));
         assert_eq!(ui.caption_height, Some(180.0));
+        assert_eq!(ui.playback_rate, Some(1.25));
 
         // And back out again, unchanged.
         let reparsed = parse_captions_json5(&serialize_captions_json5(&parsed, "hash")).unwrap();
@@ -351,6 +356,7 @@ mod tests {
         assert_eq!(ui.selected_segment_id.as_deref(), Some("s1"));
         assert_eq!(ui.left_panel_width, Some(55.0));
         assert_eq!(ui.caption_height, Some(180.0));
+        assert_eq!(ui.playback_rate, Some(1.25));
         assert!(ui.filter_model.is_some());
     }
 
