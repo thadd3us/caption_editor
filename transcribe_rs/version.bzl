@@ -10,4 +10,4 @@ match what Electron ships and what the GitHub release attaches as
 `transcribe-rs-v${APP_VERSION}-darwin-arm64`).
 """
 
-APP_VERSION = "1.8.1"
+APP_VERSION = "1.8.2"

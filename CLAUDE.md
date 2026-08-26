@@ -130,7 +130,7 @@ Two flags in `captionStore.ts`, with deliberately different policies:
 it (app-level settings that are not a property of any document go in **Preferences** instead —
 see the decision rule there):
 `columnState`, `filterModel`, `leftPanelWidth`, `captionHeight`, `playheadSeconds`,
-`selectedSegmentId`. Selection is keyed by **segment UUID**, not row index, so it
+`selectedSegmentId`, `playbackRate`. Selection is keyed by **segment UUID**, not row index, so it
 survives sorting, filtering, and edits. The playhead is restored in
 `MediaPlayer.onMediaLoaded()` — the earliest point the element accepts a seek.
 
@@ -203,6 +203,21 @@ crate.
 - Default model: `nvidia/parakeet-tdt-0.6b-v3`
 - Test override: Set `window.__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'`
 
+**Playback speed**
+- `<select>` at the right end of the transport row in `MediaPlayer.vue`; options in
+  `PLAYBACK_RATE_OPTIONS` (`src/types/schema.ts`).
+- Stored per document in `uiState.playbackRate`, so it is *view* state: it round-trips with the
+  file but never raises the unsaved-changes prompt.
+- `HTMLMediaElement.playbackRate` resets to 1 whenever a source loads, and switching between the
+  `<video>` and `<audio>` branch mounts a fresh element — hence `applyPlaybackRate()` on
+  `loadedmetadata`, not only on change. A rate loaded from a file is snapped onto the option list
+  (`nearestPlaybackRate`) so a hand-edited value can't leave the `<select>` with no match.
+- The element is a **second** way to change speed: Chromium's `controls` overlay has its own
+  speed submenu (behind ⋮) that writes `playbackRate` directly. `onMediaRateChange` mirrors that
+  back into the store, which is why `PLAYBACK_RATE_OPTIONS` is exactly Chromium's own list
+  (0.25 … 2) — a rate the overlay can produce but we cannot represent would be snapped away
+  under the user's fingers.
+
 **Current Caption panel (under the media player)**
 - **Click a word** with a timestamp to move the playhead there — the same gesture as clicking a
   table row / start-time cell. Words without timestamps (typed during an edit) are inert and get
@@ -232,7 +247,9 @@ crate.
   person. *"Which columns is this transcript sorted by, where was I in the audio"* → `uiState`
   (and it **must** be added to all three schemas — see "Dirty tracking and view state").
   *"How do I like the editor to behave"* → here; no schema changes, nothing written into the
-  user's `.captions_json5`. `pausePlaybackWhileEditingCaption` is the second kind: it does not
+  user's `.captions_json5`. Note the rule follows the *subject*, not the phrasing: playback
+  speed sounds like a personal habit but is a property of the recording (a fast talker wants
+  0.75x, a clear dictation 1.5x), so `playbackRate` lives in `uiState`. `pausePlaybackWhileEditingCaption` is the second kind: it does not
   describe the transcript, so putting it in `uiState` would both bloat every saved file and
   make the behaviour change depending on which document is open.
 - Schema + defaults + `sanitizePreferences()` live in `src/types/preferences.ts`, imported by

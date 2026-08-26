@@ -45,6 +45,7 @@ def _doc_with_ui_state() -> CaptionsDocument:
             captionHeight=250.0,
             playheadSeconds=12.75,
             selectedSegmentId="seg-1",
+            playbackRate=1.25,
         ),
         rawAsrOutput=None,
     )
@@ -62,6 +63,7 @@ def test_ui_state_survives_serialize_parse_round_trip(tmp_path: Path) -> None:
     assert parsed.ui_state.selected_segment_id == "seg-1"
     assert parsed.ui_state.left_panel_width == 42.5
     assert parsed.ui_state.caption_height == 250.0
+    assert parsed.ui_state.playback_rate == 1.25
     assert parsed.ui_state.filter_model == {
         "text": {"type": "contains", "filter": "hi"}
     }
@@ -78,6 +80,7 @@ def test_ui_state_written_by_the_editor_is_not_dropped(tmp_path: Path) -> None:
         leftPanelWidth: 55,
         playheadSeconds: 91.5,
         selectedSegmentId: 'seg-1',
+        playbackRate: 0.75,
       },
     }
     """
@@ -85,6 +88,7 @@ def test_ui_state_written_by_the_editor_is_not_dropped(tmp_path: Path) -> None:
     assert parsed.ui_state is not None
     assert parsed.ui_state.playhead_seconds == 91.5
     assert parsed.ui_state.selected_segment_id == "seg-1"
+    assert parsed.ui_state.playback_rate == 0.75
 
     rewritten = parse_captions_json5_string(
         serialize_captions_json5(parsed, captions_path=tmp_path / "a.captions_json5")
@@ -94,3 +98,4 @@ def test_ui_state_written_by_the_editor_is_not_dropped(tmp_path: Path) -> None:
     assert rewritten.ui_state.selected_segment_id == "seg-1"
     assert rewritten.ui_state.left_panel_width == 55
     assert rewritten.ui_state.caption_height == 180
+    assert rewritten.ui_state.playback_rate == 0.75

@@ -91,6 +91,33 @@ export interface UIState {
   readonly captionHeight?: number // Pixel height of the current-caption display area
   readonly playheadSeconds?: number // Playback position when the file was last written
   readonly selectedSegmentId?: string // UUID of the selected segment; survives sorting/filtering
+  readonly playbackRate?: number // Playback speed multiplier; one of PLAYBACK_RATE_OPTIONS
+}
+
+/**
+ * Selectable playback speeds, slowest first.
+ *
+ * These are exactly the speeds Chromium's own `controls` overlay offers in its speed submenu —
+ * the platform default, and the set users already know from every other video player. Matching
+ * it exactly (rather than inventing a list) matters because the overlay is a second way to
+ * change speed: `MediaPlayer.onMediaRateChange` mirrors those changes back here, and any rate
+ * the overlay could produce but this list could not represent would be snapped away under the
+ * user's fingers.
+ *
+ * Also the set the store will restore from a file: a `uiState.playbackRate` outside this list is
+ * snapped to the nearest entry on load, so a hand-edited (or future-version) document can never
+ * leave playback stuck at a speed the UI has no way to display or undo.
+ */
+export const PLAYBACK_RATE_OPTIONS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0] as const
+
+export const DEFAULT_PLAYBACK_RATE = 1.0
+
+/** Snap an arbitrary number onto the closest offered playback rate. */
+export function nearestPlaybackRate(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_PLAYBACK_RATE
+  return PLAYBACK_RATE_OPTIONS.reduce((best, option) =>
+    Math.abs(option - value) < Math.abs(best - value) ? option : best
+  )
 }
 
 /**

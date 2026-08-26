@@ -15,7 +15,7 @@ license = "MIT"
 # these crates and attaches `{transcribe,embed}-rs-v${APP_VERSION}-darwin-arm64`
 # to the GitHub release; the Electron app downloads by version tag.
 # Bump procedure: see ../CLAUDE.md → "Version Management".
-version = "1.8.1"
+version = "1.8.2"
 publish = false
 
 [workspace.dependencies]

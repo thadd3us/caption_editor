@@ -17,6 +17,19 @@ import { checkXvfbAvailable } from './tests/helpers/xvfb-check'
  * - Linux: Requires Xvfb (run start-xvfb.sh first, then set DISPLAY=:99)
  */
 
+/**
+ * Hidden Electron windows by default.
+ *
+ * `electron/main.ts` passes `show: !HEADLESS` to `BrowserWindow`, and the test helpers forward
+ * the variable into the launched main process. Left unset, a plain `npx playwright test` or
+ * `npm run test:e2e` throws a 1200x800 window onto the desktop for every spec and steals focus
+ * for the length of the run — the Bazel wrapper (`tools/bazel/run_playwright.sh`) already
+ * defaulted it to true for exactly that reason, but the direct CLI entry points did not.
+ *
+ * Set explicitly to watch a run: `HEADLESS=false npx playwright test <spec>`.
+ */
+process.env.HEADLESS = process.env.HEADLESS ?? 'true'
+
 // Check Xvfb availability on Linux before running tests
 checkXvfbAvailable()
 
