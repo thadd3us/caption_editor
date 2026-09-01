@@ -134,12 +134,20 @@ see the decision rule there):
 survives sorting, filtering, and edits. The playhead is restored in
 `MediaPlayer.onMediaLoaded()` — the earliest point the element accepts a seek.
 
-**⚠️ `uiState` fields must be added in all three schemas** (`src/types/schema.ts`,
-`transcribe/schema.py`, `transcribe_rs/caption-schema/src/lib.rs`). Both pydantic and
-serde drop unknown fields, and `embed-rs` / `embed_cli` rewrite the whole document — a
-TS-only field would be silently erased by "Compute Speaker Embeddings". Guarded by
-`transcribe/ui_state_round_trip_test.py` and `ui_state_survives_round_trip` in the Rust
-crate.
+**`src/types/schema.ts` is the only place `uiState` is modelled.** Add a field there and
+you are done — no Python change, no Rust change. `transcribe/schema.py` carries it as
+`dict[str, Any]` and `transcribe_rs/caption-schema` as `serde_json::Value`, so both pass
+the whole thing through untouched.
+
+*This used to be a three-schema hand-maintained rule, and it was actively losing data.*
+Pydantic and serde drop keys they do not enumerate, and `embed-rs` / `embed_cli` rewrite
+the whole document — so "Compute Speaker Embeddings" was silently stripping `sort`,
+`sortIndex`, `flex`, `aggFunc`, `pivot`, `pivotIndex`, `rowGroup` and `rowGroupIndex`
+from every `columnState` entry, i.e. the user's sort order and column widths. The guard
+tests missed it because they enumerated fields too, and so could only ever check the
+fields someone had remembered to list. They now assert the mapping round-trips *whole*,
+unknown keys included (`transcribe/ui_state_round_trip_test.py`,
+`ui_state_survives_round_trip_including_unknown_keys` in the Rust crate).
 
 ### Windows, documents, and quitting
 
@@ -245,7 +253,7 @@ crate.
 - App-wide user settings, persisted per *user*, not per document.
 - **Where does a new setting go?** Ask whether it is a property of the document or of the
   person. *"Which columns is this transcript sorted by, where was I in the audio"* → `uiState`
-  (and it **must** be added to all three schemas — see "Dirty tracking and view state").
+  (add it to `src/types/schema.ts` and you are done — see "Dirty tracking and view state").
   *"How do I like the editor to behave"* → here; no schema changes, nothing written into the
   user's `.captions_json5`. Note the rule follows the *subject*, not the phrasing: playback
   speed sounds like a personal habit but is a property of the recording (a fast talker wants

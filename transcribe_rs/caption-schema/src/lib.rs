@@ -103,48 +103,6 @@ pub struct SegmentSpeakerEmbedding {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct GridColumnState {
-    pub col_id: String,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub width: Option<i64>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub hide: Option<bool>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub sort: Option<String>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub sort_index: Option<i64>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub flex: Option<f64>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub pinned: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UIState {
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub column_state: Option<Vec<GridColumnState>>,
-    /// Free-form AG Grid filter model — kept as `serde_json::Value` so this
-    /// crate doesn't grow a flag for every filter shape AG Grid invents.
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub filter_model: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub left_panel_width: Option<f64>,
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub caption_height: Option<f64>,
-    /// Playback position (seconds) when the file was last written.
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub playhead_seconds: Option<f64>,
-    /// UUID of the segment selected when the file was last written.
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub selected_segment_id: Option<String>,
-    /// Playback speed multiplier for this document (e.g. 0.75, 1.0, 1.5).
-    #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub playback_rate: Option<f64>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct RawAsrWord {
     pub word: String,
     pub start: f64,
@@ -188,8 +146,17 @@ pub struct CaptionsDocument {
     pub embeddings: Option<Vec<SegmentSpeakerEmbedding>>,
     #[serde(default, skip_serializing_if = "skip_if_none")]
     pub embedding_model: Option<String>,
+    /// Persisted UI state (grid column layout, filters, playhead, ...).
+    ///
+    /// Deliberately opaque, same reasoning the old `filter_model` field carried
+    /// and for the same reason: this crate must not grow a field for every piece
+    /// of view state the editor invents. `src/types/schema.ts` is the single
+    /// owner of the shape. Modelling it again here only gave serde a list of
+    /// keys to keep and license to drop the rest — which it did, silently
+    /// discarding the user's sort order and column sizing every time `embed-rs`
+    /// rewrote a document.
     #[serde(default, skip_serializing_if = "skip_if_none")]
-    pub ui_state: Option<UIState>,
+    pub ui_state: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "skip_if_none")]
     pub raw_asr_output: Option<RawAsrOutput>,
 }
@@ -321,13 +288,19 @@ mod tests {
         assert!(parsed.segments[0].verified.is_none());
     }
 
-    /// The editor persists where the user left off (playhead, selected row, panel
-    /// sizes) in `uiState`. `embed-rs` rewrites the whole document, and serde drops
-    /// unknown fields, so anything missing from `UIState` here would be silently
-    /// erased by "Compute Speaker Embeddings". Keep in sync with
-    /// `src/types/schema.ts` and `transcribe/schema.py`.
+    /// `uiState` must survive a rewrite **whole**, including keys this crate has
+    /// never heard of. `embed-rs` rewrites the entire document, so any key serde
+    /// fails to carry is silently erased by "Compute Speaker Embeddings".
+    ///
+    /// This asserts structural equality against the input rather than checking a
+    /// hand-written list of fields. That distinction is the point: the previous
+    /// version enumerated the fields it knew about, so it passed while `sort`,
+    /// `sortIndex`, `flex`, `aggFunc`, `pivot`, `pivotIndex`, `rowGroup` and
+    /// `rowGroupIndex` were being dropped from every `columnState` entry — the
+    /// user's sort order and column sizing, gone. A test that lists fields can
+    /// only ever catch the fields someone remembered to list.
     #[test]
-    fn ui_state_survives_round_trip() {
+    fn ui_state_survives_round_trip_including_unknown_keys() {
         let json = r#"{
             metadata: { id: 'doc-1' },
             segments: [ { id: 's1', index: 0, startTime: 0, endTime: 5, text: 'hi' } ],
@@ -338,26 +311,29 @@ mod tests {
                 selectedSegmentId: 's1',
                 playbackRate: 1.25,
                 filterModel: { text: { type: 'contains', filter: 'hi' } },
+                columnState: [
+                    { colId: 'index', width: 80, hide: false, sort: 'asc', sortIndex: 0,
+                      flex: 1, pinned: 'left', aggFunc: null, pivot: false, pivotIndex: null,
+                      rowGroup: false, rowGroupIndex: null },
+                ],
+                aFieldInventedTomorrow: { nested: [1, 2, 3] },
             },
         }"#;
 
         let parsed = parse_captions_json5(json).unwrap();
-        let ui = parsed.ui_state.clone().expect("uiState parsed");
-        assert_eq!(ui.playhead_seconds, Some(91.5));
-        assert_eq!(ui.selected_segment_id.as_deref(), Some("s1"));
-        assert_eq!(ui.left_panel_width, Some(55.0));
-        assert_eq!(ui.caption_height, Some(180.0));
-        assert_eq!(ui.playback_rate, Some(1.25));
+        let original = parsed.ui_state.clone().expect("uiState parsed");
 
-        // And back out again, unchanged.
+        // Every key present on the way in is present on the way out, unchanged.
         let reparsed = parse_captions_json5(&serialize_captions_json5(&parsed, "hash")).unwrap();
-        let ui = reparsed.ui_state.expect("uiState survives serialization");
-        assert_eq!(ui.playhead_seconds, Some(91.5));
-        assert_eq!(ui.selected_segment_id.as_deref(), Some("s1"));
-        assert_eq!(ui.left_panel_width, Some(55.0));
-        assert_eq!(ui.caption_height, Some(180.0));
-        assert_eq!(ui.playback_rate, Some(1.25));
-        assert!(ui.filter_model.is_some());
+        let after = reparsed.ui_state.expect("uiState survives serialization");
+        assert_eq!(original, after);
+
+        // Spot-check the two that used to be destroyed, so a regression reads
+        // clearly instead of as an opaque struct mismatch.
+        let col = &after["columnState"][0];
+        assert_eq!(col["sort"], "asc");
+        assert_eq!(col["flex"], 1);
+        assert_eq!(after["aFieldInventedTomorrow"]["nested"][2], 3);
     }
 
     #[test]
