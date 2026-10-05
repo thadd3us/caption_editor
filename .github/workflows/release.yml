@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
           # Full history so any future stamping that needs `git
@@ -66,7 +66,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'npm'
@@ -75,7 +75,7 @@ jobs:
       # postinstall otherwise re-downloads ~150MB of platform binaries
       # on every cold runner.
       - name: Cache Electron binaries
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/electron
           key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
@@ -86,7 +86,7 @@ jobs:
       # downloads (notarize helper, lzma-native, etc.). Largest savings
       # after the first build at a given lockfile state.
       - name: Cache electron-builder
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/electron-builder
           key: ${{ runner.os }}-electron-builder-${{ hashFiles('**/package-lock.json') }}
@@ -124,7 +124,7 @@ jobs:
       # .bazelversion is in the key because a Bazel upgrade can change the
       # lockfile format and invalidate the external-repo layout wholesale.
       - name: Cache Bazel
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/bazelisk
@@ -267,7 +267,7 @@ jobs:
       # attach to, and as a safety net if the release-upload step
       # below fails for any reason.
       - name: Upload DMG as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: caption-editor-macos-dmg
           path: release/*.dmg
@@ -278,12 +278,12 @@ jobs:
       # codesigning + notarization + stapling automatically.
 
       # Publish to the GitHub Release page only on tag pushes.
-      # `softprops/action-gh-release@v2` creates the release if it
+      # `softprops/action-gh-release@v3` creates the release if it
       # doesn't exist yet and attaches the DMG. The release body is
       # intentionally minimal — fill in changelog by hand if needed.
       - name: Attach DMG to GitHub Release
         if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ${{ env.dmg_path }}
           # The action infers tag_name from GITHUB_REF on tag pushes,
