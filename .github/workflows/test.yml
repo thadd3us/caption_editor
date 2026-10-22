@@ -51,14 +51,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Includes `~/Library/Caches/bazel-disk-cache`, which `.bazelrc` sets
       # via `--disk_cache` and which release.yml's cache block omits.
       # `.bazelversion` is in the key because a Bazel upgrade can change the
       # lockfile format and invalidate the external-repo layout wholesale.
       - name: Cache Bazel
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/bazelisk
@@ -95,10 +95,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: 'npm'
@@ -106,7 +106,7 @@ jobs:
       # electron's postinstall re-downloads ~150MB of platform binaries on
       # every cold runner otherwise. Same key shape as release.yml.
       - name: Cache Electron binaries
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/electron
           key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
@@ -114,7 +114,7 @@ jobs:
             ${{ runner.os }}-electron-
 
       - name: Cache Bazel
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/bazelisk
@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
