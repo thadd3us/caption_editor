@@ -72,17 +72,5 @@
     "vue-eslint-parser": "10.4.1",
     "vue-tsc": "3.3.2",
     "winston": "3.19.0"
-  },
-  "mac": {
-    "identity": "Developer ID Application: Christopher Thaddeus Hughes (RWVMRK3723)",
-    "category": "public.app-category.productivity",
-    "target": [
-      "dmg",
-      "zip"
-    ],
-    "hardenedRuntime": true,
-    "entitlements": "build/entitlements.mac.plist",
-    "entitlementsInherit": "build/entitlements.mac.plist",
-    "gatekeeperAssess": false
   }
 }

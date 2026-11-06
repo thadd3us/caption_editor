@@ -4,8 +4,8 @@ This VTT Editor is now packaged as an Electron desktop application with proper f
 
 ## Features
 
-- **Secure File Access**: Uses macOS security-scoped bookmarks to access only the files you explicitly open
-- **No Overly Broad Permissions**: Unlike many Electron apps, this doesn't request full filesystem access
+- **Sandboxed renderer**: the process that parses untrusted `.captions_json5` runs with
+  `sandbox: true`, `contextIsolation: true` and no Node integration
 - **Drag & Drop Support**: Drag VTT and media files directly into the app
 - **Cross-Platform**: Works on macOS, Windows, and Linux
 - **Native File Dialogs**: Uses native OS file pickers for better UX
@@ -13,10 +13,30 @@ This VTT Editor is now packaged as an Electron desktop application with proper f
 ## File Permissions
 
 ### macOS
-The app uses these minimal entitlements:
-- `com.apple.security.files.user-selected.read-write` - Read/write only files you explicitly select
-- `com.apple.security.files.downloads.read-write` - Access to your Downloads folder
-- No broad filesystem access required!
+
+**The app is not in the macOS App Sandbox.** `com.apple.security.app-sandbox` is not set, so
+the main process reads and writes anywhere the user can, and file access is governed by the
+ordinary Unix permissions of whoever is logged in. This is the normal arrangement for an
+Electron app distributed outside the Mac App Store, and it is what lets the app open a
+`.captions_json5` and then resolve the relative media path next to it without a second
+prompt.
+
+*This section used to claim `com.apple.security.files.user-selected.read-write` and
+`files.downloads.read-write`, and that the app used security-scoped bookmarks. None of it was
+true: both of those are App Sandbox entitlements and are inert without `app-sandbox`, neither
+was ever in the entitlements file, and the half-written bookmark code was dead and has been
+removed. Worth knowing, because the false version read as a stronger security posture than
+the real one.*
+
+What the app actually does have is the **hardened runtime** plus three entitlements, listed
+with their justifications in `assets/packaging/entitlements.mac.plist`. Two are V8's
+(`cs.allow-jit`, `cs.allow-unsigned-executable-memory`) and the third is
+`cs.disable-library-validation`, which is load-bearing for loading Electron Framework. There
+is deliberately **no `cs.debugger`** — it grants `task_for_pid` against other processes on the
+machine and nothing here needs it.
+
+Confinement in this app comes from the renderer sandbox rather than from macOS: see
+"Renderer sandbox and what `media://` will serve" in [CLAUDE.md](CLAUDE.md).
 
 ### Windows/Linux
 Standard file access through native dialogs. No special permissions needed.

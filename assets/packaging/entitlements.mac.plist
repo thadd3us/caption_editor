@@ -1,13 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.1.dtd">
+<!--
+  Hardened-runtime entitlements for the signed .app. Each one is a capability the
+  app is granted, so each needs a reason to be here.
+
+  Removed: com.apple.security.cs.debugger. That entitlement grants task_for_pid —
+  the right to attach a debugger to *other* processes on the machine. It is for
+  debugging tools, not for an app, and nothing here ever used it. Verified by
+  running embed-rs (ONNX inference + UMAP, the heaviest native path we ship) under
+  the hardened runtime without it: completes normally.
+-->
 <plist version="1.0">
   <dict>
+    <!--
+      V8 JIT. Chromium cannot run without it.
+    -->
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
+
+    <!--
+      Also V8: it maps writable-executable pages that are not themselves signed.
+      Part of electron-builder's default entitlement set for the same reason.
+    -->
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
     <true/>
-    <key>com.apple.security.cs.debugger</key>
-    <true/>
+
+    <!--
+      Load-bearing today, and the failure mode if it is wrong is total: dyld refuses
+      to map Electron Framework and the app dies before showing a window.
+
+      Measured, rather than assumed. Signing the packaged bundle with the hardened
+      runtime and *without* this entitlement produces:
+
+        dyld: Library not loaded: @rpath/Electron Framework.framework/Electron Framework
+          Reason: … not valid for use in process: mapping process and mapped file
+          (non-platform) have different Team IDs
+
+      That test used an ad-hoc signature, which has no Team ID at all, so it may be
+      stricter than a real Developer ID build where every nested binary shares one
+      team. The evidence that it *could* go: nothing third-party is dynamically
+      loaded — `ort` is statically linked (no load-dynamic, no download-binaries, and
+      `otool -L` on transcribe-rs/embed-rs shows only /usr/lib and /System/Library),
+      electron-builder's `files` list excludes node_modules so no native .node ships,
+      and the only dylibs in the bundle are Electron's own libffmpeg and
+      libvk_swiftshader.
+
+      To actually remove it: build with a real Developer ID
+      (`npm run package:mac`, no notarization needed), delete this key, and launch
+      the resulting .app. If it opens a window, the entitlement was unnecessary.
+      That needs the signing cert, so it could not be settled here.
+    -->
     <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
   </dict>
