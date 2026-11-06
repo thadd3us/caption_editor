@@ -4,6 +4,7 @@ Pytest configuration for transcribe tests.
 
 import os
 from pathlib import Path
+
 import pytest
 from syrupy.assertion import SnapshotAssertion
 

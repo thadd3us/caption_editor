@@ -32,6 +32,8 @@ const props = withDefaults(defineProps<{
   closeOnOverlayClick?: boolean
   closeOnEsc?: boolean
 }>(), {
+  // Absent by design — the header is `v-if`-ed on it.
+  title: undefined,
   maxWidth: '500px',
   closeOnOverlayClick: true,
   closeOnEsc: true

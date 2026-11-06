@@ -2,10 +2,12 @@
 # sh_test target in this repo (see //:BUILD.bazel and friends). Each
 # downstream target is responsible for listing its own `data` and
 # tags; this file just publishes the script.
+load("@rules_python//python:defs.bzl", "py_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 exports_files(
     [
+        "check_lockfile_sync.py",
         "run_in_workspace.sh",
         "run_playwright.sh",
         "run_coverage.sh",
@@ -51,6 +53,23 @@ sh_test(
         "//transcribe_rs:version.bzl",
     ],
     deps = [":runfiles"],
+)
+
+# Asserts package.json and pnpm-lock.yaml pin the same version for every direct
+# dependency. The two lockfiles are synced by hand (`pnpm import`), and when they drift
+# the `bazel` job and the `e2e` job silently resolve different dependency graphs — their
+# CI caches even hash different lockfiles, so neither one notices. See the docstring in
+# check_lockfile_sync.py for why this compares pins rather than regenerating and diffing.
+py_test(
+    name = "lockfile_sync_test",
+    size = "small",
+    srcs = ["check_lockfile_sync.py"],
+    main = "check_lockfile_sync.py",
+    args = ["$(location //:package.json)"],
+    data = [
+        "//:package.json",
+        "//:pnpm-lock.yaml",
+    ],
 )
 
 # Shared runfiles dep for the wrapper script. Re-exported as an alias

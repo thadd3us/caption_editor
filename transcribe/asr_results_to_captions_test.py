@@ -5,11 +5,11 @@ from asr_results_to_captions import (
     WordTimestamp,
     asr_segments_to_transcript_segments,
     raw_asr_segments_to_raw_asr_output,
+    resolve_overlap_conflicts,
     split_long_segments,
     split_segments_by_word_gap,
     zip_words_in_overlapping_segments,
 )
-from asr_results_to_captions import resolve_overlap_conflicts
 
 
 def test_split_segments_by_word_gap_no_split():

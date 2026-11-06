@@ -6,16 +6,15 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from typer.testing import CliRunner
-from repo_root import REPO_ROOT
-from captions_json5_lib import parse_captions_json5_file
-from embed_cli import app
-from schema import decode_embedding
-
 import numpy as np
 import pytest
+from typer.testing import CliRunner
 
 from audio_utils import extract_audio_to_wav
+from captions_json5_lib import parse_captions_json5_file
+from embed_cli import app
+from repo_root import REPO_ROOT
+from schema import decode_embedding
 
 # Path to test files
 TEST_AUDIO = REPO_ROOT / "test_data" / "OSR_us_000_0010_8k.wav"

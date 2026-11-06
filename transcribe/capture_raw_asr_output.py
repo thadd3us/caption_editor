@@ -20,10 +20,10 @@ import typer
 # Import production code
 from asr_results_to_captions import ASRSegment
 from transcribe_cli import (
-    load_audio_chunk,
-    transcribe_chunk,
     NEMO_AVAILABLE,
     TRANSFORMERS_AVAILABLE,
+    load_audio_chunk,
+    transcribe_chunk,
 )
 
 app = typer.Typer()

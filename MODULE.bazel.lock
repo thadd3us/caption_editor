@@ -529,8 +529,8 @@
           "REPO_MAPPING:rules_rust+,bazel_tools bazel_tools",
           "REPO_MAPPING:rules_rust+,rules_cc rules_cc+",
           "REPO_MAPPING:rules_rust+,rules_rust rules_rust+",
-          "FILE:@@//transcribe_rs/Cargo.lock 307b3dcd47dd3c7338890a2c7b9cb11d76a57c1be6dfea167238170930596490",
-          "FILE:@@//transcribe_rs/Cargo.toml 36998822367fc0d10d7814967e14d7a3aed89b2e9b34b3fb66afaf94d11cf2b3",
+          "FILE:@@//transcribe_rs/Cargo.lock f3a5ea862b0385dde7bb9ca2238c9f2737cc5495b73cc1960f9a1bb249982708",
+          "FILE:@@//transcribe_rs/Cargo.toml 163ad14fc9a7aa3fa00d8700c1e97216dc28204ff054e9074c7a308a77306e5e",
           "FILE:@@//transcribe_rs/caption-schema/Cargo.toml dfeb8b977afdc6003ab582f926b8da1b125c5e793350a286e2fffd3ffedb2ce8",
           "FILE:@@//transcribe_rs/caption-core/Cargo.toml 6f93fb8db7070998a7a7ba81cedf0f525c0a3801a341171a1f2c892c088fe3f3",
           "FILE:@@//transcribe_rs/transcribe-rs/Cargo.toml 9f4033d83c32b832f79fbd5407c29c4e9d96b011f74af34a6200111d19de4b76",
@@ -7683,10 +7683,6 @@
             "https://files.pythonhosted.org/packages/ee/db/7aa11b44bae4e7474feb1201d8dee04fabe5651c7cb51409ebda94a4ed67/nh3-0.3.0-cp38-abi3-musllinux_1_2_armv7l.whl": "b0612ccf5de8a480cf08f047b08f9d3fecc12e63d2ee91769cb19d7290614c23",
             "https://files.pythonhosted.org/packages/f3/ba/59e204d90727c25b253856e456ea61265ca810cda8ee802c35f3fadaab00/nh3-0.3.0-cp313-cp313t-musllinux_1_2_armv7l.whl": "e90883f9f85288f423c77b3f5a6f4486375636f25f793165112679a7b6363b35"
           },
-          "nodeenv": {
-            "https://files.pythonhosted.org/packages/24/bf/d1bda4f6168e0b2e9e5958945e01910052158313224ada5ce1fb2e1113b8/nodeenv-1.10.0.tar.gz": "996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb",
-            "https://files.pythonhosted.org/packages/88/b2/d0896bdcdc8d28a7fc5717c305f1a861c26e18c05047949fb371034d98bd/nodeenv-1.10.0-py2.py3-none-any.whl": "5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827"
-          },
           "numba": {
             "https://files.pythonhosted.org/packages/03/36/98ddbcf3e4f04a6dd07e1c67249955920579ba4af6bb6868e3088f4ed282/numba-0.65.1-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": "78abc28feff2c2ff8307fff3975b6438352759c9acb797ecd6b1fb6e7e39e31d",
             "https://files.pythonhosted.org/packages/09/52/ee1d8b3becda384fe0552221641e05aa668a35e8a77470db4db7f6475000/numba-0.65.1-cp310-cp310-win_amd64.whl": "c63aa0c4193694026452da55d0ef9d85156c1a7a333454c103bb30dec81b7bf8",
@@ -8519,10 +8515,6 @@
             "https://files.pythonhosted.org/packages/10/bd/c038d7cc38edc1aa5bf91ab8068b63d4308c66c4c8bb3cbba7dfbc049f9c/pyparsing-3.3.2-py3-none-any.whl": "850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d",
             "https://files.pythonhosted.org/packages/f3/91/9c6ee907786a473bf81c5f53cf703ba0957b23ab84c264080fb5a450416f/pyparsing-3.3.2.tar.gz": "c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc"
           },
-          "pyright": {
-            "https://files.pythonhosted.org/packages/16/6b/330d8ebae582b30c2959a1ef4c3bc344ebde48c2ff0c3f113c4710735e11/pyright-1.1.409-py3-none-any.whl": "aa3ea228cab90c845c7a60d28db7a844c04315356392aa09fafcee98c8c22fb3",
-            "https://files.pythonhosted.org/packages/51/4e/3aa27f74211522dba7e9cbc3e74de779c6d4b654c54e50a4840623be8014/pyright-1.1.409.tar.gz": "986ee05beca9e077c165758ad123667c679e050059a2546aa02473930394bc93"
-          },
           "pytest": {
             "https://files.pythonhosted.org/packages/7d/0d/549bd94f1a0a402dc8cf64563a117c0f3765662e2e668477624baeec44d5/pytest-9.0.3.tar.gz": "b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c",
             "https://files.pythonhosted.org/packages/d4/24/a372aaf5c9b7208e7112038812994107bc65a84cd00e0354a88c2c77a617/pytest-9.0.3-py3-none-any.whl": "2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9"
@@ -8850,26 +8842,6 @@
           "ruamel-yaml": {
             "https://files.pythonhosted.org/packages/b8/0c/51f6841f1d84f404f92463fc2b1ba0da357ca1e3db6b7fbda26956c3b82a/ruamel_yaml-0.19.1-py3-none-any.whl": "27592957fedf6e0b62f281e96effd28043345e0e66001f97683aa9a40c667c93",
             "https://files.pythonhosted.org/packages/c7/3b/ebda527b56beb90cb7652cb1c7e4f91f48649fbcd8d2eb2fb6e77cd3329b/ruamel_yaml-0.19.1.tar.gz": "53eb66cd27849eff968ebf8f0bf61f46cdac2da1d1f3576dd4ccee9b25c31993"
-          },
-          "ruff": {
-            "https://files.pythonhosted.org/packages/19/4c/7585735f6b53b0f12de13618b2f7d250a844f018822efc899df2e7b8295f/ruff-0.15.13-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl": "e8d9a8e08013542e94d3220bc5b62cc3e5ef87c5f74bff367d3fac14fab013e6",
-            "https://files.pythonhosted.org/packages/1f/e3/6b999bbc66cd51e5f073842bc2a3995e99c5e0e72e16b15e7261f7abf57a/ruff-0.15.13-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl": "ae9c17e5eb4430c154e76abc25d79a318190f5a997f38fb6b114416c5319ffc9",
-            "https://files.pythonhosted.org/packages/24/21/a7d5c126d5b557715ef81098f3db2fe20f622a039ff2e626af28d674ab80/ruff-0.15.13.tar.gz": "f9d89f17f7ba7fb2ed42921f0df75da797a9a5d71bc39049e2c687cf2baf44b7",
-            "https://files.pythonhosted.org/packages/6b/8c/b1e1666aef7fc6555094d73ae6cd981701781ae85b97ceefc0eebd0b4668/ruff-0.15.13-py3-none-win32.whl": "4044f94208b3b05ba0fc4a4abd0558cf4d6459bd18325eead7fd8cc66f909b41",
-            "https://files.pythonhosted.org/packages/86/ca/caa871ee7be718c45256fada4e16a218ee3e33f0c4a46b729a60a24912e6/ruff-0.15.13-py3-none-macosx_10_12_x86_64.whl": "6590d009e7cb7ebf36f83dbdd44a3fa48a0994ff6f1cdc1b08006abe58f98dc7",
-            "https://files.pythonhosted.org/packages/99/df/cf938cd6de3003178f03ad7c1ea2a6c099468c03a35037985070b37e76be/ruff-0.15.13-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl": "9dbd6f94b434f896308e4d57fb7bfde0d02b99f7a64b3bdab0fdfa6a864203a5",
-            "https://files.pythonhosted.org/packages/9b/36/9c015cd052fca743dae8cb2aeb16b551444787467db42ceab0fc968865af/ruff-0.15.13-py3-none-win_arm64.whl": "2471da9bd1068c8c064b5fd9c0c4b6dddffd6369cb1cd68b29993b1709ff1b21",
-            "https://files.pythonhosted.org/packages/ab/a6/870a3e8a50590bb92be184ad928c2922f088b00d9dc5c5ec7b924ee08c22/ruff-0.15.13-py3-none-win_amd64.whl": "7064884d442b7d477b4e7473d12da7f08851d2b1982763c5d3f388a19468a1a4",
-            "https://files.pythonhosted.org/packages/af/5a/642639e9f5db04f1e97fbd6e091c6fd20725bdf072fb114d00eefb9e6eb8/ruff-0.15.13-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl": "2e2e39bff6c341f4b577a21b801326fab0b11847f48fcaa83f00a113c9b3cb55",
-            "https://files.pythonhosted.org/packages/c2/13/070fb048c24080fba188f66371e2a92785be257ad02242066dc7255ac6e9/ruff-0.15.13-py3-none-musllinux_1_2_x86_64.whl": "f345a13937bd7f09f6f5d19fa0721b0c103e00e7f62bc67089a8e5e037719e0b",
-            "https://files.pythonhosted.org/packages/c6/61/11d458dc6ac22504fd8e237b29dfd40504c7fbbcc8930402cfe51a8e63ed/ruff-0.15.13-py3-none-linux_armv6l.whl": "444b580fc72fd6887e650acd3e575e18cdc79dbcf42fb4030b491057921f61f8",
-            "https://files.pythonhosted.org/packages/c7/7d/5d0973129b154ded2225729169d7068f26b467760b146493fde138415f23/ruff-0.15.13-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl": "bf3259f3be4d181bda591da5db2571aed6853c6a048157756448020bc6c5cd22",
-            "https://files.pythonhosted.org/packages/d3/19/43f5f2e568dddde567fc41f8471f9432c09563e19d3e617a48cfa52f8f0a/ruff-0.15.13-py3-none-macosx_11_0_arm64.whl": "1c26d2f66163deeb6e08d8b39fbbe983ce3c71cea06a6d7591cfd1421793c629",
-            "https://files.pythonhosted.org/packages/e1/4e/62c9b999875d4f14db80f277c030578f5e249c9852d65b7ac7ad0b43c041/ruff-0.15.13-py3-none-manylinux_2_31_riscv64.whl": "768494eb08b9cee54e2fd27969966f74db5a57f6eaa7a90fcb3306af34dfc4bd",
-            "https://files.pythonhosted.org/packages/e8/31/bf1a0803d077e679cfeee5f2f67290a0fa79c7385b5d9a8c17b9db2c48f0/ruff-0.15.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": "cc411dfebe5eebe55ce041c6ae080eb7668955e866daa2fbb16692a784f1c4ca",
-            "https://files.pythonhosted.org/packages/e8/e0/9e35f338990d3e41a82875ff7053ffe97541dae81c9d02143177f381d572/ruff-0.15.13-py3-none-musllinux_1_2_i686.whl": "7ef823f817fcd191dc934e984be9cf4094f808effa16f2542ad8e821ba02bbf2",
-            "https://files.pythonhosted.org/packages/fc/89/7e959047a104df3eb12863447c110140191fc5b6c4f379ea2e803fcdb0e4/ruff-0.15.13-py3-none-musllinux_1_2_aarch64.whl": "fb75f9a3a7e42ffe117d734494e6c5e5cb3565d66e12612cb63d0e572a41a5b6",
-            "https://files.pythonhosted.org/packages/ff/52/5fd18f3b88cab63e88aa11516b3b4e1e5f720e5c330f8dbe5c26210f41f8/ruff-0.15.13-py3-none-musllinux_1_2_armv7l.whl": "8cb74dd33bb2f6613faf7fc03b660053b5ac4f80e706d5788c6335e2a8048d51"
           },
           "sacrebleu": {
             "https://files.pythonhosted.org/packages/06/f2/6c90ccf3ad1d09a7d662a405b274f3c93b92df59c8d6a025d26aaf34d302/sacrebleu-2.6.0-py3-none-any.whl": "3edc1531575cfe4ad04ce53491a9307e234af1c3f805a1f491cbec844229a8a8",
@@ -10131,7 +10103,6 @@
           "nemo_toolkit": "/simple/nemo-toolkit/",
           "networkx": "/simple/networkx/",
           "nh3": "/simple/nh3/",
-          "nodeenv": "/simple/nodeenv/",
           "numba": "/simple/numba/",
           "numexpr": "/simple/numexpr/",
           "numpy": "/simple/numpy/",
@@ -10184,7 +10155,6 @@
           "pyloudnorm": "/simple/pyloudnorm/",
           "pynndescent": "/simple/pynndescent/",
           "pyparsing": "/simple/pyparsing/",
-          "pyright": "/simple/pyright/",
           "pytest": "/simple/pytest/",
           "python_dateutil": "/simple/python-dateutil/",
           "pytorch_lightning": "/simple/pytorch-lightning/",
@@ -10200,7 +10170,6 @@
           "rich": "/simple/rich/",
           "roman_numerals": "/simple/roman-numerals/",
           "ruamel_yaml": "/simple/ruamel-yaml/",
-          "ruff": "/simple/ruff/",
           "sacrebleu": "/simple/sacrebleu/",
           "sacremoses": "/simple/sacremoses/",
           "safetensors": "/simple/safetensors/",

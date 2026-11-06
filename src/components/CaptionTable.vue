@@ -73,7 +73,7 @@
       @cell-context-menu="onCellContextMenu"
       @cell-key-down="onCellKeyDown"
       @cell-editing-started="onCellEditingStarted"
-      :domLayout="'normal'"
+      domLayout="normal"
       style="flex: 1; min-height: 0;"
     />
     <div class="grid-stats caption-status-bar" aria-live="polite">
