@@ -43,7 +43,6 @@ test.describe('Selection stays pinned to the clicked row', () => {
       { timeout: 5000 }
     )
     await page.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
-    await page.waitForTimeout(300)
   }
 
   test('a clicked row survives a seek that lands inside the previous segment', async ({ page }) => {
@@ -56,7 +55,6 @@ test.describe('Selection stays pinned to the clicked row', () => {
         defaultState: { sort: null },
       })
     })
-    await page.waitForTimeout(300)
 
     const target = 'seg_40'
 
@@ -76,9 +74,10 @@ test.describe('Selection stays pinned to the clicked row', () => {
       if (cell) cell.click()
       else node.setSelected(true)
     }, target)
-    await page.waitForTimeout(200)
 
-    expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe(target)
+    await expect
+      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .toBe(target)
 
     // The media element now reports a position a few milliseconds short of the seek —
     // inside seg_39, whose range overlaps seg_40's start.
@@ -87,9 +86,10 @@ test.describe('Selection stays pinned to the clicked row', () => {
       const seg = store.document.segments.find((s: any) => s.id === id)
       store.setCurrentTime(seg.startTime - 0.005)
     }, target)
-    await page.waitForTimeout(200)
 
-    expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe(target)
+    await expect
+      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .toBe(target)
     expect(
       await page.evaluate(() =>
         (window as any).__agGridApi.getSelectedRows().map((r: any) => r.id)
@@ -113,15 +113,17 @@ test.describe('Selection stays pinned to the clicked row', () => {
       store.setCurrentTime(15)
       store.selectSegment('seg_5')
     })
-    await page.waitForTimeout(100)
-    expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe('seg_5')
+    await expect
+      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .toBe('seg_5')
 
     // Playback advances well past seg_5 — following the playhead is what the user means now.
     await page.evaluate(() => {
       const store = (window as any).$store
       for (const t of [15.1, 15.4, 16, 17, 18.5]) store.setCurrentTime(t)
     })
-    await page.waitForTimeout(200)
-    expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe('seg_6')
+    await expect
+      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .toBe('seg_6')
   })
 })

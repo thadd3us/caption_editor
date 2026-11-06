@@ -2,18 +2,15 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { ElectronApplication, Page } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs/promises'
-import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
 import { acceptLicenseIfVisible } from '../helpers/license'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { firstReadyWindow } from '../helpers/app-ready'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 test.describe('File Association - Open captions files from OS', () => {
   let electronApp: ElectronApplication
-  let window: Page
+  let appPage: Page
 
   test('should open captions file passed as command line argument and auto-load media', async () => {
     const audioFilePath = path.join(getProjectRoot(), 'test_data/OSR_us_000_0010_8k.wav')
@@ -54,15 +51,15 @@ test.describe('File Association - Open captions files from OS', () => {
     })
 
     // Wait for the first window
-    window = await firstReadyWindow(electronApp)
-    await window.waitForLoadState('domcontentloaded')
-    await acceptLicenseIfVisible(window)
+    appPage = await firstReadyWindow(electronApp)
+    await appPage.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(appPage)
 
     // Capture console output for debugging
-    enableConsoleCapture(window)
+    enableConsoleCapture(appPage)
 
     // Check store state before waiting
-    const initialCheck = await window.evaluate(() => {
+    const initialCheck = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         storeExists: !!store,
@@ -75,7 +72,7 @@ test.describe('File Association - Open captions files from OS', () => {
     console.log('Initial store state:', initialCheck)
 
     // Wait for the captions file to be loaded (check that segments are loaded)
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       () => {
         const store = (window as any).$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
@@ -84,7 +81,7 @@ test.describe('File Association - Open captions files from OS', () => {
     )
 
     // Check that the captions file was loaded by checking the store
-    const storeState = await window.evaluate(() => {
+    const storeState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         hasDocument: !!store?.document,
@@ -109,7 +106,7 @@ test.describe('File Association - Open captions files from OS', () => {
     expect(storeState.metadata.mediaFilePath).toBe(audioFilePath)
 
     // Wait for media auto-load to complete (check that mediaPath is set)
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       () => {
         const store = (window as any).$store
         return store?.mediaPath !== null && store?.mediaPath !== undefined
@@ -118,7 +115,7 @@ test.describe('File Association - Open captions files from OS', () => {
     )
 
     // Check that media was auto-loaded
-    const mediaState = await window.evaluate(() => {
+    const mediaState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         mediaPath: store?.mediaPath,
@@ -137,7 +134,7 @@ test.describe('File Association - Open captions files from OS', () => {
     }
 
     // Verify the audio element has the media loaded
-    const audioElement = await window.locator('audio')
+    const audioElement = await appPage.locator('audio')
     await expect(audioElement).toBeVisible()
 
     const audioSrc = await audioElement.getAttribute('src')
@@ -145,11 +142,11 @@ test.describe('File Association - Open captions files from OS', () => {
     console.log('Audio src:', audioSrc)
 
     // Verify we can see the segments in the table
-    const captionTable = await window.locator('.ag-center-cols-container')
+    const captionTable = await appPage.locator('.ag-center-cols-container')
     await expect(captionTable).toBeVisible()
 
     // Check that the first segment is visible
-    const firstSegmentText = await window.evaluate(() => {
+    const firstSegmentText = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store?.document?.segments?.[0]?.text
     })
@@ -192,12 +189,12 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await firstReadyWindow(electronApp)
-    await window.waitForLoadState('domcontentloaded')
-    await acceptLicenseIfVisible(window)
-    enableConsoleCapture(window)
+    appPage = await firstReadyWindow(electronApp)
+    await appPage.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(appPage)
+    enableConsoleCapture(appPage)
 
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       () => {
         const store = (window as any).$store
         return store?.document?.segments?.length > 0
@@ -205,7 +202,7 @@ test.describe('File Association - Open captions files from OS', () => {
       { timeout: 5000 }
     )
 
-    const storeState = await window.evaluate(() => {
+    const storeState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return { filePath: store?.document?.filePath, firstText: store?.document?.segments?.[0]?.text }
     })
@@ -249,16 +246,16 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await firstReadyWindow(electronApp)
-    await window.waitForLoadState('domcontentloaded')
-    await acceptLicenseIfVisible(window)
-    enableConsoleCapture(window)
+    appPage = await firstReadyWindow(electronApp)
+    await appPage.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(appPage)
+    enableConsoleCapture(appPage)
 
     await electronApp.evaluate(async ({ app }, p) => {
       app.emit('open-file', { preventDefault: () => {} } as any, p)
     }, mediaPath)
 
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       () => {
         const store = (window as any).$store
         return store?.document?.segments?.length > 0
@@ -266,7 +263,7 @@ test.describe('File Association - Open captions files from OS', () => {
       { timeout: 5000 }
     )
 
-    const storeState = await window.evaluate(() => {
+    const storeState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return { filePath: store?.document?.filePath, firstText: store?.document?.segments?.[0]?.text }
     })
@@ -311,10 +308,10 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await firstReadyWindow(electronApp)
-    await window.waitForLoadState('domcontentloaded')
-    await acceptLicenseIfVisible(window)
-    enableConsoleCapture(window)
+    appPage = await firstReadyWindow(electronApp)
+    await appPage.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(appPage)
+    enableConsoleCapture(appPage)
 
     // Simulate macOS open-file event by calling the IPC handler directly
     await electronApp.evaluate(async ({ app }, filePath) => {
@@ -323,7 +320,7 @@ test.describe('File Association - Open captions files from OS', () => {
     }, captionsFilePath)
 
     // Wait for the captions file to be loaded (check that segments are loaded)
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       () => {
         const store = (window as any).$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
@@ -332,7 +329,7 @@ test.describe('File Association - Open captions files from OS', () => {
     )
 
     // Check that the file was loaded
-    const storeState = await window.evaluate(() => {
+    const storeState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         segmentCount: store?.document?.segments?.length || 0,
@@ -359,13 +356,13 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await firstReadyWindow(electronApp)
-    await window.waitForLoadState('domcontentloaded')
-    await acceptLicenseIfVisible(window)
-    enableConsoleCapture(window)
+    appPage = await firstReadyWindow(electronApp)
+    await appPage.waitForLoadState('domcontentloaded')
+    await acceptLicenseIfVisible(appPage)
+    enableConsoleCapture(appPage)
 
     // Check that onFileOpen API is available
-    const hasOnFileOpen = await window.evaluate(() => {
+    const hasOnFileOpen = await appPage.evaluate(() => {
       return typeof window.electronAPI?.onFileOpen === 'function'
     })
 

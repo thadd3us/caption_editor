@@ -2,20 +2,20 @@ import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - User Interactions', () => {
-  let window: Page
+  let appPage: Page
 
   test.beforeEach(async ({ page }) => {
-    window = page
-    await window.waitForSelector('.ag-root', { timeout: 10000 })
+    appPage = page
+    await appPage.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
   async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedSegmentCount: number): Promise<void> {
-    await window.evaluate((content) => {
+    await appPage.evaluate((content) => {
       const store = (window as any).$store
       store.loadFromFile(content, '/test/file.captions_json5')
     }, captionsContent)
 
-    await window.waitForFunction((expected) => {
+    await appPage.waitForFunction((expected) => {
       const store = (window as any).$store
       return store?.document?.segments?.length === expected
     }, expectedSegmentCount, { timeout: 2000 })
@@ -30,7 +30,7 @@ test.describe('Caption Editor - User Interactions', () => {
     await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
     // Check initial caption count
-    const grid = window.locator('.ag-theme-alpine')
+    const grid = appPage.locator('.ag-theme-alpine')
     await expect(grid).toBeVisible()
   })
 
@@ -43,7 +43,7 @@ test.describe('Caption Editor - User Interactions', () => {
     await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
     // Grid should be visible
-    await expect(window.locator('.ag-theme-alpine')).toBeVisible()
+    await expect(appPage.locator('.ag-theme-alpine')).toBeVisible()
   })
 
   test('should delete caption using action button', async () => {
@@ -58,13 +58,13 @@ test.describe('Caption Editor - User Interactions', () => {
     await loadCaptionsAndWaitForSegments(captionsJson5, 2)
 
     // Grid should show 2 captions
-    await expect(window.locator('.ag-theme-alpine')).toBeVisible()
+    await expect(appPage.locator('.ag-theme-alpine')).toBeVisible()
   })
 
   test('should handle invalid captions file gracefully', async () => {
     const invalidContent = '{not json'
 
-    await window.evaluate((content) => {
+    await appPage.evaluate((content) => {
       const store = (window as any).$store
       try {
         store.loadFromFile(content, '/test/file.captions_json5')
@@ -74,13 +74,13 @@ test.describe('Caption Editor - User Interactions', () => {
     }, invalidContent)
 
     // App should remain usable even after parse error.
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 0
     }, { timeout: 2000 })
 
     // Application should still be functional - check that the table header is visible
-    const tableHeader = window.locator('.table-header .header-controls')
+    const tableHeader = appPage.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
   })
 
@@ -92,6 +92,6 @@ test.describe('Caption Editor - User Interactions', () => {
 
     await loadCaptionsAndWaitForSegments(captionsJson5, 1)
 
-    await expect(window.locator('.ag-theme-alpine')).toBeVisible()
+    await expect(appPage.locator('.ag-theme-alpine')).toBeVisible()
   })
 })

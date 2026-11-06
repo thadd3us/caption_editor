@@ -65,7 +65,6 @@ test.describe('License Agreement Dialog', () => {
         () => (window as any).$store || (window as any).store,
         { timeout: 10000 }
       )
-      await page.waitForTimeout(1000)
       await expect(dialog).not.toBeVisible()
     } finally {
       await electronApp.close()

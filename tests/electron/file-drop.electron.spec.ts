@@ -43,7 +43,8 @@ test.describe('File Drop', () => {
       store.loadFromFile(fileResult.content, fileResult.filePath)
     }, result[0])
 
-    await page.waitForTimeout(200)
+    await page.waitForFunction(
+      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     const rows = await page.locator('.ag-row').all()
     expect(rows.length).toBeGreaterThan(0)
@@ -134,7 +135,8 @@ test.describe('File Drop', () => {
       }
     }, result)
 
-    await page.waitForTimeout(200)
+    await page.waitForFunction(
+      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Verify both files were loaded
     const storeState = await page.evaluate(() => {

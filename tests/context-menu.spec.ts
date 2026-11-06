@@ -2,15 +2,15 @@ import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - Context Menu', () => {
-  let window: Page
+  let appPage: Page
 
   test.beforeEach(async ({ page }) => {
-    window = page
-    await window.waitForSelector('.ag-root', { timeout: 10000 })
+    appPage = page
+    await appPage.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
   test('should expose delete dialog trigger from context menu integration', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -25,12 +25,12 @@ test.describe('Caption Editor - Context Menu', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 2
     })
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -47,7 +47,7 @@ test.describe('Caption Editor - Context Menu', () => {
       window.dispatchEvent(event)
     })
 
-    const hasContextMenuComponents = await window.evaluate(() => ({
+    const hasContextMenuComponents = await appPage.evaluate(() => ({
       hasOpenDeleteConfirmDialog: typeof (window as any).openDeleteConfirmDialog === 'function'
     }))
 
@@ -55,7 +55,7 @@ test.describe('Caption Editor - Context Menu', () => {
   })
 
   test('should open delete confirmation dialog when context menu option is triggered', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -67,12 +67,12 @@ test.describe('Caption Editor - Context Menu', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 1
     })
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -87,7 +87,7 @@ test.describe('Caption Editor - Context Menu', () => {
       )
     })
 
-    const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
 
     const cancelButton = deleteDialog.locator('button.dialog-button-secondary')
@@ -97,7 +97,7 @@ test.describe('Caption Editor - Context Menu', () => {
   })
 
   test('should set speakers on multi-selected rows then delete one via context menu flow', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -112,37 +112,41 @@ test.describe('Caption Editor - Context Menu', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 2
     })
 
-    await window.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       gridApi?.getRowNode('seg1')?.setSelected(true, false)
       gridApi?.getRowNode('seg2')?.setSelected(true, false)
     })
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
 
-    const editorInput = window.locator('.speaker-name-editor')
+    const editorInput = appPage.locator('.speaker-name-editor')
     await expect(editorInput).toBeVisible({ timeout: 5000 })
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
       if (!input) throw new Error('speaker-name-editor input not found')
       input.value = 'Alice'
       input.dispatchEvent(new Event('input', { bubbles: true }))
     })
     await editorInput.press('Enter')
-    await window.waitForTimeout(200)
+    await expect
+      .poll(() => appPage.evaluate(
+        () => (window as any).$store.document.segments.filter((s: any) => s.speakerName === 'Alice').length
+      ))
+      .toBeGreaterThan(0)
 
-    const speakerNames = await window.evaluate(() => {
+    const speakerNames = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return null
       return store.document.segments.map((segment: any) => segment.speakerName)
@@ -150,7 +154,7 @@ test.describe('Caption Editor - Context Menu', () => {
     expect(speakerNames[0]).toBe('Alice')
     expect(speakerNames[1]).toBe('Alice')
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
       const segments = store.document.segments
@@ -163,10 +167,10 @@ test.describe('Caption Editor - Context Menu', () => {
       )
     })
 
-    const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const deleteBtn = buttons.find(
         (b) => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger')
@@ -174,12 +178,12 @@ test.describe('Caption Editor - Context Menu', () => {
       if (deleteBtn) deleteBtn.click()
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 1
     })
 
-    const remainingSegments = await window.evaluate(() => {
+    const remainingSegments = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return null
       return store.document.segments

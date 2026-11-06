@@ -1,16 +1,17 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
+import { waitForSelectedRowCount } from './helpers/wait-helpers'
 
 /**
  * Regression tests for Lightroom-style targeting: multi-select + actions keyed to
  * whether the gesture row is inside or outside the selection.
  */
 test.describe('Selection targeting (Lightroom-style)', () => {
-  let window: Page
+  let appPage: Page
 
   test.beforeEach(async ({ page }) => {
-    window = page
-    await window.waitForSelector('.ag-root', { timeout: 10000 })
+    appPage = page
+    await appPage.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
   test.afterEach(async ({ page }) => {
@@ -27,7 +28,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('verified toggle applies to all selected rows when clicking inside selection', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
       const captionsContent = JSON.stringify(
@@ -45,23 +46,23 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       store.loadFromFile(captionsContent, '/test/sel-target.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 3
     })
 
-    await window.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
-    const row0 = window.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = window.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
-    await window.waitForTimeout(150)
+    await waitForSelectedRowCount(appPage, 2)
 
     const checkRow0 = row0.locator('[col-id="verified"] .verified-check')
     await checkRow0.click()
 
-    const verified = await window.evaluate(() => {
+    const verified = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.document.segments.map((s: any) => ({ id: s.id, verified: s.verified }))
     })
@@ -72,7 +73,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('star rating applies to all selected rows when clicking a star inside selection', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
       const captionsContent = JSON.stringify(
@@ -90,22 +91,22 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       store.loadFromFile(captionsContent, '/test/sel-target.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 3
     })
 
-    await window.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
-    const row0 = window.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = window.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
-    await window.waitForTimeout(150)
+    await waitForSelectedRowCount(appPage, 2)
 
     await row0.locator('.star-rating [data-star-index="5"]').click()
 
-    const ratings = await window.evaluate(() => {
+    const ratings = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.document.segments.map((s: any) => ({ id: s.id, rating: s.rating }))
     })
@@ -116,7 +117,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('context menu delete targets only right-clicked row when that row is outside selection', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
       const captionsContent = JSON.stringify(
@@ -134,28 +135,28 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       store.loadFromFile(captionsContent, '/test/sel-target.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 3
     })
 
-    await window.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
-    const row0 = window.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = window.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
-    await window.waitForTimeout(150)
+    await waitForSelectedRowCount(appPage, 2)
 
-    const row2Text = window.locator('.ag-center-cols-container .ag-row[row-index="2"] [col-id="text"]')
+    const row2Text = appPage.locator('.ag-center-cols-container .ag-row[row-index="2"] [col-id="text"]')
     await row2Text.click({ button: 'right' })
 
-    await expect(window.locator('.context-menu')).toBeVisible({ timeout: 5000 })
-    await expect(window.locator('.context-menu-header')).toHaveText('Targeting 1 row')
+    await expect(appPage.locator('.context-menu')).toBeVisible({ timeout: 5000 })
+    await expect(appPage.locator('.context-menu-header')).toHaveText('Targeting 1 row')
 
-    await window.locator('.context-menu-item', { hasText: 'Delete Selected' }).click()
+    await appPage.locator('.context-menu-item', { hasText: 'Delete Selected' }).click()
 
-    const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
     await expect(deleteDialog).toContainText('delete 1 row')
 
@@ -164,7 +165,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('context menu delete still targets full selection when right-click is inside selection', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
       const captionsContent = JSON.stringify(
@@ -182,28 +183,28 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       store.loadFromFile(captionsContent, '/test/sel-target.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 3
     })
 
-    await window.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
-    const row0 = window.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = window.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
-    await window.waitForTimeout(150)
+    await waitForSelectedRowCount(appPage, 2)
 
-    const row1Text = window.locator('.ag-center-cols-container .ag-row[row-index="1"] [col-id="text"]')
+    const row1Text = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"] [col-id="text"]')
     await row1Text.click({ button: 'right' })
 
-    await expect(window.locator('.context-menu')).toBeVisible({ timeout: 5000 })
-    await expect(window.locator('.context-menu-header')).toHaveText('Targeting 2 rows')
+    await expect(appPage.locator('.context-menu')).toBeVisible({ timeout: 5000 })
+    await expect(appPage.locator('.context-menu-header')).toHaveText('Targeting 2 rows')
 
-    await window.locator('.context-menu-item', { hasText: 'Delete Selected' }).click()
+    await appPage.locator('.context-menu-item', { hasText: 'Delete Selected' }).click()
 
-    const deleteDialog = window.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
+    const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
     await expect(deleteDialog).toBeVisible()
     await expect(deleteDialog).toContainText('delete 2 rows')
 
@@ -212,7 +213,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
   })
 
   test('context menu enables speaker similarity when right-clicked row has embedding but selection does not', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
       const floats = new Float32Array([1, 0, 0, 0])
@@ -239,25 +240,25 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       store.loadFromFile(captionsContent, '/test/sel-target.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 3 && (store.document.embeddings?.length ?? 0) >= 1
     })
 
-    await window.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
-    const row0 = window.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = window.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
-    await window.waitForTimeout(150)
+    await waitForSelectedRowCount(appPage, 2)
 
-    const row2Text = window.locator('.ag-center-cols-container .ag-row[row-index="2"] [col-id="text"]')
+    const row2Text = appPage.locator('.ag-center-cols-container .ag-row[row-index="2"] [col-id="text"]')
     await row2Text.click({ button: 'right' })
 
-    await expect(window.locator('.context-menu')).toBeVisible({ timeout: 5000 })
+    await expect(appPage.locator('.context-menu')).toBeVisible({ timeout: 5000 })
 
-    const sortItem = window.locator('.context-menu-item', { hasText: 'Sort Rows by Speaker Similarity' })
+    const sortItem = appPage.locator('.context-menu-item', { hasText: 'Sort Rows by Speaker Similarity' })
     await expect(sortItem).not.toHaveClass(/disabled/)
   })
 })

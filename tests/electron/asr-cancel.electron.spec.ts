@@ -140,7 +140,6 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
             )
 
             console.log('[Test] Clicking cancel button')
-            const _tBeforeClick = Date.now()
             await cancelButton.click()
             logTestTiming('after cancel click() resolved')
             console.log(

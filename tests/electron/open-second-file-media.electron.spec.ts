@@ -17,8 +17,6 @@ test.describe('Opening a second captions file should replace media', () => {
   // Two existing test WAVs with very different durations:
   //   OSR_us_000_0010_8k.wav  ≈ 33.6 s
   //   test-audio-10s.wav      = 10.0 s
-  const _mediaA = path.join(getProjectRoot(), 'test_data', 'OSR_us_000_0010_8k.wav')
-  const _mediaB = path.join(getProjectRoot(), 'test_data', 'test-audio-10s.wav')
 
   test.beforeAll(async () => {
     await fs.mkdir(tempDir, { recursive: true })
@@ -62,7 +60,8 @@ test.describe('Opening a second captions file should replace media', () => {
       const store = (window as any).$store
       store.reset()
     })
-    await page.waitForTimeout(200)
+    await page.waitForFunction(
+      () => (window as any).$store.document.segments.length === 0, undefined, { timeout: 5000 })
 
     // --- Open file A ---
     await page.evaluate(async (filePath) => {
@@ -117,8 +116,24 @@ test.describe('Opening a second captions file should replace media', () => {
       }
     }, captionsFileB)
 
-    // Give the auto-load watcher time to fire
-    await page.waitForTimeout(1000)
+    // The auto-load watcher is debounced behind a setTimeout, so poll for the media it
+    // should attach rather than guessing how long that takes. The assertions below read
+    // the <audio> element's duration, so wait for the element to have loaded the new
+    // source too, not just for the store to point at it.
+    await page.waitForFunction(
+      () => {
+        const store = (window as any).$store
+        const el = document.querySelector('audio') as HTMLAudioElement | null
+        return (
+          !!store.mediaPath &&
+          store.mediaPath.includes('test-audio-10s.wav') &&
+          !!el?.src.includes('test-audio-10s.wav') &&
+          Number.isFinite(el.duration)
+        )
+      },
+      undefined,
+      { timeout: 10000 }
+    )
 
     const stateAfterB = await page.evaluate(() => {
       const store = (window as any).$store

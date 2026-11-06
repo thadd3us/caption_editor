@@ -53,9 +53,6 @@ console.log(`[main] Node v${process.versions.node}`)
 console.log(`[main] Platform: ${process.platform}`)
 console.log(`[main] ========================================`)
 
-// Store security-scoped bookmarks for macOS
-const fileBookmarks = new Map<string, Buffer>()
-
 /** Helper: get the BrowserWindow that sent an IPC event, or the focused window as fallback. */
 function windowForEvent(event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent): BrowserWindow | null {
   return BrowserWindow.fromWebContents(event.sender) || BrowserWindow.getFocusedWindow()
@@ -760,17 +757,19 @@ ipcMain.handle('dialog:openFile', async (event, options?: {
 })
 
 /**
- * Read file contents - handles security-scoped bookmarks on macOS
+ * Read file contents.
+ *
+ * Access comes from the user having picked the file (dialog, drag & drop, or an OS
+ * open-file event); macOS grants the app temporary access to those paths. There was a
+ * `fileBookmarks` map and two branches here claiming to handle security-scoped
+ * bookmarks, but nothing ever wrote to the map, so the branches never ran and the
+ * bookmarks were never created. Real support means calling
+ * `app.startAccessingSecurityScopedResource` and persisting the bookmark data, which
+ * would also need the sandbox entitlements `ELECTRON.md` describes but
+ * `entitlements.mac.plist` does not grant.
  */
 ipcMain.handle('file:read', async (_event, filePath: string) => {
   try {
-    // On macOS, start accessing the security-scoped resource
-    if (process.platform === 'darwin' && fileBookmarks.has(filePath)) {
-      const _bookmark = fileBookmarks.get(filePath)!
-      // In a real implementation, you'd use app.startAccessingSecurityScopedResource
-      // For now, we rely on the dialog.showOpenDialog providing temporary access
-    }
-
     const content = await fs.readFile(filePath, 'utf-8')
     return { success: true, content, filePath }
   } catch (error) {
@@ -871,12 +870,7 @@ ipcMain.handle('file:saveExisting', async (_event, options: {
   content: string
 }) => {
   try {
-    // On macOS, start accessing the security-scoped resource
-    if (process.platform === 'darwin' && fileBookmarks.has(options.filePath)) {
-      const _bookmark = fileBookmarks.get(options.filePath)!
-      // In a real implementation, you'd use app.startAccessingSecurityScopedResource
-    }
-
+    // See the note on `file:read` about security-scoped bookmarks.
     await fs.writeFile(options.filePath, options.content, 'utf-8')
 
     return { success: true, filePath: options.filePath }

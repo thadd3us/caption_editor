@@ -1,0 +1,34 @@
+{
+  // Everything that runs in Node rather than in the renderer: the Electron main
+  // process, the preload script, and the Playwright specs that drive them.
+  //
+  // tsconfig.json covers `src/**` plus `electron/constants.ts` and nothing else, so
+  // until this existed `vue-tsc --noEmit` never saw electron/main.ts, electron/preload.ts
+  // or any of tests/. Neither did the build: `vite build --config vite.electron.config.ts`
+  // transpiles with esbuild, which does not type-check. The most privileged file in the
+  // app shipped unchecked, and so did the ~8,000 lines of test harness that gate it.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": [
+    "electron/**/*.ts",
+    "tests/**/*.ts",
+    "src/types/**/*.ts",
+    "src/utils/fileUtils.ts",
+    "src/types/electron.d.ts"
+  ]
+}

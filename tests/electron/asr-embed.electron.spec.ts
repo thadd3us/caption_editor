@@ -2,14 +2,11 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
-import { fileURLToPath } from 'url'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { enableConsoleCapture } from '../helpers/console'
 import { acceptLicenseIfVisible } from '../helpers/license'
 import { firstReadyWindow } from '../helpers/app-ready'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 test.describe('Speaker Embedding Integration @expensive', () => {
     // Expensive — run via `bazel test //:e2e_playwright_expensive` or

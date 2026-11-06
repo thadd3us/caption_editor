@@ -40,8 +40,8 @@ async function resetAppState(page: Page): Promise<void> {
         { timeout: 10000 }
     )
 
-    // Give Vue a tick to finish initial render
-    await page.waitForTimeout(50)
+    // Vue has finished the initial render once the grid is in the DOM.
+    await page.waitForSelector('.ag-root-wrapper', { timeout: 10000 })
 }
 
 /**

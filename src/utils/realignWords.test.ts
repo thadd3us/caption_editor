@@ -344,7 +344,15 @@ describe('realignWords', () => {
       const duration = performance.now() - start
 
       expect(result).toHaveLength(1000)
-      expect(duration).toBeLessThan(200) // Should complete in <200ms (LCS is O(m*n))
+
+      // Deliberately loose. What this guards against is a change in complexity class —
+      // the LCS table is O(m*n), about a million cells here, and anything that made it
+      // O(n^3) or exponential would take seconds or never finish. It is not a
+      // micro-benchmark, and treating it as one made it fail on a busy machine: a 200ms
+      // budget tripped at 223ms and at 794ms during this suite's own runs, while the
+      // algorithm was untouched. A wall-clock assertion that depends on machine load is
+      // the unit-test version of `waitForTimeout`.
+      expect(duration).toBeLessThan(2000)
     })
   })
 })

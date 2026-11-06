@@ -6,7 +6,7 @@ import { getProjectRoot } from '../helpers/project-root'
 import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save with Media Path - Relative path updates', () => {
-  let window: Page
+  let appPage: Page
   let tempDir: string
   let testCaptionsPath: string
   let mediaFilePath: string
@@ -56,7 +56,7 @@ test.describe('File Save with Media Path - Relative path updates', () => {
   })
 
   test('should update media file relative path when saving to subdirectory', async ({ page }) => {
-    window = page
+    appPage = page
     console.log('Test setup:')
     console.log('  Captions file:', testCaptionsPath)
     console.log('  Media file:', mediaFilePath)
@@ -66,13 +66,13 @@ test.describe('File Save with Media Path - Relative path updates', () => {
 
     // Step 1: Load the captions file into the store with filePath set (so paths resolve)
     const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
-    await window.evaluate(({ content, filePath }) => {
+    await appPage.evaluate(({ content, filePath }) => {
       const store = (window as any).$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: testCaptionsPath })
 
     // Step 2: Verify the captions file loaded with media reference
-    const initialState = await window.evaluate(() => {
+    const initialState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         filePath: store.document.filePath,
@@ -91,13 +91,13 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     console.log('\nStep 3: Simulating Save As to subdirectory')
 
     // First, update the file path in the store (this is what Save As does)
-    await window.evaluate((newPath) => {
+    await appPage.evaluate((newPath) => {
       const store = (window as any).$store
       store.updateFilePath(newPath)
     }, saveAsPath)
 
     // Step 4: Export the content (this should recompute the relative media path)
-    const exportedContent = await window.evaluate(() => {
+    const exportedContent = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.exportToString()
     })

@@ -46,7 +46,6 @@ test.describe('Scroll stability on cell edit', () => {
       { timeout: 5000 }
     )
     await page.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
-    await page.waitForTimeout(500)
   }
 
   /**
@@ -77,7 +76,46 @@ test.describe('Scroll stability on cell edit', () => {
         requestAnimationFrame(step)
       })
     }, { from: fromTime, to: toTime, steps })
-    await page.waitForTimeout(500)
+    // The scrub drives setCurrentTime through requestAnimationFrame, so first wait for the
+    // playhead to reach the end of the sweep.
+    await page.waitForFunction(
+      (t) => Math.abs((window as any).$store.currentTime - t) < 0.01,
+      toTime,
+      { timeout: 5000 }
+    )
+    // Then wait for the grid to finish reacting. Auto-scroll follows the playhead
+    // asynchronously, so the store landing is not the end of the story — waiting only on
+    // it measured scrollTop before the grid had moved, and the test read 0.
+    //
+    // This waits for the scroll position to stop changing rather than for any particular
+    // value, so it does not presuppose what the callers go on to assert.
+    await waitForScrollSettled(page)
+  }
+
+  /** Resolve once `.ag-body-viewport` reports the same scrollTop on two consecutive frames. */
+  async function waitForScrollSettled(page: import('@playwright/test').Page) {
+    await page.waitForFunction(
+      () => {
+        const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
+        if (!vp) return false
+        const w = window as unknown as { __lastScrollTop?: number; __stableFrames?: number }
+        const current = vp.scrollTop
+        if (w.__lastScrollTop === current) {
+          w.__stableFrames = (w.__stableFrames ?? 0) + 1
+        } else {
+          w.__stableFrames = 0
+          w.__lastScrollTop = current
+        }
+        if ((w.__stableFrames ?? 0) >= 3) {
+          delete w.__lastScrollTop
+          delete w.__stableFrames
+          return true
+        }
+        return false
+      },
+      undefined,
+      { timeout: 5000, polling: 'raf' }
+    )
   }
 
   async function getViewportScrollTop(page: import('@playwright/test').Page): Promise<number> {
@@ -92,7 +130,11 @@ test.describe('Scroll stability on cell edit', () => {
       const viewport = document.querySelector('.ag-body-viewport')
       if (viewport) viewport.scrollTop = 0
     })
-    await page.waitForTimeout(300)
+    await page.waitForFunction(
+      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop === 0,
+      undefined,
+      { timeout: 5000 }
+    )
   }
 
   test('grid should not jump after scrub-to-end-and-back then cell edit', async ({ page }) => {
@@ -118,12 +160,14 @@ test.describe('Scroll stability on cell edit', () => {
     await page.locator(
       '.ag-center-cols-container .ag-row[row-index="0"] [col-id="verified"]'
     ).click()
-    await page.waitForTimeout(500)
 
-    // Verified should have toggled
-    expect(await page.evaluate(
-      () => (window as any).$store.document.segments[0].verified
-    )).toBe(true)
+    // Verified toggled — and waiting for it is what proves the store update, the rowData
+    // recompute and AG Grid's reaction to it have all run. Measuring the scroll position
+    // before that would pass for the wrong reason: the jump this test guards against
+    // would not have had a chance to happen yet.
+    await expect
+      .poll(() => page.evaluate(() => (window as any).$store.document.segments[0].verified))
+      .toBe(true)
 
     // THE BUG: After scrub-to-end-and-back, editing a cell causes AG Grid
     // to scroll to a "remembered" position (~row 9-10).
@@ -148,7 +192,14 @@ test.describe('Scroll stability on cell edit', () => {
       await page.locator(
         `.ag-center-cols-container .ag-row[row-index="${rowIdx}"] [col-id="verified"]`
       ).click()
-      await page.waitForTimeout(300)
+
+      // Same reasoning as above: wait for the edit to land before measuring scroll.
+      await expect
+        .poll(() => page.evaluate(
+          (i) => (window as any).$store.document.segments[i].verified,
+          rowIdx
+        ))
+        .toBe(true)
 
       const scrollTop = await getViewportScrollTop(page)
       expect(scrollTop).toBeLessThan(50)

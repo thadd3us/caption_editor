@@ -3,23 +3,23 @@ import { expectGridCaptionTotal } from './helpers/wait-helpers'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - Bulk Delete', () => {
-  let window: Page
+  let appPage: Page
 
   test.beforeEach(async ({ page }) => {
-    window = page
+    appPage = page
     // Wait for AG Grid to be ready (more reliable than waiting for store)
-    await window.waitForSelector('.ag-root', { timeout: 10000 })
+    await appPage.waitForSelector('.ag-root', { timeout: 10000 })
   })
 
   test('should delete multiple selected rows after confirmation', async ({ page }) => {
-    window = page
+    appPage = page
     // Wait for store to be available
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       return (window as any).$store !== undefined
     }, { timeout: 5000 })
 
     // Load captions JSON with multiple segments
-    const loadResult = await window.evaluate(() => {
+    const loadResult = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return { success: false, error: 'No store on window' }
 
@@ -44,10 +44,10 @@ test.describe('Caption Editor - Bulk Delete', () => {
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(4)
 
-    await expectGridCaptionTotal(window, 4, 2000)
+    await expectGridCaptionTotal(appPage, 4, 2000)
 
     // Select first two rows and trigger delete confirmation dialog
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) throw new Error('Store not available')
 
@@ -68,7 +68,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     // Dialog should be visible
-    const dialog = window.locator('.base-modal-overlay')
+    const dialog = appPage.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that row count is displayed correctly
@@ -77,7 +77,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
     await expect(dialog).toContainText('This action cannot be undone')
 
     // Click Delete button
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
@@ -87,7 +87,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
     await expect(dialog).not.toBeVisible()
 
     // Verify rows were deleted in the store
-    const remainingSegments = await window.evaluate(() => {
+    const remainingSegments = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return null
       return store.document.segments.map((segment: any) => ({
@@ -100,12 +100,12 @@ test.describe('Caption Editor - Bulk Delete', () => {
     expect(remainingSegments[0].text).toBe('Third message')
     expect(remainingSegments[1].text).toBe('Fourth message')
 
-    await expectGridCaptionTotal(window, 2, 2000)
+    await expectGridCaptionTotal(appPage, 2, 2000)
   })
 
   test('should delete single row after confirmation', async () => {
     // Load captions JSON with segments
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -120,13 +120,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 2
     })
 
     // Select only one row
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -143,26 +143,26 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     // Dialog should be visible
-    const dialog = window.locator('.base-modal-overlay')
+    const dialog = appPage.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Check that row count shows "1 row" (singular)
     await expect(dialog).toContainText('1 row')
 
     // Click Delete button
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 1
     })
 
     // Verify only one row remains
-    const remainingSegments = await window.evaluate(() => {
+    const remainingSegments = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return null
       return store.document.segments
@@ -174,7 +174,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
   test('should cancel delete when clicking Cancel button', async () => {
     // Load captions JSON with segments
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -189,13 +189,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 2
     })
 
     // Select a row and open delete dialog
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -212,18 +212,18 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     // Dialog should be visible
-    const dialog = window.locator('.base-modal-overlay')
+    const dialog = appPage.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Click Cancel button
-    const cancelButton = window.locator('button.dialog-button-secondary')
+    const cancelButton = appPage.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     // Dialog should be closed
     await expect(dialog).not.toBeVisible()
 
     // Verify nothing was deleted
-    const segments = await window.evaluate(() => {
+    const segments = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return null
       return store.document.segments
@@ -234,7 +234,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
   test('should clear selectedSegmentId if deleted segment was selected', async () => {
     // Load captions JSON with segments
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -252,13 +252,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
       store.selectSegment('seg1')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.selectedSegmentId === 'seg1'
     })
 
     // Verify segment is selected
-    const selectedBefore = await window.evaluate(() => {
+    const selectedBefore = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store ? store.selectedSegmentId : null
     })
@@ -266,7 +266,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
     expect(selectedBefore).toBe('seg1')
 
     // Delete the selected segment
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -283,22 +283,22 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     // Wait for dialog
-    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
+    await appPage.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Confirm delete
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const deleteBtn = buttons.find(b => b.textContent?.includes('Delete') && b.classList.contains('dialog-button-danger'))
       if (deleteBtn) deleteBtn.click()
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.selectedSegmentId === null
     })
 
     // Verify selectedSegmentId was cleared
-    const selectedAfter = await window.evaluate(() => {
+    const selectedAfter = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store ? store.selectedSegmentId : null
     })
