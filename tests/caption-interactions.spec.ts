@@ -11,12 +11,12 @@ test.describe('Caption Editor - User Interactions', () => {
 
   async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedSegmentCount: number): Promise<void> {
     await appPage.evaluate((content) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, '/test/file.captions_json5')
     }, captionsContent)
 
     await appPage.waitForFunction((expected) => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === expected
     }, expectedSegmentCount, { timeout: 2000 })
   }
@@ -65,7 +65,7 @@ test.describe('Caption Editor - User Interactions', () => {
     const invalidContent = '{not json'
 
     await appPage.evaluate((content) => {
-      const store = (window as any).$store
+      const store = window.$store
       try {
         store.loadFromFile(content, '/test/file.captions_json5')
       } catch {
@@ -75,7 +75,7 @@ test.describe('Caption Editor - User Interactions', () => {
 
     // App should remain usable even after parse error.
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 0
     }, { timeout: 2000 })
 

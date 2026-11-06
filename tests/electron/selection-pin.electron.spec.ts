@@ -33,12 +33,12 @@ test.describe('Selection stays pinned to the clicked row', () => {
     const content = makeOverlappingDocument(segmentCount, docId)
     await page.evaluate(
       ({ content, docId }) => {
-        ;(window as any).$store.loadFromFile(content, `/test/${docId}.captions_json5`)
+        ;window.$store.loadFromFile(content, `/test/${docId}.captions_json5`)
       },
       { content, docId }
     )
     await page.waitForFunction(
-      (n) => (window as any).$store?.document?.segments?.length === n,
+      (n) => window.$store?.document?.segments?.length === n,
       segmentCount,
       { timeout: 5000 }
     )
@@ -50,7 +50,7 @@ test.describe('Selection stays pinned to the clicked row', () => {
 
     // Sort by speaker so the row whose range covers our timestamp is far away in the view.
     await page.evaluate(() => {
-      ;(window as any).__agGridApi.applyColumnState({
+      ;window.__agGridApi!.applyColumnState({
         state: [{ colId: 'speakerName', sort: 'asc' }],
         defaultState: { sort: null },
       })
@@ -60,39 +60,39 @@ test.describe('Selection stays pinned to the clicked row', () => {
 
     // Click the row the way the user does.
     await page.evaluate((id) => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       const node = api.getRowNode(id)
       api.ensureNodeVisible(node, 'middle')
       return new Promise<void>((resolve) => setTimeout(resolve, 150))
     }, target)
     await page.evaluate((id) => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       const node = api.getRowNode(id)
       const cell = document.querySelector(
         `.ag-center-cols-container .ag-row[row-id="${id}"] .ag-cell`
       ) as HTMLElement | null
       if (cell) cell.click()
-      else node.setSelected(true)
+      else node!.setSelected(true)
     }, target)
 
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .poll(() => page.evaluate(() => window.$store.selectedSegmentId))
       .toBe(target)
 
     // The media element now reports a position a few milliseconds short of the seek —
     // inside seg_39, whose range overlaps seg_40's start.
     await page.evaluate((id) => {
-      const store = (window as any).$store
+      const store = window.$store
       const seg = store.document.segments.find((s: any) => s.id === id)
       store.setCurrentTime(seg.startTime - 0.005)
     }, target)
 
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .poll(() => page.evaluate(() => window.$store.selectedSegmentId))
       .toBe(target)
     expect(
       await page.evaluate(() =>
-        (window as any).__agGridApi.getSelectedRows().map((r: any) => r.id)
+        window.__agGridApi!.getSelectedRows().map((r) => r.id)
       )
     ).toEqual([target])
 
@@ -109,21 +109,21 @@ test.describe('Selection stays pinned to the clicked row', () => {
     await loadDocument(page, 20, 'selection-pin-release')
 
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(15)
       store.selectSegment('seg_5')
     })
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .poll(() => page.evaluate(() => window.$store.selectedSegmentId))
       .toBe('seg_5')
 
     // Playback advances well past seg_5 — following the playhead is what the user means now.
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       for (const t of [15.1, 15.4, 16, 17, 18.5]) store.setCurrentTime(t)
     })
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.selectedSegmentId))
+      .poll(() => page.evaluate(() => window.$store.selectedSegmentId))
       .toBe('seg_6')
   })
 })

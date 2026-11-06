@@ -34,7 +34,7 @@ test.describe('Playback speed', () => {
   /** Load a captions file the way a file drop would, then attach the audio. */
   async function loadDocument(page: Page, filePath: string) {
     await page.evaluate(async (p: string) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.reset()
       const results = await window.electronAPI!.processDroppedFiles([p])
       for (const res of results) {
@@ -42,13 +42,13 @@ test.describe('Playback speed', () => {
       }
     }, filePath)
     await page.waitForFunction(
-      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
+      () => window.$store.document.segments.length > 0, undefined, { timeout: 5000 })
   }
 
   async function loadMedia(page: Page, name = 'test-audio-10s.wav') {
     const audioPath = path.join(getProjectRoot(), 'test_data', name)
     await page.evaluate(async (p: string) => {
-      const store = (window as any).$store
+      const store = window.$store
       const result = await window.electronAPI!.fileToURL(p)
       if (!result.success || !result.url) throw new Error('Failed to convert path to URL')
       store.loadMediaFile(result.url, p)
@@ -82,16 +82,16 @@ test.describe('Playback speed', () => {
 
     // Attaching the media above is a real content change, so start from a clean slate to
     // isolate what picking a speed does on its own.
-    await page.evaluate(() => (window as any).$store.markSaved())
+    await page.evaluate(() => window.$store.markSaved())
 
     await speedSelect(page).selectOption('0.75')
 
     // Changing speed is *view* state — it must not make the document look edited.
-    expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(false)
-    expect(await page.evaluate(() => (window as any).$store.viewDirty)).toBe(true)
+    expect(await page.evaluate(() => window.$store.isDirty)).toBe(false)
+    expect(await page.evaluate(() => window.$store.viewDirty)).toBe(true)
 
     await page.evaluate(async () => {
-      const store = (window as any).$store
+      const store = window.$store
       await window.electronAPI!.saveExistingFile({
         filePath: store.document.filePath,
         content: store.exportToString()
@@ -201,7 +201,7 @@ test.describe('Playback speed', () => {
     await speedSelect(page).selectOption('2')
 
     const run = await page.evaluate(async () => {
-      const store = (window as any).$store
+      const store = window.$store
       const el = document.querySelector('audio') as HTMLAudioElement
       el.currentTime = 0
       store.startPlaylistPlayback(store.document.segments.map((s: any) => s.id), 0)
@@ -229,7 +229,7 @@ test.describe('Playback speed', () => {
 
   test('adopts a speed set from the native controls overlay', async ({ page }) => {
     const filePath = await loadDocumentAndMedia(page, 'native.captions_json5')
-    await page.evaluate(() => (window as any).$store.markSaved())
+    await page.evaluate(() => window.$store.markSaved())
 
     // Chromium's `controls` overlay has its own speed submenu, which writes the property
     // directly. The app must notice, or the audio runs at a speed the UI does not show and the
@@ -239,12 +239,12 @@ test.describe('Playback speed', () => {
     })
 
     await expect(speedSelect(page)).toHaveValue('1.5')
-    expect(await page.evaluate(() => (window as any).$store.playbackRate)).toBe(1.5)
+    expect(await page.evaluate(() => window.$store.playbackRate)).toBe(1.5)
 
     // And it is document state like any other speed change: saved, but not a content edit.
-    expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(false)
+    expect(await page.evaluate(() => window.$store.isDirty)).toBe(false)
     await page.evaluate(async () => {
-      const store = (window as any).$store
+      const store = window.$store
       await window.electronAPI!.saveExistingFile({
         filePath: store.document.filePath,
         content: store.exportToString()

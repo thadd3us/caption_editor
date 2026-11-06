@@ -4,7 +4,7 @@ import { expectGridCaptionTotal } from './helpers/wait-helpers'
 test.describe('Caption Editor - Speaker Name Autocomplete', () => {
   test('should commit an existing speaker name from the cell editor', async ({ page }) => {
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -21,7 +21,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     await expectGridCaptionTotal(page, 2, 2000)
 
     await page.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({
         rowIndex: 0,
@@ -42,14 +42,14 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     await editorInput.press('Enter')
 
     await page.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.[0]?.speakerName === 'Bob'
     })
   })
 
   test('should allow a new speaker name in the cell editor', async ({ page }) => {
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -61,12 +61,12 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     })
 
     await page.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     await page.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
@@ -82,7 +82,7 @@ test.describe('Caption Editor - Speaker Name Autocomplete', () => {
     await editorInput.press('Enter')
 
     await page.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.[0]?.speakerName === 'Charlie'
     })
   })

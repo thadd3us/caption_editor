@@ -5,7 +5,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
   test('should select range of rows with shift-click and set speaker on all selected', async ({ page }) => {
     // Load captions JSON with multiple segments
     const loadResult = await page.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
       const captionsContent = JSON.stringify({
@@ -48,9 +48,9 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
 
     // Verify all 4 rows are selected
     const selectedRows = await page.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) return []
-      return gridApi.getSelectedRows().map((r: any) => r.id)
+      return gridApi.getSelectedRows().map((r) => r.id)
     })
 
     expect(selectedRows.length).toBe(4)
@@ -62,7 +62,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
 
     // Edit speaker on first selected row — applies to all selected rows
     await page.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
@@ -78,13 +78,13 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     await editorInput.press('Enter')
     await expectPageValue(
       page,
-      () => (window as any).$store.document.segments.filter((s: any) => s.speakerName === 'Bob').length,
+      () => window.$store.document.segments.filter((s: any) => s.speakerName === 'Bob').length,
       4
     )
 
     // Verify speaker was set for the 4 selected rows
     const speakerNames = await page.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return null
       return vttStore.document.segments.map((s: any) => ({
         id: s.id,
@@ -105,7 +105,7 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
   test('should edit speaker for multi-selected rows via keyboard', async ({ page }) => {
     // Load captions JSON with multiple segments
     await page.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) throw new Error('No store')
 
       const captionsContent = JSON.stringify({
@@ -138,14 +138,14 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
 
     // Verify 3 rows selected (rows 2, 3, 4 = indices 1, 2, 3)
     const selectedCount = await page.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       return gridApi?.getSelectedRows().length ?? 0
     })
     expect(selectedCount).toBe(3)
 
     // Start editing the speaker cell via grid API (more reliable than keyboard focus)
     await page.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({
         rowIndex: 1, // second displayed row (cue2)
@@ -168,13 +168,13 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
 
     await expectPageValue(
       page,
-      () => (window as any).$store.document.segments.filter((s: any) => s.speakerName === 'Bob').length,
+      () => window.$store.document.segments.filter((s: any) => s.speakerName === 'Bob').length,
       3
     )
 
     // Verify speaker was set for rows 2-4 only
     const speakerNames = await page.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore.document.segments.map((s: any) => ({
         id: s.id,
         speakerName: s.speakerName

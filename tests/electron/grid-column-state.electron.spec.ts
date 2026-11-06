@@ -22,16 +22,16 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
 
     // Load the document
     await page.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: tempCaptionsPath })
 
     // Wait for grid to be ready
-    await page.waitForFunction(() => !!(window as any).__agGridApi, { timeout: 5000 })
+    await page.waitForFunction(() => !!window.__agGridApi, { timeout: 5000 })
 
     // Verify Rating column is initially visible
     const initialRatingVisible = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       const col = api.getColumn('rating')
       return col ? col.isVisible() : null
     })
@@ -39,26 +39,26 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
 
     // Hide the Rating column
     await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       api.setColumnsVisible(['rating'], false)
     })
 
     // Verify it's now hidden
     const ratingHiddenAfterToggle = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       return api.getColumn('rating')?.isVisible()
     })
     expect(ratingHiddenAfterToggle).toBe(false)
 
     // Also hide endTime
     await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       api.setColumnsVisible(['endTime'], false)
     })
 
     // Export (simulating save) — this should include uiState
     const exportedContent = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.exportToString()
     })
 
@@ -69,19 +69,19 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
     expect(exported.uiState.columnState).toBeDefined()
 
     // Verify the exported column state has rating and endTime hidden
-    const ratingState = exported.uiState.columnState.find((c: any) => c.colId === 'rating')
+    const ratingState = exported.uiState.columnState.find((c) => c.colId === 'rating')
     expect(ratingState?.hide).toBe(true)
 
-    const endTimeState = exported.uiState.columnState.find((c: any) => c.colId === 'endTime')
+    const endTimeState = exported.uiState.columnState.find((c) => c.colId === 'endTime')
     expect(endTimeState?.hide).toBe(true)
 
     // Verify visible columns are NOT hidden in the state
-    const textState = exported.uiState.columnState.find((c: any) => c.colId === 'text')
+    const textState = exported.uiState.columnState.find((c) => c.colId === 'text')
     expect(textState?.hide).toBeFalsy()  // false or undefined
 
     // Now simulate re-opening: reset the store, then load the saved content
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.reset()
     })
 
@@ -90,7 +90,7 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
 
     // Reload with the saved content (which includes uiState)
     await page.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: exportedContent, filePath: tempCaptionsPath })
 
@@ -98,27 +98,27 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
     // guessing how long that takes.
     await expectPageValue(
       page,
-      () => !!(window as any).__agGridApi?.getColumnState?.()
-        .find((c: any) => c.colId === 'rating')?.hide,
+      () => !!window.__agGridApi?.getColumnState?.()
+        .find((c) => c.colId === 'rating')?.hide,
       true
     )
 
     const ratingVisibleAfterRestore = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       return api.getColumn('rating')?.isVisible()
     })
     expect(ratingVisibleAfterRestore).toBe(false)
 
     // Verify endTime is still hidden
     const endTimeVisibleAfterRestore = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       return api.getColumn('endTime')?.isVisible()
     })
     expect(endTimeVisibleAfterRestore).toBe(false)
 
     // Verify text column is still visible
     const textVisibleAfterRestore = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       return api.getColumn('text')?.isVisible()
     })
     expect(textVisibleAfterRestore).toBe(true)
@@ -142,22 +142,22 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
     await fs.writeFile(tempCaptionsPath, oldFormatCaptions, 'utf-8')
 
     await page.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: oldFormatCaptions, filePath: tempCaptionsPath })
 
-    await page.waitForFunction(() => !!(window as any).__agGridApi, { timeout: 5000 })
+    await page.waitForFunction(() => !!window.__agGridApi, { timeout: 5000 })
     // A document with no uiState leaves every column at its default visibility.
     await expectPageValue(
       page,
-      () => !!(window as any).__agGridApi?.getColumnState?.()
-        .find((c: any) => c.colId === 'rating') && true,
+      () => !!window.__agGridApi?.getColumnState?.()
+        .find((c) => c.colId === 'rating') && true,
       true
     )
 
     // All default columns should be visible
     const ratingVisible = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       return api.getColumn('rating')?.isVisible()
     })
     expect(ratingVisible).toBe(true)

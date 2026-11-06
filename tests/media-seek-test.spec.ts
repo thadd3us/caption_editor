@@ -17,7 +17,7 @@ test.describe('Media Element Seek Test', () => {
   test('should set audio currentTime and update store + scrubber via timeupdate event', async () => {
     // Load a tiny captions doc so MediaPlayer has something to render.
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(JSON.stringify({
         metadata: { id: 'seek-doc' },
         segments: [
@@ -27,15 +27,15 @@ test.describe('Media Element Seek Test', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     // Load audio file
     const audioPath = path.join(__dirname, '..', 'test_data', 'test-audio-10s.wav')
     await appPage.evaluate(async (filePath) => {
-      const store = (window as any).$store
-      const electronAPI = (window as any).electronAPI
+      const store = window.$store
+      const electronAPI = window.electronAPI
       if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
       const res = await electronAPI.fileToURL(filePath)
       if (!res?.success || !res.url) throw new Error('Failed to convert filePath to media:// URL')
@@ -76,7 +76,7 @@ test.describe('Media Element Seek Test', () => {
 
     // Store should have been updated by the timeupdate handler.
     await appPage.waitForFunction(() => {
-      const t = (window as any).$store?.currentTime
+      const t = window.$store?.currentTime
       return typeof t === 'number' && Math.abs(t - 3) < 0.5
     })
 

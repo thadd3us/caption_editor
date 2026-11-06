@@ -57,17 +57,17 @@ test.describe('Opening a second captions file should replace media', () => {
 
     // --- Reset app state ---
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.reset()
     })
     await page.waitForFunction(
-      () => (window as any).$store.document.segments.length === 0, undefined, { timeout: 5000 })
+      () => window.$store.document.segments.length === 0, undefined, { timeout: 5000 })
 
     // --- Open file A ---
     await page.evaluate(async (filePath) => {
-      const api = (window as any).electronAPI
+      const api = window.electronAPI!
       const results = await api.processDroppedFiles([filePath])
-      const store = (window as any).$store
+      const store = window.$store
       for (const r of results) {
         if (r.type === 'captions_json5' && r.content) {
           store.loadFromFile(r.content, r.filePath)
@@ -77,7 +77,7 @@ test.describe('Opening a second captions file should replace media', () => {
 
     // Wait for media auto-load to finish
     await page.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return !!store?.mediaPath
     }, { timeout: 10000 })
 
@@ -88,7 +88,7 @@ test.describe('Opening a second captions file should replace media', () => {
     }, { timeout: 10000 })
 
     const stateAfterA = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const audio = document.querySelector('audio') as HTMLAudioElement | null
       return {
         storeMediaPath: store.mediaPath,
@@ -106,9 +106,9 @@ test.describe('Opening a second captions file should replace media', () => {
 
     // --- Now open file B (the second file) ---
     await page.evaluate(async (filePath) => {
-      const api = (window as any).electronAPI
+      const api = window.electronAPI!
       const results = await api.processDroppedFiles([filePath])
-      const store = (window as any).$store
+      const store = window.$store
       for (const r of results) {
         if (r.type === 'captions_json5' && r.content) {
           store.loadFromFile(r.content, r.filePath)
@@ -122,7 +122,7 @@ test.describe('Opening a second captions file should replace media', () => {
     // source too, not just for the store to point at it.
     await page.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         const el = document.querySelector('audio') as HTMLAudioElement | null
         return (
           !!store.mediaPath &&
@@ -136,7 +136,7 @@ test.describe('Opening a second captions file should replace media', () => {
     )
 
     const stateAfterB = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const audio = document.querySelector('audio') as HTMLAudioElement | null
       return {
         storeMediaPath: store.mediaPath,

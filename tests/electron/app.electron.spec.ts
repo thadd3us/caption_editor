@@ -25,7 +25,7 @@ test.describe('Electron App', () => {
   test('should have electronAPI available', async ({ page }) => {
     // Check that the Electron API is exposed
     const hasElectronAPI = await page.evaluate(() => {
-      return !!window.electronAPI && window.electronAPI.isElectron
+      return !!window.electronAPI && window.electronAPI!.isElectron
     })
     expect(hasElectronAPI).toBe(true)
   })
@@ -54,21 +54,21 @@ test.describe('Electron App', () => {
 
     // Load captions file programmatically
     await page.evaluate(async (content) => {
-      const store = (window as any).$store
+      const store = window.$store
       if (store?.loadFromFile) {
         store.loadFromFile(content, 'test.captions_json5')
       }
     }, captionsJson5)
 
     await page.waitForFunction(
-      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
+      () => window.$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Check that captions are displayed in the table
     const captionTable = page.locator('.ag-center-cols-container')
     await expect(captionTable).toBeVisible()
 
     // Verify segments loaded
-    const segmentCount = await page.evaluate(() => (window as any).$store?.document?.segments?.length || 0)
+    const segmentCount = await page.evaluate(() => window.$store?.document?.segments?.length || 0)
     expect(segmentCount).toBe(2)
   })
 
@@ -79,25 +79,25 @@ test.describe('Electron App', () => {
     })
 
     await page.evaluate(async (content) => {
-      const store = (window as any).$store
+      const store = window.$store
       if (store && store.loadFromFile) {
         store.loadFromFile(content, 'test-export.captions_json5')
       }
     }, captionsJson5)
 
     await page.waitForFunction(
-      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
+      () => window.$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Verify content loaded
     const segmentCount = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length || 0
     })
     expect(segmentCount).toBe(1)
 
     // Test that exportToString() works correctly (this is what Save As uses)
     const exportedContent = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.exportToString()
     })
 
@@ -127,7 +127,7 @@ test.describe('Electron App', () => {
     // Simulate file drop via electronAPI
     const result = await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return null
-      return await window.electronAPI.processDroppedFiles([filePath])
+      return await window.electronAPI!.processDroppedFiles([filePath])
     }, testCaptionsPath)
 
     expect(result).toBeTruthy()

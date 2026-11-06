@@ -39,7 +39,7 @@ describe('MediaPlayer - editing the current caption', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
-    delete (window as any).electronAPI
+    delete window.electronAPI
   })
 
   it('shows the word-span display, not an editor, until double-click', () => {

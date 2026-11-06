@@ -35,7 +35,7 @@ test.afterAll(() => {
  * Make the OS "Open" dialog return `openedPath` without showing anything.
  *
  * This has to be stubbed in the MAIN process. The obvious-looking renderer
- * version — `window.electronAPI.openFile = async () => [...]` — silently does
+ * version — `window.electronAPI!.openFile = async () => [...]` — silently does
  * nothing: `electronAPI` is published through `contextBridge.exposeInMainWorld`,
  * and those objects are immutable in the renderer, so the assignment is dropped
  * and the real `dialog.showOpenDialog` still runs. These tests used to do
@@ -73,21 +73,21 @@ test.afterEach(async ({ electronApp }) => {
 
 /** The id of the document currently in the store. */
 function openDocId(page: Page): Promise<string> {
-    return page.evaluate(() => (window as any).$store.document.metadata.id)
+    return page.evaluate(() => window.$store.document.metadata.id)
 }
 
 test.describe('Unsaved Changes Warning', () => {
     test('should warn on unsaved changes when opening another file', async ({ page, electronApp }) => {
         // 1. Initially NOT dirty
-        const initialDirty = await page.evaluate(() => (window as any).$store.isDirty)
+        const initialDirty = await page.evaluate(() => window.$store.isDirty)
         expect(initialDirty).toBe(false)
 
         // 2. Make an edit (add a segment)
-        await page.evaluate(() => (window as any).$store.addSegment(0, 5))
+        await page.evaluate(() => window.$store.addSegment(0, 5))
 
         // 3. Now it SHOULD be dirty and have segments
         const state = await page.evaluate(() => {
-            const store = (window as any).$store
+            const store = window.$store
             return {
                 isDirty: store.isDirty,
                 segmentCount: store.document.segments.length
@@ -101,7 +101,7 @@ test.describe('Unsaved Changes Warning', () => {
 
         // Trigger handleMenuOpenFile WITHOUT awaiting it so we can interact with the modal
         await page.evaluate(() => {
-            setTimeout(() => (window as any).handleMenuOpenFile(), 0)
+            setTimeout(() => window.handleMenuOpenFile(), 0)
         })
 
         // Wait for custom modal
@@ -122,7 +122,7 @@ test.describe('Unsaved Changes Warning', () => {
     test('should NOT warn if NO unsaved changes when opening another file', async ({ page, electronApp }) => {
         await stubOpenDialog(electronApp, openedPath)
 
-        await page.evaluate(() => (window as any).handleMenuOpenFile())
+        await page.evaluate(() => window.handleMenuOpenFile())
 
         // Verify NO modal appears
         const modalVisible = await page.locator('.base-modal-overlay').isVisible()
@@ -139,12 +139,12 @@ test.describe('Unsaved Changes Warning', () => {
         // attachment away. The guard existed only to mask media auto-load
         // dirtying untouched documents, which the store no longer does.
         await page.evaluate(async () => {
-            const store = (window as any).$store
+            const store = window.$store
             store.loadMediaFile('media://path/to/video.mp4', '/path/to/video.mp4')
         })
 
         const state = await page.evaluate(() => {
-            const store = (window as any).$store
+            const store = window.$store
             return {
                 isDirty: store.isDirty,
                 segmentCount: store.document.segments.length
@@ -157,7 +157,7 @@ test.describe('Unsaved Changes Warning', () => {
         await stubOpenDialog(electronApp, openedPath)
 
         await page.evaluate(() => {
-            setTimeout(() => (window as any).handleMenuOpenFile(), 0)
+            setTimeout(() => window.handleMenuOpenFile(), 0)
         })
 
         const modal = page.locator('.base-modal', { hasText: 'Unsaved Changes' })
@@ -171,7 +171,7 @@ test.describe('Unsaved Changes Warning', () => {
         // path it had just read, so every document with media went dirty moments
         // after opening and quitting produced a spurious prompt.
         await page.evaluate(() => {
-            const store = (window as any).$store
+            const store = window.$store
             const content = JSON.stringify({
                 metadata: { id: 'autoload-dirty-check', mediaFilePath: '/media/does-not-matter.wav' },
                 segments: [{ id: 'seg-1', index: 0, startTime: 0, endTime: 1, text: 'Hi' }]
@@ -181,26 +181,26 @@ test.describe('Unsaved Changes Warning', () => {
 
         // Re-attaching the media the document already references (what auto-load does).
         await page.evaluate(() => {
-            const store = (window as any).$store
+            const store = window.$store
             store.loadMediaFile('media:///media/does-not-matter.wav', store.document.metadata.mediaFilePath)
         })
 
-        expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(false)
+        expect(await page.evaluate(() => window.$store.isDirty)).toBe(false)
 
         // ...so no prompt when opening something else.
         await stubOpenDialog(electronApp, openedPath)
-        await page.evaluate(() => (window as any).handleMenuOpenFile())
+        await page.evaluate(() => window.handleMenuOpenFile())
         expect(await page.locator('.base-modal-overlay').isVisible()).toBe(false)
     })
 
     test('a file opened from the OS goes through the unsaved-changes check', async ({ page }) => {
         // Finder double-click / dock drop used to call processFilePaths() directly,
         // silently discarding whatever was open.
-        await page.evaluate(() => (window as any).$store.addSegment(0, 5))
-        expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(true)
+        await page.evaluate(() => window.$store.addSegment(0, 5))
+        expect(await page.evaluate(() => window.$store.isDirty)).toBe(true)
 
         await page.evaluate((p) => {
-            setTimeout(() => (window as any).handleExternalFileOpen([p]), 0)
+            setTimeout(() => window.handleExternalFileOpen([p]), 0)
         }, openedPath)
 
         const modal = page.locator('.base-modal', { hasText: 'Unsaved Changes' })
@@ -209,6 +209,6 @@ test.describe('Unsaved Changes Warning', () => {
         await modal.waitFor({ state: 'hidden', timeout: 5000 })
 
         // Canceling kept the open document intact.
-        expect(await page.evaluate(() => (window as any).$store.document.segments.length)).toBe(1)
+        expect(await page.evaluate(() => window.$store.document.segments.length)).toBe(1)
     })
 })

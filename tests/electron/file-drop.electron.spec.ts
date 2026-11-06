@@ -21,7 +21,7 @@ test.describe('File Drop', () => {
     await fs.writeFile(captionsFilePath, captionsJson5, 'utf-8')
 
     const result = await page.evaluate(async (filePath) => {
-      const api = (window as any).electronAPI
+      const api = window.electronAPI
       if (!api || !api.processDroppedFiles) {
         throw new Error('electronAPI.processDroppedFiles not available')
       }
@@ -36,7 +36,7 @@ test.describe('File Drop', () => {
     expect(result[0].content).toContain('First caption')
 
     await page.evaluate((fileResult) => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) {
         throw new Error('$store not available')
       }
@@ -44,7 +44,7 @@ test.describe('File Drop', () => {
     }, result[0])
 
     await page.waitForFunction(
-      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
+      () => window.$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     const rows = await page.locator('.ag-row').all()
     expect(rows.length).toBeGreaterThan(0)
@@ -57,7 +57,7 @@ test.describe('File Drop', () => {
     await fs.access(wavFilePath)
 
     const result = await page.evaluate(async (filePath) => {
-      const api = (window as any).electronAPI
+      const api = window.electronAPI
       if (!api || !api.processDroppedFiles) {
         throw new Error('electronAPI.processDroppedFiles not available')
       }
@@ -73,7 +73,7 @@ test.describe('File Drop', () => {
 
     // Verify the media file gets loaded into the store
     const mediaPath = await page.evaluate((fileResult) => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) {
         throw new Error('$store not available')
       }
@@ -99,7 +99,7 @@ test.describe('File Drop', () => {
     await fs.access(wavFilePath)
 
     const result = await page.evaluate(async (filePaths) => {
-      const api = (window as any).electronAPI
+      const api = window.electronAPI
       if (!api || !api.processDroppedFiles) {
         throw new Error('electronAPI.processDroppedFiles not available')
       }
@@ -110,22 +110,22 @@ test.describe('File Drop', () => {
     expect(result).toBeDefined()
     expect(result.length).toBe(2)
 
-    const captionsResult = result.find((r: any) => r.type === 'captions_json5')
-    const mediaResult = result.find((r: any) => r.type === 'media')
+    const captionsResult = result.find((r) => r.type === 'captions_json5')
+    const mediaResult = result.find((r) => r.type === 'media')
 
     expect(captionsResult).toBeDefined()
     expect(mediaResult).toBeDefined()
-    expect(captionsResult.filePath).toBe(captionsFilePath)
-    expect(mediaResult.filePath).toBe(wavFilePath)
+    expect(captionsResult!.filePath).toBe(captionsFilePath)
+    expect(mediaResult!.filePath).toBe(wavFilePath)
 
     await page.evaluate((results) => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) {
         throw new Error('$store not available')
       }
 
-      const captions = results.find((r: any) => r.type === 'captions_json5')
-      const media = results.find((r: any) => r.type === 'media')
+      const captions = results.find((r) => r.type === 'captions_json5')
+      const media = results.find((r) => r.type === 'media')
 
       if (captions) {
         store.loadFromFile(captions.content, captions.filePath)
@@ -136,11 +136,11 @@ test.describe('File Drop', () => {
     }, result)
 
     await page.waitForFunction(
-      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
+      () => window.$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Verify both files were loaded
     const storeState = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         segmentCount: store.document.segments.length,
         mediaPath: store.mediaFilePath

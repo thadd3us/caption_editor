@@ -12,7 +12,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
   test('should rename speaker across multiple segments', async () => {
     // Load captions JSON with multiple speakers using direct store manipulation
     const loadResult = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return { success: false, error: 'No store on window' }
 
       const captionsContent = JSON.stringify({
@@ -39,7 +39,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Open rename dialog (simulating Edit menu -> Rename Speaker)
     await appPage.evaluate(() => {
-      ;(window as any).openRenameSpeakerDialog()
+      ;window.openRenameSpeakerDialog()
     })
 
     // Dialog should be visible
@@ -66,7 +66,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Verify speaker was renamed in the store
     const speakerNames = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return null
       return store.document.segments.map((segment: any) => segment.speakerName)
     })
@@ -83,14 +83,14 @@ test.describe('Caption Editor - Rename Speaker', () => {
     // Reset store to clean state before test
     console.log('Resetting store to clean state...')
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.reset()
     })
-    await appPage.waitForFunction(() => { const store = (window as any).$store; return store?.document !== undefined })
+    await appPage.waitForFunction(() => { const store = window.$store; return store?.document !== undefined })
 
     // Check initial state before loading
     const beforeState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         segmentCount: store.document.segments.length,
         segments: store.document.segments.map((s: any) => ({
@@ -104,7 +104,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
     // Load captions JSON without speakers using store directly
     console.log('Loading captions without speakers')
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
         segments: [
@@ -116,13 +116,13 @@ test.describe('Caption Editor - Rename Speaker', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Check state after loading
     const afterState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const segments = store.document.segments
       return {
         segmentCount: segments.length,
@@ -138,12 +138,12 @@ test.describe('Caption Editor - Rename Speaker', () => {
     // Try to open rename dialog
     console.log('Attempting to open rename speaker dialog...')
     const dialogOpenResult = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const hasSpeakers = store.document.segments.some(
         (segment: any) => segment.speakerName && segment.speakerName.trim() !== ''
       )
       console.log('[APP] hasSpeakers check:', hasSpeakers)
-      ;(window as any).openRenameSpeakerDialog()
+      ;window.openRenameSpeakerDialog()
       return { hasSpeakers }
     })
     console.log('Dialog open result:', dialogOpenResult)
@@ -160,7 +160,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
   test('should close dialog when clicking Cancel', async () => {
     // Load captions JSON with speaker
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -172,13 +172,13 @@ test.describe('Caption Editor - Rename Speaker', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     // Open rename dialog
     await appPage.evaluate(() => {
-      ;(window as any).openRenameSpeakerDialog()
+      ;window.openRenameSpeakerDialog()
     })
 
     // Dialog should be visible
@@ -196,7 +196,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
   test('should record history entries for renamed segments', async () => {
     // Load captions JSON with speakers
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -211,13 +211,13 @@ test.describe('Caption Editor - Rename Speaker', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Open rename dialog
     await appPage.evaluate(() => {
-      ;(window as any).openRenameSpeakerDialog()
+      ;window.openRenameSpeakerDialog()
     })
 
     // Wait for dialog
@@ -241,7 +241,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Check that history entries were created
     const historyCount = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return 0
 
       const history = store.document.history || []

@@ -12,7 +12,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
   async function getDisplayedRowData(): Promise<any[]> {
     return await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi?.getDisplayedRowCount) return []
       const rows: any[] = []
       const n = gridApi.getDisplayedRowCount()
@@ -27,7 +27,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
   test('should merge two adjacent segments', async () => {
     // Load captions JSON with two adjacent segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -42,13 +42,13 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Verify UI shows 2 rows initially
     await appPage.waitForFunction(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       return gridApi?.getDisplayedRowCount?.() === 2
     })
     const beforeRows = await getDisplayedRowData()
@@ -58,19 +58,19 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
     // Merge the adjacent segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const segments = store.document.segments
       store.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     // Verify UI reacts (grid rows + caption display)
     await appPage.waitForFunction(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       return gridApi?.getDisplayedRowCount?.() === 1
     })
     const mergedSegments = await getDisplayedRowData()
@@ -83,7 +83,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
     // Ensure MediaPlayer renders the merged caption at an in-range time.
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(1.0)
     })
     await expect(appPage.locator('.caption-text')).toContainText('Hello world')
@@ -92,7 +92,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
   test('should merge three adjacent segments', async () => {
     // Load captions JSON with three adjacent segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -108,24 +108,24 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
     // Merge all three adjacent segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const segments = store.document.segments
       store.mergeAdjacentSegments([segments[0].id, segments[1].id, segments[2].id])
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     await appPage.waitForFunction(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       return gridApi?.getDisplayedRowCount?.() === 1
     })
     const mergedSegments = await getDisplayedRowData()
@@ -136,7 +136,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     expect(mergedSegments[0].endTime).toBe(15)
 
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(6.0)
     })
     await expect(appPage.locator('.caption-text')).toContainText('One Two Three')
@@ -145,7 +145,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
   test('should not merge non-adjacent segments', async () => {
     // Load VTT with three segments
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -161,26 +161,26 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
     // Try to merge seg1 and seg3 (skipping seg2 - they are not adjacent)
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       const segments = vttStore.document.segments
       vttStore.mergeAdjacentSegments([segments[0].id, segments[2].id])
     })
 
     // Brief wait since merge should fail and not change state
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
     // Verify we still have 3 segments (merge should have failed)
     const segments = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore.document.segments
     })
 
@@ -190,7 +190,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
   test('should preserve speaker name when merging', async () => {
     // Load captions JSON with segments that have speaker names
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -205,25 +205,25 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Merge the segments
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       const segments = vttStore.document.segments
       vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     // Verify speaker name is preserved (first non-empty)
     const mergedSegments = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore.document.segments
     })
 
@@ -234,7 +234,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
   test('should check adjacency when building context menu', async () => {
     // Load VTT with three segments
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -250,13 +250,13 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
     // Test adjacency check for adjacent segments (seg1 and seg2)
     const isAdjacentTest1 = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       const segments = vttStore.document.segments
 
       // Simulate the adjacency check function from CaptionTable (using ordinal map)
@@ -265,7 +265,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
         const segs = segmentIds
           .map(id => vttStore.document.segments.find((s: any) => s.id === id))
-          .filter((s: any) => s !== undefined)
+          .filter((s) => s !== undefined)
 
         if (segs.length !== segmentIds.length) return false
 
@@ -277,7 +277,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
         // Get ordinals for selected segments
         const ordinals = segs
-          .map((s: any) => ordinalMap.get(s.id))
+          .map((s) => ordinalMap.get(s.id))
           .filter((o: any): o is number => o !== undefined)
           .sort((a: number, b: number) => a - b)
 
@@ -298,7 +298,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
     // Test adjacency check for non-adjacent segments (seg1 and seg3)
     const isAdjacentTest2 = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       const segments = vttStore.document.segments
 
       function areSegmentsAdjacent(segmentIds: string[]): boolean {
@@ -306,7 +306,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
         const segs = segmentIds
           .map(id => vttStore.document.segments.find((s: any) => s.id === id))
-          .filter((s: any) => s !== undefined)
+          .filter((s) => s !== undefined)
 
         if (segs.length !== segmentIds.length) return false
 
@@ -318,7 +318,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
 
         // Get ordinals for selected segments
         const ordinals = segs
-          .map((s: any) => ordinalMap.get(s.id))
+          .map((s) => ordinalMap.get(s.id))
           .filter((o: any): o is number => o !== undefined)
           .sort((a: number, b: number) => a - b)
 
@@ -341,7 +341,7 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
   test('should add history entries for merged segments', async () => {
     // Load captions JSON with two segments
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -356,31 +356,31 @@ test.describe('Caption Editor - Merge Adjacent Segments', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Get initial history length
     const initialHistoryLength = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore.document.history?.length ?? 0
     })
 
     // Merge the segments
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       const segments = vttStore.document.segments
       vttStore.mergeAdjacentSegments([segments[0].id, segments[1].id])
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     // Verify history entries were added (2 for the 2 merged segments)
     const finalHistory = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore.document.history
     })
 

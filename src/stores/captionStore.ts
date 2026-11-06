@@ -377,7 +377,12 @@ export const useCaptionStore = defineStore('captions', () => {
     // App.vue tracks "already tried auto-load for this metadata.id". A full reload with the
     // same id (e.g. after Compute Speaker Embeddings) must clear that or mediaPath stays null.
     try {
-      const reset = (window as any).__resetAttemptedAutoLoad
+      // Deliberately a cast, not the declared global. `window.$store` is typed as
+      // `ReturnType<typeof useCaptionStore>`, so if this file referenced anything from
+      // window-globals.d.ts the two would import each other and TypeScript would resolve
+      // the store's own type to an empty `Store<"captions", {}, {}, {}>` — which silently
+      // turns every `window.$store.…` in the specs back into an unchecked `any`.
+      const reset = (window as { __resetAttemptedAutoLoad?: () => void }).__resetAttemptedAutoLoad
       if (typeof reset === 'function') reset()
     } catch {
       /* ignore outside Electron */
@@ -408,7 +413,7 @@ export const useCaptionStore = defineStore('captions', () => {
       // Convert relative media file path to absolute path
       // According to architecture: paths are stored as absolute internally, relative only on export
       try {
-        const electronAPI = (window as any).electronAPI
+        const electronAPI = window.electronAPI
         if (loadedDoc.metadata.mediaFilePath && filePath && electronAPI?.path) {
           const mediaPath = loadedDoc.metadata.mediaFilePath
           // Only convert if it's a relative path
@@ -539,7 +544,7 @@ export const useCaptionStore = defineStore('captions', () => {
     let documentToExport = document.value
 
     const absoluteMediaPath = document.value.metadata.mediaFilePath
-    const electronAPI = (window as any).electronAPI
+    const electronAPI = window.electronAPI
 
     if (absoluteMediaPath && document.value.filePath && electronAPI?.path) {
       try {
@@ -898,7 +903,7 @@ export const useCaptionStore = defineStore('captions', () => {
    */
   async function processFilePaths(filePaths: string[]): Promise<{ successes: number; failures: number }> {
     const t0 = performance.now()
-    const electronAPI = (window as any).electronAPI
+    const electronAPI = window.electronAPI
     if (!electronAPI || !electronAPI.processDroppedFiles) {
       console.error('Electron processDroppedFiles API not available')
       throw new Error('File processing API not available')

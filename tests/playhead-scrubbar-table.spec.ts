@@ -15,10 +15,10 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
   // Helper function to seek to a time
   async function seekToTime(time: number) {
     await appPage.evaluate((timeValue: number) => {
-      ; (window as any).$store.setCurrentTime(timeValue)
+      ; window.$store.setCurrentTime(timeValue)
     }, time)
     await appPage.waitForFunction(
-      (t) => Math.abs((window as any).$store.currentTime - t) < 0.001, time, { timeout: 5000 })
+      (t) => Math.abs(window.$store.currentTime - t) < 0.001, time, { timeout: 5000 })
   }
 
 
@@ -28,7 +28,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // Reset store to clean state before test
     console.log('Resetting store to clean state...')
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.reset()
       store.setCurrentTime(0)
     })
@@ -44,7 +44,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
 
     // Check initial state
     const initialState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         segmentCount: store.document.segments.length,
         segments: store.document.segments.map((s: any) => ({
@@ -70,10 +70,10 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
       const result = await window.electronAPI!.fileToURL(filePath)
       if (!result.success || !result.url) throw new Error('fileToURL failed: ' + result.error)
       console.log('[TEST] Loading media file:', result.url)
-      ;(window as any).$store.loadMediaFile(result.url, filePath)
+      ;window.$store.loadMediaFile(result.url, filePath)
     }, audioPath)
 
-    await appPage.waitForFunction(() => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })
+    await appPage.waitForFunction(() => !!window.$store.mediaPath, undefined, { timeout: 5000 })
 
     // Verify media player is ready
     const mediaPlayer = appPage.locator('.media-player')
@@ -105,12 +105,12 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // If not empty, log what's in the store AND what's in the DOM
     if (rowCount !== 0) {
       const debugInfo = await appPage.evaluate(() => {
-        const store = (window as any).$store
+        const store = window.$store
         const rows = Array.from(document.querySelectorAll('.ag-row'))
         return {
           storeSegments: store.document.segments,
           domRowCount: rows.length,
-          domRowTexts: rows.map((r: any) => r.textContent)
+          domRowTexts: rows.map((r) => r.textContent)
         }
       })
       console.log('ERROR: Table not empty!', JSON.stringify(debugInfo, null, 2))
@@ -123,7 +123,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     await seekToTime(2)
 
     // Verify current time in store
-    let currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+    let currentTime = await appPage.evaluate(() => window.$store.currentTime)
     console.log(`Current time after seek: ${currentTime}`)
     expect(currentTime).toBeCloseTo(2, 1)
 
@@ -131,9 +131,9 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     console.log('Clicking Add Caption button...')
     const clickResult = await appPage.evaluate(() => {
       const btn = document.querySelector('.add-caption-btn') as HTMLButtonElement
-      const beforeCount = (window as any).$store.document.segments.length
+      const beforeCount = window.$store.document.segments.length
       btn.click()
-      const afterCount = (window as any).$store.document.segments.length
+      const afterCount = window.$store.document.segments.length
       return { beforeCount, afterCount }
     })
     console.log('Click result:', clickResult)
@@ -165,7 +165,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     expect(rowCount, `Expected 1 row but found ${rowCount}. Row contents: ${rowDebugInfo.contents.join(' | ')}`).toBe(1)
 
     // Verify the segment in store spans 2-7 seconds (default 5s duration)
-    let segments = await appPage.evaluate(() => (window as any).$store.document.segments)
+    let segments = await appPage.evaluate(() => window.$store.document.segments)
     expect(segments).toHaveLength(1)
     expect(segments[0].startTime).toBeCloseTo(2, 1)
     expect(segments[0].endTime).toBeCloseTo(7, 1)
@@ -176,7 +176,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // Seek to 0.5 seconds
     await seekToTime(0.5)
 
-    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => window.$store.currentTime)
     expect(currentTime).toBeCloseTo(0.5, 1)
 
     // Add caption at 0.5s
@@ -193,7 +193,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     expect(rowCount).toBe(2)
 
     // Verify segments are in correct order
-    segments = await appPage.evaluate(() => (window as any).$store.document.segments)
+    segments = await appPage.evaluate(() => window.$store.document.segments)
     expect(segments).toHaveLength(2)
 
     // Should be sorted by start time (store keeps them sorted)
@@ -208,7 +208,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // Seek to 8 seconds
     await seekToTime(8)
 
-    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => window.$store.currentTime)
     expect(currentTime).toBeCloseTo(8, 1)
 
     // Add caption at 8s
@@ -225,7 +225,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     expect(rowCount).toBe(3)
 
     // Verify third segment
-    segments = await appPage.evaluate(() => (window as any).$store.document.segments)
+    segments = await appPage.evaluate(() => window.$store.document.segments)
     expect(segments).toHaveLength(3)
 
     // === Test 4: Scrub bar seeking (auto-selection not yet implemented) ===
@@ -233,15 +233,15 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
 
     // Verify seeking works correctly
     await seekToTime(1)
-    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => window.$store.currentTime)
     expect(currentTime).toBeCloseTo(1, 1)
 
     await seekToTime(3)
-    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => window.$store.currentTime)
     expect(currentTime).toBeCloseTo(3, 1)
 
     await seekToTime(9)
-    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => window.$store.currentTime)
     expect(currentTime).toBeCloseTo(9, 1)
 
     // === Test 5: Table row selection moves playhead ===
@@ -284,11 +284,11 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
       // Clicking a start-time cell seeks; wait for the playhead to land on that row.
       // The cell renders the start time as `ssss.000`, which is what we seek to.
       await appPage.waitForFunction(
-        (t) => Math.abs((window as any).$store.currentTime - t) < 0.001,
+        (t) => Math.abs(window.$store.currentTime - t) < 0.001,
         parseFloat(rowInfo.timeText),
         { timeout: 5000 }
       )
-      currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
+      currentTime = await appPage.evaluate(() => window.$store.currentTime)
       console.log(`Current time after clicking row ${index}: ${currentTime}`)
       expect(currentTime).toBeCloseTo(parseFloat(rowInfo.timeText!), 1)
     }

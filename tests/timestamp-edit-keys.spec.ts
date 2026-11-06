@@ -3,13 +3,13 @@ import type { Locator, Page } from '@playwright/test'
 
 async function loadCaptionsAndWaitForFirstRow(page: Page, captionsContent: string): Promise<void> {
   await page.evaluate((content) => {
-    const store = (window as any).$store
+    const store = window.$store
     store.loadFromFile(content, '/test/test.captions_json5')
   }, captionsContent)
 
   // Wait for store + grid to reflect the new document (avoid race vs AG Grid render).
   await page.waitForFunction(() => {
-    const store = (window as any).$store
+    const store = window.$store
     return Array.isArray(store?.document?.segments) && store.document.segments.length > 0
   })
 

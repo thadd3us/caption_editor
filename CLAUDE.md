@@ -119,6 +119,22 @@ specs' `page.evaluate()` callbacks legitimately use DOM globals. So a bare `wind
 defined) even though Node has no such global and it throws at runtime. If you are
 renaming things in the specs, grep rather than trusting tsc.
 
+**Typed `window` globals.** `src/types/window-globals.d.ts` declares `$store`,
+`__agGridApi` and the `App.vue` test hooks, so specs reach them as `window.$store.…`
+rather than `(window as any).$store.…` — which is where nearly 700 of the repo's
+`no-explicit-any` warnings came from. The point is not the warning count: the store's
+actions are now type-checked at every call site in the suite.
+
+It types `$store` with `ReturnType<typeof import('../stores/captionStore').useCaptionStore>`
+— an inline `import(...)`, deliberately, not a top-level `import type`. A top-level
+import makes the store's own type depend on the `Window` interface it augments (any
+`window.…` reference inside `captionStore.ts` closes the loop), and TypeScript resolves
+that cycle by inferring `Store<"captions", {}, {}, {}>`. That fails silently: nothing
+errors, every `window.$store.x` just becomes an unchecked member access again. It also
+depends on which files are in the program, so it reproduced under
+`tsconfig.node-side.json` and not under `tsconfig.json`. If the store's members ever stop
+resolving in the specs, suspect this first.
+
 **ESLint and `.vue`:** `eslint.config.js` needs both `eslint-plugin-vue` and
 `vue-eslint-parser`; without them flat config never matches a `.vue` file and silently
 lints nothing. It uses `flat/essential` rather than `flat/recommended` — the difference

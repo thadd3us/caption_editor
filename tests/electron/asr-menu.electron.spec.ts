@@ -53,7 +53,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Set the ASR model override on the window
       await page.evaluate(() => {
-        (window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
+        window.__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
       })
 
       // firstReadyWindow already waited for $store; the grid proves the first render.
@@ -61,17 +61,17 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Load the audio file by simulating file drop
       await page.evaluate((audioPath) => {
-        const store = (window as any).$store
+        const store = window.$store
         // Simulate loading media file directly
         store.loadMediaFile(`file://${audioPath}`, audioPath)
       }, destAudioPath)
 
       await page.waitForFunction(
-        () => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })
+        () => !!window.$store.mediaPath, undefined, { timeout: 5000 })
 
       // Verify media is loaded
       const mediaLoaded = await page.evaluate(() => {
-        const store = (window as any).$store
+        const store = window.$store
         return !!store.mediaPath
       })
       expect(mediaLoaded).toBe(true)
@@ -80,7 +80,7 @@ test.describe('ASR Menu Integration @expensive', () => {
       // Trigger ASR menu action by calling the handler directly
       // (In real usage, this would be triggered by the menu item)
       await page.evaluate(() => {
-        const handleMenuAsrCaption = (window as any).handleMenuAsrCaption
+        const handleMenuAsrCaption = window.handleMenuAsrCaption
         if (handleMenuAsrCaption) {
           handleMenuAsrCaption()
         } else {
@@ -131,7 +131,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Verify segments were loaded into the store
       const segmentCount = await page.evaluate(() => {
-        const store = (window as any).$store
+        const store = window.$store
         return store.document.segments.length
       })
       expect(segmentCount).toBeGreaterThan(0)
@@ -139,7 +139,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
       // Verify segments have text content
       const firstSegmentText = await page.evaluate(() => {
-        const store = (window as any).$store
+        const store = window.$store
         return store.document.segments[0]?.text || ''
       })
       expect(firstSegmentText.length).toBeGreaterThan(0)
@@ -185,7 +185,7 @@ test.describe('ASR Menu Integration @expensive', () => {
 
     // Create a fake media path and add a test segment
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadMediaFile('file:///fake/path.wav', '/fake/path.wav')
       store.addSegment(0, 1)  // Add a 1-second segment starting at 0
       // Update the text
@@ -198,7 +198,7 @@ test.describe('ASR Menu Integration @expensive', () => {
     // Trigger ASR menu action WITHOUT awaiting it so we can interact with the modal
     await page.evaluate(() => {
       setTimeout(() => {
-        const handleMenuAsrCaption = (window as any).handleMenuAsrCaption
+        const handleMenuAsrCaption = window.handleMenuAsrCaption
         if (handleMenuAsrCaption) {
           handleMenuAsrCaption()
         }
@@ -235,13 +235,13 @@ test.describe('ASR Menu Integration @expensive', () => {
 
     // Verify segment still exists
     const segmentCount = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.segments.length
     })
     expect(segmentCount).toBe(1)
 
     // Clean up: Disable dirty bit so we can close without beforeunload prompt
-    await page.evaluate(() => (window as any).$store.setIsDirty(false))
+    await page.evaluate(() => window.$store.setIsDirty(false))
     await electronApp.close()
   })
 
@@ -275,7 +275,7 @@ test.describe('ASR Menu Integration @expensive', () => {
     // Note: We can't directly test native Electron menu state from renderer,
     // but we can verify the watcher is set up correctly
     const hasMediaPath = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return !!store.mediaPath
     })
     expect(hasMediaPath).toBe(false)

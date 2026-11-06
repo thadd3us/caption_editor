@@ -15,7 +15,7 @@ import { expectGridCaptionTotal } from '../helpers/wait-helpers'
 test.describe('Undo / redo', () => {
   async function loadThreeSegments(page: Page) {
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.reset()
       store.loadFromFile(
         JSON.stringify({
@@ -34,30 +34,30 @@ test.describe('Undo / redo', () => {
 
   const texts = (page: Page) =>
     page.evaluate(() =>
-      (window as any).$store.document.segments.map((s: { text: string }) => s.text)
+      window.$store.document.segments.map((s: { text: string }) => s.text)
     )
 
   test('undoes a deletion made through the table, and redoes it', async ({ page }) => {
     await loadThreeSegments(page)
 
-    await page.evaluate(() => (window as any).$store.bulkDeleteSegments(['u2']))
+    await page.evaluate(() => window.$store.bulkDeleteSegments(['u2']))
     await expectGridCaptionTotal(page, 2, 5000)
 
-    await page.evaluate(() => (window as any).handleMenuUndo())
+    await page.evaluate(() => window.handleMenuUndo())
     await expectGridCaptionTotal(page, 3, 5000)
     expect(await texts(page)).toEqual(['alpha', 'beta', 'gamma'])
 
-    await page.evaluate(() => (window as any).handleMenuRedo())
+    await page.evaluate(() => window.handleMenuRedo())
     await expectGridCaptionTotal(page, 2, 5000)
     expect(await texts(page)).toEqual(['alpha', 'gamma'])
   })
 
   test('the grid shows the restored row, not just the store', async ({ page }) => {
     await loadThreeSegments(page)
-    await page.evaluate(() => (window as any).$store.bulkDeleteSegments(['u1', 'u2']))
+    await page.evaluate(() => window.$store.bulkDeleteSegments(['u1', 'u2']))
     await expectGridCaptionTotal(page, 1, 5000)
 
-    await page.evaluate(() => (window as any).handleMenuUndo())
+    await page.evaluate(() => window.handleMenuUndo())
     await expectGridCaptionTotal(page, 3, 5000)
     await expect(
       page.locator('.ag-center-cols-container .ag-row [col-id="text"]').first()
@@ -66,14 +66,14 @@ test.describe('Undo / redo', () => {
 
   test('undoing back to the saved state clears the unsaved-changes flag', async ({ page }) => {
     await loadThreeSegments(page)
-    expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(false)
+    expect(await page.evaluate(() => window.$store.isDirty)).toBe(false)
 
-    await page.evaluate(() => (window as any).$store.updateSegment('u1', { text: 'changed' }))
-    expect(await page.evaluate(() => (window as any).$store.isDirty)).toBe(true)
+    await page.evaluate(() => window.$store.updateSegment('u1', { text: 'changed' }))
+    expect(await page.evaluate(() => window.$store.isDirty)).toBe(true)
 
-    await page.evaluate(() => (window as any).handleMenuUndo())
+    await page.evaluate(() => window.handleMenuUndo())
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.isDirty))
+      .poll(() => page.evaluate(() => window.$store.isDirty))
       .toBe(false)
   })
 
@@ -83,17 +83,17 @@ test.describe('Undo / redo', () => {
    */
   test('leaves the document alone while a cell editor has focus', async ({ page }) => {
     await loadThreeSegments(page)
-    await page.evaluate(() => (window as any).$store.updateSegment('u1', { text: 'edited once' }))
+    await page.evaluate(() => window.$store.updateSegment('u1', { text: 'edited once' }))
     expect(await texts(page)).toEqual(['edited once', 'beta', 'gamma'])
 
     await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       api.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
     const editor = page.locator('.speaker-name-editor')
     await expect(editor).toBeFocused({ timeout: 5000 })
 
-    await page.evaluate(() => (window as any).handleMenuUndo())
+    await page.evaluate(() => window.handleMenuUndo())
 
     // The document edit is still there: undo went to the focused input, not the store.
     expect(await texts(page)).toEqual(['edited once', 'beta', 'gamma'])
@@ -101,10 +101,10 @@ test.describe('Undo / redo', () => {
 
   test('undoes the document once the editor is closed again', async ({ page }) => {
     await loadThreeSegments(page)
-    await page.evaluate(() => (window as any).$store.updateSegment('u1', { text: 'edited once' }))
+    await page.evaluate(() => window.$store.updateSegment('u1', { text: 'edited once' }))
 
     await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       api.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
     await expect(page.locator('.speaker-name-editor')).toBeFocused({ timeout: 5000 })
@@ -114,20 +114,20 @@ test.describe('Undo / redo', () => {
     // Focus is back on the grid, so Cmd+Z is the document's again.
     await page.evaluate(() => {
       ;(document.activeElement as HTMLElement | null)?.blur()
-      ;(window as any).handleMenuUndo()
+      ;window.handleMenuUndo()
     })
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.document.segments[0].text))
+      .poll(() => page.evaluate(() => window.$store.document.segments[0].text))
       .toBe('alpha')
   })
 
   test('opening a different document drops the history', async ({ page }) => {
     await loadThreeSegments(page)
-    await page.evaluate(() => (window as any).$store.bulkDeleteSegments(['u1']))
-    expect(await page.evaluate(() => (window as any).$store.canUndo)).toBe(true)
+    await page.evaluate(() => window.$store.bulkDeleteSegments(['u1']))
+    expect(await page.evaluate(() => window.$store.canUndo)).toBe(true)
 
     await loadThreeSegments(page)
-    expect(await page.evaluate(() => (window as any).$store.canUndo)).toBe(false)
+    expect(await page.evaluate(() => window.$store.canUndo)).toBe(false)
   })
 
   /**
@@ -149,7 +149,7 @@ test.describe('Undo / redo', () => {
 
   test('the real Edit > Undo menu item reaches the document', async ({ page, electronApp }) => {
     await loadThreeSegments(page)
-    await page.evaluate(() => (window as any).$store.bulkDeleteSegments(['u2']))
+    await page.evaluate(() => window.$store.bulkDeleteSegments(['u2']))
     await expectGridCaptionTotal(page, 2, 5000)
 
     await clickMenuItem(electronApp, 'edit-undo')
@@ -166,10 +166,10 @@ test.describe('Undo / redo', () => {
     electronApp,
   }) => {
     await loadThreeSegments(page)
-    await page.evaluate(() => (window as any).$store.updateSegment('u1', { text: 'edited once' }))
+    await page.evaluate(() => window.$store.updateSegment('u1', { text: 'edited once' }))
 
     await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       api.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
     await expect(page.locator('.speaker-name-editor')).toBeFocused({ timeout: 5000 })
@@ -197,10 +197,10 @@ test.describe('Undo / redo', () => {
 
     await expect.poll(menuState).toEqual({ undo: false, redo: false })
 
-    await page.evaluate(() => (window as any).$store.updateSegment('u1', { text: 'changed' }))
+    await page.evaluate(() => window.$store.updateSegment('u1', { text: 'changed' }))
     await expect.poll(menuState).toEqual({ undo: true, redo: false })
 
-    await page.evaluate(() => (window as any).handleMenuUndo())
+    await page.evaluate(() => window.handleMenuUndo())
     await expect.poll(menuState).toEqual({ undo: false, redo: true })
   })
 })

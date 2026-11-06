@@ -37,7 +37,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
       // Simulate drag-and-drop by creating a DataTransfer with File objects
       const result = await page.evaluate(async (filePath) => {
         // Check if electronAPI.getPathForFile is available
-        const electronAPI = (window as any).electronAPI
+        const electronAPI = window.electronAPI
         if (!electronAPI || !electronAPI.getPathForFile) {
           return { success: false, error: 'electronAPI.getPathForFile not available' }
         }
@@ -94,7 +94,7 @@ test.describe('Drag-and-drop with webUtils.getPathForFile()', () => {
 
     // Test dropping multiple files
     const result = await page.evaluate(async () => {
-      const electronAPI = (window as any).electronAPI
+      const electronAPI = window.electronAPI
       if (!electronAPI || !electronAPI.getPathForFile) {
         return { success: false, error: 'electronAPI.getPathForFile not available' }
       }

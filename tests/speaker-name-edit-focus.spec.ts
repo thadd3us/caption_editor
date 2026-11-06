@@ -40,7 +40,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   test.beforeEach(async () => {
     // Reset the application state before each test
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (vttStore) {
         vttStore.reset()
       }
@@ -55,7 +55,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   test('should automatically focus input when starting to edit speaker name', async () => {
     // Load captions JSON with speaker names
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -74,7 +74,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Start editing the speaker cell for the first row
     await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
 
       gridApi.startEditingCell({
@@ -92,7 +92,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Load captions JSON with speaker names
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -110,7 +110,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Start editing the speaker cell
     await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
 
       console.log('[TEST] Calling startEditingCell')
@@ -152,7 +152,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     // Commit is synchronous in the store, but the keypress has to make the round trip.
     await expectPageValue(
       appPage,
-      () => (window as any).$store?.document.segments[0].speakerName,
+      () => window.$store?.document.segments[0].speakerName,
       'Charlie'
     )
 
@@ -166,7 +166,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Verify the new name is visible in the grid
     const cellText = await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) return null
 
       const rowNode = gridApi.getDisplayedRowAtIndex(0)
@@ -180,7 +180,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   test('should focus input immediately when double-clicking speaker cell', async () => {
     // Load captions JSON
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -218,7 +218,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   test('should allow typing immediately after double-click without manual focus', async () => {
     // Load captions JSON
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify({
@@ -257,7 +257,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Load captions JSON with multiple existing speaker names.
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -276,7 +276,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Start editing the speaker cell for the first row.
     await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({
         rowIndex: 0,
@@ -303,7 +303,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     // the pre-edit value.
     await expectPageValue(
       appPage,
-      () => (window as any).$store?.document?.segments?.[0]?.speakerName,
+      () => window.$store?.document?.segments?.[0]?.speakerName,
       'Bob'
     )
   })
@@ -316,7 +316,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
    */
   test('regression: first character is kept when typing to start editing an empty speaker cell', async () => {
     await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
 
       const captionsContent = JSON.stringify(
@@ -370,7 +370,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     await appPage.evaluate(
       ({ fileContent }: { fileContent: string }) => {
-        const vttStore = (window as any).$store
+        const vttStore = window.$store
         vttStore.loadFromFile(fileContent, '/test/about-time-speaker-regression.captions_json5')
       },
       { fileContent: content }
@@ -391,10 +391,10 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       0
     )
 
-    const expectedTopRowId = await appPage.evaluate(() => (window as any).$store.document.segments[0].id)
+    const expectedTopRowId = await appPage.evaluate(() => window.$store.document.segments[0].id)
 
     await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
@@ -410,13 +410,13 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     await input.press('Enter')
     await expectPageValue(
       appPage,
-      () => (window as any).$store.document.segments[0].speakerName,
+      () => window.$store.document.segments[0].speakerName,
       'Pat'
     )
 
     await expectPageValue(
       appPage,
-      () => (window as any).__agGridApi?.getDisplayedRowAtIndex?.(0)?.data?.id ?? null,
+      () => window.__agGridApi?.getDisplayedRowAtIndex?.(0)?.data?.id ?? null,
       expectedTopRowId
     )
 

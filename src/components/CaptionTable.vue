@@ -408,8 +408,8 @@ const columnDefs = ref<ColDef[]>([
 
         store.updateSegment(params.data.id, { startTime: seconds })
       } catch (err) {
-        if ((window as any).showAlert) {
-          (window as any).showAlert({
+        if (window.showAlert) {
+          window.showAlert({
             title: 'Invalid Start Time',
             message: 'Invalid format: ' + (err instanceof Error ? err.message : 'Unknown error')
           })
@@ -456,8 +456,8 @@ const columnDefs = ref<ColDef[]>([
 
         store.updateSegment(params.data.id, { endTime: seconds })
       } catch (err) {
-        if ((window as any).showAlert) {
-          (window as any).showAlert({
+        if (window.showAlert) {
+          window.showAlert({
             title: 'Invalid End Time',
             message: 'Invalid format: ' + (err instanceof Error ? err.message : 'Unknown error')
           })
@@ -524,7 +524,7 @@ function onGridReady(params: GridReadyEvent) {
   gridApi.value = params.api
 
   // Expose grid API to window for testing
-  ;(window as any).__agGridApi = params.api
+  ;window.__agGridApi = params.api
 
   exposeCaptionGridDebugAttach(
     () => {
@@ -739,8 +739,8 @@ function computeSpeakerSimilarity(referenceRows?: ReadonlyArray<{ id: string }>)
 
   if (rowsWithoutEmbeddings.length > 0) {
     console.warn('Selected rows missing embeddings:', rowsWithoutEmbeddings)
-    if ((window as any).showAlert) {
-      (window as any).showAlert({
+    if (window.showAlert) {
+      window.showAlert({
         title: 'Missing Embeddings',
         message: `${rowsWithoutEmbeddings.length} selected row(s) are missing speaker embeddings. Please select only rows with embeddings.`
       })

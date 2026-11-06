@@ -117,7 +117,7 @@ import { sidecarName } from './utils/fileUtils'
 // Log version on startup
 console.log(`========================================`)
 console.log(`Caption Editor v${packageJson.version}`)
-console.log(`Running in: ${(window as any).electronAPI?.isElectron ? 'Electron' : 'Browser'}`)
+console.log(`Running in: ${window.electronAPI?.isElectron ? 'Electron' : 'Browser'}`)
 console.log(`========================================`)
 
 const store = useCaptionStore()
@@ -226,7 +226,7 @@ const attemptedAutoLoad = ref<string | null>(null)
 
 // Test helper: shared Electron E2E tests reset the store between tests, but
 // App-level refs like this one can otherwise leak across tests.
-;(window as any).__resetAttemptedAutoLoad = () => {
+;window.__resetAttemptedAutoLoad = () => {
   attemptedAutoLoad.value = null
 }
 
@@ -244,7 +244,7 @@ function openRenameSpeakerDialog() {
 
 function handleLicenseAgree() {
   localStorage.setItem(LICENSE_ACCEPTED_KEY, 'true')
-  const api = (window as any).electronAPI
+  const api = window.electronAPI
   if (api?.setLicenseAccepted) {
     void api.setLicenseAccepted()
   }
@@ -252,7 +252,7 @@ function handleLicenseAgree() {
 }
 
 function isLicenseAccepted(): boolean {
-  const api = (window as any).electronAPI
+  const api = window.electronAPI
   if (api?.getLicenseAcceptedSync) {
     if (api.getLicenseAcceptedSync()) return true
     if (localStorage.getItem(LICENSE_ACCEPTED_KEY) === 'true') {
@@ -265,7 +265,7 @@ function isLicenseAccepted(): boolean {
 }
 
 function handleLicenseExit() {
-  const electronAPI = (window as any).electronAPI
+  const electronAPI = window.electronAPI
   if (electronAPI?.quitApp) {
     electronAPI.quitApp()
   } else {
@@ -369,11 +369,11 @@ async function attemptMediaAutoLoad() {
   attemptedAutoLoad.value = documentId
 
   // Check if we're in Electron mode
-  const isElectron = !!(window as any).electronAPI?.isElectron
+  const isElectron = !!window.electronAPI?.isElectron
 
-  if (isElectron && (window as any).electronAPI && store.document.filePath) {
+  if (isElectron && window.electronAPI && store.document.filePath) {
     try {
-      const electronAPI = (window as any).electronAPI
+      const electronAPI = window.electronAPI
       const captionsFilePath = store.document.filePath
 
       // Check if the media path is already absolute
@@ -454,8 +454,8 @@ watch(
 watch(
   [() => store.mediaPath, () => store.document.segments.length],
   ([mediaPath, segmentCount]) => {
-    if ((window as any).electronAPI?.updateAsrMenuEnabled) {
-      (window as any).electronAPI.updateAsrMenuEnabled({
+    if (window.electronAPI?.updateAsrMenuEnabled) {
+      window.electronAPI.updateAsrMenuEnabled({
         caption: !!mediaPath,
         embed: !!mediaPath && segmentCount > 0
       })
@@ -796,7 +796,7 @@ async function handleMenuAsrEmbed() {
 
   // Auto-save the current state to the existing file
   const content = store.exportToString()
-  const result = await (window as any).electronAPI.saveExistingFile({
+  const result = await window.electronAPI!.saveExistingFile({
     filePath: store.document.filePath,
     content
   })
@@ -861,7 +861,7 @@ async function startAsrEmbedding() {
   asrModalTitle.value = 'Computing Embeddings'
 
   try {
-    const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
+    const model = window.__ASR_MODEL_OVERRIDE || undefined
     
     const asrHr = () => console.log('='.repeat(76))
     asrHr()
@@ -931,7 +931,7 @@ async function startAsrTranscription() {
 
   try {
     // Get model override from environment variable (for testing)
-    const model = (window as any).__ASR_MODEL_OVERRIDE || undefined
+    const model = window.__ASR_MODEL_OVERRIDE || undefined
 
     if (model) {
       console.log('[ASR] Using model override:', model)
@@ -1074,16 +1074,16 @@ onMounted(() => {
   }, 200)
 
   // Expose dialog functions for testing
-  ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
-  ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
-  ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
-  ;(window as any).handleMenuOpenFile = handleMenuOpenFile
-  ;(window as any).handleExternalFileOpen = handleExternalFileOpen
-  ;(window as any).showAlert = showAlert
-  ;(window as any).showConfirm = showConfirm
-  ;(window as any).openPreferencesDialog = openPreferencesDialog
-  ;(window as any).handleMenuUndo = handleMenuUndo
-  ;(window as any).handleMenuRedo = handleMenuRedo
+  ;window.openRenameSpeakerDialog = openRenameSpeakerDialog
+  ;window.handleMenuAsrCaption = handleMenuAsrCaption
+  ;window.handleMenuAsrEmbed = handleMenuAsrEmbed
+  ;window.handleMenuOpenFile = handleMenuOpenFile
+  ;window.handleExternalFileOpen = handleExternalFileOpen
+  ;window.showAlert = showAlert
+  ;window.showConfirm = showConfirm
+  ;window.openPreferencesDialog = openPreferencesDialog
+  ;window.handleMenuUndo = handleMenuUndo
+  ;window.handleMenuRedo = handleMenuRedo
 
   // See the watcher above: the menu is app-wide, so re-assert this window's state
   // whenever it becomes the focused one.
@@ -1092,13 +1092,13 @@ onMounted(() => {
   })
 
   // Preferences changed in another window: adopt without re-persisting.
-  ;(window as any).electronAPI?.preferences?.onChanged?.((prefs: unknown) => {
+  ;window.electronAPI?.preferences?.onChanged?.((prefs: unknown) => {
     preferencesStore.adoptExternalPreferences(prefs)
   })
 
   // Custom app close handling
-  if ((window as any).electronAPI) {
-    const api = (window as any).electronAPI
+  if (window.electronAPI) {
+    const api = window.electronAPI
     
     api.onAppClose?.(async () => {
       console.log('[App] Received app-close request')
@@ -1119,8 +1119,8 @@ onMounted(() => {
   }
 
   // Set up native menu IPC listeners
-  if ((window as any).electronAPI) {
-    const { ipcRenderer } = (window as any).electronAPI
+  if (window.electronAPI) {
+    const { ipcRenderer } = window.electronAPI
 
     if (ipcRenderer) {
       ipcRenderer.on('menu-open-preferences', openPreferencesDialog)
@@ -1167,8 +1167,8 @@ onMounted(() => {
   }
 
   // Listen for files dropped via IPC
-  if ((window as any).electronAPI?.ipcRenderer) {
-    (window as any).electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
+  if (window.electronAPI?.ipcRenderer) {
+    window.electronAPI.ipcRenderer.on('files-dropped', async (filePaths: string[]) => {
       await openDocumentFromPaths(filePaths)
     })
   }

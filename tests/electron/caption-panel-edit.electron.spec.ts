@@ -18,18 +18,18 @@ test.describe('Caption editing in the media panel', () => {
       ]
     })
     await page.evaluate((content) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, '/test/panel-edit-doc.captions_json5')
       store.setCurrentTime(1)
     }, content)
-    await page.waitForFunction(() => (window as any).$store?.document?.segments?.length === 2)
+    await page.waitForFunction(() => window.$store?.document?.segments?.length === 2)
     await expect(page.locator('.caption-text')).toContainText('first caption')
   }
 
   /** Preferences persist in userData, so always restore the default for later tests. */
   async function setPausePreference(page: Page, value: boolean) {
     await page.evaluate((value) => {
-      const prefs = (window as any).$preferencesStore
+      const prefs = window.$preferencesStore
       prefs.setPreference('pausePlaybackWhileEditingCaption', value)
     }, value)
   }
@@ -48,7 +48,7 @@ test.describe('Caption editing in the media panel', () => {
     await expect(editor).toBeHidden()
 
     const segment = await page.evaluate(() =>
-      (window as any).$store.document.segments.find((s: any) => s.id === 'seg_a')
+      window.$store.document.segments.find((s: any) => s.id === 'seg_a')
     )
     expect(segment.text).toBe('edited from the panel')
     expect(segment.verified).toBe(true)
@@ -64,7 +64,7 @@ test.describe('Caption editing in the media panel', () => {
 
   test('clicking a timed word moves the playhead to it', async ({ page }) => {
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(
         JSON.stringify({
           metadata: { id: 'word-seek-doc' },
@@ -89,11 +89,11 @@ test.describe('Caption editing in the media panel', () => {
     await expect(page.locator('.word-span')).toHaveCount(3)
 
     await page.locator('.word-span').nth(1).click()
-    expect(await page.evaluate(() => (window as any).$store.currentTime)).toBe(2.25)
+    expect(await page.evaluate(() => window.$store.currentTime)).toBe(2.25)
 
     // The last word has no timestamp, so clicking it must not move the playhead.
     await page.locator('.word-span').nth(2).click()
-    expect(await page.evaluate(() => (window as any).$store.currentTime)).toBe(2.25)
+    expect(await page.evaluate(() => window.$store.currentTime)).toBe(2.25)
   })
 
   test('Escape discards the edit', async ({ page }) => {
@@ -106,7 +106,7 @@ test.describe('Caption editing in the media panel', () => {
 
     await expect(editor).toBeHidden()
     const text = await page.evaluate(() =>
-      (window as any).$store.document.segments.find((s: any) => s.id === 'seg_a').text
+      window.$store.document.segments.find((s: any) => s.id === 'seg_a').text
     )
     expect(text).toBe('first caption')
   })
@@ -115,7 +115,7 @@ test.describe('Caption editing in the media panel', () => {
     await loadDocument(page)
     await setPausePreference(page, false)
 
-    await page.evaluate(() => (window as any).openPreferencesDialog())
+    await page.evaluate(() => window.openPreferencesDialog())
     const checkbox = page.locator('[data-testid="pref-pause-while-editing"]')
     await expect(checkbox).toBeVisible()
     await expect(checkbox).not.toBeChecked()
@@ -129,10 +129,10 @@ test.describe('Caption editing in the media panel', () => {
 
     // Written to userData via IPC, so it survives a renderer reload.
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.waitForFunction(() => (window as any).$preferencesStore)
+    await page.waitForFunction(() => window.$preferencesStore)
     expect(
       await page.evaluate(
-        () => (window as any).$preferencesStore.preferences.pausePlaybackWhileEditingCaption
+        () => window.$preferencesStore.preferences.pausePlaybackWhileEditingCaption
       )
     ).toBe(true)
 

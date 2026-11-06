@@ -35,13 +35,13 @@ test.describe('Scroll stability on cell edit', () => {
     const content = makeSyntheticDocument(segmentCount, docId)
     await page.evaluate(
       ({ content, docId }) => {
-        const store = (window as any).$store
+        const store = window.$store
         store.loadFromFile(content, `/test/${docId}.captions_json5`)
       },
       { content, docId }
     )
     await page.waitForFunction(
-      (n) => (window as any).$store?.document?.segments?.length === n,
+      (n) => window.$store?.document?.segments?.length === n,
       segmentCount,
       { timeout: 5000 }
     )
@@ -63,7 +63,7 @@ test.describe('Scroll stability on cell edit', () => {
 
     await page.evaluate(({ from, to, steps }) => {
       return new Promise<void>((resolve) => {
-        const store = (window as any).$store
+        const store = window.$store
         let i = 0
         function step() {
           const t = from + (to - from) * (i / steps)
@@ -82,7 +82,7 @@ test.describe('Scroll stability on cell edit', () => {
     // The scrub drives setCurrentTime through requestAnimationFrame, so first wait for
     // the playhead to reach the end of the sweep.
     await page.waitForFunction(
-      (t) => Math.abs((window as any).$store.currentTime - t) < 0.01,
+      (t) => Math.abs(window.$store.currentTime - t) < 0.01,
       toTime,
       { timeout: 5000 }
     )
@@ -184,7 +184,7 @@ test.describe('Scroll stability on cell edit', () => {
     // before that would pass for the wrong reason: the jump this test guards against
     // would not have had a chance to happen yet.
     await expect
-      .poll(() => page.evaluate(() => (window as any).$store.document.segments[0].verified))
+      .poll(() => page.evaluate(() => window.$store.document.segments[0].verified))
       .toBe(true)
 
     // THE BUG: After scrub-to-end-and-back, editing a cell causes AG Grid
@@ -214,7 +214,7 @@ test.describe('Scroll stability on cell edit', () => {
       // Same reasoning as above: wait for the edit to land before measuring scroll.
       await expect
         .poll(() => page.evaluate(
-          (i) => (window as any).$store.document.segments[i].verified,
+          (i) => window.$store.document.segments[i].verified,
           rowIdx
         ))
         .toBe(true)
