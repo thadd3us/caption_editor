@@ -16,8 +16,9 @@ there is no list to forget.
 
 from __future__ import annotations
 
-import json5
 from pathlib import Path
+
+import json5
 
 from captions_json5_lib import parse_captions_json5_string, serialize_captions_json5
 from schema import CaptionsDocument, TranscriptMetadata, TranscriptSegment

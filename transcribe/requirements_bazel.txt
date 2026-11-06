@@ -901,13 +901,20 @@ mediapy==1.1.6 \
     --hash=sha256:9f44b760400964d8bea5121a213f94dc9a225d026d6a819901283a695e585634 \
     --hash=sha256:c74370808b445666f95272bfdf0eb5707a43b7e05e5527f2dd0830e6892f976f
     # via nemo-toolkit
-# megatron-core dropped from the Bazel-side resolution: it ships as an
-# sdist whose setup.py shells out to `python3 -m pybind11 --includes`
-# inside an isolated build env where pybind11 isn't available, so the
-# wheel build fails. The inference code paths the transcribe_cli tests
-# exercise don't reach megatron, so this is safe to omit here. uv still
-# pulls it for the dev venv (where setup.py finds pybind11 via the
-# project's own deps). Re-strip after every `uv export`.
+megatron-core==0.16.1 ; python_full_version < '3.12' \
+    --hash=sha256:38f6bef63cd4ebc4c39c1eccbaf578596accba5c47d012faffa0670913aec131 \
+    --hash=sha256:3fb26cb407aa3c4b609c08664022c08146f1648b3d6f2ef2bbe9d3b1294ace61 \
+    --hash=sha256:86522feacfa5ef384a6ac627e7d88cf4866811aed3bc9b6c2a85cbf15cff91a3 \
+    --hash=sha256:c96f37f8a630fed5fb7c132d8088da176bf8e6f9345c23532493af0f9ba214ba \
+    --hash=sha256:dab8b9a16bff77f5677e5afbcdb9e4f5c7f794d34dedd2ea9902e4bcc878d417
+    # via transcribe
+megatron-core==0.17.0 ; python_full_version >= '3.12' \
+    --hash=sha256:0cbacf043603f9dc2735310e1b1dcd5c076c02caab13849c2d2fe6a99cbea4f6 \
+    --hash=sha256:264c6999fda08ecfd2beb6d77b0c2bc0da3c7f1e9bae8f2acbd5a57132005bb1 \
+    --hash=sha256:326dab6f084e65995d87e7f93721c80639b78de1f8690a5f90566c53aef57a5b \
+    --hash=sha256:fce43a871881fd8ff0b33a68d4c1653447e2d878eaeb9f91004f2238fe814f15 \
+    --hash=sha256:ff66c206ed164bc602ff00310388605fac41f284262176e17246a9e94163b205
+    # via transcribe
 ml-dtypes==0.5.4 \
     --hash=sha256:19b9a53598f21e453ea2fbda8aa783c20faff8e1eeb0d7ab899309a0053f1483 \
     --hash=sha256:557a31a390b7e9439056644cb80ed0735a6e3e3bb09d67fd5687e4b04238d1de \
@@ -1017,10 +1024,6 @@ networkx==3.6.1 \
     --hash=sha256:26b7c357accc0c8cde558ad486283728b65b6a95d85ee1cd66bafab4c8168509 \
     --hash=sha256:d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762
     # via torch
-nodeenv==1.10.0 \
-    --hash=sha256:5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827 \
-    --hash=sha256:996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb
-    # via pyright
 numba==0.65.1 \
     --hash=sha256:19357146c32fe9ed25059ab915e8465fb13951cf6b0aace3826b76886373ab23 \
     --hash=sha256:52bc6f3ceb8fcaff9b2ae26b4c6b1e9fee39db8d355534c0fe4f39a901246b84 \
@@ -1631,10 +1634,6 @@ pyparsing==3.3.2 \
     --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
     --hash=sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc
     # via matplotlib
-pyright==1.1.409 \
-    --hash=sha256:986ee05beca9e077c165758ad123667c679e050059a2546aa02473930394bc93 \
-    --hash=sha256:aa3ea228cab90c845c7a60d28db7a844c04315356392aa09fafcee98c8c22fb3
-    # via transcribe
 pytest==9.0.3 \
     --hash=sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9 \
     --hash=sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c
@@ -1799,26 +1798,6 @@ ruamel-yaml==0.19.1 \
     --hash=sha256:27592957fedf6e0b62f281e96effd28043345e0e66001f97683aa9a40c667c93 \
     --hash=sha256:53eb66cd27849eff968ebf8f0bf61f46cdac2da1d1f3576dd4ccee9b25c31993
     # via nemo-toolkit
-ruff==0.15.13 \
-    --hash=sha256:1c26d2f66163deeb6e08d8b39fbbe983ce3c71cea06a6d7591cfd1421793c629 \
-    --hash=sha256:2471da9bd1068c8c064b5fd9c0c4b6dddffd6369cb1cd68b29993b1709ff1b21 \
-    --hash=sha256:2e2e39bff6c341f4b577a21b801326fab0b11847f48fcaa83f00a113c9b3cb55 \
-    --hash=sha256:4044f94208b3b05ba0fc4a4abd0558cf4d6459bd18325eead7fd8cc66f909b41 \
-    --hash=sha256:444b580fc72fd6887e650acd3e575e18cdc79dbcf42fb4030b491057921f61f8 \
-    --hash=sha256:6590d009e7cb7ebf36f83dbdd44a3fa48a0994ff6f1cdc1b08006abe58f98dc7 \
-    --hash=sha256:7064884d442b7d477b4e7473d12da7f08851d2b1982763c5d3f388a19468a1a4 \
-    --hash=sha256:768494eb08b9cee54e2fd27969966f74db5a57f6eaa7a90fcb3306af34dfc4bd \
-    --hash=sha256:7ef823f817fcd191dc934e984be9cf4094f808effa16f2542ad8e821ba02bbf2 \
-    --hash=sha256:8cb74dd33bb2f6613faf7fc03b660053b5ac4f80e706d5788c6335e2a8048d51 \
-    --hash=sha256:9dbd6f94b434f896308e4d57fb7bfde0d02b99f7a64b3bdab0fdfa6a864203a5 \
-    --hash=sha256:ae9c17e5eb4430c154e76abc25d79a318190f5a997f38fb6b114416c5319ffc9 \
-    --hash=sha256:bf3259f3be4d181bda591da5db2571aed6853c6a048157756448020bc6c5cd22 \
-    --hash=sha256:cc411dfebe5eebe55ce041c6ae080eb7668955e866daa2fbb16692a784f1c4ca \
-    --hash=sha256:e8d9a8e08013542e94d3220bc5b62cc3e5ef87c5f74bff367d3fac14fab013e6 \
-    --hash=sha256:f345a13937bd7f09f6f5d19fa0721b0c103e00e7f62bc67089a8e5e037719e0b \
-    --hash=sha256:f9d89f17f7ba7fb2ed42921f0df75da797a9a5d71bc39049e2c687cf2baf44b7 \
-    --hash=sha256:fb75f9a3a7e42ffe117d734494e6c5e5cb3565d66e12612cb63d0e572a41a5b6
-    # via transcribe
 sacrebleu==2.6.0 \
     --hash=sha256:3edc1531575cfe4ad04ce53491a9307e234af1c3f805a1f491cbec844229a8a8 \
     --hash=sha256:91499b6cd46138d95154fff1e863c2f9be57e82f0c719d8dd718d0006cf6c566
@@ -2266,7 +2245,6 @@ typing-extensions==4.15.0 \
     #   opentelemetry-semantic-conventions
     #   pydantic
     #   pydantic-core
-    #   pyright
     #   pytorch-lightning
     #   sox
     #   sqlalchemy

@@ -25,6 +25,7 @@ uv run transcribe_cli path/to/media.mp4
 """
 
 import hashlib
+import logging
 import os
 import sys
 import tempfile
@@ -32,17 +33,13 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
-import soundfile as sf
-
-
-import logging
 
 import numpy as np
+import soundfile as sf
 import torch
 import typer
 from tqdm import tqdm
 
-from audio_utils import extract_audio_to_wav, load_audio_segment
 from asr_results_to_captions import (
     ASRSegment,
     asr_segments_to_transcript_segments,
@@ -51,14 +48,15 @@ from asr_results_to_captions import (
     post_process_raw_asr_segments,
     raw_asr_segments_to_raw_asr_output,
 )
+from audio_utils import extract_audio_to_wav, load_audio_segment
+from captions_json5_lib import write_captions_json5_file
+from constants import MODEL_PARAKEET, MODEL_VOXCELEB
+from embed_cli import embed_captions_path
 from schema import (
     CaptionsDocument,
     TranscriptMetadata,
     TranscriptSegment,
 )
-from constants import MODEL_PARAKEET, MODEL_VOXCELEB
-from embed_cli import embed_captions_path
-from captions_json5_lib import write_captions_json5_file
 
 logger = logging.getLogger(__name__)
 
@@ -129,10 +127,11 @@ def remux_mp3_with_seek_table(mp3_path: Path) -> Path:
     Returns:
         Path to the remuxed MP3 file (same as ``mp3_path``).
     """
-    import imageio_ffmpeg
     import shutil
     import subprocess
     import tempfile
+
+    import imageio_ffmpeg
 
     tmp_fd, tmp_path_str = tempfile.mkstemp(suffix=".mp3", dir=str(mp3_path.parent))
     os.close(tmp_fd)

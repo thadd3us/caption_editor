@@ -28,6 +28,8 @@ withDefaults(defineProps<{
   buttonText?: string
   maxWidth?: string
 }>(), {
+  // Absent by design — the body paragraph is `v-if`-ed on it.
+  message: undefined,
   title: 'Notice',
   buttonText: 'OK',
   maxWidth: '400px'

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import json
-import json5
 import os
 from pathlib import Path
 from typing import Any, Optional, cast
+
+import json5
 
 from constants import ASR_COMMIT_HASH
 from schema import CaptionsDocument

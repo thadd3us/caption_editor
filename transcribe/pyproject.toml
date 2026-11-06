@@ -30,8 +30,6 @@ dependencies = [
     "pybind11>=3.0.1",
     "libsql-client>=0.3.0",
     #    "torchcodec",
-    "ruff>=0.15.0",
-    "pyright>=1.1.408",
     "imageio-ffmpeg>=0.6.0",
     "json5>=0.14.0",
     "umap-learn>=0.5.11",
@@ -52,6 +50,12 @@ dev = [
     "onnxscript>=0.7.0",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
+    # Developer tooling. `uv sync` / `uv run` install dev groups by default, so the
+    # pre-commit hook still finds them; `uv export --no-dev` (which generates
+    # requirements_bazel.txt) now does not, keeping them out of Bazel's @py_pip hub and
+    # out of the environment uvx builds on a user's machine for ASR.
+    "ruff>=0.15.0",
+    "pyright>=1.1.408",
 ]
 
 [tool.uv]
@@ -93,6 +97,32 @@ py-modules = [
     "repo_root",
     "schema",
 ]
+
+# Ruff was a dependency with no configuration and nothing running it. The rule set is
+# spelled out here so that what the pre-commit hook and CI enforce is a property of the
+# repo rather than of whichever ruff version a developer happens to have.
+#
+# No `line-length`: the tree is already formatted at ruff's default, and overriding it
+# reformats 16 files for no reason.
+[tool.ruff.lint]
+# Ruff's defaults (E4/E7/E9 + F) plus import sorting. Deliberately narrow: this is the
+# set the tree passes today, so the gate is green from the first commit and every future
+# failure is a real regression rather than inherited debt someone has to triage.
+#
+# What E/F buy is not style — undefined names, unused imports, f-strings with no
+# placeholders, duplicate dict keys. `I` is mechanical and was auto-fixed when it went in.
+select = ["E4", "E7", "E9", "F", "I"]
+
+# Worth turning on later, with counts measured on this tree at the time of writing:
+#   UP   73  `List[x]` -> `list[x]`, `Optional[x]` -> `x | None` (mostly auto-fixable)
+#   B    16  raise-without-from, zip-without-strict, assert-raises-Exception
+#   SIM   2  collapsible if, `in dict.keys()`
+# Each is a real improvement, but together they rewrite annotations across every module,
+# which does not belong in the same change as switching the gate on. Note that B008
+# (function-call-in-default-argument) fires 8 times on `typer.Option(...)` defaults and is
+# a false positive for typer — it needs
+# `flake8-bugbear.extend-immutable-calls = ["typer.Option", "typer.Argument"]` rather than
+# a code change.
 
 [tool.coverage.run]
 omit = [

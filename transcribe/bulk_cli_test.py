@@ -12,6 +12,7 @@ import pytest
 import soundfile as sf
 from typer.testing import CliRunner
 
+from asr_results_to_captions import post_process_raw_asr_segments
 from bulk_cli import (
     MEDIA_EXTENSIONS,
     app,
@@ -20,11 +21,9 @@ from bulk_cli import (
     find_media_files,
     get_audio_duration_seconds,
 )
-from asr_results_to_captions import post_process_raw_asr_segments
 from captions_json5_lib import parse_captions_json5_file
 from recognizer import MockRecognizer
 from schema import CaptionsDocument, TranscriptMetadata, TranscriptSegment
-
 
 # ── Helpers ───────────────────────────────────────────────────────────
 

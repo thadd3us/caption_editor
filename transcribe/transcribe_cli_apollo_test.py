@@ -1,14 +1,14 @@
 """Snapshot test for Apollo-11 audio transcription."""
 
-from pathlib import Path
 import shutil
-
-from constants import MODEL_PARAKEET
-from typer.testing import CliRunner
-from captions_json5_lib import parse_captions_json5_file
-from transcribe_cli import app
+from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
+
+from captions_json5_lib import parse_captions_json5_file
+from constants import MODEL_PARAKEET
+from transcribe_cli import app
 
 
 def _round_floats_deep(value, *, ndigits: int):

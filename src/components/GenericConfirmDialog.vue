@@ -32,6 +32,8 @@ withDefaults(defineProps<{
   cancelText?: string
   maxWidth?: string
 }>(), {
+  // Absent by design — the body paragraph is `v-if`-ed on it.
+  message: undefined,
   title: 'Confirm',
   confirmText: 'Confirm',
   cancelText: 'Cancel',

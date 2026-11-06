@@ -3,13 +3,13 @@
 from pathlib import Path
 from unittest.mock import patch
 
-from constants import MODEL_PARAKEET, MODEL_WHISPER_TINY
+import pytest
 from typer.testing import CliRunner
+
 from captions_json5_lib import parse_captions_json5_file
+from constants import MODEL_PARAKEET, MODEL_WHISPER_TINY
 from schema import decode_embedding
 from transcribe_cli import app
-
-import pytest
 
 assert MODEL_PARAKEET
 assert MODEL_WHISPER_TINY

@@ -80,7 +80,13 @@ class VibeVoiceASR:
 
         # VibeVoiceAsrForConditionalGeneration only exists in the worker's
         # `transformers @ git+...@main`, not in the locally pinned 4.53.x.
-        from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration  # type: ignore[attr-defined]
+        from transformers import (
+            AutoProcessor,
+            # The suppression has to sit on this line, not on the `from` line: pyright
+            # reports the unknown symbol where the symbol is, and ruff's import sorting
+            # split what used to be a single line.
+            VibeVoiceAsrForConditionalGeneration,  # type: ignore[attr-defined]
+        )
 
         t0 = time.time()
         print(f"[{time.strftime('%H:%M:%S')}] loading VibeVoice processor…")

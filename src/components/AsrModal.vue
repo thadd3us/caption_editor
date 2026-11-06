@@ -12,7 +12,8 @@
 
       <div class="asr-modal-footer">
         <button
-          :class="['asr-button', failed ? 'asr-button-error' : 'asr-button-cancel']"
+          class="asr-button"
+          :class="failed ? 'asr-button-error' : 'asr-button-cancel'"
           @click="handleCancel"
         >
           {{ cancelButtonText }}

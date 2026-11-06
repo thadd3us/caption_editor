@@ -84,6 +84,47 @@ npx playwright test tests/electron/file-save.electron.spec.ts
 npm test src/utils/findIndexOfRowForTime.test.ts
 ```
 
+### What the quality gates actually cover
+
+Worth knowing precisely, because each of these had a hole in it that was invisible until
+someone looked:
+
+| gate | target | covers |
+| --- | --- | --- |
+| `vue-tsc` | `//:ts_typecheck` | `src/**` + `electron/constants.ts` (`tsconfig.json`) |
+| `tsc` | `//:ts_typecheck_node_side` | `electron/**` + `tests/**` (`tsconfig.node-side.json`) |
+| ESLint | `//:ts_eslint` | `.ts` **and** `.vue` |
+| Vitest | `//:ts_vitest_unit` | `src/**/*.test.ts` |
+| Playwright | `//:e2e_playwright` | `tests/**`, minus `@expensive` |
+| ruff + pyright | `python-lint` CI job | `transcribe/**` |
+| lockfile drift | `//tools/bazel:lockfile_sync_test` | package.json vs pnpm-lock.yaml |
+
+Two of these are not Bazel targets and that is deliberate. **ruff and pyright** run in a
+CI job because `uv` is not on the fixed PATH `.bazelrc` pins for every action, and
+pyright is a Node program that downloads its own runtime on first use — neither survives
+a hermetic sandbox. They also run in `scripts/pre-commit`, but that hook is installed by
+hand per clone (`scripts/setup-hooks.sh`), so the CI job is what makes them binding.
+
+**Why `tsconfig.node-side.json` is separate from `tsconfig.json`:** the renderer is
+checked by `vue-tsc` with DOM libs; the Electron main process and the Playwright specs
+need Node types and no `.vue` handling. Before it existed, `tsconfig.json` included
+`src/**` plus `electron/constants.ts` and nothing else, so `electron/main.ts` — the file
+that spawns processes and serves files over a custom protocol — was type-checked by
+nothing at all. `vite build --config vite.electron.config.ts` does not close that: esbuild
+transpiles without checking.
+
+One sharp edge in that config: it has to include the DOM lib, because the Playwright
+specs' `page.evaluate()` callbacks legitimately use DOM globals. So a bare `window` in
+*Node* scope still type-checks (TypeScript sees the DOM `Window`, which is always
+defined) even though Node has no such global and it throws at runtime. If you are
+renaming things in the specs, grep rather than trusting tsc.
+
+**ESLint and `.vue`:** `eslint.config.js` needs both `eslint-plugin-vue` and
+`vue-eslint-parser`; without them flat config never matches a `.vue` file and silently
+lints nothing. It uses `flat/essential` rather than `flat/recommended` — the difference
+between the tiers is almost all formatting, and prettier already owns that. A handful of
+correctness rules from the higher tiers are enabled individually.
+
 ### Test Status
 
 Saved/exported `.captions_json5` from `exportToString()` includes leading `//` header comments. In Playwright specs, parse with `parseCaptionsFileContent()` from `tests/helpers/parseCaptionsFileContent.ts` (JSON5), not `JSON.parse`.
@@ -374,6 +415,16 @@ uv run python embed_cli.py file.captions_json5  # Uses wespeaker (no token requi
 Writes speaker embeddings into the `.captions_json5` document `embeddings[]`.
 
 ### macOS release build (notarization)
-Use `./scripts/build-released-app.sh` for a distributable Mac build. It signs and notarizes so Gatekeeper allows the app when users download it. Config: `mac.notarize: true` in electron-builder.json. Requires in `.envrc.private`: `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` (app-specific password from appleid.apple.com). Script exports `APPLE_TEAM_ID`. Without the Apple ID vars, notarization is skipped and the app may be quarantined on download.
+Use `./scripts/build-released-app.sh` for a distributable Mac build. It signs and notarizes so Gatekeeper allows the app when users download it. Requires in `.envrc.private`: `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` (app-specific password from appleid.apple.com). Script exports `APPLE_TEAM_ID`. Without the Apple ID vars, notarization is skipped and the app may be quarantined on download.
 
-**Staple Error 65 fix:** We patch `@electron/notarize` (see `patches/`) to use `zip -r -y` instead of `ditto` when creating the notarization archive, so the submitted zip matches the on-disk app and stapling succeeds. `postinstall` runs `patch-package` to reapply the patch after npm install.
+**Notarization is `xcrun notarytool`, not electron-builder.** `electron-builder.json` sets `mac.notarize: false` deliberately. electron-builder's built-in path (via `@electron/notarize`) hits a cdhash mismatch — "Error 65" — during stapling, because the archive it submits does not match the app on disk. So `scripts/build-released-app.sh` lets electron-builder sign, then submits the DMG itself:
+
+```
+xcrun notarytool submit "$DMG_PATH" --apple-id … --team-id … --wait
+xcrun stapler staple "$DMG_PATH"   # and the .app
+xcrun stapler validate …           # both
+```
+
+`.github/workflows/release.yml` does the same thing for tag builds. There is no `patches/` directory and no `patch-package`: an earlier fix patched `@electron/notarize` to use `zip -r -y` instead of `ditto`, and that approach was replaced by the manual flow above. `postinstall` is a no-op echo.
+
+The release job also imports the Developer ID into a temporary keychain by hand and passes `CSC_KEYCHAIN`, because electron-builder 26's own `createKeychain()` fails on macOS 26 (electron-builder #10101). See the comments in `release.yml` for the details.

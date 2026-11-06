@@ -82,6 +82,53 @@ jobs:
             --keep_going
 
   # ---------------------------------------------------------------------------
+  # Python lint and type check.
+  #
+  # Not Bazel targets, which is a departure from the rest of this file and worth the
+  # explanation. `uv` is not on the fixed PATH that `.bazelrc` pins for every action, and
+  # pyright is a Node program wrapped in a Python package that downloads its own runtime
+  # on first use — neither survives a hermetic sandbox. Both were already running in
+  # `scripts/pre-commit`, so nothing here is new to developers; what is new is that the
+  # hook is installed by hand per clone, so a fresh clone, a `--no-verify` commit or a
+  # contributor's PR could land Python that nothing had checked.
+  #
+  # Ruff needs no project dependencies. Pyright does — it resolves torch, nemo and
+  # pyannote — so it pays for a full `uv sync`, which is why it is last and why this job
+  # caches aggressively.
+  # ---------------------------------------------------------------------------
+  python-lint:
+    name: Python (ruff, pyright)
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: transcribe/uv.lock
+
+      # Ruff first and on its own: it is seconds, needs none of the ML closure, and
+      # catches the common mistakes. Failing here avoids paying for the sync below.
+      - name: Ruff
+        working-directory: transcribe
+        run: |
+          uvx ruff@0.15.13 check .
+          uvx ruff@0.15.13 format --check .
+
+      # `--no-progress` keeps the log readable; the dev group carries pyright itself.
+      - name: Install Python dependencies
+        working-directory: transcribe
+        run: uv sync --no-progress
+
+      - name: Pyright
+        working-directory: transcribe
+        run: uv run pyright
+
+  # ---------------------------------------------------------------------------
   # Playwright + Electron. Separate job because it needs a real source-tree
   # `node_modules` (tools/bazel/run_playwright.sh shells out to npm scripts
   # rather than running hermetically) plus a staged ffmpeg, and because it is
