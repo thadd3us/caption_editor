@@ -40,6 +40,25 @@ export const useCaptionStore = defineStore('captions', () => {
   const isPlaying = ref(false)  // Kept for compatibility with media element events
   const selectedSegmentId = ref<string | null>(null)
 
+  /**
+   * The row the user put the selection on *deliberately* (clicked a row, picked one from the
+   * context menu, started playlist playback). While the playhead is still inside that segment
+   * the selection stays "pinned" there and playhead-driven auto-selection is suppressed.
+   *
+   * Why this exists: after ASR, neighbouring segments touch or overlap by a few milliseconds.
+   * Clicking a row seeks to its `startTime`, but the media element then reports a position a
+   * frame *earlier* — which falls inside the previous segment. Auto-selection would move the
+   * selection (and, under a speaker-similarity sort, the viewport) to that unrelated row, so
+   * the next field you tried to edit belonged to a different segment.
+   *
+   * The pin releases itself as soon as the playhead genuinely leaves the segment — by playing
+   * past its end or by being dragged elsewhere — which is exactly when following the playhead
+   * is what the user means.
+   */
+  const pinnedSegmentId = ref<string | null>(null)
+  /** Where the playhead was when the pin was set, so we can tell "moved" from "jittered". */
+  const pinnedAtTime = ref(0)
+
   // Playback mode state - single source of truth for playback status
   const playbackMode = ref<PlaybackMode>(PlaybackMode.STOPPED)
 
@@ -120,7 +139,45 @@ export const useCaptionStore = defineStore('captions', () => {
   // before the next segment's start, show that upcoming segment instead.
   const PLAYHEAD_FORWARD_EPSILON_SECONDS = 1.0
 
+  /**
+   * How far *before* a pinned segment's start the pin still holds. Covers the media element
+   * landing a frame or two short of a requested seek; wide enough for 1-2 video frames, far
+   * too small to reach a neighbouring caption of any real length.
+   */
+  const PIN_HOLD_LEAD_SECONDS = 0.25
+
+  /**
+   * How far the playhead may wander outside the pinned segment before the pin lets go.
+   * A row can be selected without seeking (context menu, "Add caption", restoring a file),
+   * leaving the playhead parked in some other segment; the pin still has to survive the
+   * `timeupdate` events that follow, while a real play or scrubber drag — which moves the
+   * playhead much farther than this — releases it.
+   */
+  const PIN_RELEASE_DRIFT_SECONDS = 0.25
+
+  function pinHoldsAt(time: number): boolean {
+    const id = pinnedSegmentId.value
+    if (!id) return false
+    const segment = document.value.segments.find(s => s.id === id)
+    if (!segment) return false
+    if (time >= segment.startTime - PIN_HOLD_LEAD_SECONDS && time < segment.endTime) return true
+    // Playhead outside the pinned segment: hold only while it hasn't really gone anywhere.
+    return Math.abs(time - pinnedAtTime.value) <= PIN_RELEASE_DRIFT_SECONDS
+  }
+
+  /**
+   * The deliberately-selected segment, but only while the playhead is still inside it.
+   * `undefined` means there is nothing to hold onto and the playhead decides.
+   */
+  const pinnedSegment = computed(() => {
+    if (!pinHoldsAt(currentTime.value)) return undefined
+    return document.value.segments.find(s => s.id === pinnedSegmentId.value)
+  })
+
   const currentSegment = computed(() => {
+    const pinned = pinnedSegment.value
+    if (pinned) return pinned
+
     const time = currentTime.value
     const segments = document.value.segments
     // document.segments is always kept sorted
@@ -167,6 +224,7 @@ export const useCaptionStore = defineStore('captions', () => {
     currentTime.value = 0
     isPlaying.value = false
     selectedSegmentId.value = null
+    pinnedSegmentId.value = null
     playbackMode.value = PlaybackMode.STOPPED
     playlist.value = []
     playlistIndex.value = 0
@@ -231,7 +289,11 @@ export const useCaptionStore = defineStore('captions', () => {
       }
       const restoredSelection = loadedDoc.uiState?.selectedSegmentId
       if (restoredSelection && loadedDoc.segments.some(s => s.id === restoredSelection)) {
+        // Reopening a file puts you back on the row you left off on, and that counts as a
+        // deliberate selection: pin it so the restored playhead cannot immediately move it.
         selectedSegmentId.value = restoredSelection
+        pinnedSegmentId.value = restoredSelection
+        pinnedAtTime.value = currentTime.value
       }
 
       // Memory now matches disk. Must come after the restores above so that
@@ -263,6 +325,7 @@ export const useCaptionStore = defineStore('captions', () => {
     // Every segment is new, so any remembered selection refers to a segment that no
     // longer exists (same reasoning as mergeAsrResult).
     selectedSegmentId.value = null
+    pinnedSegmentId.value = null
   }
 
   /**
@@ -498,7 +561,12 @@ export const useCaptionStore = defineStore('captions', () => {
     if (currentTime.value !== time) markViewDirty()
     currentTime.value = time
 
-    // Auto-select current segment
+    // The playhead has left the pinned segment for good — stop holding the selection there.
+    if (pinnedSegmentId.value && !pinHoldsAt(time)) {
+      pinnedSegmentId.value = null
+    }
+
+    // Auto-select current segment (the pinned one while the pin holds)
     const segment = currentSegment.value
     if (segment) {
       selectedSegmentId.value = segment.id
@@ -509,9 +577,15 @@ export const useCaptionStore = defineStore('captions', () => {
     isPlaying.value = playing
   }
 
+  /**
+   * Put the selection on a row deliberately. This also *pins* it: until the playhead leaves
+   * that segment, nothing driven by the playhead may move the selection elsewhere.
+   */
   function selectSegment(segmentId: string | null) {
     if (selectedSegmentId.value !== segmentId) markViewDirty()
     selectedSegmentId.value = segmentId
+    pinnedSegmentId.value = segmentId
+    pinnedAtTime.value = currentTime.value
   }
 
   /**
@@ -632,6 +706,7 @@ export const useCaptionStore = defineStore('captions', () => {
     // gone. Keep the playhead (it still refers to the same audio) but drop the selection.
     if (selectedSegmentId.value && !asrDoc.segments.some(s => s.id === selectedSegmentId.value)) {
       selectedSegmentId.value = null
+      pinnedSegmentId.value = null
     }
   }
 
@@ -717,6 +792,7 @@ export const useCaptionStore = defineStore('captions', () => {
 
     // Computed
     currentSegment,
+    pinnedSegment,
     currentPlaylistSegment,
 
     // Actions
@@ -753,6 +829,7 @@ export const useCaptionStore = defineStore('captions', () => {
       currentTime.value = 0
       isPlaying.value = false
       selectedSegmentId.value = null
+      pinnedSegmentId.value = null
       playbackMode.value = PlaybackMode.STOPPED
       playlist.value = []
       playlistIndex.value = 0
