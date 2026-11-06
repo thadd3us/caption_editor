@@ -24,7 +24,9 @@ In short: I wanted to combine AI-assisted labeling with the ability to easily co
 
 ## User Quickstart
 
-0. [Download](https://github.com/thadd3us/caption_editor/releases/download/v1.5.31/Caption.Editor-1.5.31-arm64.dmg) the app and copy it into Applications.
+0. [Download the latest release](https://github.com/thadd3us/caption_editor/releases/latest) (the `Caption.Editor-*-arm64.dmg` asset) and copy the app into Applications.
+
+   The link always resolves to the newest release, so it does not go stale between versions. Apple Silicon only for now — there is no Intel or universal build.
 
 1. Find or download a media file.  Some examples:
 
