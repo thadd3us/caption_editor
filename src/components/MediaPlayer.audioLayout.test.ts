@@ -31,7 +31,7 @@ describe('MediaPlayer - audio-only layout', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
-    delete (window as any).electronAPI
+    delete window.electronAPI
   })
 
   function mountWith(mediaPath: string | null) {

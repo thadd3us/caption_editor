@@ -56,8 +56,8 @@ installFloatingTooltip()
 
 // Always expose stores on window for tests and debugging
 const store = useCaptionStore()
-  ; (window as any).$store = store
-  ; (window as any).$preferencesStore = usePreferencesStore()
+  ; window.$store = store
+  ; window.$preferencesStore = usePreferencesStore()
 
 if (import.meta.env && import.meta.env.DEV) {
   console.log('Caption Editor mounted - Store available at window.$store')
@@ -74,7 +74,7 @@ if (window.electronAPI?.onFileOpen) {
     // Delegate to App's shared open path so that opening a file from the OS goes
     // through the same unsaved-changes check as the Open menu and drag & drop.
     // (It used to call processFilePaths() directly, silently discarding edits.)
-    const openViaApp = (window as any).handleExternalFileOpen
+    const openViaApp = window.handleExternalFileOpen
     if (typeof openViaApp === 'function') {
       await openViaApp([filePath])
       return
@@ -85,8 +85,8 @@ if (window.electronAPI?.onFileOpen) {
     try {
       const { failures } = await store.processFilePaths([filePath])
       if (failures > 0) {
-        if ((window as any).showAlert) {
-          ;(window as any).showAlert({
+        if (window.showAlert) {
+          ;window.showAlert({
             title: 'Load Failed',
             message: 'Failed to load file. Check console for details.'
           })
@@ -94,8 +94,8 @@ if (window.electronAPI?.onFileOpen) {
       }
     } catch (err) {
       console.error('Failed to process file:', err)
-      if ((window as any).showAlert) {
-        ;(window as any).showAlert({
+      if (window.showAlert) {
+        ;window.showAlert({
           title: 'Load Failed',
           message: 'Failed to load file: ' + (err instanceof Error ? err.message : 'Unknown error')
         })

@@ -119,6 +119,22 @@ specs' `page.evaluate()` callbacks legitimately use DOM globals. So a bare `wind
 defined) even though Node has no such global and it throws at runtime. If you are
 renaming things in the specs, grep rather than trusting tsc.
 
+**Typed `window` globals.** `src/types/window-globals.d.ts` declares `$store`,
+`__agGridApi` and the `App.vue` test hooks, so specs reach them as `window.$store.…`
+rather than `(window as any).$store.…` — which is where nearly 700 of the repo's
+`no-explicit-any` warnings came from. The point is not the warning count: the store's
+actions are now type-checked at every call site in the suite.
+
+It types `$store` with `ReturnType<typeof import('../stores/captionStore').useCaptionStore>`
+— an inline `import(...)`, deliberately, not a top-level `import type`. A top-level
+import makes the store's own type depend on the `Window` interface it augments (any
+`window.…` reference inside `captionStore.ts` closes the loop), and TypeScript resolves
+that cycle by inferring `Store<"captions", {}, {}, {}>`. That fails silently: nothing
+errors, every `window.$store.x` just becomes an unchecked member access again. It also
+depends on which files are in the program, so it reproduced under
+`tsconfig.node-side.json` and not under `tsconfig.json`. If the store's members ever stop
+resolving in the specs, suspect this first.
+
 **ESLint and `.vue`:** `eslint.config.js` needs both `eslint-plugin-vue` and
 `vue-eslint-parser`; without them flat config never matches a `.vue` file and silently
 lints nothing. It uses `flat/essential` rather than `flat/recommended` — the difference
@@ -285,6 +301,51 @@ unknown keys included (`transcribe/ui_state_round_trip_test.py`,
   `tests/electron/quit-coordination.electron.spec.ts`, which must tear down with
   `app.exit()` rather than `app.quit()`).
 
+### Renderer sandbox and what `media://` will serve
+
+The renderer runs with `sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`.
+It is the process that parses untrusted `.captions_json5` from disk, so the things it can
+reach are worth keeping small.
+
+**Getting the sandbox on took two changes, and both are easy to undo by accident.**
+
+1. *The preload must not import Node builtins.* A sandboxed preload's `require` resolves
+   only `electron`, `events`, `timers` and `url`. It used to `import * as path from 'path'`,
+   which threw before `contextBridge.exposeInMainWorld` ran — so `window.electronAPI` came
+   back **entirely undefined**, not merely missing its path helpers. The renderer still
+   needs those functions synchronously (`captionStore.exportToString()` returns a string),
+   so they are evaluated in the main process behind `ipcRenderer.sendSync('path:call', …)`.
+   That keeps Node's real `path`, and with it Windows drive letters and separators; a
+   posix-only shim bundled into the preload would have quietly broken `isAbsolute('C:\…')`.
+   The handler checks the operation against an allowlist rather than indexing off `path`.
+
+2. *The preload must build to a single self-contained file.* It has its own Vite config
+   (`vite.preload.config.ts`). Built as a second entry alongside the main process, Rollup
+   hoisted the shared `electron/constants.ts` into a chunk and the preload opened with
+   `require("./constants-<hash>.cjs")` — a local file, which the sandboxed `require`
+   refuses. The symptom is identical to (1): no `electronAPI`, and no error in any obvious
+   place, because the failure is in the preload rather than the page.
+
+   If you ever see `window.electronAPI` undefined, check `dist-electron/preload.cjs` for a
+   `require` of anything other than `electron`.
+
+**`media://` serves only files the user opened.** The handler used to stat and stream
+whatever path was in the URL, so `media://local/etc/passwd` was a valid request from the
+renderer. Every legitimate URL is minted by `file:toURL` or `processDroppedFiles`, both of
+which now record the realpath in `servableMediaPaths`; anything else gets a 403. Entries
+are never removed — the renderer re-requests the file constantly while scrubbing. Tests
+that want media must go through `electronAPI.fileToURL` rather than building a `media://`
+URL by hand.
+
+**The CSP differs between dev and production.** `'unsafe-eval'` and the `ws:`/`http:` in
+`connect-src` exist for the Vite dev server and are omitted from a packaged build, which
+loads from `file://` and needs neither. `'unsafe-inline'` for scripts stays in both: Vue
+and AG Grid inject inline content, and removing it needs a nonce-based CSP.
+
+**Window-open and off-origin navigation are denied**, with `http(s)` URLs handed to
+`shell.openExternal` so a link in a caption opens in the user's real browser rather than
+inside the app.
+
 ### Captions JSON Format
 - Primary document format: `*.captions_json5`
 - Media file paths stored as **absolute** internally, **relative** when serialized
@@ -411,6 +472,34 @@ Call `deselectAll()` before `setSelected(true)`:
 gridApi.value.deselectAll()
 rowNode.setSelected(true)
 ```
+
+### Cross-component state goes through the store
+
+`CaptionTable` and `App.vue` used to pass three things between themselves outside Pinia:
+the rows an action targets (a `window.__captionTableSelectedRows` global), a request to
+open the delete dialog (a DOM `CustomEvent`), and a request to sort by speaker similarity
+(another `CustomEvent`, the other way). None of it was visible to the type checker or to
+anyone reading either component alone.
+
+All three are store state now:
+
+- **`selectedSegmentIds`** mirrors the grid's full selection. AG Grid still owns selection
+  — it is the widget's own state — but nothing outside the table has to reach into the
+  grid API to ask what is selected. Distinct from `selectedSegmentId`, which is the
+  *anchor*: the row the playhead follows, that `uiState` persists, and that the selection
+  pin keys off.
+- **`pendingDeletion`** carries the target ids with the request. The old global was read
+  back at confirm time, so a selection change between opening the dialog and clicking
+  Delete could retarget it; now the rows deleted are the rows the menu named. There is a
+  test for exactly that.
+- **`speakerSimilarityRequest`** is a counter, not a boolean, because it is an event:
+  asking twice has to fire twice and there is nothing to reset.
+
+Still outstanding in the same vein: `CaptionTable` reaches the player with a raw
+`document.querySelector('audio, video')` in three places to force a seek, because the
+`store.currentTime` watcher in `MediaPlayer` only re-syncs the element on jumps over
+0.5s. A `seekTo` action that distinguishes "the playhead moved" from "seek the element"
+would remove it, but it touches the selection-pin ordering, so it wants its own change.
 
 ### Selection vs. context target (Lightroom-style)
 

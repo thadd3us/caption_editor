@@ -296,22 +296,40 @@ function createWindow(): BrowserWindow {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,  // Disabled to allow file.path property in drag-and-drop
+      // The renderer runs in the OS sandbox. Two things had to change for this: the
+      // preload no longer imports `path` (see the `path:call` handler), and it is built
+      // on its own so Vite cannot split a shared chunk it would have to `require`.
+      // The old comment here blamed `file.path` in drag-and-drop, which has not been the
+      // mechanism since Electron 32 — the preload uses `webUtils.getPathForFile`, which
+      // works fine sandboxed.
+      sandbox: true,
       webSecurity: true,
       allowRunningInsecureContent: false
     }
   })
 
-  // Set up Content Security Policy
+  // Content Security Policy.
+  //
+  // Two of these directives exist only for the Vite dev server and used to ship in the
+  // packaged app as well: `'unsafe-eval'`, which Vite's HMR needs, and the `ws:`/`http:`
+  // in `connect-src`, which is how the renderer talks to the dev server. A packaged
+  // build loads from `file://` and needs neither, so it no longer gets them — the
+  // renderer parses untrusted JSON5 from disk, and `eval` is exactly the capability you
+  // do not want reachable from there.
+  //
+  // `'unsafe-inline'` for scripts stays in both: Vue's runtime compiler and AG Grid
+  // inject inline styles and scripts. Removing it needs a nonce-based CSP and a build
+  // change, which is a bigger job than this.
+  const isDev = !!process.env.VITE_DEV_SERVER_URL
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval is needed for Vite in dev, unsafe-inline for some libraries
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob:",
       "media-src 'self' media: blob:", // Allow our custom media protocol
-      "connect-src 'self' ws: http: https:" // Allow dev server connections
+      isDev ? "connect-src 'self' ws: http: https:" : "connect-src 'self'"
     ].join('; ')
 
     callback({
@@ -320,6 +338,24 @@ function createWindow(): BrowserWindow {
         'Content-Security-Policy': [csp]
       }
     })
+  })
+
+  // This app never opens a second browser window from content, and never navigates away
+  // from its own bundle. Both are therefore refusals rather than policies to maintain:
+  // a `window.open` or a stray link in a caption cannot turn into a window outside the
+  // app's control, and an external link goes to the user's real browser instead.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/.test(url)) void shell.openExternal(url)
+    return { action: 'deny' }
+  })
+
+  win.webContents.on('will-navigate', (event, url) => {
+    const devServer = process.env.VITE_DEV_SERVER_URL
+    const allowed = devServer ? url.startsWith(devServer) : url.startsWith('file://')
+    if (allowed) return
+    event.preventDefault()
+    console.warn('[main] blocked navigation to', url)
+    if (/^https?:/.test(url)) void shell.openExternal(url)
   })
 
   // In development, load from Vite dev server
@@ -448,6 +484,40 @@ ipcMain.on('app:cancel-quit', () => {
 // at a time; anything else that tries to open it gets that window focused instead.
 // ---------------------------------------------------------------------------
 
+/**
+ * Media files the user has actually opened, and therefore the only ones `media://` will
+ * serve.
+ *
+ * The protocol handler used to stat and stream whatever path appeared in the URL. The
+ * renderer is the process that parses untrusted `.captions_json5` from disk, so a bug
+ * there turned into "read any file the app can read" — `media://local/etc/passwd` was a
+ * valid request. Nothing in the app needs that: every legitimate URL is minted here, by
+ * `file:toURL` or `processDroppedFiles`, so the set of servable paths is known.
+ *
+ * Keyed by realpath, and global rather than per-window on purpose: media is read-only and
+ * two windows may legitimately play the same file (see the document-owner registry below,
+ * which is deliberately stricter because transcripts are writable).
+ *
+ * Nothing removes entries. A path stays servable for the life of the process once opened,
+ * which is the point — the renderer may re-request it at any time as the user scrubs.
+ */
+const servableMediaPaths = new Set<string>()
+
+function canonicalMediaPath(filePath: string): string {
+  const resolved = path.resolve(filePath)
+  try {
+    return realpathSync(resolved)
+  } catch {
+    return resolved
+  }
+}
+
+/** Mint a `media://` URL and record the path as servable. */
+function mediaUrlForOpenedFile(filePath: string): string {
+  servableMediaPaths.add(canonicalMediaPath(filePath))
+  return mediaUrlForPath(filePath)
+}
+
 /** Canonical path → owning window id. */
 const documentOwners = new Map<string, number>()
 
@@ -522,6 +592,53 @@ ipcMain.on('window:setDocumentState', (event, state: {
   if (process.platform === 'darwin') {
     win.setRepresentedFilename(state.filePath || '')
     win.setDocumentEdited(!!state.edited)
+  }
+})
+
+/**
+ * Path helpers for the renderer.
+ *
+ * The preload used to `import * as path from 'path'` and hand the functions across the
+ * context bridge directly. That is what kept `sandbox: false`: a sandboxed preload gets a
+ * polyfilled `require` covering only `electron`, `events`, `timers` and `url`, so the
+ * import threw, `exposeInMainWorld` never ran, and `window.electronAPI` came back
+ * undefined — the whole API, not just the path part.
+ *
+ * Doing the work here instead keeps Node's real `path`, so Windows drive letters and
+ * separators behave exactly as before; a posix-only shim bundled into the preload would
+ * have quietly broken `isAbsolute('C:\\media')`.
+ *
+ * `sendSync` because the callers are synchronous — `captionStore.exportToString()` returns
+ * a string and is called from save paths that cannot become async without rippling. The
+ * blocking round trip is fine at this frequency: a handful of calls per file open or save,
+ * not per frame. `license:getAcceptedSync` and `preferences:getSync` already work this way.
+ *
+ * The operation is checked against an allowlist rather than indexed straight off `path`,
+ * so a compromised renderer cannot reach `path.toNamespacedPath` or anything else that
+ * happens to live on that module.
+ */
+const PATH_OPS = {
+  dirname: path.dirname,
+  basename: path.basename,
+  relative: path.relative,
+  resolve: path.resolve,
+  isAbsolute: path.isAbsolute,
+  normalize: path.normalize,
+  join: path.join,
+} as const
+
+type PathOp = keyof typeof PATH_OPS
+
+ipcMain.on('path:call', (event, op: PathOp, args: unknown[]) => {
+  const fn = Object.prototype.hasOwnProperty.call(PATH_OPS, op) ? PATH_OPS[op] : undefined
+  if (!fn || !Array.isArray(args) || !args.every((a) => typeof a === 'string')) {
+    event.returnValue = null
+    return
+  }
+  try {
+    event.returnValue = (fn as (...p: string[]) => unknown)(...(args as string[]))
+  } catch {
+    event.returnValue = null
   }
 })
 
@@ -631,6 +748,12 @@ app.whenReady().then(() => {
       // Normalize for pathToFileURL (remove leading slash if it's a Windows drive letter)
       if (process.platform === 'win32' && filePath.startsWith('/')) {
         filePath = filePath.substring(1)
+      }
+
+      // Only files the user actually opened. See `servableMediaPaths`.
+      if (!servableMediaPaths.has(canonicalMediaPath(filePath))) {
+        console.warn('[main] media:// refused (not an opened media file):', filePath)
+        return new Response('Forbidden', { status: 403 })
       }
 
       // Detect MIME type based on extension
@@ -950,7 +1073,7 @@ ipcMain.handle('file:toURL', async (_event, filePath: string) => {
 
     // Return media:// URL instead of file://
     // Using media://local/path format for clean URL parsing
-    const url = mediaUrlForPath(filePath)
+    const url = mediaUrlForOpenedFile(filePath)
     return { success: true, url, filePath }
   } catch (error) {
     console.error('Error converting file to URL:', error)
@@ -1427,7 +1550,7 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
         })
         console.log(`[main] Loaded SRT: ${filePath}`)
       } else if (media_files.includes(extensionWithoutDot)) {
-        const url = mediaUrlForPath(filePath)
+        const url = mediaUrlForOpenedFile(filePath)
         results.push({
           type: 'media',
           filePath,

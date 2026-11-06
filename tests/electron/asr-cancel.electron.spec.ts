@@ -75,22 +75,22 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
 
             // Set the ASR model override on the window
             await page.evaluate(() => {
-                (window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
+                window.__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
             })
 
             // Wait for app to be ready - wait for the store to be available
-            await page.waitForFunction(() => !!(window as any).$store, { timeout: 5000 })
+            await page.waitForFunction(() => !!window.$store, { timeout: 5000 })
 
             await dismissLicenseAgreementIfPresent(page)
 
             // Load the audio file and wait for mediaFilePath to be set
             await page.evaluate((audioPath) => {
-                const store = (window as any).$store
-                const electronAPI = (window as any).electronAPI
+                const store = window.$store
+                const electronAPI = window.electronAPI
                 if (!store) throw new Error('No $store on window')
                 if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
 
-                return electronAPI.fileToURL(audioPath).then((urlResult: any) => {
+                return electronAPI.fileToURL(audioPath).then((urlResult) => {
                     if (!urlResult.success || !urlResult.url) throw new Error('Failed to convert audio path to URL')
                     store.loadMediaFile(urlResult.url, audioPath)
                 })
@@ -98,7 +98,7 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
 
             // Wait for media to actually be loaded in the store
             await page.waitForFunction(
-                () => !!(window as any).$store?.mediaFilePath,
+                () => !!window.$store?.mediaFilePath,
                 { timeout: 5000 }
             )
 
@@ -113,7 +113,7 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
             // Trigger ASR menu action
             logTestTiming('before handleMenuAsrCaption()')
             await page.evaluate(() => {
-                (window as any).handleMenuAsrCaption()
+                window.handleMenuAsrCaption()
             })
 
             // Wait for ASR modal to appear
@@ -154,9 +154,9 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
             // VERIFY APP IS STILL RESPONSIVE
             console.log('[Test] Verifying app responsiveness')
             const appState = await page.evaluate(() => {
-                const store = (window as any).$store
+                const store = window.$store
                 return {
-                    isElectron: !!(window as any).electronAPI,
+                    isElectron: !!window.electronAPI,
                     hasMediaPath: !!store.mediaPath
                 }
             })
@@ -165,7 +165,7 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
 
             // Clear dirty flag so we can close without confirmation
             await page.evaluate(() => {
-                const store = (window as any).$store
+                const store = window.$store
                 store?.setIsDirty?.(false)
             })
 

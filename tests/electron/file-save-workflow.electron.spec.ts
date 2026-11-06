@@ -48,12 +48,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 1: Loading captions into store:', testCaptionsPath)
     const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
     await appPage.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: testCaptionsPath })
 
     await appPage.waitForFunction(
-      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      (expectedPath) => window.$store?.document?.filePath === expectedPath,
       testCaptionsPath,
       { timeout: 5000 }
     )
@@ -67,7 +67,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Verify the store has the correct file path
     const storeFilePath = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.filePath
     })
     expect(storeFilePath).toBe(testCaptionsPath)
@@ -78,7 +78,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Set current time to 20 seconds and add a segment
     const newSegmentId = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(20)
       const segmentId = store.addSegment(20, 5) // Add segment from 20s to 25s
       store.updateSegment(segmentId, { text: 'First version of caption' })
@@ -91,7 +91,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Verify the segment was added
     const segmentCount = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.segments.length
     })
     expect(segmentCount).toBe(4) // Original 3 segments + 1 new segment
@@ -102,8 +102,8 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Trigger save programmatically (more reliable than keyboard shortcut in tests)
     await appPage.evaluate(async () => {
-      const electronAPI = (window as any).electronAPI
-      const store = (window as any).$store
+      const electronAPI = window.electronAPI
+      const store = window.$store
 
       if (!electronAPI || !store) {
         throw new Error('electronAPI or store not available')
@@ -157,12 +157,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Setup: Loading initial captions file for save-as test')
     const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
     await appPage.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: testCaptionsPath })
 
     await appPage.waitForFunction(
-      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      (expectedPath) => window.$store?.document?.filePath === expectedPath,
       testCaptionsPath,
       { timeout: 5000 }
     )
@@ -172,7 +172,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Get the current file path
     const initialFilePath = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.filePath
     })
     console.log('Initial file path:', initialFilePath)
@@ -180,7 +180,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Simulate what Save As does: export content and update file path
     const exportedContent = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.exportToString()
     })
 
@@ -190,7 +190,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Update the store's file path (this is what Save As does)
     await appPage.evaluate((newPath) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.updateFilePath(newPath)
     }, saveAsPath)
 
@@ -198,7 +198,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 7: Verifying file path was updated')
 
     const updatedStoreFilePath = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.filePath
     })
     expect(updatedStoreFilePath).toBe(saveAsPath)
@@ -256,12 +256,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 2: Loading OSR captions into store:', osrCaptionsPath)
     const osrContent = await fs.readFile(osrCaptionsPath, 'utf-8')
     await appPage.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: osrContent, filePath: osrCaptionsPath })
 
     await appPage.waitForFunction(
-      (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
+      (expectedPath) => window.$store?.document?.filePath === expectedPath,
       osrCaptionsPath,
       { timeout: 5000 }
     )
@@ -298,7 +298,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 3: Verifying speaker names loaded from captions file')
 
     const speakerData = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       const segments = store.document.segments
       return segments.map((segment: any) => ({
         id: segment.id,
@@ -326,13 +326,13 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const firstSegmentId = speakerData[0].id
     await appPage.evaluate((segmentId) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.updateSegment(segmentId, { speakerName: 'Charlie' })
     }, firstSegmentId)
 
     // Verify the update
     const updatedFirstSpeaker = await appPage.evaluate((segmentId) => {
-      const store = (window as any).$store
+      const store = window.$store
       const segment = store.document.segments.find((s: any) => s.id === segmentId)
       return segment?.speakerName
     }, firstSegmentId)
@@ -344,13 +344,13 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const secondSegmentId = speakerData[1].id
     await appPage.evaluate((segmentId) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.updateSegment(segmentId, { speakerName: 'Diana' })
     }, secondSegmentId)
 
     // Verify the addition
     const newSecondSpeaker = await appPage.evaluate((segmentId) => {
-      const store = (window as any).$store
+      const store = window.$store
       const segment = store.document.segments.find((s: any) => s.id === segmentId)
       return segment?.speakerName
     }, secondSegmentId)
@@ -362,8 +362,8 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Trigger save programmatically (more reliable than keyboard shortcut in tests)
     await appPage.evaluate(async () => {
-      const electronAPI = (window as any).electronAPI
-      const store = (window as any).$store
+      const electronAPI = window.electronAPI
+      const store = window.$store
 
       if (!electronAPI || !store) {
         throw new Error('electronAPI or store not available')

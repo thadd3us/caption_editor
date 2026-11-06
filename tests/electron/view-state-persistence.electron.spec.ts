@@ -33,14 +33,14 @@ async function writeFixture(name: string): Promise<string> {
 /** Load a captions file into the renderer the way a file drop would. */
 async function loadDocument(page: any, filePath: string) {
   await page.evaluate(async (p: string) => {
-    const store = (window as any).$store
+    const store = window.$store
     store.reset()
     const results = await window.electronAPI!.processDroppedFiles([p])
     for (const res of results) {
       if (res.type === 'captions_json5' && res.content) store.loadFromFile(res.content, res.filePath)
     }
   }, filePath)
-  await page.waitForFunction(() => (window as any).$store.document.segments.length > 0)
+  await page.waitForFunction(() => window.$store.document.segments.length > 0)
 }
 
 test.describe('View state persistence', () => {
@@ -49,12 +49,12 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(12.5)
       store.selectSegment('seg-3')
     })
 
-    const saved = await page.evaluate(() => (window as any).$store.exportToString())
+    const saved = await page.evaluate(() => window.$store.exportToString())
     const doc = parseCaptionsFileContent(saved) as any
 
     expect(doc.uiState.playheadSeconds).toBe(12.5)
@@ -67,12 +67,12 @@ test.describe('View state persistence', () => {
 
     // Move to a spot and select a row, then save it back to disk.
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(12.5)
       store.selectSegment('seg-3')
     })
     await page.evaluate(async () => {
-      const store = (window as any).$store
+      const store = window.$store
       await window.electronAPI!.saveExistingFile({
         filePath: store.document.filePath,
         content: store.exportToString()
@@ -83,7 +83,7 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     const restored = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return { currentTime: store.currentTime, selectedSegmentId: store.selectedSegmentId }
     })
     expect(restored.currentTime).toBe(12.5)
@@ -94,8 +94,8 @@ test.describe('View state persistence', () => {
       .poll(
         () =>
           page.evaluate(() => {
-            const api = (window as any).__agGridApi
-            return api?.getSelectedRows().map((r: any) => r.id) ?? []
+            const api = window.__agGridApi!
+            return api?.getSelectedRows().map((r) => r.id) ?? []
           }),
         { timeout: 5000 }
       )
@@ -107,17 +107,17 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.selectSegment('seg-3')
       // Sort descending by start time, so seg-3 is no longer the third row.
-      ;(window as any).__agGridApi.applyColumnState({
+      ;window.__agGridApi!.applyColumnState({
         state: [{ colId: 'startTime', sort: 'desc' }],
         defaultState: { sort: null }
       })
     })
 
     await page.evaluate(async () => {
-      const store = (window as any).$store
+      const store = window.$store
       await window.electronAPI!.saveExistingFile({
         filePath: store.document.filePath,
         content: store.exportToString()
@@ -127,14 +127,14 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     // The UUID, not the row position, is what was persisted.
-    expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe('seg-3')
+    expect(await page.evaluate(() => window.$store.selectedSegmentId)).toBe('seg-3')
 
     await expect
       .poll(
         () =>
           page.evaluate(() => {
-            const api = (window as any).__agGridApi
-            return api?.getSelectedRows().map((r: any) => r.id) ?? []
+            const api = window.__agGridApi!
+            return api?.getSelectedRows().map((r) => r.id) ?? []
           }),
         { timeout: 5000 }
       )
@@ -146,16 +146,16 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.selectSegment('seg-3')
       // Filter to rows that cannot include "Charlie".
-      ;(window as any).__agGridApi.setFilterModel({
+      ;window.__agGridApi!.setFilterModel({
         text: { filterType: 'text', type: 'contains', filter: 'Alpha' }
       })
     })
 
     await page.evaluate(async () => {
-      const store = (window as any).$store
+      const store = window.$store
       await window.electronAPI!.saveExistingFile({
         filePath: store.document.filePath,
         content: store.exportToString()
@@ -165,20 +165,20 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     // Still remembered in the store even though the row is not on screen...
-    expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe('seg-3')
+    expect(await page.evaluate(() => window.$store.selectedSegmentId)).toBe('seg-3')
     expect(
-      await page.evaluate(() => (window as any).__agGridApi.getSelectedRows().length)
+      await page.evaluate(() => window.__agGridApi!.getSelectedRows().length)
     ).toBe(0)
 
     // ...and clearing the filter puts the user back on it.
-    await page.evaluate(() => (window as any).__agGridApi.setFilterModel(null))
+    await page.evaluate(() => window.__agGridApi!.setFilterModel(null))
 
     await expect
       .poll(
         () =>
           page.evaluate(() => {
-            const api = (window as any).__agGridApi
-            return api?.getSelectedRows().map((r: any) => r.id) ?? []
+            const api = window.__agGridApi!
+            return api?.getSelectedRows().map((r) => r.id) ?? []
           }),
         { timeout: 5000 }
       )
@@ -190,25 +190,25 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.leftPanelWidth = 37
       store.captionHeight = 210
     })
 
-    const saved = await page.evaluate(() => (window as any).$store.exportToString())
+    const saved = await page.evaluate(() => window.$store.exportToString())
     const doc = parseCaptionsFileContent(saved) as any
     expect(doc.uiState.leftPanelWidth).toBe(37)
     expect(doc.uiState.captionHeight).toBe(210)
 
     await page.evaluate(async (content: string) => {
-      const store = (window as any).$store
+      const store = window.$store
       const p = store.document.filePath
       await window.electronAPI!.saveExistingFile({ filePath: p, content })
     }, saved)
 
     await loadDocument(page, filePath)
     const restored = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return { leftPanelWidth: store.leftPanelWidth, captionHeight: store.captionHeight }
     })
     expect(restored).toEqual({ leftPanelWidth: 37, captionHeight: 210 })
@@ -219,7 +219,7 @@ test.describe('View state persistence', () => {
     await loadDocument(page, filePath)
 
     const state = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       store.setCurrentTime(8)
       store.selectSegment('seg-2')
       store.leftPanelWidth = 45

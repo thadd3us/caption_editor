@@ -15,12 +15,12 @@ test.describe('Caption Editor - Bulk Delete', () => {
     appPage = page
     // Wait for store to be available
     await appPage.waitForFunction(() => {
-      return (window as any).$store !== undefined
+      return window.$store !== undefined
     }, { timeout: 5000 })
 
     // Load captions JSON with multiple segments
     const loadResult = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return { success: false, error: 'No store on window' }
 
       const captionsContent = JSON.stringify({
@@ -48,7 +48,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Select first two rows and trigger delete confirmation dialog
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) throw new Error('Store not available')
 
       // Get the first two segment IDs
@@ -57,14 +57,8 @@ test.describe('Caption Editor - Bulk Delete', () => {
         { id: segments[0].id, text: segments[0].text },
         { id: segments[1].id, text: segments[1].text }
       ]
-
-        // Store selected rows for App.vue
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      // Dispatch the delete confirmation event
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      // Ask through the store, the way the table's context menu does.
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Dialog should be visible
@@ -88,7 +82,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Verify rows were deleted in the store
     const remainingSegments = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return null
       return store.document.segments.map((segment: any) => ({
         id: segment.id,
@@ -106,7 +100,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
   test('should delete single row after confirmation', async () => {
     // Load captions JSON with segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -121,25 +115,20 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Select only one row
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const segments = store.document.segments
       const selectedRows = [
         { id: segments[0].id, text: segments[0].text }
       ]
-
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Dialog should be visible
@@ -157,13 +146,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     // Verify only one row remains
     const remainingSegments = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return null
       return store.document.segments
     })
@@ -175,7 +164,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
   test('should cancel delete when clicking Cancel button', async () => {
     // Load captions JSON with segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -190,25 +179,20 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     // Select a row and open delete dialog
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const segments = store.document.segments
       const selectedRows = [
         { id: segments[0].id, text: segments[0].text }
       ]
-
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Dialog should be visible
@@ -224,7 +208,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Verify nothing was deleted
     const segments = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return null
       return store.document.segments
     })
@@ -235,7 +219,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
   test('should clear selectedSegmentId if deleted segment was selected', async () => {
     // Load captions JSON with segments
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -253,13 +237,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.selectedSegmentId === 'seg1'
     })
 
     // Verify segment is selected
     const selectedBefore = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store ? store.selectedSegmentId : null
     })
 
@@ -267,19 +251,14 @@ test.describe('Caption Editor - Bulk Delete', () => {
 
     // Delete the selected segment
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const segments = store.document.segments
       const selectedRows = [
         { id: segments[0].id, text: segments[0].text }
       ]
-
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Wait for dialog
@@ -293,13 +272,13 @@ test.describe('Caption Editor - Bulk Delete', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.selectedSegmentId === null
     })
 
     // Verify selectedSegmentId was cleared
     const selectedAfter = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store ? store.selectedSegmentId : null
     })
 

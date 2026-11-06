@@ -18,7 +18,7 @@ test.describe('Drag-and-Drop IPC Integration', () => {
         appPage = await firstReadyWindow(electronApp)
         await appPage.waitForLoadState('domcontentloaded')
         // Wait for App to be mounted and $store to be available
-        await appPage.waitForFunction(() => (window as any).$store !== undefined)
+        await appPage.waitForFunction(() => window.$store !== undefined)
     })
 
     test.afterEach(async () => {
@@ -58,12 +58,12 @@ test.describe('Drag-and-Drop IPC Integration', () => {
         // 3. Verify that the store was updated
         // We wait for the segment to appear which implies processFilePaths ran successfully
         await appPage.waitForFunction(() => {
-            const store = (window as any).$store
+            const store = window.$store
             return store && store.document.segments.length > 0
         }, { timeout: 5000 })
 
         const text = await appPage.evaluate(() => {
-            const store = (window as any).$store
+            const store = window.$store
             return store.document.segments[0].text
         })
 

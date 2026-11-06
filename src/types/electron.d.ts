@@ -107,6 +107,12 @@ export interface ElectronAPI {
   isElectron: boolean
 
   /**
+   * True under NODE_ENV=test. The preload has always exposed this; it was simply not
+   * declared, so `SpeakerNameCellEditor` reached it through a cast.
+   */
+  isTest?: boolean
+
+  /**
    * License acceptance persisted in userData (localStorage is unreliable for packaged file://).
    */
   getLicenseAcceptedSync?: () => boolean
@@ -151,8 +157,10 @@ export interface ElectronAPI {
    * IPC renderer for menu events and custom channels
    */
   ipcRenderer: {
-    on: (channel: string, callback: () => void) => void
-    send: (channel: string, ...args: any[]) => void
+    // The preload forwards the event's arguments; declaring `() => void` said it did
+    // not, which every caller then had to work around with a cast.
+    on: (channel: string, callback: (...args: never[]) => void) => void
+    send: (channel: string, ...args: unknown[]) => void
   }
 
   /**

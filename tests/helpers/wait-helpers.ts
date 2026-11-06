@@ -19,7 +19,7 @@ export async function expectGridCaptionTotal(page: Page, total: number, timeout 
 export async function waitForSegmentCount(page: Page, count: number, timeout = 5000): Promise<void> {
   await page.waitForFunction(
     (expectedCount) => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === expectedCount
     },
     count,
@@ -43,7 +43,7 @@ export async function waitForModalVisible(page: Page, visible: boolean, timeout 
  */
 export async function waitForStore(page: Page, timeout = 5000): Promise<void> {
   await page.waitForFunction(
-    () => (window as any).$store !== undefined,
+    () => window.$store !== undefined,
     { timeout }
   )
 }

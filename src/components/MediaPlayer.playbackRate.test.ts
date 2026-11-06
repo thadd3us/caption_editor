@@ -34,7 +34,7 @@ describe('MediaPlayer - playback speed', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
-    delete (window as any).electronAPI
+    delete window.electronAPI
   })
 
   it('offers the documented speeds and starts at 1x', () => {
@@ -131,7 +131,7 @@ describe('MediaPlayer - playback speed', () => {
 describe('playback rate persistence in uiState', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    delete (window as any).electronAPI
+    delete window.electronAPI
   })
 
   function loadDoc(uiState: Record<string, unknown> | undefined) {

@@ -173,7 +173,7 @@ describe('CaptionTable - Speaker Similarity', () => {
 
     // Mock window.showAlert
     const showAlertSpy = vi.fn()
-      ; (window as any).showAlert = showAlertSpy
+      ; window.showAlert = showAlertSpy
 
     // Mock gridApi
     const mockGetSelectedRows = vi.fn().mockReturnValue([
@@ -200,7 +200,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Verify no similarity scores were computed
     expect(vm.speakerSimilarityScores.size).toBe(0)
 
-    delete (window as any).showAlert
+    delete (window as Partial<Window>).showAlert
   })
 
   it('should show error when selecting multiple rows where some lack embeddings', () => {
@@ -222,7 +222,7 @@ describe('CaptionTable - Speaker Similarity', () => {
 
     // Mock window.showAlert
     const showAlertSpy = vi.fn()
-      ; (window as any).showAlert = showAlertSpy
+      ; window.showAlert = showAlertSpy
 
     // Mock gridApi - select one with embedding and one without
     const mockGetSelectedRows = vi.fn().mockReturnValue([
@@ -250,7 +250,7 @@ describe('CaptionTable - Speaker Similarity', () => {
     // Verify no similarity scores were computed
     expect(vm.speakerSimilarityScores.size).toBe(0)
 
-    delete (window as any).showAlert
+    delete (window as Partial<Window>).showAlert
   })
 
   it('should compute cosine similarity correctly', () => {

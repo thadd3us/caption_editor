@@ -35,14 +35,14 @@ test.describe('Electron Media Auto-loading', () => {
 
     // Clear any previous state
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (store) {
         console.log('[DEBUG] Clearing previous state, current mediaPath:', store.mediaPath)
         store.reset()
         store.mediaPath = null
       }
     })
-    await page.waitForFunction(() => !(window as any).$store.mediaPath, undefined, { timeout: 5000 })
+    await page.waitForFunction(() => !window.$store.mediaPath, undefined, { timeout: 5000 })
 
     // Process the captions file through electronAPI (simulating a file drop)
     const result = await page.evaluate(async (filePath) => {
@@ -51,11 +51,11 @@ test.describe('Electron Media Auto-loading', () => {
         console.log('[DEBUG] No electronAPI!')
         return null
       }
-      const results = await window.electronAPI.processDroppedFiles([filePath])
+      const results = await window.electronAPI!.processDroppedFiles([filePath])
       console.log('[DEBUG] processDroppedFiles results:', JSON.stringify(results))
 
       // Simulate the FileDropZone component processing the results
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) {
         console.log('[DEBUG] No store!')
         return null
@@ -87,13 +87,13 @@ test.describe('Electron Media Auto-loading', () => {
 
     // Wait for auto-load to happen (App.vue handles this via watch).
     await page.waitForFunction(
-      () => !!(window as any).$store.mediaPath && !!document.querySelector('audio'),
+      () => !!window.$store.mediaPath && !!document.querySelector('audio'),
       undefined,
       { timeout: 10000 }
     )
 
     const finalState = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         mediaPath: store.mediaPath,
         mediaFilePath: store.mediaFilePath,
@@ -115,7 +115,7 @@ test.describe('Electron Media Auto-loading', () => {
 
     // Clear any previous state by loading an empty document and clearing media
     await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (store) {
         // Reset state
         store.reset()
@@ -123,7 +123,7 @@ test.describe('Electron Media Auto-loading', () => {
         store.mediaPath = null
       }
     })
-    await page.waitForFunction(() => !(window as any).$store.mediaPath, undefined, { timeout: 5000 })
+    await page.waitForFunction(() => !window.$store.mediaPath, undefined, { timeout: 5000 })
 
     // Create a captions file with a non-existent media reference
     const testCaptionsPath = path.join(getProjectRoot(), 'test_data/missing-media-ref.captions_json5')
@@ -138,9 +138,9 @@ test.describe('Electron Media Auto-loading', () => {
     // Load the captions file
     await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return
-      const results = await window.electronAPI.processDroppedFiles([filePath])
+      const results = await window.electronAPI!.processDroppedFiles([filePath])
 
-      const store = (window as any).$store
+      const store = window.$store
       for (const res of results) {
         if (res.type === 'captions_json5' && res.content) {
           store.loadFromFile(res.content, res.filePath)
@@ -155,7 +155,7 @@ test.describe('Electron Media Auto-loading', () => {
 
     // Verify media was NOT loaded
     const state = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         mediaPath: store.mediaPath,
         segmentCount: store.document.segments.length,
@@ -179,9 +179,9 @@ test.describe('Electron Media Auto-loading', () => {
 
     await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return
-      const results = await window.electronAPI.processDroppedFiles([filePath])
+      const results = await window.electronAPI!.processDroppedFiles([filePath])
 
-      const store = (window as any).$store
+      const store = window.$store
       for (const res of results) {
         if (res.type === 'media' && res.url) {
           store.loadMediaFile(res.url, res.filePath)
@@ -189,10 +189,10 @@ test.describe('Electron Media Auto-loading', () => {
       }
     }, mediaPath)
 
-    await page.waitForFunction(() => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })
+    await page.waitForFunction(() => !!window.$store.mediaPath, undefined, { timeout: 5000 })
 
     const initialMediaPath = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.mediaPath
     })
 
@@ -214,9 +214,9 @@ test.describe('Electron Media Auto-loading', () => {
 
     await page.evaluate(async (filePath) => {
       if (!window.electronAPI) return
-      const results = await window.electronAPI.processDroppedFiles([filePath])
+      const results = await window.electronAPI!.processDroppedFiles([filePath])
 
-      const store = (window as any).$store
+      const store = window.$store
       for (const res of results) {
         if (res.type === 'captions_json5' && res.content) {
           store.loadFromFile(res.content, res.filePath)
@@ -230,7 +230,7 @@ test.describe('Electron Media Auto-loading', () => {
 
     // Verify media path hasn't changed
     const finalMediaPath = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.mediaPath
     })
 

@@ -36,7 +36,7 @@ async function resetAppState(page: Page): Promise<void> {
 
     // Wait for app/store to be ready again
     await page.waitForFunction(
-        () => (window as any).$store || (window as any).store,
+        () => window.$store || (window as any).store,
         { timeout: 10000 }
     )
 

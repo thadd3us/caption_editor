@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import * as path from 'path'
 import { APP_VERSION } from './constants'
 
 // Log version on startup
@@ -136,16 +135,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   /**
-   * Path utilities - expose Node.js path module functions for use in renderer
+   * Path utilities, evaluated in the main process.
+   *
+   * Not `import * as path from 'path'`: a sandboxed preload cannot require it, and the
+   * import failing takes the whole `exposeInMainWorld` call down with it. See the
+   * `path:call` handler in main.ts for why this is sendSync rather than async.
    */
   path: {
-    dirname: (p: string) => path.dirname(p),
-    basename: (p: string) => path.basename(p),
-    relative: (from: string, to: string) => path.relative(from, to),
-    resolve: (...paths: string[]) => path.resolve(...paths),
-    isAbsolute: (p: string) => path.isAbsolute(p),
-    normalize: (p: string) => path.normalize(p),
-    join: (...paths: string[]) => path.join(...paths)
+    dirname: (p: string): string => ipcRenderer.sendSync('path:call', 'dirname', [p]),
+    basename: (p: string): string => ipcRenderer.sendSync('path:call', 'basename', [p]),
+    relative: (from: string, to: string): string =>
+      ipcRenderer.sendSync('path:call', 'relative', [from, to]),
+    resolve: (...paths: string[]): string => ipcRenderer.sendSync('path:call', 'resolve', paths),
+    isAbsolute: (p: string): boolean => ipcRenderer.sendSync('path:call', 'isAbsolute', [p]),
+    normalize: (p: string): string => ipcRenderer.sendSync('path:call', 'normalize', [p]),
+    join: (...paths: string[]): string => ipcRenderer.sendSync('path:call', 'join', paths)
   },
 
   /**

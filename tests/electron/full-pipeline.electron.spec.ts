@@ -38,24 +38,27 @@ test.describe('Full E2E Pipeline @expensive', () => {
 
       // Use a tiny model for speed.
       await page.evaluate(() => {
-        ;(window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
+        ;window.__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
       })
 
-      // Load media.
-      await page.evaluate((audioPath) => {
-        const store = (window as any).$store
+      // Load media through the app's own API: the main process only serves media://
+      // for files it minted a URL for, so a hand-built URL is refused with a 403.
+      await page.evaluate(async (audioPath) => {
+        const store = window.$store
         if (!store) throw new Error('$store not found')
-        store.loadMediaFile(`media://local${audioPath}`, audioPath)
+        const result = await window.electronAPI!.fileToURL(audioPath)
+        if (!result.success || !result.url) throw new Error('fileToURL failed: ' + result.error)
+        store.loadMediaFile(result.url, audioPath)
       }, destAudioPath)
 
       await page.waitForFunction(() => {
-        const store = (window as any).$store
+        const store = window.$store
         return !!store?.mediaPath
       })
 
       // Run ASR from the menu handler (transcribe + embed) and wait for it to finish.
       await page.evaluate(() => {
-        const fn = (window as any).handleMenuAsrCaption
+        const fn = window.handleMenuAsrCaption
         if (!fn) throw new Error('handleMenuAsrCaption not exposed on window')
         fn()
       })
@@ -65,20 +68,20 @@ test.describe('Full E2E Pipeline @expensive', () => {
 
       // Ensure captions were loaded.
       await page.waitForFunction(() => {
-        const store = (window as any).$store
+        const store = window.$store
         return (store?.document?.segments?.length || 0) > 0 && !!store?.document?.filePath
       }, { timeout: 60000 })
 
       // Apply edits and save.
       const savedPath = await page.evaluate(async () => {
-        const store = (window as any).$store
-        const electronAPI = (window as any).electronAPI
+        const store = window.$store
+        const electronAPI = window.electronAPI
         const first = store.document.segments[0]
         store.updateSegment(first.id, { rating: 3, speakerName: 'TestSpeaker' })
 
         const content = store.exportToString()
         const filePath = store.document.filePath
-        const result = await electronAPI.saveExistingFile({ filePath, content })
+        const result = await electronAPI!.saveExistingFile({ filePath, content })
         if (!result?.success) throw new Error('Save failed: ' + result?.error)
         return filePath
       })
@@ -104,7 +107,7 @@ test.describe('Full E2E Pipeline @expensive', () => {
     } finally {
       // Make close deterministic even if something marked the doc dirty.
       await page.evaluate(() => {
-        const store = (window as any).$store
+        const store = window.$store
         store?.setIsDirty?.(false)
       }).catch(() => {})
       await electronApp.close().catch(() => {})
@@ -151,12 +154,12 @@ test.describe('Full E2E Pipeline @expensive', () => {
     try {
       await page.waitForLoadState('domcontentloaded')
       await page.waitForFunction(() => {
-        const store = (window as any).$store
+        const store = window.$store
         return (store?.document?.segments?.length || 0) > 0
       }, { timeout: 10000 })
 
       const result = await page.evaluate(() => {
-        const store = (window as any).$store
+        const store = window.$store
         const first = store.document.segments[0]
         return {
           segmentCount: store.document.segments.length,

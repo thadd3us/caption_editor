@@ -2,7 +2,7 @@ import { sharedElectronTest as test, expect } from '../helpers/shared-electron'
 
 test('filled stars should be gold, empty stars should be grey', async ({ page }) => {
   await page.evaluate(() => {
-    const store = (window as any).$store
+    const store = window.$store
     store.loadFromFile(JSON.stringify({
       metadata: { id: 'star-test' },
       segments: [
@@ -12,7 +12,7 @@ test('filled stars should be gold, empty stars should be grey', async ({ page })
   })
 
   await page.waitForFunction(() => {
-    const api = (window as any).__agGridApi
+    const api = window.__agGridApi!
     if (!api) return false
     let count = 0
     api.forEachNode(() => count++)
@@ -23,7 +23,7 @@ test('filled stars should be gold, empty stars should be grey', async ({ page })
 
   const colors = await page.evaluate(() => {
     const stars = document.querySelectorAll('.star-rating .star')
-    return Array.from(stars).map((s: any) => ({
+    return Array.from(stars).map((s) => ({
       filled: s.classList.contains('filled'),
       color: getComputedStyle(s).color
     }))

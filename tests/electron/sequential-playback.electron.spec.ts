@@ -10,7 +10,7 @@ import { getProjectRoot } from '../helpers/project-root'
  */
 async function waitForPlaylistPlayback(page: import('@playwright/test').Page) {
   await page.waitForFunction(() => {
-    const store = (window as any).$store
+    const store = window.$store
     return store?.playbackMode === 'SEGMENTS_PLAYING' && store?.playlist?.length > 0
   }, undefined, { timeout: 5000 })
 }
@@ -39,7 +39,7 @@ test.describe('Sequential Playback', () => {
     // Wait for file to load
     await page.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
       },
       { timeout: 5000 }
@@ -55,8 +55,8 @@ test.describe('Sequential Playback', () => {
   // Helper to load media file
   async function loadMediaFile(page: Page, filePath: string) {
     const url = await page.evaluate(async (p) => {
-      const store = (window as any).$store
-      const electronAPI = (window as any).electronAPI
+      const store = window.$store
+      const electronAPI = window.electronAPI
       if (!store?.loadMediaFile) throw new Error('Store not available')
       if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
 
@@ -67,7 +67,7 @@ test.describe('Sequential Playback', () => {
     }, filePath)
     await page.waitForFunction(
       (expectedUrl) => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.mediaPath === expectedUrl
       },
       url,
@@ -117,7 +117,7 @@ test.describe('Sequential Playback', () => {
 
     console.log('[Test] Checking playback state...')
     const state = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         playbackMode: store.playbackMode,
         isPlaying: store.isPlaying,
@@ -162,7 +162,7 @@ test.describe('Sequential Playback', () => {
 
     // Wait for grid to be ready and have at least 3 rows
     await page.waitForFunction(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       if (!api) return false
       let count = 0
       api.forEachNode(() => count++)
@@ -180,7 +180,7 @@ test.describe('Sequential Playback', () => {
       const allRows = Array.from(document.querySelectorAll('.ag-row'))
 
       // Filter out ghost rows - rows that have no text content in their cells
-      const realRows = allRows.filter((row: any) => {
+      const realRows = allRows.filter((row) => {
         const textCell = row.querySelector('[col-id="text"]')
         return textCell && textCell.textContent?.trim().length > 0
       })
@@ -267,9 +267,9 @@ test.describe('Sequential Playback', () => {
 
     // Get the grid API and capture initial order
     const initialOrder = await page.evaluate(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       const segmentIds: string[] = []
-      api.forEachNodeAfterFilterAndSort((node: any) => {
+      api.forEachNodeAfterFilterAndSort((node) => {
         if (node.data) {
           segmentIds.push(node.data.id)
         }
@@ -284,7 +284,7 @@ test.describe('Sequential Playback', () => {
 
     // Check that the playlist matches the initial order
     const playlistOrder = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.playlist
     })
 
@@ -316,7 +316,7 @@ test.describe('Sequential Playback', () => {
 
     // Get the playlist before sorting
     const playlistBefore = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return [...store.playlist]
     })
 
@@ -328,7 +328,7 @@ test.describe('Sequential Playback', () => {
 
     // Get the playlist after sorting
     const playlistAfter = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.playlist
     })
 
@@ -381,7 +381,7 @@ test.describe('Sequential Playback', () => {
 
     // Wait for grid to be ready with at least one row
     await page.waitForFunction(() => {
-      const api = (window as any).__agGridApi
+      const api = window.__agGridApi!
       if (!api) return false
       let count = 0
       api.forEachNode(() => count++)
@@ -398,7 +398,7 @@ test.describe('Sequential Playback', () => {
 
     // Should be in SEGMENTS_PLAYING mode with single-item playlist
     const mode = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         playbackMode: store.playbackMode,
         playlistLength: store.playlist.length

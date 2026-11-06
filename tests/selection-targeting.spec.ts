@@ -29,7 +29,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
 
   test('verified toggle applies to all selected rows when clicking inside selection', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
       const captionsContent = JSON.stringify(
         {
@@ -47,7 +47,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
@@ -63,7 +63,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     await checkRow0.click()
 
     const verified = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.segments.map((s: any) => ({ id: s.id, verified: s.verified }))
     })
 
@@ -74,7 +74,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
 
   test('star rating applies to all selected rows when clicking a star inside selection', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
       const captionsContent = JSON.stringify(
         {
@@ -92,7 +92,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
@@ -107,7 +107,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     await row0.locator('.star-rating [data-star-index="5"]').click()
 
     const ratings = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.document.segments.map((s: any) => ({ id: s.id, rating: s.rating }))
     })
 
@@ -118,7 +118,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
 
   test('context menu delete targets only right-clicked row when that row is outside selection', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
       const captionsContent = JSON.stringify(
         {
@@ -136,7 +136,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
@@ -166,7 +166,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
 
   test('context menu delete still targets full selection when right-click is inside selection', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
       const captionsContent = JSON.stringify(
         {
@@ -184,7 +184,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3
     })
 
@@ -214,7 +214,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
 
   test('context menu enables speaker similarity when right-clicked row has embedding but selection does not', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
       const floats = new Float32Array([1, 0, 0, 0])
       const bytes = new Uint8Array(floats.buffer)
@@ -241,7 +241,7 @@ test.describe('Selection targeting (Lightroom-style)', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 3 && (store.document.embeddings?.length ?? 0) >= 1
     })
 

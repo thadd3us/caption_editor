@@ -60,22 +60,22 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             // Wait for app to be ready
             await page.waitForLoadState('domcontentloaded')
             // Wait for Vue app to mount and store to be available
-            await page.waitForFunction(() => (window as any).$store || (window as any).store, { timeout: 10000 })
+            await page.waitForFunction(() => window.$store || (window as any).store, { timeout: 10000 })
 
             await acceptLicenseIfVisible(page)
 
             await page.evaluate(() => {
-                console.log('[Test] electronAPI keys:', Object.keys((window as any).electronAPI || {}))
-                console.log('[Test] electronAPI.asr keys:', Object.keys((window as any).electronAPI?.asr || {}))
+                console.log('[Test] electronAPI keys:', Object.keys(window.electronAPI || {}))
+                console.log('[Test] electronAPI.asr keys:', Object.keys(window.electronAPI?.asr || {}))
             })
 
             // 4. Load the captions file
             console.log('[Test] Loading captions file:', destCaptionsPath)
             await page.evaluate(async (captionsPath) => {
-                const store = (window as any).$store || (window as any).store
+                const store = window.$store || (window as any).store
                 if (!store) throw new Error('Store not found on window')
 
-                const result = await (window as any).electronAPI.readFile(captionsPath)
+                const result = await window.electronAPI!.readFile(captionsPath)
                 if (result.success && result.content) {
                     store.loadFromFile(result.content, captionsPath)
                 } else {
@@ -86,10 +86,10 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             // 5. Load the media file
             console.log('[Test] Loading media file:', destAudioPath)
             await page.evaluate(async (audioPath) => {
-                const store = (window as any).$store || (window as any).store
+                const store = window.$store || (window as any).store
                 if (!store) throw new Error('Store not found on window')
 
-                const urlResult = await (window as any).electronAPI.fileToURL(audioPath)
+                const urlResult = await window.electronAPI!.fileToURL(audioPath)
                 if (urlResult.success && urlResult.url) {
                     store.loadMediaFile(urlResult.url, audioPath)
                 } else {
@@ -99,7 +99,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
 
             // 6. Verify segments are loaded
             const segmentCount = await page.evaluate(() => {
-                const store = (window as any).$store || (window as any).store
+                const store = window.$store || (window as any).store
                 return store.document.segments.length
             })
             console.log('[Test] Segments loaded:', segmentCount)
@@ -108,7 +108,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             // 7. Trigger the embedding process via the handleMenuAsrEmbed exposed by App.vue
             console.log('[Test] Triggering speaker embedding...')
             await page.evaluate(() => {
-                const handleMenuAsrEmbed = (window as any).handleMenuAsrEmbed
+                const handleMenuAsrEmbed = window.handleMenuAsrEmbed
                 if (handleMenuAsrEmbed) {
                     handleMenuAsrEmbed()
                 } else {
@@ -129,7 +129,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             // 9. Verify that embeddings were added
             // We check if the store has embeddings now
             const embeddingCount = await page.evaluate(() => {
-                const store = (window as any).$store || (window as any).store
+                const store = window.$store || (window as any).store
                 return store.document.embeddings?.length || 0
             })
 
@@ -146,7 +146,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             // Regression: loadFromFile after embed clears mediaPath; auto-load must restore it
             // so the playback window does not show "No media loaded".
             const mediaState = await page.evaluate(() => {
-                const store = (window as any).$store || (window as any).store
+                const store = window.$store || (window as any).store
                 return {
                     mediaPath: store.mediaPath as string | null | undefined,
                     mediaFilePath: store.mediaFilePath as string | null | undefined
@@ -163,8 +163,8 @@ test.describe('Speaker Embedding Integration @expensive', () => {
             // Close app
             await page.evaluate(() => {
                 // FIXME: Why are there 2 ways of doing this?  Can we settle on one?
-                if ((window as any).$store) {
-                    (window as any).$store.setIsDirty(false)
+                if (window.$store) {
+                    window.$store.setIsDirty(false)
                 } else if ((window as any).store) {
                     (window as any).store.setIsDirty(false)
                 }

@@ -5,13 +5,13 @@ import path from 'path'
 export const test = base.extend({
   context: async ({ context }, use) => {
     await context.addInitScript(() => {
-      (window as any).__coverage__ = (window as any).__coverage__ || {}
+      window.__coverage__ = window.__coverage__ || {}
     })
     await use(context)
 
     // Save coverage after each test
     for (const page of context.pages()) {
-      const coverage = await page.evaluate(() => (window as any).__coverage__)
+      const coverage = await page.evaluate(() => window.__coverage__)
       if (coverage) {
         const coverageDir = path.join(process.cwd(), '.nyc_output')
         if (!fs.existsSync(coverageDir)) {

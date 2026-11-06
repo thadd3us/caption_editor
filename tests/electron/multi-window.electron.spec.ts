@@ -55,19 +55,19 @@ test('each window has independent document state', async () => {
   })
 
   await page1.evaluate((content) => {
-    const store = (window as any).$store
+    const store = window.$store
     store.loadFromFile(content, '/tmp/test.captions_json5')
   }, testDoc)
 
   // Verify window 1 has the document
   const w1SegCount = await page1.evaluate(() => {
-    return (window as any).$store.document.segments.length
+    return window.$store.document.segments.length
   })
   expect(w1SegCount).toBe(1)
 
   // Verify window 2 still has empty document
   const w2SegCount = await page2.evaluate(() => {
-    return (window as any).$store.document.segments.length
+    return window.$store.document.segments.length
   })
   expect(w2SegCount).toBe(0)
 })
@@ -92,10 +92,10 @@ test('a transcript already open in another window focuses that window instead of
 
   // Window 1 opens (and therefore claims) the document.
   await page1.evaluate(async (p) => {
-    await (window as any).handleExternalFileOpen([p])
+    await window.handleExternalFileOpen([p])
   }, captionsPath)
   await expect
-    .poll(() => page1.evaluate(() => (window as any).$store.document.filePath), { timeout: 5000 })
+    .poll(() => page1.evaluate(() => window.$store.document.filePath), { timeout: 5000 })
     .toBe(captionsPath)
 
   // Window 2 tries the same file and is refused.
@@ -108,9 +108,9 @@ test('a transcript already open in another window focuses that window instead of
 
   // Window 2's own document is untouched.
   await page2.evaluate(async (p) => {
-    await (window as any).handleExternalFileOpen([p])
+    await window.handleExternalFileOpen([p])
   }, captionsPath)
-  const w2Path = await page2.evaluate(() => (window as any).$store.document.filePath)
+  const w2Path = await page2.evaluate(() => window.$store.document.filePath)
   expect(w2Path).not.toBe(captionsPath)
 })
 
@@ -121,12 +121,12 @@ test('the same media file may be open in two windows', async () => {
 
   for (const page of [page1, page2]) {
     await page.evaluate((p) => {
-      ;(window as any).$store.loadMediaFile(`media://${p}`, p)
+      ;window.$store.loadMediaFile(`media://${p}`, p)
     }, mediaPath)
   }
 
   for (const page of [page1, page2]) {
-    expect(await page.evaluate(() => (window as any).$store.mediaFilePath)).toBe(mediaPath)
+    expect(await page.evaluate(() => window.$store.mediaFilePath)).toBe(mediaPath)
   }
 })
 
@@ -157,7 +157,7 @@ test('closing one window does not affect the other', async () => {
   // First window still works
   const page1 = electronApp.windows()[0]
   const segCount = await page1.evaluate(() => {
-    return (window as any).$store.document.segments.length
+    return window.$store.document.segments.length
   })
   expect(typeof segCount).toBe('number')
 })

@@ -36,7 +36,7 @@ describe('MediaPlayer - clicking a word seeks the playhead', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
-    delete (window as any).electronAPI
+    delete window.electronAPI
   })
 
   it('moves the playhead to a timed word', async () => {

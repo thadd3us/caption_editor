@@ -67,13 +67,13 @@ test.describe('File Save with Media Path - Relative path updates', () => {
     // Step 1: Load the captions file into the store with filePath set (so paths resolve)
     const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
     await appPage.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: testCaptionsPath })
 
     // Step 2: Verify the captions file loaded with media reference
     const initialState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         filePath: store.document.filePath,
         mediaFilePath: store.mediaFilePath,
@@ -92,13 +92,13 @@ test.describe('File Save with Media Path - Relative path updates', () => {
 
     // First, update the file path in the store (this is what Save As does)
     await appPage.evaluate((newPath) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.updateFilePath(newPath)
     }, saveAsPath)
 
     // Step 4: Export the content (this should recompute the relative media path)
     const exportedContent = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.exportToString()
     })
 

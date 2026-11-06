@@ -11,7 +11,7 @@ test.describe('Caption Editor - Context Menu', () => {
 
   test('should expose delete dialog trigger from context menu integration', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -26,29 +26,22 @@ test.describe('Caption Editor - Context Menu', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const segments = store.document.segments
       const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
-      ;(window as any).__captionTableSelectedRows = selectedRows
-
-      const event = new CustomEvent('showContextMenu', {
-        detail: {
-          position: { x: 200, y: 300 },
-          selectedRows
-        }
-      })
-      window.dispatchEvent(event)
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
+    // The handoff is store state now, not a function hung on `window`.
     const hasContextMenuComponents = await appPage.evaluate(() => ({
-      hasOpenDeleteConfirmDialog: typeof (window as any).openDeleteConfirmDialog === 'function'
+      hasOpenDeleteConfirmDialog: window.$store.pendingDeletion !== null
     }))
 
     expect(hasContextMenuComponents.hasOpenDeleteConfirmDialog).toBe(true)
@@ -56,7 +49,7 @@ test.describe('Caption Editor - Context Menu', () => {
 
   test('should open delete confirmation dialog when context menu option is triggered', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -68,23 +61,17 @@ test.describe('Caption Editor - Context Menu', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const segments = store.document.segments
       const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
-      ;(window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(
-        new CustomEvent('openDeleteConfirmDialog', {
-          detail: { rowCount: selectedRows.length }
-        })
-      )
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
@@ -98,7 +85,7 @@ test.describe('Caption Editor - Context Menu', () => {
 
   test('should set speakers on multi-selected rows then delete one via context menu flow', async () => {
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
 
       const captionsContent = JSON.stringify({
@@ -113,20 +100,20 @@ test.describe('Caption Editor - Context Menu', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 2
     })
 
     await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
 
     await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       gridApi?.getRowNode('seg1')?.setSelected(true, false)
       gridApi?.getRowNode('seg2')?.setSelected(true, false)
     })
 
     await appPage.evaluate(() => {
-      const gridApi = (window as any).__agGridApi
+      const gridApi = window.__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
@@ -142,12 +129,12 @@ test.describe('Caption Editor - Context Menu', () => {
     await editorInput.press('Enter')
     await expect
       .poll(() => appPage.evaluate(
-        () => (window as any).$store.document.segments.filter((s: any) => s.speakerName === 'Alice').length
+        () => window.$store.document.segments.filter((s: any) => s.speakerName === 'Alice').length
       ))
       .toBeGreaterThan(0)
 
     const speakerNames = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return null
       return store.document.segments.map((segment: any) => segment.speakerName)
     })
@@ -155,16 +142,11 @@ test.describe('Caption Editor - Context Menu', () => {
     expect(speakerNames[1]).toBe('Alice')
 
     await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return
       const segments = store.document.segments
       const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
-      ;(window as any).__captionTableSelectedRows = selectedRows
-      window.dispatchEvent(
-        new CustomEvent('openDeleteConfirmDialog', {
-          detail: { rowCount: selectedRows.length }
-        })
-      )
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
@@ -179,12 +161,12 @@ test.describe('Caption Editor - Context Menu', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.length === 1
     })
 
     const remainingSegments = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       if (!store) return null
       return store.document.segments
     })

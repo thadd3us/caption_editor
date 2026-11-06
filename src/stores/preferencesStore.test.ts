@@ -41,7 +41,7 @@ describe('usePreferencesStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
-    delete (window as any).electronAPI
+    delete window.electronAPI
   })
 
   it('starts from defaults when nothing is persisted', () => {
@@ -62,13 +62,14 @@ describe('usePreferencesStore', () => {
 
   it('reads and writes through electronAPI when available', () => {
     const set = vi.fn().mockResolvedValue(undefined)
-    ;(window as any).electronAPI = {
+    // Only the slice this test exercises; the store reads nothing else.
+    ;window.electronAPI = {
       preferences: {
         getSync: () => ({ pausePlaybackWhileEditingCaption: true }),
         set,
         onChanged: vi.fn()
       }
-    }
+    } as unknown as Window['electronAPI']
 
     const prefs = usePreferencesStore()
     expect(prefs.preferences.pausePlaybackWhileEditingCaption).toBe(true)

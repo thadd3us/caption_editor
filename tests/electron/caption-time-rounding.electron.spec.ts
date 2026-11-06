@@ -25,7 +25,7 @@ test.describe('Caption time rounding', () => {
 
     await page.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
       },
       { timeout: 5000 }
@@ -34,8 +34,8 @@ test.describe('Caption time rounding', () => {
 
   async function loadMediaFile(page: Page, filePath: string) {
     const url = await page.evaluate(async (p) => {
-      const store = (window as any).$store
-      const electronAPI = (window as any).electronAPI
+      const store = window.$store
+      const electronAPI = window.electronAPI
       if (!store?.loadMediaFile) throw new Error('Store not available')
       if (!electronAPI?.fileToURL) throw new Error('electronAPI.fileToURL not available')
 
@@ -46,7 +46,7 @@ test.describe('Caption time rounding', () => {
     }, filePath)
     await page.waitForFunction(
       (expectedUrl) => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.mediaPath === expectedUrl
       },
       url,
@@ -102,7 +102,7 @@ test.describe('Caption time rounding', () => {
     const startTime = 90.03999999999999
     await page.waitForFunction(
       (st) => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.currentTime >= 89 && store.currentTime !== st
       },
       startTime,

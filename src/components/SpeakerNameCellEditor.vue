@@ -81,7 +81,7 @@ export default defineComponent({
     // Playwright+Electron has a known crash bug when interacting with <input list=...> / <datalist>.
     // Disable datalist suggestions in E2E tests to keep the renderer stable.
     const enableDatalist = computed(() => {
-      return !((window as any).electronAPI?.isTest === true)
+      return !(window.electronAPI?.isTest === true)
     })
 
     // Debug logging for macOS troubleshooting

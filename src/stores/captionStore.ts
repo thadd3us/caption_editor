@@ -212,6 +212,71 @@ export const useCaptionStore = defineStore('captions', () => {
     viewDirty.value = true
   }
 
+  /* -------------------------------------------------------------------------
+   * Cross-component state that used to travel outside the store.
+   *
+   * Three things were being passed between CaptionTable and App.vue by other
+   * means: the set of rows an action targets (a `window.__captionTableSelectedRows`
+   * global), a request to open the delete dialog (a DOM `CustomEvent`), and a
+   * request to sort by speaker similarity (another `CustomEvent`, in the other
+   * direction). Each was invisible to the type checker and to anyone reading
+   * either component on its own.
+   * ---------------------------------------------------------------------- */
+
+  /**
+   * Every row the grid currently has selected, mirrored out of AG Grid.
+   *
+   * AG Grid owns selection — it is the widget's own state and there is no sense in
+   * fighting that — but nothing outside the table should have to reach into the grid
+   * API to find out what is selected. `CaptionTable` pushes the ids here on every
+   * selection change; everyone else reads them.
+   *
+   * Distinct from `selectedSegmentId`, which is the *anchor*: the single row the
+   * playhead follows, that `uiState` persists, and that the selection pin keys off.
+   */
+  const selectedSegmentIds = ref<string[]>([])
+
+  /**
+   * Segments awaiting the user's confirmation in the delete dialog, or null.
+   *
+   * Set by the table's context menu, read by `App.vue` to open the dialog. The
+   * row ids travel in the state rather than in a global the dialog reads back,
+   * so the set that gets deleted is the set the menu targeted — not whatever the
+   * grid happens to have selected by the time the user clicks Delete.
+   */
+  const pendingDeletion = ref<readonly string[] | null>(null)
+
+  /**
+   * Bumped to ask the table to sort by speaker similarity.
+   *
+   * A counter rather than a boolean because it is an event, not a state: asking
+   * twice in a row has to fire twice, and there is nothing to reset afterwards.
+   */
+  const speakerSimilarityRequest = ref(0)
+
+  function setSelectedSegmentIds(ids: string[]) {
+    selectedSegmentIds.value = ids
+  }
+
+  function requestSegmentDeletion(segmentIds: readonly string[]) {
+    pendingDeletion.value = [...segmentIds]
+  }
+
+  function clearPendingDeletion() {
+    pendingDeletion.value = null
+  }
+
+  /** Confirm the pending deletion. No-op when nothing is pending. */
+  function confirmPendingDeletion() {
+    const ids = pendingDeletion.value
+    pendingDeletion.value = null
+    if (ids && ids.length > 0) bulkDeleteSegments([...ids])
+  }
+
+  function requestSpeakerSimilaritySort() {
+    speakerSimilarityRequest.value++
+  }
+
   // Grid state provider: CaptionTable registers a callback that returns current grid UI state
   const gridStateProvider = ref<(() => UIState | undefined) | null>(null)
 
@@ -312,7 +377,12 @@ export const useCaptionStore = defineStore('captions', () => {
     // App.vue tracks "already tried auto-load for this metadata.id". A full reload with the
     // same id (e.g. after Compute Speaker Embeddings) must clear that or mediaPath stays null.
     try {
-      const reset = (window as any).__resetAttemptedAutoLoad
+      // Deliberately a cast, not the declared global. `window.$store` is typed as
+      // `ReturnType<typeof useCaptionStore>`, so if this file referenced anything from
+      // window-globals.d.ts the two would import each other and TypeScript would resolve
+      // the store's own type to an empty `Store<"captions", {}, {}, {}>` — which silently
+      // turns every `window.$store.…` in the specs back into an unchecked `any`.
+      const reset = (window as { __resetAttemptedAutoLoad?: () => void }).__resetAttemptedAutoLoad
       if (typeof reset === 'function') reset()
     } catch {
       /* ignore outside Electron */
@@ -343,7 +413,7 @@ export const useCaptionStore = defineStore('captions', () => {
       // Convert relative media file path to absolute path
       // According to architecture: paths are stored as absolute internally, relative only on export
       try {
-        const electronAPI = (window as any).electronAPI
+        const electronAPI = window.electronAPI
         if (loadedDoc.metadata.mediaFilePath && filePath && electronAPI?.path) {
           const mediaPath = loadedDoc.metadata.mediaFilePath
           // Only convert if it's a relative path
@@ -474,7 +544,7 @@ export const useCaptionStore = defineStore('captions', () => {
     let documentToExport = document.value
 
     const absoluteMediaPath = document.value.metadata.mediaFilePath
-    const electronAPI = (window as any).electronAPI
+    const electronAPI = window.electronAPI
 
     if (absoluteMediaPath && document.value.filePath && electronAPI?.path) {
       try {
@@ -833,7 +903,7 @@ export const useCaptionStore = defineStore('captions', () => {
    */
   async function processFilePaths(filePaths: string[]): Promise<{ successes: number; failures: number }> {
     const t0 = performance.now()
-    const electronAPI = (window as any).electronAPI
+    const electronAPI = window.electronAPI
     if (!electronAPI || !electronAPI.processDroppedFiles) {
       console.error('Electron processDroppedFiles API not available')
       throw new Error('File processing API not available')
@@ -891,6 +961,9 @@ export const useCaptionStore = defineStore('captions', () => {
     viewDirty,
     canUndo,
     canRedo,
+    selectedSegmentIds,
+    pendingDeletion,
+    speakerSimilarityRequest,
     gridStateProvider,
     leftPanelWidth,
     captionHeight,
@@ -910,6 +983,11 @@ export const useCaptionStore = defineStore('captions', () => {
     updateFilePath,
     setIsDirty,
     markSaved,
+    setSelectedSegmentIds,
+    requestSegmentDeletion,
+    clearPendingDeletion,
+    confirmPendingDeletion,
+    requestSpeakerSimilaritySort,
     undo,
     redo,
     clearHistory,

@@ -60,7 +60,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     // Check store state before waiting
     const initialCheck = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         storeExists: !!store,
         documentExists: !!store?.document,
@@ -74,7 +74,7 @@ test.describe('File Association - Open captions files from OS', () => {
     // Wait for the captions file to be loaded (check that segments are loaded)
     await appPage.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
       },
       { timeout: 5000 }
@@ -82,7 +82,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     // Check that the captions file was loaded by checking the store
     const storeState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         hasDocument: !!store?.document,
         segmentCount: store?.document?.segments?.length || 0,
@@ -108,7 +108,7 @@ test.describe('File Association - Open captions files from OS', () => {
     // Wait for media auto-load to complete (check that mediaPath is set)
     await appPage.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store?.mediaPath !== null && store?.mediaPath !== undefined
       },
       { timeout: 5000 }
@@ -116,7 +116,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     // Check that media was auto-loaded
     const mediaState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         mediaPath: store?.mediaPath,
         mediaFilePath: store?.mediaFilePath
@@ -147,7 +147,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     // Check that the first segment is visible
     const firstSegmentText = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store?.document?.segments?.[0]?.text
     })
     expect(firstSegmentText).toBe('The birch canoe slid on the smooth planks.')
@@ -196,14 +196,14 @@ test.describe('File Association - Open captions files from OS', () => {
 
     await appPage.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store?.document?.segments?.length > 0
       },
       { timeout: 5000 }
     )
 
     const storeState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return { filePath: store?.document?.filePath, firstText: store?.document?.segments?.[0]?.text }
     })
 
@@ -257,14 +257,14 @@ test.describe('File Association - Open captions files from OS', () => {
 
     await appPage.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store?.document?.segments?.length > 0
       },
       { timeout: 5000 }
     )
 
     const storeState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return { filePath: store?.document?.filePath, firstText: store?.document?.segments?.[0]?.text }
     })
 
@@ -322,7 +322,7 @@ test.describe('File Association - Open captions files from OS', () => {
     // Wait for the captions file to be loaded (check that segments are loaded)
     await appPage.waitForFunction(
       () => {
-        const store = (window as any).$store
+        const store = window.$store
         return store && store.document && store.document.segments && store.document.segments.length > 0
       },
       { timeout: 5000 }
@@ -330,7 +330,7 @@ test.describe('File Association - Open captions files from OS', () => {
 
     // Check that the file was loaded
     const storeState = await appPage.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         segmentCount: store?.document?.segments?.length || 0,
         filePath: store?.document?.filePath

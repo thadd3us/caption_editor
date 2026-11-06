@@ -10,7 +10,7 @@
     "dev:electron": "npm run build:electron && electron . --trace-warnings",
     "dev:electron:watch": "concurrently \"npm run dev\" \"npm run dev:electron\"",
     "build": "vue-tsc && vite build",
-    "build:electron": "vite build --config vite.electron.config.ts",
+    "build:electron": "vite build --config vite.electron.config.ts && vite build --config vite.preload.config.ts",
     "build:all": "npm run build && npm run build:electron",
     "build:ffmpeg": "python3 scripts/stage-ffmpeg.py",
     "build:rust": "sh -c 'BAZEL=$(command -v bazelisk || command -v bazel) && \"$BAZEL\" build //transcribe_rs/transcribe-rs //transcribe_rs/embed-rs' && mkdir -p dist-rust && cp -f bazel-bin/transcribe_rs/transcribe-rs/transcribe-rs bazel-bin/transcribe_rs/embed-rs/embed-rs dist-rust/ && chmod +x dist-rust/transcribe-rs dist-rust/embed-rs && npm run build:ffmpeg && npm run build:wespeaker-onnx",

@@ -11,25 +11,25 @@ test.describe('Caption Editor - Word-Level Split', () => {
 
   async function loadCaptionsAndWaitForSegments(captionsContent: string, expectedCount: number): Promise<void> {
     await appPage.evaluate(({ content }) => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return
       vttStore.loadFromFile(content, '/test/file.captions_json5')
     }, { content: captionsContent })
 
     await appPage.waitForFunction((count) => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore?.document?.segments?.length === count
     }, expectedCount)
   }
 
   async function setCurrentTimeAndWait(timeSeconds: number): Promise<void> {
     await appPage.evaluate((t) => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (vttStore) vttStore.setCurrentTime(t)
     }, timeSeconds)
 
     await appPage.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return typeof store?.currentTime === 'number'
     })
   }
@@ -146,7 +146,7 @@ test.describe('Caption Editor - Word-Level Split', () => {
 
     // Verify initial state - one segment
     let segmentCount = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore ? vttStore.document.segments.length : 0
     })
     expect(segmentCount).toBe(1)
@@ -162,20 +162,20 @@ test.describe('Caption Editor - Word-Level Split', () => {
     })
 
     await appPage.waitForFunction(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore ? vttStore.document.segments.length === 2 : false
     })
 
     // Verify we now have two segments
     segmentCount = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore ? vttStore.document.segments.length : 0
     })
     expect(segmentCount).toBe(2)
 
     // Verify the segments have correct content
     const segments = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return null
       return vttStore.document.segments.map((seg: any) => ({
         text: seg.text,
@@ -328,13 +328,13 @@ test.describe('Caption Editor - Word-Level Split', () => {
     await splitMenuItem.click()
 
     await appPage.waitForFunction(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       return vttStore ? vttStore.document.segments.length === 2 : false
     })
 
     // Verify both segments have speaker and rating
     const segments = await appPage.evaluate(() => {
-      const vttStore = (window as any).$store
+      const vttStore = window.$store
       if (!vttStore) return null
       return vttStore.document.segments.map((seg: any) => ({
         text: seg.text,

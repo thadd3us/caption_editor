@@ -28,7 +28,7 @@ async function newWindow(): Promise<Page> {
   await expect.poll(() => electronApp.windows().length, { timeout: 10000 }).toBe(before + 1)
   const page = electronApp.windows()[before]
   await page.waitForLoadState('domcontentloaded')
-  await page.waitForFunction(() => (window as any).$store, { timeout: 10000 })
+  await page.waitForFunction(() => window.$store, { timeout: 10000 })
   await acceptLicenseIfVisible(page)
   return page
 }
@@ -43,7 +43,7 @@ async function requestQuit(): Promise<void> {
 test.beforeAll(async () => {
   electronApp = await launchElectron({ env: { CAPTION_EDITOR_INTERCEPT_CLOSE: '1' } })
   const page = await firstReadyWindow(electronApp)
-  await page.waitForFunction(() => (window as any).$store, { timeout: 10000 })
+  await page.waitForFunction(() => window.$store, { timeout: 10000 })
   await acceptLicenseIfVisible(page)
 })
 
@@ -82,7 +82,7 @@ test('"Keep working" in one window cancels the quit for every window', async () 
 
   // Both windows have unsaved content, so both will be asked.
   for (const page of [page1, page2]) {
-    await page.evaluate(() => (window as any).$store.addSegment(0, 5))
+    await page.evaluate(() => window.$store.addSegment(0, 5))
   }
 
   await requestQuit()
@@ -98,8 +98,8 @@ test('"Keep working" in one window cancels the quit for every window', async () 
   // past the point where the remaining windows would have been asked to close.
   await page1.waitForTimeout(1000)
   expect(electronApp.windows().length).toBe(2)
-  expect(await page2.evaluate(() => (window as any).$store.document.segments.length)).toBe(1)
-  expect(await page1.evaluate(() => (window as any).$store.document.segments.length)).toBe(1)
+  expect(await page2.evaluate(() => window.$store.document.segments.length)).toBe(1)
+  expect(await page1.evaluate(() => window.$store.document.segments.length)).toBe(1)
 })
 
 test('discarding in every window completes the quit', async () => {

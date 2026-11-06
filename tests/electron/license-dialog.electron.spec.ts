@@ -28,18 +28,18 @@ test.describe('License Agreement Dialog', () => {
       const page = await firstReadyWindow(electronApp)
       await page.waitForLoadState('domcontentloaded')
       await page.waitForFunction(
-        () => (window as any).$store || (window as any).store,
+        () => window.$store || (window as any).store,
         { timeout: 10000 }
       )
 
       // Clear persisted acceptance (userData file + localStorage) to simulate first run
       await page.evaluate(async () => {
         localStorage.removeItem('caption-editor-license-accepted')
-        await (window as any).electronAPI?.clearLicenseAcceptedForTests?.()
+        await window.electronAPI?.clearLicenseAcceptedForTests?.()
       })
       await page.reload({ waitUntil: 'domcontentloaded' })
       await page.waitForFunction(
-        () => (window as any).$store || (window as any).store,
+        () => window.$store || (window as any).store,
         { timeout: 10000 }
       )
 
@@ -62,7 +62,7 @@ test.describe('License Agreement Dialog', () => {
       // After reload, dialog should NOT appear
       await page.reload({ waitUntil: 'domcontentloaded' })
       await page.waitForFunction(
-        () => (window as any).$store || (window as any).store,
+        () => window.$store || (window as any).store,
         { timeout: 10000 }
       )
       await expect(dialog).not.toBeVisible()

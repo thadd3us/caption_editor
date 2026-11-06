@@ -20,30 +20,30 @@ test.describe('File Save - Save captions files correctly', () => {
 
     // Load the captions JSON into the shared renderer store (sets document.filePath)
     await page.evaluate(({ content, filePath }) => {
-      const store = (window as any).$store
+      const store = window.$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: tempCaptionsPath })
 
     // Load a media file
     await page.evaluate(async (audioPath) => {
-      const store = (window as any).$store
-      const electronAPI = (window as any).electronAPI
+      const store = window.$store
+      const electronAPI = window.electronAPI
 
       // Convert file to URL and load it
-      const result = await electronAPI.fileToURL(audioPath)
+      const result = await electronAPI!.fileToURL(audioPath)
       if (result.success) {
         store.loadMediaFile(result.url, audioPath)
       }
     }, audioFilePath)
 
     await page.waitForFunction(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return !!store?.mediaPath && !!store?.mediaFilePath
     }, { timeout: 5000 })
 
     // Verify media was loaded in the store
     const mediaState = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return {
         mediaPath: store?.mediaPath,
         mediaFilePath: store?.mediaFilePath
@@ -55,7 +55,7 @@ test.describe('File Save - Save captions files correctly', () => {
 
     // Export the captions content to see what would be saved
     const exportedContent = await page.evaluate(() => {
-      const store = (window as any).$store
+      const store = window.$store
       return store.exportToString()
     })
 
