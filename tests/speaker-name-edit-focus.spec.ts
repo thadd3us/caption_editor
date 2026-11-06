@@ -298,12 +298,14 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     await input.press('Enter')
 
-    // Verify store updated.
-    const speakerName = await appPage.evaluate(() => {
-      const store = (window as any).$store
-      return store?.document?.segments?.[0]?.speakerName
-    })
-    expect(speakerName).toBe('Bob')
+    // Poll: the keypress has to reach the renderer and the editor has to commit through
+    // the store before this is true. Reading once here raced the commit on CI and saw
+    // the pre-edit value.
+    await expectPageValue(
+      appPage,
+      () => (window as any).$store?.document?.segments?.[0]?.speakerName,
+      'Bob'
+    )
   })
 
   /**
@@ -337,10 +339,20 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     const speakerCell = appPage.locator('.ag-cell[col-id="speakerName"]').first()
     await speakerCell.click()
     await expect(speakerCell).toBeFocused()
-    await appPage.keyboard.type('James', { delay: 40 })
+
+    // The first keystroke is what opens the editor — that it survives the editor mounting
+    // is the regression under test, so send it on its own and assert it landed.
+    await appPage.keyboard.type('J')
 
     const editor = appPage.locator('.speaker-name-editor')
     await expect(editor).toBeVisible({ timeout: 5000 })
+    await expect(editor).toBeFocused()
+    await expect(editor).toHaveValue('J')
+
+    // Only once the editor holds the focus can the rest of the word land in it. Typing all
+    // five characters in one burst dropped the tail on a slower machine: the editor was
+    // still mounting, and the test saw "J".
+    await editor.pressSequentially('ames', { delay: 40 })
     await expect(editor).toHaveValue('James')
   })
 
