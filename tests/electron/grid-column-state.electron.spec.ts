@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
 import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
+import { expectPageValue, waitForSegmentCount } from '../helpers/wait-helpers'
 
 test.describe('Grid Column State - Persist and restore column visibility', () => {
   test('should save column state with hidden columns and restore on re-open', async ({ page }) => {
@@ -84,8 +85,8 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
       store.reset()
     })
 
-    // Small delay for grid to process reset
-    await page.waitForTimeout(100)
+    // The reset has landed once the grid reports no rows.
+    await waitForSegmentCount(page, 0)
 
     // Reload with the saved content (which includes uiState)
     await page.evaluate(({ content, filePath }) => {
@@ -93,10 +94,15 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
       store.loadFromFile(content, filePath)
     }, { content: exportedContent, filePath: tempCaptionsPath })
 
-    // Wait for grid state to be restored (restoreGridState uses setTimeout(0))
-    await page.waitForTimeout(200)
+    // restoreGridState runs in a setTimeout(0), so poll the column state rather than
+    // guessing how long that takes.
+    await expectPageValue(
+      page,
+      () => !!(window as any).__agGridApi?.getColumnState?.()
+        .find((c: any) => c.colId === 'rating')?.hide,
+      true
+    )
 
-    // Verify Rating column is still hidden after restore
     const ratingVisibleAfterRestore = await page.evaluate(() => {
       const api = (window as any).__agGridApi
       return api.getColumn('rating')?.isVisible()
@@ -141,7 +147,13 @@ test.describe('Grid Column State - Persist and restore column visibility', () =>
     }, { content: oldFormatCaptions, filePath: tempCaptionsPath })
 
     await page.waitForFunction(() => !!(window as any).__agGridApi, { timeout: 5000 })
-    await page.waitForTimeout(200)
+    // A document with no uiState leaves every column at its default visibility.
+    await expectPageValue(
+      page,
+      () => !!(window as any).__agGridApi?.getColumnState?.()
+        .find((c: any) => c.colId === 'rating') && true,
+      true
+    )
 
     // All default columns should be visible
     const ratingVisible = await page.evaluate(() => {

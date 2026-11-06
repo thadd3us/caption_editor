@@ -18,7 +18,8 @@ test('filled stars should be gold, empty stars should be grey', async ({ page })
     api.forEachNode(() => count++)
     return count >= 1
   }, { timeout: 5000 })
-  await page.waitForTimeout(500)
+  // The star cells render after the row shell; wait for a filled star to exist.
+  await page.waitForSelector('.star-rating .star-filled, .star-rating [data-star-index]', { timeout: 5000 })
 
   const colors = await page.evaluate(() => {
     const stars = document.querySelectorAll('.star-rating .star')

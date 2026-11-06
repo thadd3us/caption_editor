@@ -41,7 +41,8 @@ test.describe('Playback speed', () => {
         if (res.type === 'captions_json5' && res.content) store.loadFromFile(res.content, res.filePath)
       }
     }, filePath)
-    await page.waitForTimeout(200)
+    await page.waitForFunction(
+      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
   }
 
   async function loadMedia(page: Page, name = 'test-audio-10s.wav') {

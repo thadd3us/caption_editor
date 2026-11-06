@@ -3,15 +3,15 @@ import { expectGridCaptionTotal } from './helpers/wait-helpers'
 import type { Page } from '@playwright/test'
 
 test.describe('Caption Editor - Rename Speaker', () => {
-  let window: Page
+  let appPage: Page
 
   test.beforeEach(async ({ page }) => {
-    window = page
+    appPage = page
   })
 
   test('should rename speaker across multiple segments', async () => {
     // Load captions JSON with multiple speakers using direct store manipulation
-    const loadResult = await window.evaluate(() => {
+    const loadResult = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return { success: false, error: 'No store on window' }
 
@@ -35,27 +35,27 @@ test.describe('Caption Editor - Rename Speaker', () => {
     expect(loadResult.success).toBe(true)
     expect(loadResult.segmentCount).toBe(3)
 
-    await expectGridCaptionTotal(window, 3, 2000)
+    await expectGridCaptionTotal(appPage, 3, 2000)
 
     // Open rename dialog (simulating Edit menu -> Rename Speaker)
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
     // Dialog should be visible
-    const dialog = window.locator('.base-modal-overlay')
+    const dialog = appPage.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Select "Alice" from dropdown
-    const dropdown = window.locator('#speaker-select')
+    const dropdown = appPage.locator('#speaker-select')
     await dropdown.selectOption('Alice')
 
     // Enter new name "Alice Smith"
-    const input = window.locator('#new-name-input')
+    const input = appPage.locator('#new-name-input')
     await input.fill('Alice Smith')
 
     // Click Rename button
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const renameBtn = buttons.find(b => b.textContent?.includes('Rename') && !b.textContent?.includes('Speaker'))
       if (renameBtn) renameBtn.click()
@@ -65,7 +65,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
     await expect(dialog).not.toBeVisible()
 
     // Verify speaker was renamed in the store
-    const speakerNames = await window.evaluate(() => {
+    const speakerNames = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return null
       return store.document.segments.map((segment: any) => segment.speakerName)
@@ -82,14 +82,14 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Reset store to clean state before test
     console.log('Resetting store to clean state...')
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       store.reset()
     })
-    await window.waitForFunction(() => { const store = (window as any).$store; return store?.document !== undefined })
+    await appPage.waitForFunction(() => { const store = (window as any).$store; return store?.document !== undefined })
 
     // Check initial state before loading
-    const beforeState = await window.evaluate(() => {
+    const beforeState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         segmentCount: store.document.segments.length,
@@ -103,7 +103,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Load captions JSON without speakers using store directly
     console.log('Loading captions without speakers')
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       const captionsContent = JSON.stringify({
         metadata: { id: 'doc1' },
@@ -115,13 +115,13 @@ test.describe('Caption Editor - Rename Speaker', () => {
       store.loadFromFile(captionsContent, '/test/no-speakers.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 2
     })
 
     // Check state after loading
-    const afterState = await window.evaluate(() => {
+    const afterState = await appPage.evaluate(() => {
       const store = (window as any).$store
       const segments = store.document.segments
       return {
@@ -137,7 +137,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
     // Try to open rename dialog
     console.log('Attempting to open rename speaker dialog...')
-    const dialogOpenResult = await window.evaluate(() => {
+    const dialogOpenResult = await appPage.evaluate(() => {
       const store = (window as any).$store
       const hasSpeakers = store.document.segments.some(
         (segment: any) => segment.speakerName && segment.speakerName.trim() !== ''
@@ -149,7 +149,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
     console.log('Dialog open result:', dialogOpenResult)
 
     // Check dialog visibility
-    const dialog = window.locator('.base-modal-overlay')
+    const dialog = appPage.locator('.base-modal-overlay')
     const isVisible = await dialog.isVisible()
     console.log(`Dialog visibility: ${isVisible} (expected: false)`)
 
@@ -159,7 +159,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
   test('should close dialog when clicking Cancel', async () => {
     // Load captions JSON with speaker
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -171,22 +171,22 @@ test.describe('Caption Editor - Rename Speaker', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 1
     })
 
     // Open rename dialog
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
     // Dialog should be visible
-    const dialog = window.locator('.base-modal-overlay')
+    const dialog = appPage.locator('.base-modal-overlay')
     await expect(dialog).toBeVisible()
 
     // Click Cancel button
-    const cancelButton = window.locator('button.dialog-button-secondary')
+    const cancelButton = appPage.locator('button.dialog-button-secondary')
     await cancelButton.click()
 
     // Dialog should be closed
@@ -195,7 +195,7 @@ test.describe('Caption Editor - Rename Speaker', () => {
 
   test('should record history entries for renamed segments', async () => {
     // Load captions JSON with speakers
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -210,37 +210,37 @@ test.describe('Caption Editor - Rename Speaker', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const store = (window as any).$store
       return store?.document?.segments?.length === 2
     })
 
     // Open rename dialog
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       ;(window as any).openRenameSpeakerDialog()
     })
 
     // Wait for dialog
-    await window.waitForSelector('.base-modal-overlay', { state: 'visible' })
+    await appPage.waitForSelector('.base-modal-overlay', { state: 'visible' })
 
     // Select John and rename to Jonathan
-    const dropdown = window.locator('#speaker-select')
+    const dropdown = appPage.locator('#speaker-select')
     await dropdown.selectOption('John')
 
-    const input = window.locator('#new-name-input')
+    const input = appPage.locator('#new-name-input')
     await input.fill('Jonathan')
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'))
       const renameBtn = buttons.find(b => b.textContent?.trim() === 'Rename')
       if (renameBtn) renameBtn.click()
     })
 
     // Wait for dialog to close
-    await window.waitForSelector('.base-modal-overlay', { state: 'hidden' })
+    await appPage.waitForSelector('.base-modal-overlay', { state: 'hidden' })
 
     // Check that history entries were created
-    const historyCount = await window.evaluate(() => {
+    const historyCount = await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return 0
 

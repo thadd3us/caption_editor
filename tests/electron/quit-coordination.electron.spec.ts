@@ -13,6 +13,7 @@
 import { test, expect, ElectronApplication, Page } from '@playwright/test'
 import { launchElectron } from '../helpers/electron-launch'
 import { acceptLicenseIfVisible } from '../helpers/license'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 let electronApp: ElectronApplication
 
@@ -41,7 +42,7 @@ async function requestQuit(): Promise<void> {
 
 test.beforeAll(async () => {
   electronApp = await launchElectron({ env: { CAPTION_EDITOR_INTERCEPT_CLOSE: '1' } })
-  const page = await electronApp.firstWindow()
+  const page = await firstReadyWindow(electronApp)
   await page.waitForFunction(() => (window as any).$store, { timeout: 10000 })
   await acceptLicenseIfVisible(page)
 })
@@ -91,6 +92,10 @@ test('"Keep working" in one window cancels the quit for every window', async () 
   await asked.locator('.base-modal button:has-text("Keep working")').click()
 
   // Nothing closed, and the second window never lost its edits.
+  //
+  // This is one of the few places a fixed wait is the right tool: the assertion is that a
+  // quit does NOT proceed, and "did not happen" has no state to poll for. A second is well
+  // past the point where the remaining windows would have been asked to close.
   await page1.waitForTimeout(1000)
   expect(electronApp.windows().length).toBe(2)
   expect(await page2.evaluate(() => (window as any).$store.document.segments.length)).toBe(1)

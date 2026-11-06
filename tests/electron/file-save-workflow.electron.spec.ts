@@ -6,7 +6,7 @@ import { getProjectRoot } from '../helpers/project-root'
 import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
 
 test.describe('File Save Workflow - Complete save and save-as cycle', () => {
-  let window: Page
+  let appPage: Page
   let tempDir: string
   let testCaptionsPath: string
   let saveAsPath: string
@@ -42,17 +42,17 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   })
 
   test('should open, edit, and save captions file', async ({ page }) => {
-    window = page
+    appPage = page
 
     // Step 1: Load the test captions file into the shared renderer store
     console.log('Step 1: Loading captions into store:', testCaptionsPath)
     const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
-    await window.evaluate(({ content, filePath }) => {
+    await appPage.evaluate(({ content, filePath }) => {
       const store = (window as any).$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: testCaptionsPath })
 
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
       testCaptionsPath,
       { timeout: 5000 }
@@ -61,12 +61,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 2: Verify the file path is displayed in the UI
     console.log('Step 2: Verifying file path display in UI')
 
-    const filePathDisplay = await window.locator('.file-path-display').textContent()
+    const filePathDisplay = await appPage.locator('.file-path-display').textContent()
     expect(filePathDisplay).toContain(testCaptionsPath)
     console.log('✓ File path displayed correctly:', filePathDisplay)
 
     // Verify the store has the correct file path
-    const storeFilePath = await window.evaluate(() => {
+    const storeFilePath = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.document.filePath
     })
@@ -77,7 +77,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 3: Adding new segment and editing it')
 
     // Set current time to 20 seconds and add a segment
-    const newSegmentId = await window.evaluate(() => {
+    const newSegmentId = await appPage.evaluate(() => {
       const store = (window as any).$store
       store.setCurrentTime(20)
       const segmentId = store.addSegment(20, 5) // Add segment from 20s to 25s
@@ -90,7 +90,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('✓ Added new segment with ID:', newSegmentId, 'and edited it 3 times')
 
     // Verify the segment was added
-    const segmentCount = await window.evaluate(() => {
+    const segmentCount = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.document.segments.length
     })
@@ -101,7 +101,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 4: Saving file (overwrite)')
 
     // Trigger save programmatically (more reliable than keyboard shortcut in tests)
-    await window.evaluate(async () => {
+    await appPage.evaluate(async () => {
       const electronAPI = (window as any).electronAPI
       const store = (window as any).$store
 
@@ -119,8 +119,8 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
         throw new Error('Save failed: ' + result.error)
       }
     })
-    await window.waitForTimeout(500)
-
+    // No wait needed: `saveExistingFile` resolves only after the main process has
+    // finished fs.writeFile, so the bytes are on disk by the time the evaluate returns.
     console.log(`✓ Save triggered programmatically`)
 
     // Step 5: Check the contents of the saved captions file
@@ -128,16 +128,22 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const savedContent = await fs.readFile(testCaptionsPath, 'utf-8')
     const savedDoc = parseCaptionsFileContent(savedContent) as {
-      segments: Array<{ id: string; text: string; speakerName?: string }>
+      segments: Array<{
+        id: string
+        text: string
+        speakerName?: string
+        startTime: number
+        endTime: number
+      }>
     }
     console.log('Saved captions JSON preview:', JSON.stringify(savedDoc, null, 2).substring(0, 500))
 
     // Verify the saved content has the new segment
     expect(JSON.stringify(savedDoc)).toContain('This is a new test caption added by the E2E test!')
-    const newSegment = savedDoc.segments.find((s: any) => s.text?.includes('This is a new test caption'))
-    expect(newSegment).toBeTruthy()
-    expect(newSegment.startTime).toBe(20)
-    expect(newSegment.endTime).toBe(25)
+    const newSegment = savedDoc.segments.find((s) => s.text?.includes('This is a new test caption'))
+    expect(newSegment).toBeDefined()
+    expect(newSegment!.startTime).toBe(20)
+    expect(newSegment!.endTime).toBe(25)
 
     // Verify it still has original segments
     expect(JSON.stringify(savedDoc)).toContain('Welcome to the Caption Editor!')
@@ -147,15 +153,15 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   })
 
   test('should save-as captions file to new location and update UI', async ({ page }) => {
-    window = page
+    appPage = page
     console.log('Setup: Loading initial captions file for save-as test')
     const initialCaptions = await fs.readFile(testCaptionsPath, 'utf-8')
-    await window.evaluate(({ content, filePath }) => {
+    await appPage.evaluate(({ content, filePath }) => {
       const store = (window as any).$store
       store.loadFromFile(content, filePath)
     }, { content: initialCaptions, filePath: testCaptionsPath })
 
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
       testCaptionsPath,
       { timeout: 5000 }
@@ -165,7 +171,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 6: Testing Save As functionality')
 
     // Get the current file path
-    const initialFilePath = await window.evaluate(() => {
+    const initialFilePath = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.document.filePath
     })
@@ -173,7 +179,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     expect(initialFilePath).toBe(testCaptionsPath)
 
     // Simulate what Save As does: export content and update file path
-    const exportedContent = await window.evaluate(() => {
+    const exportedContent = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.exportToString()
     })
@@ -183,7 +189,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('✓ Content written to save-as path:', saveAsPath)
 
     // Update the store's file path (this is what Save As does)
-    await window.evaluate((newPath) => {
+    await appPage.evaluate((newPath) => {
       const store = (window as any).$store
       store.updateFilePath(newPath)
     }, saveAsPath)
@@ -191,7 +197,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 7: Verify the updateFilePath worked
     console.log('Step 7: Verifying file path was updated')
 
-    const updatedStoreFilePath = await window.evaluate(() => {
+    const updatedStoreFilePath = await appPage.evaluate(() => {
       const store = (window as any).$store
       return store.document.filePath
     })
@@ -199,8 +205,8 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('✓ Store updated with new file path:', updatedStoreFilePath)
 
     // Verify the UI shows the new file path
-    await window.waitForTimeout(500)
-    const updatedFilePathDisplay = await window.locator('.file-path-display').textContent()
+    await expect(appPage.locator('.file-path-display')).toContainText(saveAsPath)
+    const updatedFilePathDisplay = await appPage.locator('.file-path-display').textContent()
     expect(updatedFilePathDisplay).toContain(saveAsPath)
     console.log('✓ UI updated with new file path:', updatedFilePathDisplay)
 
@@ -222,7 +228,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
   })
 
   test('should load, modify, and save speaker_name field via table UI', async ({ page }) => {
-    window = page
+    appPage = page
     // Step 1: Set up a captions JSON document containing speaker names
     console.log('Step 1: Setting up test document with speaker names')
     const osrCaptionsPath = path.join(tempDir, 'osr-test-speakers.captions_json5')
@@ -249,12 +255,12 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 2: Load the OSR test document into the shared renderer store
     console.log('Step 2: Loading OSR captions into store:', osrCaptionsPath)
     const osrContent = await fs.readFile(osrCaptionsPath, 'utf-8')
-    await window.evaluate(({ content, filePath }) => {
+    await appPage.evaluate(({ content, filePath }) => {
       const store = (window as any).$store
       store.loadFromFile(content, filePath)
     }, { content: osrContent, filePath: osrCaptionsPath })
 
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       (expectedPath) => (window as any).$store?.document?.filePath === expectedPath,
       osrCaptionsPath,
       { timeout: 5000 }
@@ -262,7 +268,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     // Step 2.5: Verify media actually loaded
     console.log('Step 2.5: Verifying media loaded and has non-zero duration')
-    await window.waitForFunction(
+    await appPage.waitForFunction(
       () => {
         const video = document.querySelector('video')
         const audio = document.querySelector('audio')
@@ -271,7 +277,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
       },
       { timeout: 15000 }
     )
-    const mediaStatus = await window.evaluate(() => {
+    const mediaStatus = await appPage.evaluate(() => {
       const video = document.querySelector('video')
       const audio = document.querySelector('audio')
       const media = (video || audio) as HTMLMediaElement
@@ -291,7 +297,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     // Step 3: Verify speaker names are loaded correctly
     console.log('Step 3: Verifying speaker names loaded from captions file')
 
-    const speakerData = await window.evaluate(() => {
+    const speakerData = await appPage.evaluate(() => {
       const store = (window as any).$store
       const segments = store.document.segments
       return segments.map((segment: any) => ({
@@ -319,13 +325,13 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 4: Modifying first speaker name from Alice to Charlie')
 
     const firstSegmentId = speakerData[0].id
-    await window.evaluate((segmentId) => {
+    await appPage.evaluate((segmentId) => {
       const store = (window as any).$store
       store.updateSegment(segmentId, { speakerName: 'Charlie' })
     }, firstSegmentId)
 
     // Verify the update
-    const updatedFirstSpeaker = await window.evaluate((segmentId) => {
+    const updatedFirstSpeaker = await appPage.evaluate((segmentId) => {
       const store = (window as any).$store
       const segment = store.document.segments.find((s: any) => s.id === segmentId)
       return segment?.speakerName
@@ -337,13 +343,13 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 5: Adding speaker name "Diana" to second segment')
 
     const secondSegmentId = speakerData[1].id
-    await window.evaluate((segmentId) => {
+    await appPage.evaluate((segmentId) => {
       const store = (window as any).$store
       store.updateSegment(segmentId, { speakerName: 'Diana' })
     }, secondSegmentId)
 
     // Verify the addition
-    const newSecondSpeaker = await window.evaluate((segmentId) => {
+    const newSecondSpeaker = await appPage.evaluate((segmentId) => {
       const store = (window as any).$store
       const segment = store.document.segments.find((s: any) => s.id === segmentId)
       return segment?.speakerName
@@ -355,7 +361,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
     console.log('Step 6: Saving file with updated speaker names')
 
     // Trigger save programmatically (more reliable than keyboard shortcut in tests)
-    await window.evaluate(async () => {
+    await appPage.evaluate(async () => {
       const electronAPI = (window as any).electronAPI
       const store = (window as any).$store
 
@@ -373,7 +379,7 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
         throw new Error('Save failed: ' + result.error)
       }
     })
-    await window.waitForTimeout(500)
+    // See above: the IPC round trip is the wait.
     console.log(`✓ Save triggered programmatically`)
 
     // Step 7: Read and verify the saved captions file contents
@@ -381,7 +387,13 @@ test.describe('File Save Workflow - Complete save and save-as cycle', () => {
 
     const savedContent = await fs.readFile(osrCaptionsPath, 'utf-8')
     const savedDoc = parseCaptionsFileContent(savedContent) as {
-      segments: Array<{ id: string; text: string; speakerName?: string }>
+      segments: Array<{
+        id: string
+        text: string
+        speakerName?: string
+        startTime: number
+        endTime: number
+      }>
     }
 
     const savedSegments = savedDoc.segments as Array<any>

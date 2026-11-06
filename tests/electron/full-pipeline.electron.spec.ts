@@ -6,6 +6,7 @@ import { enableConsoleCapture } from '../helpers/console'
 import { launchElectron } from '../helpers/electron-launch'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 test.describe('Full E2E Pipeline @expensive', () => {
   test('should transcribe audio, add embeddings, load in UI, modify, and save', async () => {
@@ -29,47 +30,47 @@ test.describe('Full E2E Pipeline @expensive', () => {
     }
 
     const electronApp = await launchElectron({ env })
-    const window = await electronApp.firstWindow()
-    enableConsoleCapture(window)
+    const page = await firstReadyWindow(electronApp)
+    enableConsoleCapture(page)
 
     try {
-      await window.waitForLoadState('domcontentloaded')
+      await page.waitForLoadState('domcontentloaded')
 
       // Use a tiny model for speed.
-      await window.evaluate(() => {
+      await page.evaluate(() => {
         ;(window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
       })
 
       // Load media.
-      await window.evaluate((audioPath) => {
+      await page.evaluate((audioPath) => {
         const store = (window as any).$store
         if (!store) throw new Error('$store not found')
         store.loadMediaFile(`media://local${audioPath}`, audioPath)
       }, destAudioPath)
 
-      await window.waitForFunction(() => {
+      await page.waitForFunction(() => {
         const store = (window as any).$store
         return !!store?.mediaPath
       })
 
       // Run ASR from the menu handler (transcribe + embed) and wait for it to finish.
-      await window.evaluate(() => {
+      await page.evaluate(() => {
         const fn = (window as any).handleMenuAsrCaption
         if (!fn) throw new Error('handleMenuAsrCaption not exposed on window')
         fn()
       })
 
-      await window.waitForSelector('.asr-modal-overlay', { timeout: 10000 })
-      await window.waitForSelector('.asr-modal-overlay', { state: 'hidden', timeout: 240000 })
+      await page.waitForSelector('.asr-modal-overlay', { timeout: 10000 })
+      await page.waitForSelector('.asr-modal-overlay', { state: 'hidden', timeout: 240000 })
 
       // Ensure captions were loaded.
-      await window.waitForFunction(() => {
+      await page.waitForFunction(() => {
         const store = (window as any).$store
         return (store?.document?.segments?.length || 0) > 0 && !!store?.document?.filePath
       }, { timeout: 60000 })
 
       // Apply edits and save.
-      const savedPath = await window.evaluate(async () => {
+      const savedPath = await page.evaluate(async () => {
         const store = (window as any).$store
         const electronAPI = (window as any).electronAPI
         const first = store.document.segments[0]
@@ -102,7 +103,7 @@ test.describe('Full E2E Pipeline @expensive', () => {
       expect(anyEmbeddings).toBe(true)
     } finally {
       // Make close deterministic even if something marked the doc dirty.
-      await window.evaluate(() => {
+      await page.evaluate(() => {
         const store = (window as any).$store
         store?.setIsDirty?.(false)
       }).catch(() => {})
@@ -145,16 +146,16 @@ test.describe('Full E2E Pipeline @expensive', () => {
       args: [getElectronMainPath(), '--no-sandbox', captionsPath],
       env: { ...process.env, NODE_ENV: 'test', DISPLAY: process.env.DISPLAY || ':99' }
     })
-    const window = await electronApp.firstWindow()
+    const page = await firstReadyWindow(electronApp)
 
     try {
-      await window.waitForLoadState('domcontentloaded')
-      await window.waitForFunction(() => {
+      await page.waitForLoadState('domcontentloaded')
+      await page.waitForFunction(() => {
         const store = (window as any).$store
         return (store?.document?.segments?.length || 0) > 0
       }, { timeout: 10000 })
 
-      const result = await window.evaluate(() => {
+      const result = await page.evaluate(() => {
         const store = (window as any).$store
         const first = store.document.segments[0]
         return {

@@ -42,7 +42,7 @@ test.describe('Electron Media Auto-loading', () => {
         store.mediaPath = null
       }
     })
-    await page.waitForTimeout(200)
+    await page.waitForFunction(() => !(window as any).$store.mediaPath, undefined, { timeout: 5000 })
 
     // Process the captions file through electronAPI (simulating a file drop)
     const result = await page.evaluate(async (filePath) => {
@@ -85,23 +85,21 @@ test.describe('Electron Media Auto-loading', () => {
     // Media path should be converted to absolute path internally
     expect(result!.metadata.mediaFilePath).toBe(mediaPath)
 
-    // Wait for auto-load to happen (App.vue handles this via watch)
-    // Poll instead of fixed timeout to catch timing issues
-    let finalState: any = null
-    for (let i = 0; i < 20; i++) {
-      await page.waitForTimeout(100)
-      finalState = await page.evaluate(() => {
-        const store = (window as any).$store
-        return {
-          mediaPath: store.mediaPath,
-          mediaFilePath: store.mediaFilePath,
-          hasAudio: !!document.querySelector('audio')
-        }
-      })
-      console.log(`[DEBUG] Poll ${i + 1}: mediaPath=${finalState.mediaPath}, hasAudio=${finalState.hasAudio}`)
-      if (finalState.mediaPath) break
-    }
+    // Wait for auto-load to happen (App.vue handles this via watch).
+    await page.waitForFunction(
+      () => !!(window as any).$store.mediaPath && !!document.querySelector('audio'),
+      undefined,
+      { timeout: 10000 }
+    )
 
+    const finalState = await page.evaluate(() => {
+      const store = (window as any).$store
+      return {
+        mediaPath: store.mediaPath,
+        mediaFilePath: store.mediaFilePath,
+        hasAudio: !!document.querySelector('audio')
+      }
+    })
     console.log('[DEBUG] Final state:', finalState)
 
     expect(finalState.mediaPath).toBeTruthy()
@@ -125,7 +123,7 @@ test.describe('Electron Media Auto-loading', () => {
         store.mediaPath = null
       }
     })
-    await page.waitForTimeout(200)
+    await page.waitForFunction(() => !(window as any).$store.mediaPath, undefined, { timeout: 5000 })
 
     // Create a captions file with a non-existent media reference
     const testCaptionsPath = path.join(getProjectRoot(), 'test_data/missing-media-ref.captions_json5')
@@ -150,7 +148,9 @@ test.describe('Electron Media Auto-loading', () => {
       }
     }, testCaptionsPath)
 
-    // Wait for auto-load attempt (App.vue handles this, should fail gracefully)
+    // A negative assertion — the media reference is broken, so nothing should attach.
+    // There is no state to poll for "stayed null", so give the auto-load watcher (which
+    // runs behind a setTimeout in App.vue) time to run and fail.
     await page.waitForTimeout(500)
 
     // Verify media was NOT loaded
@@ -189,7 +189,7 @@ test.describe('Electron Media Auto-loading', () => {
       }
     }, mediaPath)
 
-    await page.waitForTimeout(500)
+    await page.waitForFunction(() => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })
 
     const initialMediaPath = await page.evaluate(() => {
       const store = (window as any).$store
@@ -224,7 +224,8 @@ test.describe('Electron Media Auto-loading', () => {
       }
     }, captionsPath)
 
-    // Wait for any potential auto-load attempt (App.vue should skip since media is already loaded)
+    // Another negative assertion: media is already attached and auto-load must not
+    // replace it. Same reasoning as above — nothing to poll for, so wait out the watcher.
     await page.waitForTimeout(500)
 
     // Verify media path hasn't changed

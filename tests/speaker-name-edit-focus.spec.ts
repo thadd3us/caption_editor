@@ -4,14 +4,20 @@ import { fileURLToPath } from 'node:url'
 import { test, expect, ElectronApplication, Page } from '@playwright/test'
 import { enableConsoleCapture } from './helpers/console'
 import { launchElectron } from './helpers/electron-launch'
-import { expectGridCaptionTotal } from './helpers/wait-helpers'
+import {
+  expectGridCaptionTotal,
+  expectPageValue,
+  waitForCellEditorFocused,
+  waitForSegmentCount,
+} from './helpers/wait-helpers'
+import { firstReadyWindow } from './helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
   let electronApp: ElectronApplication
-  let window: Page
+  let appPage: Page
 
   test.beforeAll(async () => {
     // Launch Electron app using common helper once for all tests in this file
@@ -22,9 +28,9 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     })
 
     // Wait for the first window with a generous timeout
-    window = await electronApp.firstWindow({ timeout: 60000 })
-    await window.waitForLoadState('domcontentloaded')
-    enableConsoleCapture(window)
+    appPage = await firstReadyWindow(electronApp, 60000)
+    await appPage.waitForLoadState('domcontentloaded')
+    enableConsoleCapture(appPage)
   })
 
   test.afterAll(async () => {
@@ -33,7 +39,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
   test.beforeEach(async () => {
     // Reset the application state before each test
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vttStore = (window as any).$store
       if (vttStore) {
         vttStore.reset()
@@ -42,13 +48,13 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       const overlay = document.querySelector('.base-modal-overlay')
       if (overlay) overlay.remove()
     })
-    // AG Grid might need a moment to settle after reset
-    await window.waitForTimeout(500)
+    // The reset has landed once the grid reports no rows.
+    await waitForSegmentCount(appPage, 0)
   })
 
   test('should automatically focus input when starting to edit speaker name', async () => {
     // Load captions JSON with speaker names
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -63,12 +69,11 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForTimeout(200)
 
-    await expectGridCaptionTotal(window, 2, 2000)
+    await expectGridCaptionTotal(appPage, 2, 2000)
 
     // Start editing the speaker cell for the first row
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
 
@@ -78,23 +83,15 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       })
     })
 
-    await window.waitForTimeout(100)
-
-    // Check that the input has focus
-    const hasInputFocus = await window.evaluate(() => {
-      const activeElement = document.activeElement
-      const input = document.querySelector('.speaker-name-editor')
-      return activeElement === input
-    })
-
-    expect(hasInputFocus).toBe(true)
+    // startEditingCell returns before the editor mounts and takes focus.
+    await waitForCellEditorFocused(appPage, '.speaker-name-editor')
   })
 
   test('should commit speaker name when Enter is pressed', async () => {
     console.log('=== TEST START: should commit speaker name when Enter is pressed ===')
 
     // Load captions JSON with speaker names
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -106,14 +103,13 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForTimeout(200)
 
-    await expectGridCaptionTotal(window, 1, 2000)
+    await expectGridCaptionTotal(appPage, 1, 2000)
 
     console.log('[TEST] Starting to edit speaker cell')
 
     // Start editing the speaker cell
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
 
@@ -124,19 +120,19 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       })
     })
 
-    await window.waitForTimeout(100)
+    await waitForCellEditorFocused(appPage, '.speaker-name-editor')
 
     console.log('[TEST] Looking for input element')
 
     // Type a new name and press Enter
-    const input = window.locator('.speaker-name-editor')
+    const input = appPage.locator('.speaker-name-editor')
     await expect(input).toBeVisible()
 
     console.log('[TEST] Input visible, setting value to "Charlie"')
 
     // Use JavaScript to set value directly to avoid Playwright+Electron crash
     // with datalist in headless mode (see: https://github.com/microsoft/playwright/issues/38854)
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const input = document.querySelector('.speaker-name-editor') as HTMLInputElement
       if (input) {
         input.value = 'Charlie'
@@ -153,27 +149,15 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     // Press Enter to commit
     await input.press('Enter')
 
-    console.log('[TEST] Waiting 200ms after Enter')
-    await window.waitForTimeout(200)
-
-    // Verify the name was updated in the store
-    console.log('[TEST] Checking store for updated speaker name')
-    const speakerName = await window.evaluate(() => {
-      const vttStore = (window as any).$store
-      if (!vttStore) {
-        console.log('[TEST] No store found!')
-        return null
-      }
-      const name = vttStore.document.segments[0].speakerName
-      console.log('[TEST] Store speaker name:', name)
-      return name
-    })
-
-    console.log('[TEST] Final speakerName value:', speakerName)
-    expect(speakerName).toBe('Charlie')
+    // Commit is synchronous in the store, but the keypress has to make the round trip.
+    await expectPageValue(
+      appPage,
+      () => (window as any).$store?.document.segments[0].speakerName,
+      'Charlie'
+    )
 
     // Verify the cell is no longer being edited
-    const isEditing = await window.evaluate(() => {
+    const isEditing = await appPage.evaluate(() => {
       const editingCell = document.querySelector('.ag-cell-inline-editing')
       return editingCell !== null
     })
@@ -181,7 +165,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     expect(isEditing).toBe(false)
 
     // Verify the new name is visible in the grid
-    const cellText = await window.evaluate(() => {
+    const cellText = await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) return null
 
@@ -195,7 +179,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
   test('should focus input immediately when double-clicking speaker cell', async () => {
     // Load captions JSON
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -207,18 +191,18 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForTimeout(200)
+    await expectGridCaptionTotal(appPage, 1, 2000)
 
     // Double-click on the speaker cell
-    const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
+    const speakerCell = appPage.locator('.ag-cell[col-id="speakerName"]').first()
     await speakerCell.dblclick()
 
-    const input = window.locator('.speaker-name-editor')
+    const input = appPage.locator('.speaker-name-editor')
     await expect(input).toBeFocused({ timeout: 5000 })
     await expect(input).toHaveValue('Alice')
     await expect(input).toBeVisible()
 
-    const hasInputFocus = await window.evaluate(() => {
+    const hasInputFocus = await appPage.evaluate(() => {
       const activeElement = document.activeElement
       const input = document.querySelector('.speaker-name-editor')
       return activeElement === input
@@ -233,7 +217,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
   test('should allow typing immediately after double-click without manual focus', async () => {
     // Load captions JSON
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -245,22 +229,19 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       vttStore.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await window.waitForTimeout(200)
+    await expectGridCaptionTotal(appPage, 1, 2000)
 
     // Double-click on the speaker cell
-    const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
+    const speakerCell = appPage.locator('.ag-cell[col-id="speakerName"]').first()
     await speakerCell.dblclick()
 
-    const input = window.locator('.speaker-name-editor')
+    const input = appPage.locator('.speaker-name-editor')
     await expect(input).toBeFocused({ timeout: 5000 })
 
-    // Wait a bit for AG Grid internal events to settle before typing
-    await window.waitForTimeout(200)
     await input.pressSequentially('Bob', { delay: 50 })
 
-    await window.waitForTimeout(100)
-
     // Verify the input now contains what we typed
+    await expect(input).toHaveValue('Bob')
     const inputValue = await input.inputValue()
 
     // If text was selected, typing "Bob" would replace "Alice" with "Bob"
@@ -275,7 +256,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     // "choose an existing speaker name and commit" behavior by setting the value and pressing Enter.
 
     // Load captions JSON with multiple existing speaker names.
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       if (!store) return
 
@@ -291,10 +272,10 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       store.loadFromFile(captionsContent, '/test/file.captions_json5')
     })
 
-    await expectGridCaptionTotal(window, 3, 2000)
+    await expectGridCaptionTotal(appPage, 3, 2000)
 
     // Start editing the speaker cell for the first row.
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({
@@ -303,12 +284,12 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       })
     })
 
-    const input = window.locator('.speaker-name-editor')
+    const input = appPage.locator('.speaker-name-editor')
     await expect(input).toBeVisible()
     await expect(input).toBeFocused({ timeout: 5000 })
 
     // Simulate "selecting from autocomplete" by setting the value to an existing name.
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
       if (!input) throw new Error('speaker-name-editor input not found')
       input.value = 'Bob'
@@ -316,14 +297,15 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     })
 
     await input.press('Enter')
-    await window.waitForTimeout(200)
 
-    // Verify store updated.
-    const speakerName = await window.evaluate(() => {
-      const store = (window as any).$store
-      return store?.document?.segments?.[0]?.speakerName
-    })
-    expect(speakerName).toBe('Bob')
+    // Poll: the keypress has to reach the renderer and the editor has to commit through
+    // the store before this is true. Reading once here raced the commit on CI and saw
+    // the pre-edit value.
+    await expectPageValue(
+      appPage,
+      () => (window as any).$store?.document?.segments?.[0]?.speakerName,
+      'Bob'
+    )
   })
 
   /**
@@ -333,7 +315,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
    *
    */
   test('regression: first character is kept when typing to start editing an empty speaker cell', async () => {
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return
 
@@ -352,15 +334,25 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       vttStore.loadFromFile(captionsContent, '/test/speaker-first-key.captions_json5')
     })
 
-    await expectGridCaptionTotal(window, 2, 2000)
+    await expectGridCaptionTotal(appPage, 2, 2000)
 
-    const speakerCell = window.locator('.ag-cell[col-id="speakerName"]').first()
+    const speakerCell = appPage.locator('.ag-cell[col-id="speakerName"]').first()
     await speakerCell.click()
-    await window.waitForTimeout(150)
-    await window.keyboard.type('James', { delay: 40 })
+    await expect(speakerCell).toBeFocused()
 
-    const editor = window.locator('.speaker-name-editor')
+    // The first keystroke is what opens the editor — that it survives the editor mounting
+    // is the regression under test, so send it on its own and assert it landed.
+    await appPage.keyboard.type('J')
+
+    const editor = appPage.locator('.speaker-name-editor')
     await expect(editor).toBeVisible({ timeout: 5000 })
+    await expect(editor).toBeFocused()
+    await expect(editor).toHaveValue('J')
+
+    // Only once the editor holds the focus can the rest of the word land in it. Typing all
+    // five characters in one burst dropped the tail on a slower machine: the editor was
+    // still mounting, and the test saw "J".
+    await editor.pressSequentially('ames', { delay: 40 })
     await expect(editor).toHaveValue('James')
   })
 
@@ -376,7 +368,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     const fixturePath = path.join(__dirname, '../test_data/about-time-speaker-regression.captions_json5')
     const content = fs.readFileSync(fixturePath, 'utf8')
 
-    await window.evaluate(
+    await appPage.evaluate(
       ({ fileContent }: { fileContent: string }) => {
         const vttStore = (window as any).$store
         vttStore.loadFromFile(fileContent, '/test/about-time-speaker-regression.captions_json5')
@@ -384,50 +376,54 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
       { fileContent: content }
     )
 
-    await expectGridCaptionTotal(window, 54, 15000)
+    await expectGridCaptionTotal(appPage, 54, 15000)
 
-    const autoScroll = window.getByRole('checkbox', { name: /Auto-scroll/i })
+    const autoScroll = appPage.getByRole('checkbox', { name: /Auto-scroll/i })
     await autoScroll.uncheck()
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
       if (vp) vp.scrollTop = 0
     })
-    await window.waitForTimeout(200)
-
-    const scrollBefore = await window.evaluate(
-      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
+    await expectPageValue(
+      appPage,
+      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1,
+      0
     )
-    expect(scrollBefore).toBe(0)
 
-    const expectedTopRowId = await window.evaluate(() => (window as any).$store.document.segments[0].id)
+    const expectedTopRowId = await appPage.evaluate(() => (window as any).$store.document.segments[0].id)
 
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
 
-    const input = window.locator('.speaker-name-editor')
+    const input = appPage.locator('.speaker-name-editor')
     await expect(input).toBeVisible({ timeout: 5000 })
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const el = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
       if (!el) throw new Error('speaker-name-editor not found')
       el.value = 'Pat'
       el.dispatchEvent(new Event('input', { bubbles: true }))
     })
     await input.press('Enter')
-    await window.waitForTimeout(500)
+    await expectPageValue(
+      appPage,
+      () => (window as any).$store.document.segments[0].speakerName,
+      'Pat'
+    )
 
-    const topRowId = await window.evaluate(() => {
-      const api = (window as any).__agGridApi
-      return api?.getDisplayedRowAtIndex?.(0)?.data?.id ?? null
-    })
-    expect(topRowId).toBe(expectedTopRowId)
+    await expectPageValue(
+      appPage,
+      () => (window as any).__agGridApi?.getDisplayedRowAtIndex?.(0)?.data?.id ?? null,
+      expectedTopRowId
+    )
 
-    const scrollAfter = await window.evaluate(
+    // Still at the top: committing the edit must not scroll the edited row away.
+    const scrollAfter = await appPage.evaluate(
       () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
     )
-    expect(scrollAfter).toBe(scrollBefore)
+    expect(scrollAfter).toBe(0)
   })
 })

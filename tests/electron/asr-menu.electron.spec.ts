@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import { fileURLToPath } from 'url'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -48,16 +49,15 @@ test.describe('ASR Menu Integration @expensive', () => {
         })
       })
 
-      const page = await electronApp.firstWindow()
+      const page = await firstReadyWindow(electronApp)
 
       // Set the ASR model override on the window
       await page.evaluate(() => {
         (window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
       })
 
-      // Wait for app to be ready
-      await page.waitForLoadState('domcontentloaded')
-      await page.waitForTimeout(500)
+      // firstReadyWindow already waited for $store; the grid proves the first render.
+      await page.waitForSelector('.ag-root-wrapper', { timeout: 10000 })
 
       // Load the audio file by simulating file drop
       await page.evaluate((audioPath) => {
@@ -66,8 +66,8 @@ test.describe('ASR Menu Integration @expensive', () => {
         store.loadMediaFile(`file://${audioPath}`, audioPath)
       }, destAudioPath)
 
-      // Wait for media to be loaded
-      await page.waitForTimeout(500)
+      await page.waitForFunction(
+        () => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })
 
       // Verify media is loaded
       const mediaLoaded = await page.evaluate(() => {
@@ -114,6 +114,8 @@ test.describe('ASR Menu Integration @expensive', () => {
           throw new Error('ASR process failed')
         }
 
+        // Polling an external ASR subprocess: there is no in-page state that changes
+        // between checks, so this interval is the poll period, not a guess at a duration.
         await page.waitForTimeout(2000)
       }
 
@@ -178,10 +180,8 @@ test.describe('ASR Menu Integration @expensive', () => {
       })
     })
 
-    const page = await electronApp.firstWindow()
-    await page.waitForLoadState('domcontentloaded')
-    await page.waitForTimeout(500)
-    await page.waitForTimeout(500)
+    const page = await firstReadyWindow(electronApp)
+    await page.waitForSelector('.ag-root-wrapper', { timeout: 10000 })
 
     // Create a fake media path and add a test segment
     await page.evaluate(() => {
@@ -268,9 +268,8 @@ test.describe('ASR Menu Integration @expensive', () => {
       })
     })
 
-    const page = await electronApp.firstWindow()
-    await page.waitForLoadState('domcontentloaded')
-    await page.waitForTimeout(500)
+    const page = await firstReadyWindow(electronApp)
+    await page.waitForSelector('.ag-root-wrapper', { timeout: 10000 })
 
     // Verify menu item is disabled initially
     // Note: We can't directly test native Electron menu state from renderer,

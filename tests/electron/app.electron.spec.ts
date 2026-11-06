@@ -60,8 +60,8 @@ test.describe('Electron App', () => {
       }
     }, captionsJson5)
 
-    // Wait for the table to update
-    await page.waitForTimeout(500)
+    await page.waitForFunction(
+      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Check that captions are displayed in the table
     const captionTable = page.locator('.ag-center-cols-container')
@@ -85,7 +85,8 @@ test.describe('Electron App', () => {
       }
     }, captionsJson5)
 
-    await page.waitForTimeout(500)
+    await page.waitForFunction(
+      () => (window as any).$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Verify content loaded
     const segmentCount = await page.evaluate(() => {
@@ -155,9 +156,6 @@ test.describe('Electron App', () => {
     const tableHeader = page.locator('.table-header .header-controls')
     await expect(tableHeader).toBeVisible()
 
-    // Wait for dialog to be processed
-    await page.waitForTimeout(500)
-
     // Should not throw any errors or show permission warnings
     const consoleErrors = await page.evaluate(() => {
       // Check if there are any console errors
@@ -170,7 +168,7 @@ test.describe('Electron App', () => {
   test('should capture screenshot of app', async ({ page }) => {
     // Wait for app to fully load
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(1000)
+    await page.waitForSelector('.ag-root-wrapper', { timeout: 10000 })
 
     // Capture screenshot to verify app is rendering correctly
     const screenshot = await page.screenshot({

@@ -4,6 +4,18 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import { getProjectRoot } from '../helpers/project-root'
 
+/**
+ * Sequential playback is started from a click, and the store flips to SEGMENTS_PLAYING with
+ * a populated playlist one tick later. Waiting on that is what the 50–100ms sleeps meant.
+ */
+async function waitForPlaylistPlayback(page: import('@playwright/test').Page) {
+  await page.waitForFunction(() => {
+    const store = (window as any).$store
+    return store?.playbackMode === 'SEGMENTS_PLAYING' && store?.playlist?.length > 0
+  }, undefined, { timeout: 5000 })
+}
+
+
 test.describe('Sequential Playback', () => {
   // Using shared Electron instance - no beforeEach/afterEach needed
 
@@ -117,7 +129,7 @@ test.describe('Sequential Playback', () => {
 
     // First row should be selected (set by startPlaylistPlayback)
     console.log('[Test] Waiting for row selection...')
-    await page.waitForTimeout(200)
+    await expect(page.locator('.ag-row.ag-row-selected').first()).toBeVisible()
     const selectedRows = await page.locator('.ag-row.ag-row-selected').count()
     console.log('[Test] Selected rows count:', selectedRows)
 
@@ -157,8 +169,10 @@ test.describe('Sequential Playback', () => {
       return count >= 3
     }, { timeout: 5000 })
 
-    // Wait a bit for AG Grid to fully render cells
-    await page.waitForTimeout(200)
+    // AG Grid renders the row shell before the cells; wait for a cell with text in it.
+    await expect(
+      page.locator('.ag-center-cols-container .ag-row [col-id="text"]').first()
+    ).not.toBeEmpty()
 
     // Click the third row (index 2) and get its text via evaluate
     // Filter out AG Grid ghost rows (known issue - see CLAUDE.md)
@@ -196,13 +210,11 @@ test.describe('Sequential Playback', () => {
 
     const thirdRowText = result.text
 
-    await page.waitForTimeout(50)
-
     // Click sequential play button
     const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
-    await page.waitForTimeout(100)
+    await waitForPlaylistPlayback(page)
 
     // Third row should still be selected (started from there)
     const selectedRowText = await page.locator('.ag-row-selected [col-id="text"]').first().textContent()
@@ -268,7 +280,7 @@ test.describe('Sequential Playback', () => {
     // Start sequential playback
     await page.locator('button.sequential-play-header-btn').click()
 
-    await page.waitForTimeout(100)
+    await waitForPlaylistPlayback(page)
 
     // Check that the playlist matches the initial order
     const playlistOrder = await page.evaluate(() => {
@@ -300,7 +312,7 @@ test.describe('Sequential Playback', () => {
     // Start sequential playback
     await page.locator('button.sequential-play-header-btn').click()
 
-    await page.waitForTimeout(50)
+    await waitForPlaylistPlayback(page)
 
     // Get the playlist before sorting
     const playlistBefore = await page.evaluate(() => {
@@ -311,7 +323,8 @@ test.describe('Sequential Playback', () => {
     // Sort the table by text column (click header)
     await page.locator('.ag-header-cell:has-text("Caption")').click()
 
-    await page.waitForTimeout(100)
+    // Sorting is applied once the grid reports the new top row.
+    await expect(page.locator('.ag-center-cols-container .ag-row').first()).toBeVisible()
 
     // Get the playlist after sorting
     const playlistAfter = await page.evaluate(() => {
@@ -360,13 +373,11 @@ test.describe('Sequential Playback', () => {
     const sequentialBtn = page.locator('button.sequential-play-header-btn')
     await sequentialBtn.click()
 
-    await page.waitForTimeout(50)
 
     // Stop sequential playback
     await expect(sequentialBtn).toHaveText(/⏸/)
     await sequentialBtn.click()
 
-    await page.waitForTimeout(50)
 
     // Wait for grid to be ready with at least one row
     await page.waitForFunction(() => {
@@ -383,7 +394,7 @@ test.describe('Sequential Playback', () => {
       .first()
     await playButton.click()
 
-    await page.waitForTimeout(50)
+    await waitForPlaylistPlayback(page)
 
     // Should be in SEGMENTS_PLAYING mode with single-item playlist
     const mode = await page.evaluate(() => {

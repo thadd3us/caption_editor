@@ -4,12 +4,13 @@ import * as path from 'path'
 import * as os from 'os'
 import * as fs from 'fs/promises'
 import { acceptLicenseIfVisible } from '../helpers/license'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 let electronApp: ElectronApplication
 
 test.beforeAll(async () => {
   electronApp = await launchElectron()
-  const page = await electronApp.firstWindow()
+  const page = await firstReadyWindow(electronApp)
   await acceptLicenseIfVisible(page)
 })
 

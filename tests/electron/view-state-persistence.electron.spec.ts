@@ -40,7 +40,7 @@ async function loadDocument(page: any, filePath: string) {
       if (res.type === 'captions_json5' && res.content) store.loadFromFile(res.content, res.filePath)
     }
   }, filePath)
-  await page.waitForTimeout(200)
+  await page.waitForFunction(() => (window as any).$store.document.segments.length > 0)
 }
 
 test.describe('View state persistence', () => {
@@ -115,7 +115,6 @@ test.describe('View state persistence', () => {
         defaultState: { sort: null }
       })
     })
-    await page.waitForTimeout(200)
 
     await page.evaluate(async () => {
       const store = (window as any).$store
@@ -154,7 +153,6 @@ test.describe('View state persistence', () => {
         text: { filterType: 'text', type: 'contains', filter: 'Alpha' }
       })
     })
-    await page.waitForTimeout(200)
 
     await page.evaluate(async () => {
       const store = (window as any).$store
@@ -165,7 +163,6 @@ test.describe('View state persistence', () => {
     })
 
     await loadDocument(page, filePath)
-    await page.waitForTimeout(400)
 
     // Still remembered in the store even though the row is not on screen...
     expect(await page.evaluate(() => (window as any).$store.selectedSegmentId)).toBe('seg-3')
@@ -175,7 +172,6 @@ test.describe('View state persistence', () => {
 
     // ...and clearing the filter puts the user back on it.
     await page.evaluate(() => (window as any).__agGridApi.setFilterModel(null))
-    await page.waitForTimeout(300)
 
     await expect
       .poll(

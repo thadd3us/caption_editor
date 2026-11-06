@@ -16,6 +16,7 @@ import { test as base, _electron as electron, ElectronApplication, Page } from '
 import { getElectronMainPath } from './project-root'
 import { enableConsoleCapture } from './console'
 import { acceptLicenseIfVisible } from './license'
+import { waitForAppReady } from './app-ready'
 
 // Shared state across all tests in a worker
 let sharedApp: ElectronApplication | null = null
@@ -39,8 +40,8 @@ async function resetAppState(page: Page): Promise<void> {
         { timeout: 10000 }
     )
 
-    // Give Vue a tick to finish initial render
-    await page.waitForTimeout(50)
+    // Vue has finished the initial render once the grid is in the DOM.
+    await page.waitForSelector('.ag-root-wrapper', { timeout: 10000 })
 }
 
 /**
@@ -87,13 +88,10 @@ export const sharedElectronTest = base.extend<{
         if (!sharedPage) {
             sharedPage = await electronApp.firstWindow()
             enableConsoleCapture(sharedPage)
-            
-            // Wait for app to be ready
-            await sharedPage.waitForLoadState('domcontentloaded')
-            await sharedPage.waitForFunction(
-                () => (window as any).$store || (window as any).store,
-                { timeout: 10000 }
-            )
+
+            // Shared with the specs that launch their own app — see waitForAppReady for
+            // why `domcontentloaded` alone is not enough.
+            await waitForAppReady(sharedPage)
             
             // Accept license dialog on first launch
             await acceptLicenseIfVisible(sharedPage)

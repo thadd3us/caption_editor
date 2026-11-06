@@ -1,27 +1,24 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
 import type { Page } from '@playwright/test'
 import path from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+import { waitForSegmentCount } from './helpers/wait-helpers'
 
 test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () => {
-  let window: Page
+  let appPage: Page
 
   test.setTimeout(60000) // Increase timeout to 60s for E2E tests
 
   test.beforeEach(async ({ page }) => {
-    window = page
+    appPage = page
   })
 
   // Helper function to seek to a time
   async function seekToTime(time: number) {
-    await window.evaluate((timeValue: number) => {
+    await appPage.evaluate((timeValue: number) => {
       ; (window as any).$store.setCurrentTime(timeValue)
     }, time)
-    await window.waitForTimeout(100)
+    await appPage.waitForFunction(
+      (t) => Math.abs((window as any).$store.currentTime - t) < 0.001, time, { timeout: 5000 })
   }
 
 
@@ -30,7 +27,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
 
     // Reset store to clean state before test
     console.log('Resetting store to clean state...')
-    await window.evaluate(() => {
+    await appPage.evaluate(() => {
       const store = (window as any).$store
       store.reset()
       store.setCurrentTime(0)
@@ -38,7 +35,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
 
     // Wait for AG Grid to reflect the empty state - check that rows disappear
     console.log('Waiting for AG Grid to clear...')
-    await window.waitForFunction(() => {
+    await appPage.waitForFunction(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
       const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
       return uniqueRowIds.size === 0
@@ -46,7 +43,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     console.log('AG Grid cleared successfully')
 
     // Check initial state
-    const initialState = await window.evaluate(() => {
+    const initialState = await appPage.evaluate(() => {
       const store = (window as any).$store
       return {
         segmentCount: store.document.segments.length,
@@ -66,7 +63,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     const audioPath = path.join(process.cwd(), 'test_data', 'test-audio-10s.wav')
     console.log('Loading audio from:', audioPath)
 
-    await window.evaluate((filePath) => {
+    await appPage.evaluate((filePath) => {
       // Simulate loading an audio file
       // Use media:// protocol which we implemented for reliable Electron media loading
       const audioUrl = `media:///${filePath.replace(/\\/g, '/')}`
@@ -75,29 +72,29 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
         ; (window as any).$store.loadMediaFile(audioUrl)
     }, audioPath)
 
-    await window.waitForTimeout(200)
+    await appPage.waitForFunction(() => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })
 
     // Verify media player is ready
-    const mediaPlayer = window.locator('.media-player')
+    const mediaPlayer = appPage.locator('.media-player')
     await expect(mediaPlayer).toBeVisible()
 
     // Verify scrubber is enabled
-    const scrubber = window.locator('.scrubber')
+    const scrubber = appPage.locator('.scrubber')
     await expect(scrubber).toBeEnabled()
 
     // Verify "Add Caption" button is enabled
-    const addCaptionBtn = window.locator('.add-caption-btn')
+    const addCaptionBtn = appPage.locator('.add-caption-btn')
     await expect(addCaptionBtn).toBeEnabled()
 
     // === Test 1: Add first segment to empty table ===
     console.log('Test 1: Adding first segment to empty table')
 
     // Verify table is empty initially
-    const grid = window.locator('.ag-theme-alpine')
+    const grid = appPage.locator('.ag-theme-alpine')
     await expect(grid).toBeVisible()
 
     // Count unique rows by row-id
-    let rowCount = await window.evaluate(() => {
+    let rowCount = await appPage.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
       const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
       return uniqueRowIds.size
@@ -106,7 +103,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
 
     // If not empty, log what's in the store AND what's in the DOM
     if (rowCount !== 0) {
-      const debugInfo = await window.evaluate(() => {
+      const debugInfo = await appPage.evaluate(() => {
         const store = (window as any).$store
         const rows = Array.from(document.querySelectorAll('.ag-row'))
         return {
@@ -125,13 +122,13 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     await seekToTime(2)
 
     // Verify current time in store
-    let currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    let currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
     console.log(`Current time after seek: ${currentTime}`)
     expect(currentTime).toBeCloseTo(2, 1)
 
     // Click "Add Caption" button
     console.log('Clicking Add Caption button...')
-    const clickResult = await window.evaluate(() => {
+    const clickResult = await appPage.evaluate(() => {
       const btn = document.querySelector('.add-caption-btn') as HTMLButtonElement
       const beforeCount = (window as any).$store.document.segments.length
       btn.click()
@@ -140,13 +137,11 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     })
     console.log('Click result:', clickResult)
 
-    // Wait for AG Grid to update (no longer recreated since we removed :key)
-    await window.waitForTimeout(500)
-    console.log('Waited for AG Grid to update')
+    await waitForSegmentCount(appPage, 1)
 
     // Verify first row was added
     // Note: AG Grid creates multiple .ag-row elements when columns are pinned (pinned vs main section)
-    const rowDebugInfo = await window.evaluate(() => {
+    const rowDebugInfo = await appPage.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
       const uniqueRowNodes = new Map()
 
@@ -169,7 +164,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     expect(rowCount, `Expected 1 row but found ${rowCount}. Row contents: ${rowDebugInfo.contents.join(' | ')}`).toBe(1)
 
     // Verify the segment in store spans 2-7 seconds (default 5s duration)
-    let segments = await window.evaluate(() => (window as any).$store.document.segments)
+    let segments = await appPage.evaluate(() => (window as any).$store.document.segments)
     expect(segments).toHaveLength(1)
     expect(segments[0].startTime).toBeCloseTo(2, 1)
     expect(segments[0].endTime).toBeCloseTo(7, 1)
@@ -180,17 +175,16 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // Seek to 0.5 seconds
     await seekToTime(0.5)
 
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
     expect(currentTime).toBeCloseTo(0.5, 1)
 
     // Add caption at 0.5s
     await addCaptionBtn.click()
 
-    // Wait for AG Grid to recreate itself (gridKey changed)
-    await window.waitForTimeout(1000)
+    await waitForSegmentCount(appPage, 2)
 
     // Verify we now have 2 rows (count unique rows by row-id)
-    rowCount = await window.evaluate(() => {
+    rowCount = await appPage.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
       const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
       return uniqueRowIds.size
@@ -198,7 +192,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     expect(rowCount).toBe(2)
 
     // Verify segments are in correct order
-    segments = await window.evaluate(() => (window as any).$store.document.segments)
+    segments = await appPage.evaluate(() => (window as any).$store.document.segments)
     expect(segments).toHaveLength(2)
 
     // Should be sorted by start time (store keeps them sorted)
@@ -213,17 +207,16 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // Seek to 8 seconds
     await seekToTime(8)
 
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
     expect(currentTime).toBeCloseTo(8, 1)
 
     // Add caption at 8s
     await addCaptionBtn.click()
 
-    // Wait for AG Grid to recreate itself (gridKey changed)
-    await window.waitForTimeout(1000)
+    await waitForSegmentCount(appPage, 3)
 
     // Verify we now have 3 rows (count unique rows by row-id)
-    rowCount = await window.evaluate(() => {
+    rowCount = await appPage.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
       const uniqueRowIds = new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null))
       return uniqueRowIds.size
@@ -231,7 +224,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     expect(rowCount).toBe(3)
 
     // Verify third segment
-    segments = await window.evaluate(() => (window as any).$store.document.segments)
+    segments = await appPage.evaluate(() => (window as any).$store.document.segments)
     expect(segments).toHaveLength(3)
 
     // === Test 4: Scrub bar seeking (auto-selection not yet implemented) ===
@@ -239,22 +232,22 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
 
     // Verify seeking works correctly
     await seekToTime(1)
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
     expect(currentTime).toBeCloseTo(1, 1)
 
     await seekToTime(3)
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
     expect(currentTime).toBeCloseTo(3, 1)
 
     await seekToTime(9)
-    currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+    currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
     expect(currentTime).toBeCloseTo(9, 1)
 
     // === Test 5: Table row selection moves playhead ===
     console.log('Test 5: Testing table row selection moves playhead')
 
     // Get all unique row IDs from the grid
-    const uniqueRowIds = await window.evaluate(() => {
+    const uniqueRowIds = await appPage.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('.ag-row'))
       return Array.from(new Set(rows.map(r => r.getAttribute('row-id')).filter(id => id !== null)))
     })
@@ -264,7 +257,7 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     // (Pinned rows won't have it, main rows will)
     const rowsWithTimes = []
     for (const id of uniqueRowIds) {
-      const rowLocator = window.locator(`.ag-row[row-id="${id}"]`)
+      const rowLocator = appPage.locator(`.ag-row[row-id="${id}"]`)
       // Find the cell within this logical row that has the startTime colId
       const startTimeCell = rowLocator.locator('[col-id="startTime"]').first()
       const timeText = await startTimeCell.textContent()
@@ -287,8 +280,14 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
       console.log(`Clicking row ${index} (ID: ${rowInfo.id}, Time: ${rowInfo.timeText})...`)
       // Click the first cell in the row to ensure we click the "main" part of the row
       await rowInfo.rowLocator.locator('[col-id="startTime"]').first().click({ timeout: 10000 })
-      await window.waitForTimeout(500)
-      currentTime = await window.evaluate(() => (window as any).$store.currentTime)
+      // Clicking a start-time cell seeks; wait for the playhead to land on that row.
+      // The cell renders the start time as `ssss.000`, which is what we seek to.
+      await appPage.waitForFunction(
+        (t) => Math.abs((window as any).$store.currentTime - t) < 0.001,
+        parseFloat(rowInfo.timeText),
+        { timeout: 5000 }
+      )
+      currentTime = await appPage.evaluate(() => (window as any).$store.currentTime)
       console.log(`Current time after clicking row ${index}: ${currentTime}`)
       expect(currentTime).toBeCloseTo(parseFloat(rowInfo.timeText!), 1)
     }

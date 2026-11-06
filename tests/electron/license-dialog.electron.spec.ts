@@ -1,5 +1,6 @@
 import { test, expect, _electron as electron } from '@playwright/test'
 import { getElectronMainPath } from '../helpers/project-root'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 test.describe('License Agreement Dialog', () => {
   test('should show license dialog on first run and persist acceptance', async () => {
@@ -24,7 +25,7 @@ test.describe('License Agreement Dialog', () => {
     })
 
     try {
-      const page = await electronApp.firstWindow()
+      const page = await firstReadyWindow(electronApp)
       await page.waitForLoadState('domcontentloaded')
       await page.waitForFunction(
         () => (window as any).$store || (window as any).store,
@@ -64,7 +65,6 @@ test.describe('License Agreement Dialog', () => {
         () => (window as any).$store || (window as any).store,
         { timeout: 10000 }
       )
-      await page.waitForTimeout(1000)
       await expect(dialog).not.toBeVisible()
     } finally {
       await electronApp.close()

@@ -1,10 +1,10 @@
 import { sharedElectronTest as test, expect } from './helpers/shared-electron'
+import { waitForSelectedRowCount, expectPageValue } from './helpers/wait-helpers'
 
 test.describe('Caption Editor - Shift-Click Multi-Select', () => {
   test('should select range of rows with shift-click and set speaker on all selected', async ({ page }) => {
-    const window = page
     // Load captions JSON with multiple segments
-    const loadResult = await window.evaluate(() => {
+    const loadResult = await page.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return { success: false, error: 'No store on window' }
 
@@ -31,24 +31,23 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     expect(loadResult.segmentCount).toBe(5)
 
     // Wait for rows to render
-    await window.waitForSelector('.ag-row', { timeout: 5000 })
+    await page.waitForSelector('.ag-row', { timeout: 5000 })
 
     // Click first row to select it (use .ag-center-cols-container to avoid pinned row duplicates)
-    const firstRow = window.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    const firstRow = page.locator('.ag-center-cols-container .ag-row[row-index="0"]')
     await firstRow.click()
 
     // Verify first row is selected
     await expect(firstRow).toHaveClass(/ag-row-selected/)
 
     // Shift-click the fourth row to select rows 1-4
-    const fourthRow = window.locator('.ag-center-cols-container .ag-row[row-index="3"]')
+    const fourthRow = page.locator('.ag-center-cols-container .ag-row[row-index="3"]')
     await fourthRow.click({ modifiers: ['Shift'] })
 
-    // Wait a moment for selection to stabilize
-    await window.waitForTimeout(200)
+    await waitForSelectedRowCount(page, 4)
 
     // Verify all 4 rows are selected
-    const selectedRows = await window.evaluate(() => {
+    const selectedRows = await page.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) return []
       return gridApi.getSelectedRows().map((r: any) => r.id)
@@ -62,25 +61,29 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     expect(selectedRows).not.toContain('cue5')
 
     // Edit speaker on first selected row — applies to all selected rows
-    await window.evaluate(() => {
+    await page.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({ rowIndex: 0, colKey: 'speakerName' })
     })
 
-    const editorInput = window.locator('.speaker-name-editor')
+    const editorInput = page.locator('.speaker-name-editor')
     await expect(editorInput).toBeVisible({ timeout: 5000 })
-    await window.evaluate(() => {
+    await page.evaluate(() => {
       const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
       if (!input) throw new Error('speaker-name-editor input not found')
       input.value = 'Bob'
       input.dispatchEvent(new Event('input', { bubbles: true }))
     })
     await editorInput.press('Enter')
-    await window.waitForTimeout(200)
+    await expectPageValue(
+      page,
+      () => (window as any).$store.document.segments.filter((s: any) => s.speakerName === 'Bob').length,
+      4
+    )
 
     // Verify speaker was set for the 4 selected rows
-    const speakerNames = await window.evaluate(() => {
+    const speakerNames = await page.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) return null
       return vttStore.document.segments.map((s: any) => ({
@@ -100,9 +103,8 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
   })
 
   test('should edit speaker for multi-selected rows via keyboard', async ({ page }) => {
-    const window = page
     // Load captions JSON with multiple segments
-    await window.evaluate(() => {
+    await page.evaluate(() => {
       const vttStore = (window as any).$store
       if (!vttStore) throw new Error('No store')
 
@@ -121,29 +123,28 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     })
 
     // Wait for rows to render
-    await window.waitForSelector('.ag-row', { timeout: 5000 })
+    await page.waitForSelector('.ag-row', { timeout: 5000 })
 
     // Click second row to select it
-    const secondRow = window.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const secondRow = page.locator('.ag-center-cols-container .ag-row[row-index="1"]')
     await secondRow.click()
     await expect(secondRow).toHaveClass(/ag-row-selected/)
 
     // Shift-click the fourth row's speaker column to select rows 2-4
-    const fourthRowSpeakerCell = window.locator('.ag-center-cols-container .ag-row[row-index="3"] [col-id="speakerName"]')
+    const fourthRowSpeakerCell = page.locator('.ag-center-cols-container .ag-row[row-index="3"] [col-id="speakerName"]')
     await fourthRowSpeakerCell.click({ modifiers: ['Shift'] })
 
-    // Wait for selection to stabilize
-    await window.waitForTimeout(200)
+    await waitForSelectedRowCount(page, 3)
 
     // Verify 3 rows selected (rows 2, 3, 4 = indices 1, 2, 3)
-    const selectedCount = await window.evaluate(() => {
+    const selectedCount = await page.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       return gridApi?.getSelectedRows().length ?? 0
     })
     expect(selectedCount).toBe(3)
 
     // Start editing the speaker cell via grid API (more reliable than keyboard focus)
-    await window.evaluate(() => {
+    await page.evaluate(() => {
       const gridApi = (window as any).__agGridApi
       if (!gridApi) throw new Error('Grid API not available')
       gridApi.startEditingCell({
@@ -153,11 +154,11 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     })
 
     // Wait for editor to appear
-    const editorInput = window.locator('.speaker-name-editor')
+    const editorInput = page.locator('.speaker-name-editor')
     await expect(editorInput).toBeVisible({ timeout: 5000 })
 
     // Type speaker name and press Enter
-    await window.evaluate(() => {
+    await page.evaluate(() => {
       const input = document.querySelector('.speaker-name-editor') as HTMLInputElement | null
       if (!input) throw new Error('speaker-name-editor input not found')
       input.value = 'Bob'
@@ -165,11 +166,14 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     })
     await editorInput.press('Enter')
 
-    // Wait for edit to complete
-    await window.waitForTimeout(200)
+    await expectPageValue(
+      page,
+      () => (window as any).$store.document.segments.filter((s: any) => s.speakerName === 'Bob').length,
+      3
+    )
 
     // Verify speaker was set for rows 2-4 only
-    const speakerNames = await window.evaluate(() => {
+    const speakerNames = await page.evaluate(() => {
       const vttStore = (window as any).$store
       return vttStore.document.segments.map((s: any) => ({
         id: s.id,
