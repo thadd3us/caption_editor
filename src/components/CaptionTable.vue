@@ -387,6 +387,9 @@ const columnDefs = ref<ColDef[]>([
           const startTime = params.data.startTime
           console.log('Seeking to start time:', startTime)
           store.setCurrentTime(startTime)
+          // Pin the selection to the row that was clicked, after the seek, so the pin is
+          // anchored at the new playhead position. See `pinnedSegmentId` in captionStore.
+          store.selectSegment(params.data.id)
           const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
           if (mediaElement) {
             mediaElement.currentTime = startTime
@@ -432,6 +435,9 @@ const columnDefs = ref<ColDef[]>([
           const endTime = params.data.endTime
           console.log('Seeking to end time:', endTime)
           store.setCurrentTime(endTime)
+          // `endTime` already belongs to the *next* segment, so without this the selection
+          // would hop one row down from the cell that was clicked.
+          store.selectSegment(params.data.id)
           const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
           if (mediaElement) {
             mediaElement.currentTime = endTime
@@ -539,8 +545,11 @@ function onRowClicked(event: RowClickedEvent) {
   const { id: segmentId, startTime } = event.data
   console.log('Row clicked:', segmentId, 'startTime:', startTime)
   
-  // Move playhead to the start of the clicked segment
+  // Move playhead to the start of the clicked segment, then pin the selection to the row
+  // that was clicked — the seek must not be allowed to hand the selection to a neighbour
+  // whose range happens to cover this timestamp (see `pinnedSegmentId` in captionStore).
   store.setCurrentTime(startTime)
+  store.selectSegment(segmentId)
   const mediaElement = document.querySelector('audio, video') as HTMLMediaElement
   if (mediaElement) mediaElement.currentTime = startTime
 }
@@ -819,9 +828,11 @@ watch(() => store.selectedSegmentId, (segmentId) => {
 watch(() => store.currentTime, (currentTime) => {
   if (!autoScrollEnabled.value || !gridApi.value) return
 
-  const segment = store.document.segments.find(s =>
-    s.startTime <= currentTime && currentTime < s.endTime
-  )
+  // A deliberately selected row holds both the selection and the viewport until the
+  // playhead really leaves it; otherwise follow whatever row the playhead is inside.
+  const segment =
+    store.pinnedSegment ??
+    store.document.segments.find(s => s.startTime <= currentTime && currentTime < s.endTime)
   if (!segment) return
 
   const rowNode = gridApi.value.getRowNode(segment.id)

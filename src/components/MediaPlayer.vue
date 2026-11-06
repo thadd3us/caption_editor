@@ -325,12 +325,16 @@ function onCaptionWordClick(event: MouseEvent) {
   const wordIndexStr = target.dataset.wordIndex
   if (wordIndexStr === undefined) return
 
-  const word = currentSegment.value?.words?.[parseInt(wordIndexStr, 10)]
+  const segment = currentSegment.value
+  const word = segment?.words?.[parseInt(wordIndexStr, 10)]
   // Words added or changed by editing carry no timestamp — nothing to seek to.
   if (!word || word.startTime === undefined) return
 
   console.log('Seeking to word:', word.text, 'at', word.startTime)
   seekTo(word.startTime)
+  // Keep this caption's row selected: a word's timestamp can sit inside a neighbouring
+  // segment's range when ASR leaves the two overlapping.
+  if (segment) store.selectSegment(segment.id)
 }
 
 /**

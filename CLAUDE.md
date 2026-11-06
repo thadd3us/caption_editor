@@ -110,6 +110,36 @@ Saved/exported `.captions_json5` from `exportToString()` includes leading `//` h
 - Immutable document model
 - Segments always sorted by start/end time
 
+### Selection pinning (clicked row vs. playhead)
+
+`store.setCurrentTime()` auto-selects the segment under the playhead, and `CaptionTable`'s
+auto-scroll watcher follows it. That is right during playback and wrong immediately after a
+click: chunked ASR leaves neighbouring segments touching or overlapping by milliseconds, and a
+seek to a row's `startTime` lands a frame *early* — inside the previous segment. The selection
+(and, under a speaker-similarity sort, the viewport) jumped to an unrelated row, so the next
+field you edited belonged to the wrong segment.
+
+Fix: `pinnedSegmentId` + `pinnedAtTime` in `captionStore.ts`. `selectSegment()` — the only way
+the selection is set *deliberately* — pins; `setCurrentTime()` sets `selectedSegmentId`
+directly and therefore never pins. While the pin holds, `currentSegment` **is** the pinned
+segment, so the Current Caption panel agrees with the table. `pinHoldsAt(time)` holds while the
+playhead is inside the pinned segment (with `PIN_HOLD_LEAD_SECONDS` of slack before its start,
+for seeks that undershoot) **or** while it has not moved more than `PIN_RELEASE_DRIFT_SECONDS`
+from where it was when pinned — the second clause is what lets a row selected *without* a seek
+(context menu, "Add caption", reopening a file) survive the `timeupdate` events that follow.
+Playing or dragging past either bound releases it, which is exactly when following the playhead
+is what the user means.
+
+Consequence for click handlers: **seek first, then `selectSegment()`**, so the pin is anchored
+at the new playhead position. `CaptionTable.onRowClicked`, the Start/End `onCellClicked`
+handlers and `MediaPlayer.onCaptionWordClick` all do this — note the End cell seeks to a
+timestamp that belongs to the *next* segment, so without the explicit pin it would select one
+row down from the cell you clicked.
+
+Regression tests: `src/stores/captionStore.selectionPin.test.ts` (the rule) and
+`tests/electron/selection-pin.electron.spec.ts` (a real click, sorted by speaker so the
+hijacking row is off-screen).
+
 ### Dirty tracking and view state
 
 Two flags in `captionStore.ts`, with deliberately different policies:
