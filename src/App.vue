@@ -141,8 +141,6 @@ const leftPanelWidth = computed({
 const fileDropZone = ref<InstanceType<typeof FileDropZone> | null>(null)
 const isRenameSpeakerDialogOpen = ref(false)
 const isDeleteConfirmDialogOpen = ref(false)
-const deleteRowCount = ref(0)
-const selectedSegmentIdsForDelete = ref<string[]>([])
 let isResizing = false
 
 // ASR state
@@ -284,27 +282,28 @@ function handleRenameSpeaker({ oldName, newName }: { oldName: string; newName: s
   store.renameSpeaker(oldName, newName)
 }
 
-function openDeleteConfirmDialog(event: Event) {
-  const customEvent = event as CustomEvent
-  const { rowCount } = customEvent.detail
+/**
+ * The table asks for a deletion by putting the target ids in the store; this opens the
+ * dialog for them. Previously the ids were stashed on a `window` global and the request
+ * arrived as a DOM CustomEvent, which meant the dialog could in principle confirm a
+ * different set of rows than the menu had targeted.
+ */
+watch(
+  () => store.pendingDeletion,
+  (pending) => {
+    isDeleteConfirmDialogOpen.value = pending !== null
+  }
+)
 
-  // Get the currently selected rows from CaptionTable
-  const selectedRows = (window as any).__captionTableSelectedRows || []
-
-  deleteRowCount.value = rowCount
-  selectedSegmentIdsForDelete.value = selectedRows.map((row: any) => row.id)
-  isDeleteConfirmDialogOpen.value = true
-}
+const deleteRowCount = computed(() => store.pendingDeletion?.length ?? 0)
 
 function closeDeleteConfirmDialog() {
-  isDeleteConfirmDialogOpen.value = false
-  selectedSegmentIdsForDelete.value = []
-  deleteRowCount.value = 0
+  store.clearPendingDeletion()
 }
 
 function handleConfirmDelete() {
-  console.log('Deleting', selectedSegmentIdsForDelete.value.length, 'segments')
-  store.bulkDeleteSegments(selectedSegmentIdsForDelete.value)
+  console.log('Deleting', store.pendingDeletion?.length ?? 0, 'segments')
+  store.confirmPendingDeletion()
 }
 
 function startResize(e: MouseEvent) {
@@ -1074,12 +1073,8 @@ onMounted(() => {
     attemptMediaAutoLoad()
   }, 200)
 
-  // Listen for openDeleteConfirmDialog event from CaptionTable's context menu
-  window.addEventListener('openDeleteConfirmDialog', openDeleteConfirmDialog as EventListener)
-
   // Expose dialog functions for testing
   ;(window as any).openRenameSpeakerDialog = openRenameSpeakerDialog
-  ;(window as any).openDeleteConfirmDialog = openDeleteConfirmDialog
   ;(window as any).handleMenuAsrCaption = handleMenuAsrCaption
   ;(window as any).handleMenuAsrEmbed = handleMenuAsrEmbed
   ;(window as any).handleMenuOpenFile = handleMenuOpenFile
@@ -1137,8 +1132,7 @@ onMounted(() => {
       ipcRenderer.on('menu-export-srt', handleMenuExportSrt)
       ipcRenderer.on('menu-rename-speaker', openRenameSpeakerDialog)
       ipcRenderer.on('menu-compute-speaker-similarity', () => {
-        // Dispatch custom event that CaptionTable will listen for
-        window.dispatchEvent(new CustomEvent('computeSpeakerSimilarity'))
+        store.requestSpeakerSimilaritySort()
       })
       ipcRenderer.on('menu-asr-caption', handleMenuAsrCaption)
       ipcRenderer.on('menu-asr-embed', handleMenuAsrEmbed)

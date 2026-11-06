@@ -57,14 +57,8 @@ test.describe('Caption Editor - Bulk Delete', () => {
         { id: segments[0].id, text: segments[0].text },
         { id: segments[1].id, text: segments[1].text }
       ]
-
-        // Store selected rows for App.vue
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      // Dispatch the delete confirmation event
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      // Ask through the store, the way the table's context menu does.
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Dialog should be visible
@@ -134,12 +128,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
       const selectedRows = [
         { id: segments[0].id, text: segments[0].text }
       ]
-
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Dialog should be visible
@@ -203,12 +192,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
       const selectedRows = [
         { id: segments[0].id, text: segments[0].text }
       ]
-
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Dialog should be visible
@@ -274,12 +258,7 @@ test.describe('Caption Editor - Bulk Delete', () => {
       const selectedRows = [
         { id: segments[0].id, text: segments[0].text }
       ]
-
-        ; (window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(new CustomEvent('openDeleteConfirmDialog', {
-        detail: { rowCount: selectedRows.length }
-      }))
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     // Wait for dialog

@@ -36,19 +36,12 @@ test.describe('Caption Editor - Context Menu', () => {
 
       const segments = store.document.segments
       const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
-      ;(window as any).__captionTableSelectedRows = selectedRows
-
-      const event = new CustomEvent('showContextMenu', {
-        detail: {
-          position: { x: 200, y: 300 },
-          selectedRows
-        }
-      })
-      window.dispatchEvent(event)
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
+    // The handoff is store state now, not a function hung on `window`.
     const hasContextMenuComponents = await appPage.evaluate(() => ({
-      hasOpenDeleteConfirmDialog: typeof (window as any).openDeleteConfirmDialog === 'function'
+      hasOpenDeleteConfirmDialog: (window as any).$store.pendingDeletion !== null
     }))
 
     expect(hasContextMenuComponents.hasOpenDeleteConfirmDialog).toBe(true)
@@ -78,13 +71,7 @@ test.describe('Caption Editor - Context Menu', () => {
 
       const segments = store.document.segments
       const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
-      ;(window as any).__captionTableSelectedRows = selectedRows
-
-      window.dispatchEvent(
-        new CustomEvent('openDeleteConfirmDialog', {
-          detail: { rowCount: selectedRows.length }
-        })
-      )
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })
@@ -159,12 +146,7 @@ test.describe('Caption Editor - Context Menu', () => {
       if (!store) return
       const segments = store.document.segments
       const selectedRows = [{ id: segments[0].id, text: segments[0].text }]
-      ;(window as any).__captionTableSelectedRows = selectedRows
-      window.dispatchEvent(
-        new CustomEvent('openDeleteConfirmDialog', {
-          detail: { rowCount: selectedRows.length }
-        })
-      )
+      store.requestSegmentDeletion(selectedRows.map((r: { id: string }) => r.id))
     })
 
     const deleteDialog = appPage.locator('.base-modal').filter({ hasText: 'Delete Selected Rows' })

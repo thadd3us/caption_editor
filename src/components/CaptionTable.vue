@@ -559,6 +559,16 @@ let isSyncingSelection = false
 
 function onSelectionChanged(event: SelectionChangedEvent) {
   refreshGridStats()
+
+  // Mirror the whole selection into the store, including the empty case, so nothing
+  // outside this component has to reach into the grid API to ask what is selected.
+  // Done before the `isSyncingSelection` guard: a programmatic selection change is
+  // still a selection change as far as readers are concerned; the guard only exists
+  // to stop us feeding our own updates back into the store's anchor and autoplay.
+  store.setSelectedSegmentIds(
+    event.api.getSelectedRows().map((r: { id?: string }) => r.id).filter((id): id is string => !!id)
+  )
+
   if (isSyncingSelection) return
 
   const selectedRows = event.api.getSelectedRows()
@@ -996,11 +1006,11 @@ function onCellContextMenu(event: CellContextMenuEvent) {
     {
       label: 'Delete Selected',
       action: () => {
-        (window as any).__captionTableSelectedRows = selectedRowsForContextMenu.value
-        window.dispatchEvent(
-          new CustomEvent('openDeleteConfirmDialog', {
-            detail: { rowCount: selectedRowsForContextMenu.value.length }
-          })
+        // The ids travel with the request, so the rows that get deleted are the rows
+        // this menu targeted — not whatever the grid happens to have selected by the
+        // time the user confirms.
+        store.requestSegmentDeletion(
+          selectedRowsForContextMenu.value.map((row) => row.id).filter(Boolean) as string[]
         )
       }
     }
@@ -1144,8 +1154,12 @@ watch(
   { deep: true }
 )
 
+watch(
+  () => store.speakerSimilarityRequest,
+  (n) => { if (n > 0) handleComputeSpeakerSimilarity() }
+)
+
 onMounted(() => {
-  window.addEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
   window.addEventListener('keydown', onCaptionFindShortcut, true)
 })
 
@@ -1153,7 +1167,6 @@ onUnmounted(() => {
   captionGridDebugDetach?.()
   captionGridDebugDetach = null
   store.gridStateProvider = null
-  window.removeEventListener('computeSpeakerSimilarity', handleComputeSpeakerSimilarity)
   window.removeEventListener('keydown', onCaptionFindShortcut, true)
 })
 </script>

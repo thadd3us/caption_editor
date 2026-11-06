@@ -457,6 +457,34 @@ gridApi.value.deselectAll()
 rowNode.setSelected(true)
 ```
 
+### Cross-component state goes through the store
+
+`CaptionTable` and `App.vue` used to pass three things between themselves outside Pinia:
+the rows an action targets (a `window.__captionTableSelectedRows` global), a request to
+open the delete dialog (a DOM `CustomEvent`), and a request to sort by speaker similarity
+(another `CustomEvent`, the other way). None of it was visible to the type checker or to
+anyone reading either component alone.
+
+All three are store state now:
+
+- **`selectedSegmentIds`** mirrors the grid's full selection. AG Grid still owns selection
+  — it is the widget's own state — but nothing outside the table has to reach into the
+  grid API to ask what is selected. Distinct from `selectedSegmentId`, which is the
+  *anchor*: the row the playhead follows, that `uiState` persists, and that the selection
+  pin keys off.
+- **`pendingDeletion`** carries the target ids with the request. The old global was read
+  back at confirm time, so a selection change between opening the dialog and clicking
+  Delete could retarget it; now the rows deleted are the rows the menu named. There is a
+  test for exactly that.
+- **`speakerSimilarityRequest`** is a counter, not a boolean, because it is an event:
+  asking twice has to fire twice and there is nothing to reset.
+
+Still outstanding in the same vein: `CaptionTable` reaches the player with a raw
+`document.querySelector('audio, video')` in three places to force a seek, because the
+`store.currentTime` watcher in `MediaPlayer` only re-syncs the element on jumps over
+0.5s. A `seekTo` action that distinguishes "the playhead moved" from "seek the element"
+would remove it, but it touches the selection-pin ordering, so it wants its own change.
+
 ### Selection vs. context target (Lightroom-style)
 
 **Rule:** Use `resolveRowActionTargetRows(gridApi, anchorNode)` in `src/utils/rowActionTarget.ts`. If several rows are selected and the **anchor** row (clicked / right-clicked cell’s `params.node` or `event.node`) is **in** that selection → actions apply to **all selected rows**; otherwise → **only the anchor row**. The table context menu shows a non-interactive header like **“Targeting N row(s)”** (similar to Finder’s “N items” / macOS menu section headers).
