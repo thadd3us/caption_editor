@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import { enableConsoleCapture } from '../helpers/console'
 import { acceptLicenseIfVisible } from '../helpers/license'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -53,7 +54,7 @@ test.describe('File Association - Open captions files from OS', () => {
     })
 
     // Wait for the first window
-    window = await electronApp.firstWindow()
+    window = await firstReadyWindow(electronApp)
     await window.waitForLoadState('domcontentloaded')
     await acceptLicenseIfVisible(window)
 
@@ -191,7 +192,7 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await electronApp.firstWindow()
+    window = await firstReadyWindow(electronApp)
     await window.waitForLoadState('domcontentloaded')
     await acceptLicenseIfVisible(window)
     enableConsoleCapture(window)
@@ -248,7 +249,7 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await electronApp.firstWindow()
+    window = await firstReadyWindow(electronApp)
     await window.waitForLoadState('domcontentloaded')
     await acceptLicenseIfVisible(window)
     enableConsoleCapture(window)
@@ -310,7 +311,7 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await electronApp.firstWindow()
+    window = await firstReadyWindow(electronApp)
     await window.waitForLoadState('domcontentloaded')
     await acceptLicenseIfVisible(window)
     enableConsoleCapture(window)
@@ -358,7 +359,7 @@ test.describe('File Association - Open captions files from OS', () => {
       }
     })
 
-    window = await electronApp.firstWindow()
+    window = await firstReadyWindow(electronApp)
     await window.waitForLoadState('domcontentloaded')
     await acceptLicenseIfVisible(window)
     enableConsoleCapture(window)

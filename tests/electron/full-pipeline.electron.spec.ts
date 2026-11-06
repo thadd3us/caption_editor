@@ -6,6 +6,7 @@ import { enableConsoleCapture } from '../helpers/console'
 import { launchElectron } from '../helpers/electron-launch'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { parseCaptionsFileContent } from '../helpers/parseCaptionsFileContent'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 test.describe('Full E2E Pipeline @expensive', () => {
   test('should transcribe audio, add embeddings, load in UI, modify, and save', async () => {
@@ -29,7 +30,7 @@ test.describe('Full E2E Pipeline @expensive', () => {
     }
 
     const electronApp = await launchElectron({ env })
-    const window = await electronApp.firstWindow()
+    const window = await firstReadyWindow(electronApp)
     enableConsoleCapture(window)
 
     try {
@@ -145,7 +146,7 @@ test.describe('Full E2E Pipeline @expensive', () => {
       args: [getElectronMainPath(), '--no-sandbox', captionsPath],
       env: { ...process.env, NODE_ENV: 'test', DISPLAY: process.env.DISPLAY || ':99' }
     })
-    const window = await electronApp.firstWindow()
+    const window = await firstReadyWindow(electronApp)
 
     try {
       await window.waitForLoadState('domcontentloaded')

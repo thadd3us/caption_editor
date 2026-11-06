@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import { fileURLToPath } from 'url'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -48,7 +49,7 @@ test.describe('ASR Menu Integration @expensive', () => {
         })
       })
 
-      const page = await electronApp.firstWindow()
+      const page = await firstReadyWindow(electronApp)
 
       // Set the ASR model override on the window
       await page.evaluate(() => {
@@ -178,7 +179,7 @@ test.describe('ASR Menu Integration @expensive', () => {
       })
     })
 
-    const page = await electronApp.firstWindow()
+    const page = await firstReadyWindow(electronApp)
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(500)
     await page.waitForTimeout(500)
@@ -268,7 +269,7 @@ test.describe('ASR Menu Integration @expensive', () => {
       })
     })
 
-    const page = await electronApp.firstWindow()
+    const page = await firstReadyWindow(electronApp)
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(500)
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="media-player">
+  <div class="media-player" :class="{ 'audio-only': isAudioOnly }">
     <div v-if="hasMedia && mediaFileName" class="media-info">
       <button
         type="button"
@@ -77,10 +77,13 @@
         </label>
       </div>
 
-      <div class="caption-resizer" @mousedown="startCaptionResize"></div>
+      <!-- Audio has nothing above to steal height from, so the caption box just fills
+           what is left and the drag handle has no job. captionHeight keeps whatever the
+           user last set for video. -->
+      <div v-if="!isAudioOnly" class="caption-resizer" @mousedown="startCaptionResize"></div>
       <div
         class="current-caption-display"
-        :style="{ height: store.captionHeight + 'px' }"
+        :style="isAudioOnly ? undefined : { height: store.captionHeight + 'px' }"
         @dblclick="beginCaptionEdit"
       >
         <div class="caption-label">
@@ -292,6 +295,17 @@ const isVideo = computed(() => {
   const path = store.mediaPath.toLowerCase()
   return path.includes('.mp4') || path.includes('.webm') || path.includes('.mov') || path.includes('.avi')
 })
+
+/**
+ * Audio loaded, no picture to show.
+ *
+ * `.video-container` is `flex: 1`, which is right for video — the frame should take the
+ * space it can get. For audio it meant a ~54px `<audio>` element sitting in the middle of
+ * a 596px black box (measured at a 900px-tall window), while the caption panel you
+ * actually read and edit in got 120px. Audio is the common case for this app, so the
+ * layout switches: the container sizes to its content and the caption box takes the rest.
+ */
+const isAudioOnly = computed(() => hasMedia.value && !isVideo.value)
 
 const mediaFileName = computed(() => {
   // Display exactly what will be saved in document metadata (document.metadata.mediaFilePath)
@@ -693,6 +707,29 @@ watch(() => store.currentTime, (time) => {
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 20px;
+}
+
+/*
+ * Audio-only layout: see `isAudioOnly`. The container sizes to the native <audio>
+ * widget instead of claiming the whole panel, the black letterbox goes away (there is
+ * no picture to letterbox), and `.controls` grows so `.current-caption-display` can
+ * take the reclaimed height. The caption box drops its inline `height` in this mode —
+ * hence `flex: 1` here rather than an `!important` fight with the style binding.
+ */
+.media-player.audio-only .video-container {
+  flex: 0 0 auto;
+  background: transparent;
+  margin-bottom: 12px;
+}
+
+.media-player.audio-only .controls {
+  flex: 1;
+  min-height: 0;
+}
+
+.media-player.audio-only .current-caption-display {
+  flex: 1;
+  min-height: 120px;
 }
 
 video, audio {

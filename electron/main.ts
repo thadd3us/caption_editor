@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url'
 import { type ChildProcess } from 'child_process'
 import * as os from 'os'
 import { APP_VERSION } from './constants'
-import { findBackupPath } from '../src/utils/fileUtils'
+import { findBackupPath, mediaUrlForPath, pathFromMediaUrl } from '../src/utils/fileUtils'
 import { DEFAULT_PREFERENCES, sanitizePreferences, type AppPreferences } from '../src/types/preferences'
 
 
@@ -610,9 +610,9 @@ app.whenReady().then(() => {
   // Using a custom protocol is required once webSecurity is enabled.
   protocol.handle('media', async (request) => {
     try {
-      const url = new URL(request.url)
-      // Extract the path - it should be everything after 'media://local'
-      let filePath = decodeURIComponent(url.pathname)
+      // Percent-decoded back into a real path; see mediaUrlForPath for why the
+      // encoding matters.
+      let filePath = pathFromMediaUrl(request.url)
 
       // Normalize for pathToFileURL (remove leading slash if it's a Windows drive letter)
       if (process.platform === 'win32' && filePath.startsWith('/')) {
@@ -939,7 +939,7 @@ ipcMain.handle('file:toURL', async (_event, filePath: string) => {
 
     // Return media:// URL instead of file://
     // Using media://local/path format for clean URL parsing
-    const url = `media://local${filePath}`
+    const url = mediaUrlForPath(filePath)
     return { success: true, url, filePath }
   } catch (error) {
     console.error('Error converting file to URL:', error)
@@ -1400,7 +1400,7 @@ ipcMain.handle('file:processDroppedFiles', async (_event, filePaths: string[]) =
         })
         console.log(`[main] Loaded SRT: ${filePath}`)
       } else if (media_files.includes(extensionWithoutDot)) {
-        const url = `media://local${filePath}`
+        const url = mediaUrlForPath(filePath)
         results.push({
           type: 'media',
           filePath,

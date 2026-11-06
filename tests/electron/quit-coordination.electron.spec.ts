@@ -13,6 +13,7 @@
 import { test, expect, ElectronApplication, Page } from '@playwright/test'
 import { launchElectron } from '../helpers/electron-launch'
 import { acceptLicenseIfVisible } from '../helpers/license'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 let electronApp: ElectronApplication
 
@@ -41,7 +42,7 @@ async function requestQuit(): Promise<void> {
 
 test.beforeAll(async () => {
   electronApp = await launchElectron({ env: { CAPTION_EDITOR_INTERCEPT_CLOSE: '1' } })
-  const page = await electronApp.firstWindow()
+  const page = await firstReadyWindow(electronApp)
   await page.waitForFunction(() => (window as any).$store, { timeout: 10000 })
   await acceptLicenseIfVisible(page)
 })

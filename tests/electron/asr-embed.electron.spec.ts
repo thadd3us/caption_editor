@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import { getProjectRoot, getElectronMainPath } from '../helpers/project-root'
 import { enableConsoleCapture } from '../helpers/console'
 import { acceptLicenseIfVisible } from '../helpers/license'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -56,7 +57,7 @@ test.describe('Speaker Embedding Integration @expensive', () => {
                 executablePath: process.env.ELECTRON_PATH,
             })
 
-            const page = await electronApp.firstWindow()
+            const page = await firstReadyWindow(electronApp)
             enableConsoleCapture(page)
 
             // Wait for app to be ready

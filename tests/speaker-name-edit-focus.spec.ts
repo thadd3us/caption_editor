@@ -5,6 +5,7 @@ import { test, expect, ElectronApplication, Page } from '@playwright/test'
 import { enableConsoleCapture } from './helpers/console'
 import { launchElectron } from './helpers/electron-launch'
 import { expectGridCaptionTotal } from './helpers/wait-helpers'
+import { firstReadyWindow } from './helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,7 +23,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     })
 
     // Wait for the first window with a generous timeout
-    window = await electronApp.firstWindow({ timeout: 60000 })
+    window = await firstReadyWindow(electronApp, 60000)
     await window.waitForLoadState('domcontentloaded')
     enableConsoleCapture(window)
   })

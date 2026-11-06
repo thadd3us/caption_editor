@@ -1,5 +1,6 @@
 import { test, expect, _electron as electron, ElectronApplication, Page } from '@playwright/test'
 import { getElectronMainPath } from '../helpers/project-root'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 test.describe('Drag-and-Drop IPC Integration', () => {
     let electronApp: ElectronApplication
@@ -14,7 +15,7 @@ test.describe('Drag-and-Drop IPC Integration', () => {
             }
         })
 
-        window = await electronApp.firstWindow()
+        window = await firstReadyWindow(electronApp)
         await window.waitForLoadState('domcontentloaded')
         // Wait for App to be mounted and $store to be available
         await window.waitForFunction(() => (window as any).$store !== undefined)

@@ -4,6 +4,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import { fileURLToPath } from 'url'
+import { firstReadyWindow } from '../helpers/app-ready'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -62,7 +63,7 @@ test.describe('ASR Cancellation Reproduction @expensive', () => {
                 executablePath: process.env.ELECTRON_PATH,
             })
 
-            const page = await electronApp.firstWindow()
+            const page = await firstReadyWindow(electronApp)
 
             // Forward renderer [ASR timing] lines so we can correlate with test wall clock.
             page.on('console', (msg) => {
