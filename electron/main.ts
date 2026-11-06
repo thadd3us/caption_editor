@@ -151,8 +151,25 @@ function createMenu() {
     {
       label: 'Edit',
       submenu: [
-        { role: 'undo' as const },
-        { role: 'redo' as const },
+        // Not `role: 'undo'`. That role is `webContents.undo()`, which is text-field
+        // undo only — it does nothing for a deleted row or a bulk speaker change,
+        // which is what a transcript editor's Cmd+Z should reach.
+        //
+        // Taking the role away means this item now owns the accelerator, so the
+        // renderer is responsible for handing a keystroke back to the focused text
+        // field when one is being edited. See `handleUndo` in App.vue.
+        {
+          label: 'Undo',
+          accelerator: 'CmdOrCtrl+Z',
+          id: 'edit-undo',
+          click: () => { focusedWindow()?.webContents.send('menu-undo') }
+        },
+        {
+          label: 'Redo',
+          accelerator: isMac ? 'Shift+CmdOrCtrl+Z' : 'CmdOrCtrl+Y',
+          id: 'edit-redo',
+          click: () => { focusedWindow()?.webContents.send('menu-redo') }
+        },
         { type: 'separator' as const },
         { role: 'cut' as const },
         { role: 'copy' as const },
@@ -966,6 +983,22 @@ ipcMain.on('menu:updateAsrEnabled', (_event, options: boolean | { caption?: bool
       }
     }
   }
+})
+
+/**
+ * Reflect the focused window's undo/redo availability in the Edit menu.
+ *
+ * `Menu.setApplicationMenu` installs one menu for the whole app, so this is the
+ * focused window's state, not a per-window menu. The renderer re-sends on focus
+ * (see App.vue) so switching windows does not leave the other one's state showing.
+ */
+ipcMain.on('menu:updateUndoEnabled', (_event, state: { undo: boolean; redo: boolean }) => {
+  const menu = Menu.getApplicationMenu()
+  if (!menu) return
+  const undoItem = menu.getMenuItemById('edit-undo')
+  if (undoItem) undoItem.enabled = state.undo
+  const redoItem = menu.getMenuItemById('edit-redo')
+  if (redoItem) redoItem.enabled = state.redo
 })
 
 /**

@@ -85,12 +85,109 @@ export const useCaptionStore = defineStore('captions', () => {
   /** Depth counter for document replacements that must not count as content edits. */
   let suppressContentDirty = 0
 
+  /* -------------------------------------------------------------------------
+   * Undo / redo.
+   *
+   * This is nearly free because of the immutable document model: every mutating
+   * action replaces `document.value` wholesale, so a history entry is one object
+   * reference, not a copy. The untouched parts — the `segments` array when only
+   * `title` changed, the `embeddings` array in almost every edit — are shared
+   * between versions rather than duplicated. That matters: embeddings are a
+   * base64 float32 vector per segment, and deep-copying them per keystroke would
+   * not be viable.
+   *
+   * The boundary of what is undoable is the same one `isDirty` already uses: a
+   * content change. `withoutDirtying()` replacements (`updateFilePath`, which
+   * only moves a runtime-only field) are not edits and do not enter the history.
+   *
+   * `selectedSegmentId` rides along with each entry. Undoing a delete that puts a
+   * row back but leaves you selected somewhere else is disorienting, and the
+   * selection is a single string, so there is no reason not to.
+   * ---------------------------------------------------------------------- */
+
+  interface HistoryEntry {
+    readonly document: CaptionsDocument
+    readonly selectedSegmentId: string | null
+  }
+
+  /**
+   * Bounded so a long session cannot grow without limit. Entries are cheap, but
+   * "cheap" is not "free" — each one pins whichever segment arrays it references,
+   * so a 1000-segment document edited 500 times would hold every intermediate
+   * `segments` array alive.
+   */
+  const UNDO_LIMIT = 100
+
+  const undoStack = ref<HistoryEntry[]>([])
+  const redoStack = ref<HistoryEntry[]>([])
+
+  /** Set while undo/redo is applying, so the watcher does not record its own work. */
+  let applyingHistory = false
+
+  /**
+   * The document as it was when memory last matched disk.
+   *
+   * Identity comparison against this is what lets undo clear `isDirty` instead of
+   * leaving the file looking edited after you have undone your way back to where
+   * you started. Immutability makes `===` exactly the right test.
+   */
+  let savedDocument: CaptionsDocument | null = null
+
+  const canUndo = computed(() => undoStack.value.length > 0)
+  const canRedo = computed(() => redoStack.value.length > 0)
+
   // `flush: 'sync'` so `isDirty` is observable immediately after an action returns,
   // rather than on the next tick.
-  watch(document, () => {
+  watch(document, (_newDoc, oldDoc) => {
     if (suppressContentDirty > 0) return
-    isDirty.value = true
+
+    if (!applyingHistory && oldDoc) {
+      undoStack.value.push({ document: oldDoc, selectedSegmentId: selectedSegmentId.value })
+      if (undoStack.value.length > UNDO_LIMIT) undoStack.value.shift()
+      // A fresh edit is a new branch; anything that was undone is no longer reachable.
+      redoStack.value = []
+    }
+
+    isDirty.value = savedDocument === null || document.value !== savedDocument
   }, { flush: 'sync' })
+
+  /** Forget the history. For a new document, where "undo" across the boundary is meaningless. */
+  function clearHistory() {
+    undoStack.value = []
+    redoStack.value = []
+  }
+
+  /** Move one entry between the stacks, applying its document. Shared by undo and redo. */
+  function applyHistory(from: typeof undoStack, to: typeof redoStack): boolean {
+    const entry = from.value.pop()
+    if (!entry) return false
+
+    to.value.push({ document: document.value, selectedSegmentId: selectedSegmentId.value })
+
+    applyingHistory = true
+    try {
+      document.value = entry.document
+    } finally {
+      applyingHistory = false
+    }
+
+    // Only restore a selection that still exists in the document we just restored.
+    selectedSegmentId.value =
+      entry.selectedSegmentId &&
+      entry.document.segments.some((seg) => seg.id === entry.selectedSegmentId)
+        ? entry.selectedSegmentId
+        : null
+
+    return true
+  }
+
+  function undo(): boolean {
+    return applyHistory(undoStack, redoStack)
+  }
+
+  function redo(): boolean {
+    return applyHistory(redoStack, undoStack)
+  }
 
   /** Run `fn` without letting its document replacement mark the content dirty. */
   function withoutDirtying<T>(fn: () => T): T {
@@ -106,6 +203,8 @@ export const useCaptionStore = defineStore('captions', () => {
   function markSaved() {
     isDirty.value = false
     viewDirty.value = false
+    // Remembered so undoing back to this exact document clears `isDirty` again.
+    savedDocument = document.value
   }
 
   /** Record that view-only state (grid layout, playhead, selection) changed. */
@@ -296,6 +395,10 @@ export const useCaptionStore = defineStore('captions', () => {
         pinnedAtTime.value = currentTime.value
       }
 
+      // A different document: undoing across the boundary would resurrect the
+      // previous file's segments into this one.
+      clearHistory()
+
       // Memory now matches disk. Must come after the restores above so that
       // nothing in this function leaves the document looking edited.
       markSaved()
@@ -325,6 +428,7 @@ export const useCaptionStore = defineStore('captions', () => {
     // Every segment is new, so any remembered selection refers to a segment that no
     // longer exists (same reasoning as mergeAsrResult).
     selectedSegmentId.value = null
+    clearHistory()
     pinnedSegmentId.value = null
   }
 
@@ -785,6 +889,8 @@ export const useCaptionStore = defineStore('captions', () => {
     playlistStartIndex,
     isDirty,
     viewDirty,
+    canUndo,
+    canRedo,
     gridStateProvider,
     leftPanelWidth,
     captionHeight,
@@ -804,6 +910,9 @@ export const useCaptionStore = defineStore('captions', () => {
     updateFilePath,
     setIsDirty,
     markSaved,
+    undo,
+    redo,
+    clearHistory,
     markViewDirty,
     processFilePaths,
     addSegment,
@@ -837,6 +946,9 @@ export const useCaptionStore = defineStore('captions', () => {
       leftPanelWidth.value = 60
       captionHeight.value = 120
       playbackRate.value = DEFAULT_PLAYBACK_RATE
+      // After the replacement above, not before: the watcher records the outgoing
+      // document, so clearing first would leave that one entry behind.
+      clearHistory()
       markSaved()
     }
   }

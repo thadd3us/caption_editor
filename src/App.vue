@@ -436,6 +436,21 @@ watch(
   { immediate: true, deep: true }
 )
 
+/**
+ * Grey out Edit > Undo / Redo to match the document history.
+ *
+ * Re-sent on window focus as well as on change: `Menu.setApplicationMenu` installs one
+ * menu for the whole app, so with two windows open the items would otherwise show
+ * whichever window last edited something rather than the one you are looking at.
+ */
+watch(
+  [() => store.canUndo, () => store.canRedo],
+  ([undo, redo]) => {
+    window.electronAPI?.updateUndoMenuEnabled?.({ undo, redo })
+  },
+  { immediate: true }
+)
+
 // Watch for media path and segments changes and update ASR menu enabled state
 watch(
   [() => store.mediaPath, () => store.document.segments.length],
@@ -703,6 +718,45 @@ async function handleMenuExportSrt() {
       message: 'Failed to export SRT: ' + (err instanceof Error ? err.message : 'Unknown error')
     })
   }
+}
+
+/**
+ * Cmd+Z / Shift+Cmd+Z.
+ *
+ * The Edit menu no longer uses `role: 'undo'`, because that role is
+ * `webContents.undo()` — text-field undo, which does nothing for a deleted row or a
+ * bulk speaker change. Owning the accelerator means we also owe the text fields their
+ * behaviour back: while a cell editor or the caption textarea has focus, Cmd+Z should
+ * still undo your typing, not revert the last table edit underneath you.
+ *
+ * `execCommand` is deprecated but is still the only way to drive a text control's own
+ * undo stack from script, and Chromium implements it. If it ever stops working the
+ * fallback is visible rather than silent: typing undo would start reverting documents.
+ */
+function isEditingText(): boolean {
+  const el = document.activeElement as HTMLElement | null
+  if (!el) return false
+  return (
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.isContentEditable
+  )
+}
+
+function handleMenuUndo() {
+  if (isEditingText()) {
+    window.document.execCommand('undo')
+    return
+  }
+  store.undo()
+}
+
+function handleMenuRedo() {
+  if (isEditingText()) {
+    window.document.execCommand('redo')
+    return
+  }
+  store.redo()
 }
 
 // ASR menu handler
@@ -1033,6 +1087,14 @@ onMounted(() => {
   ;(window as any).showAlert = showAlert
   ;(window as any).showConfirm = showConfirm
   ;(window as any).openPreferencesDialog = openPreferencesDialog
+  ;(window as any).handleMenuUndo = handleMenuUndo
+  ;(window as any).handleMenuRedo = handleMenuRedo
+
+  // See the watcher above: the menu is app-wide, so re-assert this window's state
+  // whenever it becomes the focused one.
+  window.addEventListener('focus', () => {
+    window.electronAPI?.updateUndoMenuEnabled?.({ undo: store.canUndo, redo: store.canRedo })
+  })
 
   // Preferences changed in another window: adopt without re-persisting.
   ;(window as any).electronAPI?.preferences?.onChanged?.((prefs: unknown) => {
@@ -1067,6 +1129,8 @@ onMounted(() => {
 
     if (ipcRenderer) {
       ipcRenderer.on('menu-open-preferences', openPreferencesDialog)
+      ipcRenderer.on('menu-undo', handleMenuUndo)
+      ipcRenderer.on('menu-redo', handleMenuRedo)
       ipcRenderer.on('menu-open-file', handleMenuOpenFile)
       ipcRenderer.on('menu-save-file', handleMenuSaveFile)
       ipcRenderer.on('menu-save-as', handleMenuSaveAs)
