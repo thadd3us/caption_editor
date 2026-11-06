@@ -187,6 +187,11 @@ export interface ElectronAPI {
   updateAsrMenuEnabled: (options: boolean | { caption?: boolean; embed?: boolean }) => void
 
   /**
+   * Grey out Edit > Undo / Redo when the document history is empty.
+   */
+  updateUndoMenuEnabled?: (state: { undo: boolean; redo: boolean }) => void
+
+  /**
    * Quit the application
    */
   quitApp: () => void

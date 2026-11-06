@@ -181,6 +181,50 @@ Regression tests: `src/stores/captionStore.selectionPin.test.ts` (the rule) and
 `tests/electron/selection-pin.electron.spec.ts` (a real click, sorted by speaker so the
 hijacking row is off-screen).
 
+### Undo / redo
+
+`Cmd+Z` / `Shift+Cmd+Z`, over the whole document: deletes, merges, splits, bulk speaker
+and rating changes, ASR merges — not just text fields.
+
+**Why it is cheap.** The document model is immutable, so a history entry is one object
+reference rather than a copy, and the parts that did not change are shared between
+versions. Editing `title` leaves the `segments` array literally the same object; editing
+one segment leaves `embeddings` — a base64 float32 vector per segment — untouched and
+shared. Deep-copying per keystroke would not have been viable; structural sharing makes
+a 100-entry stack unremarkable. `UNDO_LIMIT` bounds it anyway, because each entry does
+pin whichever arrays it references.
+
+**What counts as an edit** is the same boundary `isDirty` already draws, and for the same
+reason: both hang off the single `flush: 'sync'` watcher on `document`. A
+`withoutDirtying()` replacement (`updateFilePath`) is not an edit and never enters the
+history — otherwise `Cmd+Z` after a Save As would silently revert the path.
+
+**`isDirty` is identity, not a counter.** `markSaved()` records the document object that
+matches disk, and the watcher sets `isDirty = document.value !== savedDocument`. So
+undoing back to the saved state clears the flag instead of leaving the file looking
+edited, which matters because undo is how a user says "I did not mean that" — they should
+not then be pushed into saving it. Immutability is what makes `===` the exact test.
+
+**Loading clears the history.** `loadFromFile`, `loadFromSrt` and `reset()` call
+`clearHistory()`, and must do so *after* replacing `document.value`, not before — the
+watcher records the outgoing document, so clearing first leaves that one entry behind.
+
+**The Edit menu does not use `role: 'undo'`.** That role is `webContents.undo()`, which is
+text-field undo only: it does nothing for a deleted row. The menu items send `menu-undo` /
+`menu-redo` instead, which means they own the accelerator and the renderer owes text
+fields their behaviour back — `handleMenuUndo` in App.vue checks whether an `INPUT`,
+`TEXTAREA` or contenteditable has focus and calls `document.execCommand('undo')` if so.
+`execCommand` is deprecated but is still the only way to drive a text control's own undo
+stack from script.
+
+Enabled state is pushed to the main process via `updateUndoMenuEnabled`, re-sent on window
+`focus` because `Menu.setApplicationMenu` installs one menu for the whole app — the same
+caveat as the AI Annotations items.
+
+Tests: `src/stores/captionStore.undo.test.ts` for the rules,
+`tests/electron/undo-redo.electron.spec.ts` for the wiring, including clicking the real
+menu item (main → IPC → renderer) and confirming a focused cell editor keeps its own undo.
+
 ### Dirty tracking and view state
 
 Two flags in `captionStore.ts`, with deliberately different policies:

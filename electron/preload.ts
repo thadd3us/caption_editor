@@ -185,6 +185,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('menu:updateAsrEnabled', options)
   },
 
+  /** Grey out Edit > Undo / Redo when the document history is empty. */
+  updateUndoMenuEnabled: (state: { undo: boolean; redo: boolean }) => {
+    ipcRenderer.send('menu:updateUndoEnabled', state)
+  },
+
   /**
    * Application quit/close handling
    */
