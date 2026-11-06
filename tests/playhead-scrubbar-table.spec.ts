@@ -63,13 +63,14 @@ test.describe('Caption Editor - Playhead, Scrub Bar, and Table Integration', () 
     const audioPath = path.join(process.cwd(), 'test_data', 'test-audio-10s.wav')
     console.log('Loading audio from:', audioPath)
 
-    await appPage.evaluate((filePath) => {
-      // Simulate loading an audio file
-      // Use media:// protocol which we implemented for reliable Electron media loading
-      const audioUrl = `media:///${filePath.replace(/\\/g, '/')}`
-      console.log('[TEST] Loading media file:', audioUrl)
-        // Use window.$store exposed by the app
-        ; (window as any).$store.loadMediaFile(audioUrl)
+    // Through the app's own API rather than hand-building a media:// URL. The main
+    // process only serves media:// for files it minted a URL for, so a hand-built URL
+    // is now refused with a 403 — and this is what the app actually does anyway.
+    await appPage.evaluate(async (filePath) => {
+      const result = await window.electronAPI!.fileToURL(filePath)
+      if (!result.success || !result.url) throw new Error('fileToURL failed: ' + result.error)
+      console.log('[TEST] Loading media file:', result.url)
+      ;(window as any).$store.loadMediaFile(result.url, filePath)
     }, audioPath)
 
     await appPage.waitForFunction(() => !!(window as any).$store.mediaPath, undefined, { timeout: 5000 })

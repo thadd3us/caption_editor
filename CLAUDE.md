@@ -285,6 +285,51 @@ unknown keys included (`transcribe/ui_state_round_trip_test.py`,
   `tests/electron/quit-coordination.electron.spec.ts`, which must tear down with
   `app.exit()` rather than `app.quit()`).
 
+### Renderer sandbox and what `media://` will serve
+
+The renderer runs with `sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`.
+It is the process that parses untrusted `.captions_json5` from disk, so the things it can
+reach are worth keeping small.
+
+**Getting the sandbox on took two changes, and both are easy to undo by accident.**
+
+1. *The preload must not import Node builtins.* A sandboxed preload's `require` resolves
+   only `electron`, `events`, `timers` and `url`. It used to `import * as path from 'path'`,
+   which threw before `contextBridge.exposeInMainWorld` ran — so `window.electronAPI` came
+   back **entirely undefined**, not merely missing its path helpers. The renderer still
+   needs those functions synchronously (`captionStore.exportToString()` returns a string),
+   so they are evaluated in the main process behind `ipcRenderer.sendSync('path:call', …)`.
+   That keeps Node's real `path`, and with it Windows drive letters and separators; a
+   posix-only shim bundled into the preload would have quietly broken `isAbsolute('C:\…')`.
+   The handler checks the operation against an allowlist rather than indexing off `path`.
+
+2. *The preload must build to a single self-contained file.* It has its own Vite config
+   (`vite.preload.config.ts`). Built as a second entry alongside the main process, Rollup
+   hoisted the shared `electron/constants.ts` into a chunk and the preload opened with
+   `require("./constants-<hash>.cjs")` — a local file, which the sandboxed `require`
+   refuses. The symptom is identical to (1): no `electronAPI`, and no error in any obvious
+   place, because the failure is in the preload rather than the page.
+
+   If you ever see `window.electronAPI` undefined, check `dist-electron/preload.cjs` for a
+   `require` of anything other than `electron`.
+
+**`media://` serves only files the user opened.** The handler used to stat and stream
+whatever path was in the URL, so `media://local/etc/passwd` was a valid request from the
+renderer. Every legitimate URL is minted by `file:toURL` or `processDroppedFiles`, both of
+which now record the realpath in `servableMediaPaths`; anything else gets a 403. Entries
+are never removed — the renderer re-requests the file constantly while scrubbing. Tests
+that want media must go through `electronAPI.fileToURL` rather than building a `media://`
+URL by hand.
+
+**The CSP differs between dev and production.** `'unsafe-eval'` and the `ws:`/`http:` in
+`connect-src` exist for the Vite dev server and are omitted from a packaged build, which
+loads from `file://` and needs neither. `'unsafe-inline'` for scripts stays in both: Vue
+and AG Grid inject inline content, and removing it needs a nonce-based CSP.
+
+**Window-open and off-origin navigation are denied**, with `http(s)` URLs handed to
+`shell.openExternal` so a link in a caption opens in the user's real browser rather than
+inside the app.
+
 ### Captions JSON Format
 - Primary document format: `*.captions_json5`
 - Media file paths stored as **absolute** internally, **relative** when serialized

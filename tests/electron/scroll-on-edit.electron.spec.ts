@@ -59,6 +59,8 @@ test.describe('Scroll stability on cell edit', () => {
     toTime: number,
     steps: number = 30
   ) {
+    const scrollBefore = await getViewportScrollTop(page)
+
     await page.evaluate(({ from, to, steps }) => {
       return new Promise<void>((resolve) => {
         const store = (window as any).$store
@@ -76,19 +78,35 @@ test.describe('Scroll stability on cell edit', () => {
         requestAnimationFrame(step)
       })
     }, { from: fromTime, to: toTime, steps })
-    // The scrub drives setCurrentTime through requestAnimationFrame, so first wait for the
-    // playhead to reach the end of the sweep.
+
+    // The scrub drives setCurrentTime through requestAnimationFrame, so first wait for
+    // the playhead to reach the end of the sweep.
     await page.waitForFunction(
       (t) => Math.abs((window as any).$store.currentTime - t) < 0.01,
       toTime,
       { timeout: 5000 }
     )
-    // Then wait for the grid to finish reacting. Auto-scroll follows the playhead
-    // asynchronously, so the store landing is not the end of the story — waiting only on
-    // it measured scrollTop before the grid had moved, and the test read 0.
+
+    // Then wait for the grid to actually move, and only then for it to settle.
     //
-    // This waits for the scroll position to stop changing rather than for any particular
-    // value, so it does not presuppose what the callers go on to assert.
+    // Both halves are needed, and getting this wrong twice is what makes it worth
+    // spelling out. Measuring straight after the playhead lands reads a stale
+    // scrollTop, because auto-scroll reacts asynchronously. But waiting only for the
+    // position to *stop changing* is no better: instrumenting a scrub showed
+    // `selectedSegmentId` reaching the final row while scrollTop sat at 0 for about
+    // four frames before jumping, so a stability window shorter than that lag cannot
+    // tell "settled" from "has not started" and returns immediately at 0.
+    //
+    // Waiting for a change first removes the ambiguity. It is sound here because every
+    // scrub in this spec sweeps the whole document — 80 rows — so the viewport must
+    // move; it would be the wrong helper for a scrub that legitimately stays put.
+    await page.waitForFunction(
+      (before) =>
+        ((document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1) !==
+        before,
+      scrollBefore,
+      { timeout: 5000 }
+    )
     await waitForScrollSettled(page)
   }
 

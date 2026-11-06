@@ -41,11 +41,14 @@ test.describe('Full E2E Pipeline @expensive', () => {
         ;(window as any).__ASR_MODEL_OVERRIDE = 'openai/whisper-tiny'
       })
 
-      // Load media.
-      await page.evaluate((audioPath) => {
+      // Load media through the app's own API: the main process only serves media://
+      // for files it minted a URL for, so a hand-built URL is refused with a 403.
+      await page.evaluate(async (audioPath) => {
         const store = (window as any).$store
         if (!store) throw new Error('$store not found')
-        store.loadMediaFile(`media://local${audioPath}`, audioPath)
+        const result = await window.electronAPI!.fileToURL(audioPath)
+        if (!result.success || !result.url) throw new Error('fileToURL failed: ' + result.error)
+        store.loadMediaFile(result.url, audioPath)
       }, destAudioPath)
 
       await page.waitForFunction(() => {
