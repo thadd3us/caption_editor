@@ -186,7 +186,14 @@ def embed_document(
                     n_neighbors=n_neighbors,
                     init=init_method,
                 )
-                reduced: npt.NDArray[Any] = reducer.fit_transform(X)  # type: ignore[assignment]
+                # umap-learn annotates fit_transform as returning a union that
+                # includes a scipy sparse matrix and a bare float, neither of
+                # which is subscriptable — so `reduced[i]` below does not type
+                # check against the raw return. For this call it is always a
+                # dense 2-D array (dense input, n_components >= 1); asarray makes
+                # that explicit to the checker and is a no-op at runtime for an
+                # ndarray input.
+                reduced: npt.NDArray[Any] = np.asarray(reducer.fit_transform(X))
 
                 for i, sid in enumerate(segment_ids):
                     umap_embeddings_map[sid][str(dim)] = [

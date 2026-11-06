@@ -1,5 +1,11 @@
 common --enable_bzlmod
 common --noenable_workspace
+
+# aspect_rules_js 3.5+ bundles `aspect_tools_telemetry`, which phones home
+# with which Bazel and ruleset versions this repo builds with, on by default
+# and announced only once in a DEBUG line. Nothing here needs to be reported
+# upstream, so it stays off; drop this line to opt in.
+common --repo_env=DO_NOT_TRACK=1
 test --test_output=errors
 
 # Every bazel action inherits a fixed PATH, not the developer's host

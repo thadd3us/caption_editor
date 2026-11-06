@@ -30,9 +30,20 @@ thiserror = "2"
 hound = "3.5"
 ndarray = "0.17"
 hf-hub = { version = "0.4", default-features = false, features = ["ureq", "rustls-tls"] }
-# ort rc.12 matches what parakeet-rs 0.3 pins. Aligning across the workspace
-# keeps Cargo from picking two onnxruntime native libs.
-ort = { version = "2.0.0-rc.12", default-features = false, features = ["std", "ndarray", "api-24"] }
+# Hard-pinned with `=`, and that matters: ort is a prerelease, and Cargo's caret
+# rules treat `2.0.0-rc.12` as `^2.0.0-rc.12`, which happily resolves up to
+# rc.15. parakeet-rs 0.3.x only asks for `^2.0.0-rc.13` but its code does NOT
+# compile against rc.15 (`SessionBuilder::new()` gained a parameter), so a plain
+# `cargo update` silently produces a tree that fails to build — in parakeet's
+# own source as well as ours. Upstream fixed the under-constraint from 0.4.1 on,
+# where the requirement became `=2.0.0-rc.15`.
+#
+# So this `=` is what holds the ort/parakeet pair together. Moving to rc.15 means
+# moving parakeet-rs to 0.4.x at the same time and fixing the
+# `SessionBuilder::new()` call sites (embed-rs/src/main.rs, transcribe-rs) —
+# one change, not a dependency bump. Aligning on a single version across the
+# workspace also keeps Cargo from linking two onnxruntime native libs.
+ort = { version = "=2.0.0-rc.12", default-features = false, features = ["std", "ndarray", "api-24"] }
 knf-rs = "0.3"
 parakeet-rs = { version = "0.3", default-features = false, features = ["cpu", "ort-defaults"] }
 # whisper-rs wraps whisper.cpp; build chain is cmake + bindgen + C++17,

@@ -28,8 +28,10 @@ falling back to a bare `bazel` — see below.
 ### Continuous integration
 
 `.github/workflows/test.yml` runs on every PR and every push to `main`, on
-`macos-latest` (the repo is macOS-first: `transcribe-rs` enables parakeet-rs's
-`coreml` feature and `.bazelrc` hard-codes `/opt/homebrew/bin`). Two jobs:
+`macos-26` (the repo is macOS-first: `transcribe-rs` enables parakeet-rs's
+`coreml` feature and `.bazelrc` hard-codes `/opt/homebrew/bin`). The runner is
+pinned by version rather than `macos-latest` so an image bump arrives as a
+commit. Two jobs:
 
 | job | command | covers |
 | --- | --- | --- |
