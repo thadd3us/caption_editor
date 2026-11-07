@@ -8,7 +8,13 @@
 # macOS runners because the repo is macOS-first in ways that are not
 # incidental: `transcribe-rs` enables parakeet-rs's `coreml` feature, and
 # `.bazelrc` hard-codes `/opt/homebrew/bin` into `--action_env=PATH`.
-# `release.yml` is `macos-latest` for the same reasons.
+# `release.yml` pins the same runner for the same reasons.
+#
+# Pinned to `macos-26` rather than `macos-latest`: the two resolve to the same
+# image today, but `-latest` moves on its own schedule over a 1-2 month window,
+# and a runner OS bump that lands without a commit is exactly the kind of change
+# this repo wants to see in a diff (release.yml already carries a
+# macOS-26-specific keychain workaround).
 name: Tests
 
 on:
@@ -46,7 +52,7 @@ jobs:
   # ---------------------------------------------------------------------------
   bazel:
     name: Bazel (typecheck, lint, unit, Rust, Python)
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
@@ -98,7 +104,7 @@ jobs:
   # ---------------------------------------------------------------------------
   python-lint:
     name: Python (ruff, pyright)
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 30
 
     steps:
@@ -116,8 +122,8 @@ jobs:
       - name: Ruff
         working-directory: transcribe
         run: |
-          uvx ruff@0.15.13 check .
-          uvx ruff@0.15.13 format --check .
+          uvx ruff@0.17.3 check .
+          uvx ruff@0.17.3 format --check .
 
       # `--no-progress` keeps the log readable; the dev group carries pyright itself.
       - name: Install Python dependencies
@@ -137,7 +143,7 @@ jobs:
   # ---------------------------------------------------------------------------
   e2e:
     name: E2E (Playwright + Electron)
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
