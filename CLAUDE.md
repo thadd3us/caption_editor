@@ -36,6 +36,99 @@ git add -A && git commit -m "Update ASR_COMMIT_HASH to vX.Y.Z"
 git push
 ```
 
+### Dependency upgrades
+
+Four ecosystems, each with its own lockfile, and **all four honour the same
+7-day cooldown**: nothing is pinned to a version published less than a week ago.
+The point is to let someone else find the day-one regression.
+
+| ecosystem | source of truth | refresh |
+| --- | --- | --- |
+| Bazel modules | `MODULE.bazel` + `MODULE.bazel.lock` | edit `bazel_dep`, then `bazelisk mod tidy` |
+| Rust | `transcribe_rs/Cargo.lock` | `cargo update`, then `bazelisk mod tidy` |
+| Python | `transcribe/uv.lock` | bump `exclude-newer`, `uv lock --upgrade`, re-export (below) |
+| JS | `package-lock.json` **and** `pnpm-lock.yaml` | `npm install`, then `pnpm import` |
+
+Specifics that are easy to get wrong, each of which has already cost someone an
+afternoon:
+
+**The Python cooldown is a literal date, not a rolling window.**
+`[tool.uv] exclude-newer` in `transcribe/pyproject.toml` is a fixed timestamp, so
+it does not expire — it just silently goes stale, and the whole ML closure stops
+moving. (It sat at 2026-05-21 for five and a half months before anyone noticed.)
+Bump it to roughly a week ago, then `uv lock --upgrade`, then regenerate the
+Bazel requirements with the exact command in the header of
+`requirements_bazel.txt`:
+
+```bash
+cd transcribe
+uv lock --upgrade
+uv export --format requirements-txt --no-emit-project --no-dev -o requirements_bazel.txt
+```
+
+Letting that date jump lifts `nemo-toolkit` to 3.x and `transformers` to 5.x,
+which is the ASR engine changing underneath you. Both now carry explicit `<3` /
+`<5` ceilings in `pyproject.toml` so that is a deliberate change rather than a
+side effect of a date edit.
+
+**`ort` must be pinned with `=`, and `parakeet-rs` moves with it.** `ort` is a
+prerelease (`2.0.0-rc.N`), and Cargo's caret rules let `2.0.0-rc.12` resolve all
+the way up to the newest rc. `parakeet-rs` 0.3.x asks for `^2.0.0-rc.13` but does
+not actually compile against rc.15, so a bare `cargo update` yields a tree that
+fails to build *inside parakeet's own source*. Hence `ort = { version =
+"=2.0.0-rc.12", ... }`. Upstream fixed the under-constraint in 0.4.1+
+(`=2.0.0-rc.15`), so moving to rc.15 means moving `parakeet-rs` to 0.4.x and
+fixing the `SessionBuilder::new()` call sites in the same change.
+
+**`@vue/*` needs exactly one version in the tree.** `public_hoist_packages` in
+`MODULE.bazel` can hoist each package at one version only, and aspect_rules_js
+fails *analysis* (not a test) if two are present. Nothing there pins a version,
+so the `overrides` block in `package.json` aliases `@vue/compiler-core`,
+`@vue/compiler-dom` and `@vue/shared` to `$vue`. Drop it and any transitive dep
+wanting a newer vue patch than the pinned one — `@vue/test-utils` reliably does —
+breaks the build.
+
+**`pnpm import` will quietly undo the cooldown.** pnpm 11 enforces a release-age
+gate of its own, and rather than failing it appends the offending versions to
+`minimumReleaseAgeExclude` in `pnpm-workspace.yaml`. If that key grows after an
+import, the right fix is almost always to pin the npm dep to an older version,
+not to keep the exclusion.
+
+**Node 26 breaks `localStorage` in specs, and `src/test-setup.ts` is the fix.**
+Node 26 installs Web Storage as a *global*, and under happy-dom `globalThis`
+**is** `window` — so Node's `localStorage` / `sessionStorage` accessors land on
+the object happy-dom wanted, and Node's win. `localStorage` becomes `undefined`
+(no `--localstorage-file`), which at least fails loudly; `sessionStorage` becomes
+a real *process-wide* store, which does not fail at all and silently leaks state
+between tests. `src/test-setup.ts` overwrites both with fresh happy-dom `Storage`
+instances. Two constraints on that code, each learned the hard way: define them
+as **value** properties, since an accessor forwarding to `window[key]` recurses
+forever when the two objects are the same; and leave them **writable**, because
+eight specs do `global.localStorage = mock`. `node
+--no-experimental-webstorage` also works but only for whoever remembers the flag.
+
+**Install scripts are allowlisted twice, once per package manager.** npm 11.20
+(which ships with Node 26) gates lifecycle scripts the way pnpm already did: a
+package with a postinstall hook is skipped, with only an `npm warn
+install-scripts` line to say so. `allowScripts` in `package.json` is npm's list
+(`npm install-scripts ls` shows what is pending, `approve <pkg>` adds it);
+`allowBuilds` in `pnpm-workspace.yaml` is pnpm's. A dep that gains a hook needs
+adding to **both**, and the npm failure mode is silent — a skipped script shows
+up later as a missing native binary, not as an install error.
+
+**`.npmrc` carries one pnpm-only key on purpose.** `public-hoist-pattern[]=*` is
+not an npm setting, so npm logs `Unknown project config` on every command and
+warns it will break in its next major. Do not just delete it: `.npmrc` is passed
+to `npm_translate_lock` as `npmrc = "//:.npmrc"`, and per the comment there that
+pattern is what makes `@vue/test-utils` resolve in the Bazel-linked tree. Moving
+it to `publicHoistPattern` in `pnpm-workspace.yaml` is the real fix and wants its
+own change, with the vitest targets actually run.
+
+**Prettier is installed and wired to nothing.** It is in `devDependencies` and
+named in an `eslint.config.js` comment, but no gate runs it; ~75 files under
+`src/` and `electron/` do not match its output and never have. Do not
+"fix" that as a side effect of some other change — it is a 75-file diff.
+
 ### Committing Work
 
 **Always commit your work when you reach a good checkpoint:**

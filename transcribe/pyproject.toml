@@ -7,7 +7,9 @@ requires-python = ">=3.11,<3.13"
 dependencies = [
     "librosa>=0.11.0",
     "megatron-core>=0.10.0",
-    "nemo-toolkit[asr]>=2.5.0",
+    # Ceiling at <3: nemo-toolkit 3.0 is a major and drags `transformers` to 5.x
+    # with it. Both are the ASR path's engine, so that pair moves on its own.
+    "nemo-toolkit[asr]>=2.5.0,<3",
     "numpy>=2.0",
     "pandas>=2.0.0",
     "pydantic>=2.12.3",
@@ -17,12 +19,12 @@ dependencies = [
     "tqdm>=4.66.0",
     "torch>=2.9.0",
     "torchaudio>=2.9.0",
-    # `nemo-toolkit[asr]>=2.7.x` hard-pins `transformers>=4.57,<4.58` —
-    # we can't move ahead of that band without giving up NeMo (and
-    # hence the Parakeet ASR path). The earlier `<4.54` ceiling here
-    # was redundant with nemo's pin AND blocked transitive updates,
-    # so it's gone; the resolver now picks 4.57.x by following nemo.
-    "transformers>=4.53.0",
+    # Bounded by the `nemo-toolkit<3` ceiling above, which is what actually
+    # decides the band: nemo 2.7.x pins `transformers>=4.57,<4.58`, so the
+    # resolver lands on 4.57.x by following nemo. The explicit `<5` is here so
+    # that lifting the nemo ceiling doesn't silently also lift this one —
+    # transformers 5 is a major and wants its own change.
+    "transformers>=4.53.0,<5",
     "typer>=0.20.0",
     # Diarization dependencies
     "pyannote-audio>=4.0.0",
@@ -61,7 +63,7 @@ dev = [
 [tool.uv]
 # 7-day dependency cooldown: only allow package versions published at least 7 days ago.
 # Update this date periodically (it's not rolling — it's a fixed point in time).
-exclude-newer = "2026-05-21T00:00:00Z"
+exclude-newer = "2026-10-30T00:00:00Z"
 
 # Override nemo-toolkit's conservative `numpy<2.0` constraint — it
 # works fine on numpy 2.x and the project depends on numpy 2.x for

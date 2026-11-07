@@ -51,7 +51,7 @@ on:
 
 jobs:
   build-and-publish:
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
     permissions:
       contents: write  # required to create / update the GitHub Release
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       # Cache the per-electron-version pre-built binaries. electron's
@@ -159,7 +159,7 @@ jobs:
       # electron-builder 26 creates a temporary keychain with a random
       # password, then calls `security set-key-partition-list -k` with the
       # .p12 import password instead. macOS 15 tolerated that; macOS 26
-      # (current macos-latest) rejects it:
+      # (the pinned runner) rejects it:
       #   SecKeychainUnlock: The user name or passphrase you entered is not correct.
       # Fix is electron-builder #10101, which has not shipped on the 26 line.
       # Import the cert ourselves and hand electron-builder CSC_KEYCHAIN so

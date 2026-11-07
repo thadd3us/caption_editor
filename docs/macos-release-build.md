@@ -219,7 +219,7 @@ For more detail, run:
 
 ## CI: signing + notarizing on GitHub Actions
 
-`.github/workflows/release.yml` runs the same build on a `macos-latest` runner — push a `v*` tag and the workflow takes over: builds, signs, notarizes, staples, and attaches the DMG to the GitHub Release. Use it instead of (or alongside) running `scripts/build-released-app.sh` locally; the CI build is reproducible and untainted by whatever happens to be in the developer's Keychain at the moment.
+`.github/workflows/release.yml` runs the same build on a `macos-26` runner — push a `v*` tag and the workflow takes over: builds, signs, notarizes, staples, and attaches the DMG to the GitHub Release. Use it instead of (or alongside) running `scripts/build-released-app.sh` locally; the CI build is reproducible and untainted by whatever happens to be in the developer's Keychain at the moment.
 
 ### One-time setup: secrets
 
