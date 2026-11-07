@@ -14,7 +14,7 @@ const localStorageMock = (() => {
   }
 })()
 
-global.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as any
 
 /**
  * `.video-container` is `flex: 1`, which is right for video and wrong for audio: a ~54px

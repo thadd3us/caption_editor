@@ -21,7 +21,7 @@ export type CaptionGridDebugStoreSnapshot = {
 }
 
 function readViewport(): { scrollTop: number | null; clientHeight: number | null } {
-  const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
+  const vp = document.querySelector('.ag-grid-viewport') as HTMLElement | null
   if (!vp) return { scrollTop: null, clientHeight: null }
   return { scrollTop: vp.scrollTop, clientHeight: vp.clientHeight }
 }
@@ -113,7 +113,7 @@ export function attachCaptionGridDebug(
 
   let lastScrollTop = Number.NaN
   let scrollTimer: ReturnType<typeof setTimeout> | null = null
-  const vp = () => document.querySelector('.ag-body-viewport') as HTMLElement | null
+  const vp = () => document.querySelector('.ag-grid-viewport') as HTMLElement | null
   const onViewportScroll = () => {
     const el = vp()
     if (!el) return

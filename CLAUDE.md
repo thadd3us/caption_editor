@@ -124,6 +124,139 @@ pattern is what makes `@vue/test-utils` resolve in the Bazel-linked tree. Moving
 it to `publicHoistPattern` in `pnpm-workspace.yaml` is the real fix and wants its
 own change, with the vitest targets actually run.
 
+**Vite 8 bundles with Rolldown, and it does not polyfill `import.meta.url`.** This
+is the one upgrade so far that produced a crash rather than a failed check, and the
+build only *warned* about it.
+
+`electron/main.ts` opened with the ESM idiom `const __filename =
+fileURLToPath(import.meta.url)`. That was always wrong for this file --
+`vite.electron.config.ts` sets `formats: ['cjs']` -- but Rollup papered over it by
+polyfilling `import.meta.url` in CJS bundles. Rolldown instead rewrites
+`import.meta` to `{}` and prints `[EMPTY_IMPORT_META]`, so the emitted bundle began
+`fileURLToPath({}.url)` and threw `ERR_INVALID_ARG_TYPE` on the first line of the
+main process. `__dirname` is what resolves `preload.cjs`, `../dist/index.html` and
+the `dist-rust` binaries, so nothing started.
+
+The fix is to use CommonJS's own `__dirname`, which Node defines because the output
+*is* CJS. If you ever switch either electron config to `formats: ['esm']`, this has
+to go back to `import.meta.url` -- and `grep` for `[EMPTY_IMPORT_META]` in the build
+log, since a wrong answer here is silent in every gate except e2e.
+
+Rolldown also renamed the option that keeps the preload a single file:
+`inlineDynamicImports: true` is now `codeSplitting: false`. The old name still builds
+and only warns, which is a trap given what that option is protecting (see the sandbox
+notes above) -- so check the preload's `require`s after any bundler change:
+
+```bash
+grep -oE 'require\("[^"]+"\)' dist-electron/preload.cjs | sort -u   # must be only "electron"
+```
+
+**Vitest 5 realpaths `setupFiles`, which breaks under Bazel without
+`preserveSymlinks`.** `//:ts_vitest_unit` failed with all 28 suites reporting
+`Cannot find module '/@fs/.../bin/src/test-setup.ts'` while `npx vitest run` passed
+312/312 on the host -- a Bazel-sandbox-only failure.
+
+Every runfiles entry is a symlink pointing out to `bazel-out/.../bin/`, which is not
+mounted inside the sandbox. Vitest 4 loaded `setupFiles` by its runfiles path;
+Vitest 5 resolves it to its real path first, landing on a file that exists in the
+execroot but not in the sandbox. Hence `resolve.preserveSymlinks: true` in
+`vite.config.ts`.
+
+That option can duplicate dependencies in symlinked trees (two ids for one package),
+so it is worth confirming it did not: the production bundle's content hashes are
+unchanged across the switch. If you ever need to re-verify, compare the
+`dist/assets/index-*.js` hash before and after -- identical hashes mean identical
+module graphs.
+
+**`jsdom` was a dead devDependency.** The vitest `environment` is `happy-dom`
+(`vite.config.ts`), and nothing imported jsdom -- only a stale comment in
+`MediaPlayer.playbackRate.test.ts` named it. It was removed rather than bumped
+29 -> 31, which also cleared the dev tree's last `high` audit finding.
+
+**TypeScript stops at 6.x until Volar and typescript-eslint port.** `typescript@latest`
+is **7.x, the native (Go) compiler, and it does not ship the JavaScript compiler API
+at all** — `require('typescript')` returns `{ version, versionMajorMinor }` and
+nothing else, `createProgram` / `createSourceFile` / `ts.sys` are gone, and the
+package carries zero `lib.*.d.ts` files (they live inside the native binary). Only
+`tsc` on the command line and the `typescript/unstable/*` entry points exist.
+
+`vue-tsc` drives that API through `@volar/typescript`, and `typescript-eslint` needs
+it for type-aware linting, so TS 7 takes out **both** `//:ts_typecheck` and
+`//:ts_eslint`. `vue-tsc`'s `typescript: ">=5.0.0"` peer range is misleading — it
+will happily install against 7 and then fail at runtime. The real ceiling is
+`typescript-eslint`'s, which is honest about it: `>=4.8.4 <6.1.0`.
+
+So **6.0.3 is the last usable version** — the final JS-based release, same API, and
+the one that carries TS 7's semantics so the eventual jump is about tooling only.
+Re-check when Volar ships a `typescript/unstable/*` backend.
+
+**TS 6 dropped implicit `@types/*` inclusion**, which is the one source change the
+6.x bump needed. With no `types` field, 5.x put *every* package in
+`node_modules/@types` into the program, so `src/**` was quietly getting `@types/node`
+and `global` resolved in the specs. Under 6.x it does not. `tsconfig.node-side.json`
+was unaffected because it already declares `"types": ["node"]`.
+
+The fix was **not** to add `"types": ["node"]` to `tsconfig.json`: that is the
+renderer program, and giving it Node's globals is the same hazard as the DOM lib in
+the node-side config (`process` and `require` would type-check in code that runs in
+a sandboxed renderer with neither). The specs now say `globalThis.` instead of
+`global.` — identical object, but `globalThis` is in the ES2020 lib, so the renderer
+needs no Node types. `realignWords.example.ts` lost a dead CommonJS
+`require.main === module` guard; nothing imports that file, and the guard could never
+have fired under ESM anyway.
+
+**AG Grid 36 restructured the internal row DOM**, and ~50 selector sites in the
+specs reached into it. The API surface was unaffected -- no `GridApi` call,
+`ColDef`, module registration or the Theming API needed changing -- but every spec
+that located rows or read scroll position broke at once, with ~20 e2e failures all
+reporting "element(s) not found".
+
+| &le;35 | 36 |
+| --- | --- |
+| `.ag-center-cols-container` | `.ag-grid-scrolling-container` |
+| `.ag-body-viewport` | `.ag-grid-viewport` |
+| `.ag-header-viewport`, `.ag-header-container` | gone; `.ag-header` holds `.ag-header-row` directly |
+
+`.ag-row`, `.ag-cell`, `.ag-header-row`, `.ag-header-cell`, `.ag-root`,
+`.ag-root-wrapper`, `.ag-cell-inline-editing` and `.ag-row-selected` all survive.
+
+Two of those mappings are easy to get subtly wrong, and both would weaken a
+regression test *silently* rather than fail:
+
+- **The scroller is `.ag-grid-viewport`, not `.ag-body-vertical-scroll-viewport`.**
+  Both report the same `scrollTop`, but the latter is the separate scrollbar proxy
+  and carries `.ag-hidden` when the content fits, so it is not a safe stand-in. The
+  rows live under `.ag-grid-viewport` > `.ag-grid-scrollable-area` >
+  `.ag-grid-scrolling-rows` > `.ag-grid-scrolling-container`.
+- **`.ag-grid-scrolling-container` is the non-pinned rows only**, which is what
+  `.ag-center-cols-container` meant. Pinned and sticky rows have their own
+  containers (`.ag-grid-pinned-top-rows-container` and friends), so the old
+  "scrolling rows only" semantics carry over exactly.
+
+Do not reverse-engineer this from the minified bundle -- `grep` finds the class
+names but not the nesting or which element actually scrolls. Dump the live DOM
+instead: load a document with more rows than fit, walk `.ag-root-wrapper` printing
+`ag-*` classes, call `api.ensureIndexVisible(n)` and see whose `scrollTop` moves.
+
+`src/utils/captionGridDebug.ts` used `.ag-body-viewport` too, so the debug overlay
+would have gone quiet without a single test failing -- app code, not just specs,
+reaches into this DOM.
+
+**Majors still deliberately pinned back**, each wanting its own change:
+
+| pinned at | latest | why |
+| --- | --- | --- |
+| `typescript` 6.0.3 | 7.x | no JS compiler API; see above |
+| `nemo-toolkit` 2.x, `transformers` 4.x | 3.x / 5.x | the ASR engine itself |
+| `ort` 2.0.0-rc.12, `parakeet-rs` 0.3.6 | rc.15 / 0.4.x | needs `SessionBuilder::new()` call-site fixes |
+| `eslint-plugin-vue` 10.12.0 | 10.12.0 | no 11.x exists yet |
+| `nyc` 17, `uuid` 14, `concurrently` 10 | — | untried; `nyc`/`uuid` would clear most of the dev-tree audit rows |
+
+`npm audit` sits at ~22 moderate and **`npm audit --omit=dev` is 0** -- every row is
+dev-only, rooted in transitive `minimatch`, `glob`, `uuid` and `js-beautify`. Check
+the production number before treating the headline count as a problem, and expect it
+to move when a dev dep is added or removed rather than when exposure changes.
+
 **Prettier is installed and wired to nothing.** It is in `devDependencies` and
 named in an `eslint.config.js` comment, but no gate runs it; ~75 files under
 `src/` and `electron/` do not match its output and never have. Do not

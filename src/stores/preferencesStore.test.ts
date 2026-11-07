@@ -13,7 +13,7 @@ const localStorageMock = (() => {
   }
 })()
 
-global.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as any
 
 describe('sanitizePreferences', () => {
   it('returns defaults for null / garbage input', () => {

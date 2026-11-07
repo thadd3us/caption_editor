@@ -22,7 +22,7 @@ const localStorageMock = (() => {
   }
 })()
 
-global.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as any
 
 // Helper to create mock Electron API
 function createMockElectronAPI(overrides = {}) {
@@ -83,7 +83,7 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
@@ -103,7 +103,7 @@ describe('FileDropZone', () => {
       expect(store.document.filePath).toBe('/path/to/test.captions_json5')
 
       // Cleanup
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
 
     it('should process media files through Electron API', async () => {
@@ -117,7 +117,7 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
@@ -136,7 +136,7 @@ describe('FileDropZone', () => {
       expect(store.mediaFilePath).toBe('/path/to/video.mp4')
 
       // Cleanup
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
 
     it('should process both captions and media files in one drop', async () => {
@@ -159,7 +159,7 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
@@ -176,7 +176,7 @@ describe('FileDropZone', () => {
       expect(store.mediaPath).toBe('file:///path/to/video.mp4')
 
       // Cleanup
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
 
     it('should handle errors gracefully', async () => {
@@ -194,7 +194,7 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
@@ -213,7 +213,7 @@ describe('FileDropZone', () => {
       // Cleanup
       consoleErrorSpy.mockRestore()
       alertSpy.mockRestore()
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
 
     it('should show alert for captions files with duplicate segment IDs', async () => {
@@ -238,7 +238,7 @@ describe('FileDropZone', () => {
         }
       ])
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
 
@@ -259,7 +259,7 @@ describe('FileDropZone', () => {
       // Cleanup
       consoleErrorSpy.mockRestore()
       alertSpy.mockRestore()
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
   })
 
@@ -268,7 +268,7 @@ describe('FileDropZone', () => {
       const mockOpenFile = vi.fn().mockResolvedValue(['/path/to/test.captions_json5'])
       const mockProcessDroppedFiles = vi.fn()
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         openFile: mockOpenFile,
         processDroppedFiles: mockProcessDroppedFiles
       }) as any
@@ -290,14 +290,14 @@ describe('FileDropZone', () => {
       expect(mockProcessDroppedFiles).not.toHaveBeenCalled()
 
       // Cleanup
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
 
     it('should return an empty array when the picker is cancelled', async () => {
       // Electron's showOpenDialog resolves undefined on cancel.
       const mockOpenFile = vi.fn().mockResolvedValue(undefined)
 
-      global.window.electronAPI = createMockElectronAPI({
+      globalThis.window.electronAPI = createMockElectronAPI({
         openFile: mockOpenFile
       }) as any
 
@@ -306,7 +306,7 @@ describe('FileDropZone', () => {
 
       await expect(component.triggerFileInput()).resolves.toEqual([])
 
-      delete global.window.electronAPI
+      delete globalThis.window.electronAPI
     })
 
     it('should return an empty array outside Electron', async () => {

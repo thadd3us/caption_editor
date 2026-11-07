@@ -45,7 +45,7 @@ test.describe('Scroll stability on cell edit', () => {
       segmentCount,
       { timeout: 5000 }
     )
-    await page.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await page.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
   }
 
   /**
@@ -102,7 +102,7 @@ test.describe('Scroll stability on cell edit', () => {
     // move; it would be the wrong helper for a scrub that legitimately stays put.
     await page.waitForFunction(
       (before) =>
-        ((document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1) !==
+        ((document.querySelector('.ag-grid-viewport') as HTMLElement | null)?.scrollTop ?? -1) !==
         before,
       scrollBefore,
       { timeout: 5000 }
@@ -110,11 +110,11 @@ test.describe('Scroll stability on cell edit', () => {
     await waitForScrollSettled(page)
   }
 
-  /** Resolve once `.ag-body-viewport` reports the same scrollTop on two consecutive frames. */
+  /** Resolve once `.ag-grid-viewport` reports the same scrollTop on two consecutive frames. */
   async function waitForScrollSettled(page: import('@playwright/test').Page) {
     await page.waitForFunction(
       () => {
-        const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
+        const vp = document.querySelector('.ag-grid-viewport') as HTMLElement | null
         if (!vp) return false
         const w = window as unknown as { __lastScrollTop?: number; __stableFrames?: number }
         const current = vp.scrollTop
@@ -138,18 +138,18 @@ test.describe('Scroll stability on cell edit', () => {
 
   async function getViewportScrollTop(page: import('@playwright/test').Page): Promise<number> {
     return page.evaluate(() => {
-      const viewport = document.querySelector('.ag-body-viewport')
+      const viewport = document.querySelector('.ag-grid-viewport')
       return viewport?.scrollTop ?? -1
     })
   }
 
   async function scrollToTop(page: import('@playwright/test').Page) {
     await page.evaluate(() => {
-      const viewport = document.querySelector('.ag-body-viewport')
+      const viewport = document.querySelector('.ag-grid-viewport')
       if (viewport) viewport.scrollTop = 0
     })
     await page.waitForFunction(
-      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop === 0,
+      () => (document.querySelector('.ag-grid-viewport') as HTMLElement | null)?.scrollTop === 0,
       undefined,
       { timeout: 5000 }
     )
@@ -176,7 +176,7 @@ test.describe('Scroll stability on cell edit', () => {
     // Click Verified on first row — this triggers a store update that
     // replaces document.value, which recomputes rowData for AG Grid.
     await page.locator(
-      '.ag-center-cols-container .ag-row[row-index="0"] [col-id="verified"]'
+      '.ag-grid-scrolling-container .ag-row[row-index="0"] [col-id="verified"]'
     ).click()
 
     // Verified toggled — and waiting for it is what proves the store update, the rowData
@@ -208,7 +208,7 @@ test.describe('Scroll stability on cell edit', () => {
     // Each edit should stay near the top, not jump to a remembered position
     for (let rowIdx = 0; rowIdx < 3; rowIdx++) {
       await page.locator(
-        `.ag-center-cols-container .ag-row[row-index="${rowIdx}"] [col-id="verified"]`
+        `.ag-grid-scrolling-container .ag-row[row-index="${rowIdx}"] [col-id="verified"]`
       ).click()
 
       // Same reasoning as above: wait for the edit to land before measuring scroll.

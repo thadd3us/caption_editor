@@ -15,7 +15,7 @@ const localStorageMock = (() => {
   }
 })()
 
-global.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as any
 
 /** Seed two segments and park the playhead inside the first one. */
 function seedStore() {

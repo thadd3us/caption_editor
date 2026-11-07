@@ -30,8 +30,9 @@ export default defineConfig({
         entryFileNames: '[name].cjs',
         // Belt and braces: one entry means nothing to split, but if a future import
         // reintroduces a shared module this keeps it inlined rather than silently
-        // breaking the sandbox again.
-        inlineDynamicImports: true
+        // breaking the sandbox again. (Was `inlineDynamicImports: true`, which
+        // Rolldown -- Vite 8's bundler -- deprecated in favour of this spelling.)
+        codeSplitting: false
       }
     },
     target: 'node18',

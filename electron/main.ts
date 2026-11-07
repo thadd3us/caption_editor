@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell, native
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, realpathSync } from 'fs'
-import { fileURLToPath, pathToFileURL } from 'url'
+import { pathToFileURL } from 'url'
 import { type ChildProcess } from 'child_process'
 import * as os from 'os'
 import { APP_VERSION } from './constants'
@@ -10,8 +10,16 @@ import { findBackupPath, mediaUrlForPath, pathFromMediaUrl } from '../src/utils/
 import { DEFAULT_PREFERENCES, sanitizePreferences, type AppPreferences } from '../src/types/preferences'
 
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+// `__dirname` here is CommonJS's own, not a shim. This file is bundled with
+// `formats: ['cjs']` (see vite.electron.config.ts), so Node defines it.
+//
+// It used to be derived from `import.meta.url`, which is the ESM idiom and was
+// wrong for a CJS output all along -- Rollup just happened to paper over it by
+// polyfilling `import.meta.url` in CJS bundles. Vite 8 builds with Rolldown,
+// which instead replaces `import.meta` with `{}` and only warns, so
+// `fileURLToPath(undefined)` threw on the very first line of the main process.
+// Since `__dirname` is what resolves the preload script, `../dist/index.html`
+// and the `dist-rust` binaries, the app did not start at all.
 
 const CAPTIONS_JSON_SUFFIX = '.captions_json5'
 const captions_json5_files = ['captions_json5', 'captions_json']

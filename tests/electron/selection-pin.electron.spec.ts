@@ -42,7 +42,7 @@ test.describe('Selection stays pinned to the clicked row', () => {
       segmentCount,
       { timeout: 5000 }
     )
-    await page.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await page.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
   }
 
   test('a clicked row survives a seek that lands inside the previous segment', async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe('Selection stays pinned to the clicked row', () => {
       const api = window.__agGridApi!
       const node = api.getRowNode(id)
       const cell = document.querySelector(
-        `.ag-center-cols-container .ag-row[row-id="${id}"] .ag-cell`
+        `.ag-grid-scrolling-container .ag-row[row-id="${id}"] .ag-cell`
       ) as HTMLElement | null
       if (cell) cell.click()
       else node!.setSelected(true)
@@ -99,7 +99,7 @@ test.describe('Selection stays pinned to the clicked row', () => {
     // And the viewport did not jump off to the other row.
     expect(
       await page.evaluate(
-        (id) => !!document.querySelector(`.ag-center-cols-container .ag-row[row-id="${id}"]`),
+        (id) => !!document.querySelector(`.ag-grid-scrolling-container .ag-row[row-id="${id}"]`),
         target
       )
     ).toBe(true)

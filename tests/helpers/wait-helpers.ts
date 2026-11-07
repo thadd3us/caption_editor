@@ -76,7 +76,7 @@ export async function expectPageValue<T>(
 /** Wait until exactly `count` grid rows report themselves selected. */
 export async function waitForSelectedRowCount(page: Page, count: number, timeout = 5000): Promise<void> {
   await page.waitForFunction(
-    (expected) => document.querySelectorAll('.ag-center-cols-container .ag-row-selected').length === expected,
+    (expected) => document.querySelectorAll('.ag-grid-scrolling-container .ag-row-selected').length === expected,
     count,
     { timeout }
   )

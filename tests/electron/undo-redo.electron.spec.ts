@@ -60,7 +60,7 @@ test.describe('Undo / redo', () => {
     await page.evaluate(() => window.handleMenuUndo())
     await expectGridCaptionTotal(page, 3, 5000)
     await expect(
-      page.locator('.ag-center-cols-container .ag-row [col-id="text"]').first()
+      page.locator('.ag-grid-scrolling-container .ag-row [col-id="text"]').first()
     ).toContainText('alpha')
   })
 

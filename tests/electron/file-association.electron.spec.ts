@@ -142,7 +142,7 @@ test.describe('File Association - Open captions files from OS', () => {
     console.log('Audio src:', audioSrc)
 
     // Verify we can see the segments in the table
-    const captionTable = await appPage.locator('.ag-center-cols-container')
+    const captionTable = await appPage.locator('.ag-grid-scrolling-container')
     await expect(captionTable).toBeVisible()
 
     // Check that the first segment is visible

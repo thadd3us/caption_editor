@@ -94,10 +94,10 @@ function exampleCapitalization() {
   console.log()
 }
 
-// Run examples
-if (require.main === module) {
-  exampleAddWord()
-  exampleDeleteWord()
-  exampleFixTypo()
-  exampleCapitalization()
-}
+// The examples are exported rather than run by a `require.main === module`
+// guard. Nothing imports this file -- it is documentation that the type checker
+// keeps honest -- and the guard was CommonJS, so under this project's ESM /
+// bundler resolution it could never have fired. Exporting them keeps
+// `noUnusedLocals` satisfied without pulling Node's types into the renderer
+// program (TypeScript 6 no longer includes every `@types/*` package implicitly).
+export { exampleAddWord, exampleDeleteWord, exampleFixTypo, exampleCapitalization }

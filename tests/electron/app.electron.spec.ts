@@ -64,7 +64,7 @@ test.describe('Electron App', () => {
       () => window.$store.document.segments.length > 0, undefined, { timeout: 5000 })
 
     // Check that captions are displayed in the table
-    const captionTable = page.locator('.ag-center-cols-container')
+    const captionTable = page.locator('.ag-grid-scrolling-container')
     await expect(captionTable).toBeVisible()
 
     // Verify segments loaded
