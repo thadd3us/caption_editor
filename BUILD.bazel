@@ -44,6 +44,7 @@ exports_files([
     "tsconfig.node-side.json",
     "vite.config.ts",
     "vite.electron.config.ts",
+    "vite.preload.config.ts",
     "playwright.config.ts",
     "eslint.config.js",
     "index.html",
@@ -88,6 +89,7 @@ _TS_CONFIG = [
     "tsconfig.node-side.json",
     "vite.config.ts",
     "vite.electron.config.ts",
+    "vite.preload.config.ts",
     "eslint.config.js",
 ]
 

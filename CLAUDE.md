@@ -124,6 +124,55 @@ pattern is what makes `@vue/test-utils` resolve in the Bazel-linked tree. Moving
 it to `publicHoistPattern` in `pnpm-workspace.yaml` is the real fix and wants its
 own change, with the vitest targets actually run.
 
+**Vite 8 bundles with Rolldown, and it does not polyfill `import.meta.url`.** This
+is the one upgrade so far that produced a crash rather than a failed check, and the
+build only *warned* about it.
+
+`electron/main.ts` opened with the ESM idiom `const __filename =
+fileURLToPath(import.meta.url)`. That was always wrong for this file --
+`vite.electron.config.ts` sets `formats: ['cjs']` -- but Rollup papered over it by
+polyfilling `import.meta.url` in CJS bundles. Rolldown instead rewrites
+`import.meta` to `{}` and prints `[EMPTY_IMPORT_META]`, so the emitted bundle began
+`fileURLToPath({}.url)` and threw `ERR_INVALID_ARG_TYPE` on the first line of the
+main process. `__dirname` is what resolves `preload.cjs`, `../dist/index.html` and
+the `dist-rust` binaries, so nothing started.
+
+The fix is to use CommonJS's own `__dirname`, which Node defines because the output
+*is* CJS. If you ever switch either electron config to `formats: ['esm']`, this has
+to go back to `import.meta.url` -- and `grep` for `[EMPTY_IMPORT_META]` in the build
+log, since a wrong answer here is silent in every gate except e2e.
+
+Rolldown also renamed the option that keeps the preload a single file:
+`inlineDynamicImports: true` is now `codeSplitting: false`. The old name still builds
+and only warns, which is a trap given what that option is protecting (see the sandbox
+notes above) -- so check the preload's `require`s after any bundler change:
+
+```bash
+grep -oE 'require\("[^"]+"\)' dist-electron/preload.cjs | sort -u   # must be only "electron"
+```
+
+**Vitest 5 realpaths `setupFiles`, which breaks under Bazel without
+`preserveSymlinks`.** `//:ts_vitest_unit` failed with all 28 suites reporting
+`Cannot find module '/@fs/.../bin/src/test-setup.ts'` while `npx vitest run` passed
+312/312 on the host -- a Bazel-sandbox-only failure.
+
+Every runfiles entry is a symlink pointing out to `bazel-out/.../bin/`, which is not
+mounted inside the sandbox. Vitest 4 loaded `setupFiles` by its runfiles path;
+Vitest 5 resolves it to its real path first, landing on a file that exists in the
+execroot but not in the sandbox. Hence `resolve.preserveSymlinks: true` in
+`vite.config.ts`.
+
+That option can duplicate dependencies in symlinked trees (two ids for one package),
+so it is worth confirming it did not: the production bundle's content hashes are
+unchanged across the switch. If you ever need to re-verify, compare the
+`dist/assets/index-*.js` hash before and after -- identical hashes mean identical
+module graphs.
+
+**`jsdom` was a dead devDependency.** The vitest `environment` is `happy-dom`
+(`vite.config.ts`), and nothing imported jsdom -- only a stale comment in
+`MediaPlayer.playbackRate.test.ts` named it. It was removed rather than bumped
+29 -> 31, which also cleared the dev tree's last `high` audit finding.
+
 **TypeScript stops at 6.x until Volar and typescript-eslint port.** `typescript@latest`
 is **7.x, the native (Go) compiler, and it does not ship the JavaScript compiler API
 at all** — `require('typescript')` returns `{ version, versionMajorMinor }` and

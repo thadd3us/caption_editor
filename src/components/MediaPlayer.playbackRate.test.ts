@@ -18,7 +18,7 @@ const localStorageMock = (() => {
 globalThis.localStorage = localStorageMock as any
 
 /**
- * jsdom's HTMLMediaElement has no real decoder: `duration` is NaN and `loadedmetadata` never
+ * happy-dom's HTMLMediaElement has no real decoder: `duration` is NaN and `loadedmetadata` never
  * fires on its own. The component only ever reaches the element through `videoElement` /
  * `audioElement`, so mounting with a media path and firing the event by hand exercises the same
  * code path the browser would.
