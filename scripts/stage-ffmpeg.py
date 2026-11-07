@@ -92,17 +92,27 @@ _MACOS_SYSTEM_LIB_PREFIXES = ("/usr/lib/", "/System/")
 # nothing else, so that is the list. Everything else — libav*, libx264, even
 # libz — must be statically linked into the binary we ship. imageio-ffmpeg's
 # Linux build satisfies this; a distro or /usr/local ffmpeg does not.
+# The list is "whatever glibc itself ships, plus the gcc runtime". Note
+# libmvec: it is glibc's vectorised math library, it exists only on some
+# architectures, and the x86_64 ffmpeg links it while the aarch64 one does not —
+# so an arm64-only test passes and CI on x86_64 fails. Anything outside this set
+# is a package the user may not have installed.
 _LINUX_ALLOWED_LIBS = re.compile(
     r"""^(
           linux-vdso\.so(\.\d+)?       # virtual DSO, no backing file
         | ld(-linux)?[^/]*\.so(\.\d+)? # the loader itself
         | libc\.so\.6
         | libm\.so\.6
+        | libmvec\.so\.1               # glibc vector math; x86_64 ffmpeg uses it
         | libdl\.so\.2                 # stubs in glibc >= 2.34, still referenced
         | librt\.so\.1
         | libpthread\.so\.0
+        | libresolv\.so\.2
+        | libutil\.so\.1
+        | libanl\.so\.1
         | libgcc_s\.so\.1              # gcc runtime
         | libstdc\+\+\.so\.6          # ditto; Electron itself depends on it
+        | libatomic\.so\.1             # ditto
         )$""",
     re.VERBOSE,
 )
@@ -150,6 +160,9 @@ def _is_self_contained_linux(binary: str) -> bool:
     if "not a dynamic executable" in out:
         return True
 
+    # Collect every offender rather than returning on the first. Finding these
+    # one per CI run, on a platform you cannot reproduce locally, is miserable.
+    offenders: list[str] = []
     for raw in out.splitlines():
         line = raw.strip()
         if not line:
@@ -158,11 +171,8 @@ def _is_self_contained_linux(binary: str) -> bool:
             _, right = line.split("=>", 1)
             right = right.strip()
             if right.startswith("not found"):
-                print(
-                    f"  rejected: {binary} has an unresolved dependency: {line}",
-                    file=sys.stderr,
-                )
-                return False
+                offenders.append(f"{line}  (unresolved)")
+                continue
             # "=>  (0x...)" — a virtual DSO with no backing file.
             if right.startswith("("):
                 continue
@@ -175,11 +185,21 @@ def _is_self_contained_linux(binary: str) -> bool:
 
         if _LINUX_ALLOWED_LIBS.match(os.path.basename(target)):
             continue
+        offenders.append(f"{os.path.basename(target)}  ({target})")
+
+    if offenders:
         print(
-            f"  rejected: {binary} depends on {os.path.basename(target)} ({target}),"
-            " which is not part of the base system runtime",
+            f"  rejected: {binary} depends on {len(offenders)} librar"
+            f"{'y' if len(offenders) == 1 else 'ies'} outside the base system runtime:",
             file=sys.stderr,
         )
+        # A distro ffmpeg pulls in ~200 of these. The first handful identifies
+        # the binary well enough; the count above says how bad it is.
+        shown = 12
+        for o in offenders[:shown]:
+            print(f"      {o}", file=sys.stderr)
+        if len(offenders) > shown:
+            print(f"      ... and {len(offenders) - shown} more", file=sys.stderr)
         return False
     return True
 
