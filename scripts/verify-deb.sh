@@ -61,21 +61,25 @@ need_path 'resources/wespeaker-onnx/model\.onnx' 'ships the wespeaker model'
 need_path 'applications/.*\.desktop'             'ships a .desktop entry'
 
 # --- the AppArmor profile must actually grant userns ------------------------
-profile_path="$(awk '/resources\/apparmor-profile/ {print $NF; exit}' "$work/contents.txt" || true)"
-if [[ -n "$profile_path" ]]; then
-  dpkg-deb --fsys-tarfile "$DEB" > "$work/fsys.tar"
-  tar -xOf "$work/fsys.tar" ".${profile_path#.}" > "$work/apparmor" 2>/dev/null || true
-  if [[ -s "$work/apparmor" ]]; then
-    echo "  --- apparmor profile ---"
-    sed 's/^/      /' "$work/apparmor"
-    if grep -qE '^[[:space:]]*userns[[:space:]]*,' "$work/apparmor"; then
-      echo "  ok: profile grants userns"
-    else
-      note "profile does not grant userns — the Chromium sandbox will not start on Ubuntu 24.04+"
-    fi
+# Extract by wildcard rather than by parsing a path out of `dpkg-deb -c`.
+# productName is "Caption Editor", so every path in the package contains a
+# space and the install prefix is "./opt/Caption Editor/..." — picking the last
+# whitespace-separated field off that listing silently yields
+# "Editor/resources/apparmor-profile" and the extraction fails. tar matching the
+# member itself sidesteps the quoting problem entirely.
+dpkg-deb --fsys-tarfile "$DEB" > "$work/fsys.tar"
+tar -xOf "$work/fsys.tar" --wildcards '*/resources/apparmor-profile' \
+  > "$work/apparmor" 2>/dev/null || true
+if [[ -s "$work/apparmor" ]]; then
+  echo "  --- apparmor profile ---"
+  sed 's/^/      /' "$work/apparmor"
+  if grep -qE '^[[:space:]]*userns[[:space:]]*,' "$work/apparmor"; then
+    echo "  ok: profile grants userns"
   else
-    note "could not extract the AppArmor profile from the package"
+    note "profile does not grant userns — the Chromium sandbox will not start on Ubuntu 24.04+"
   fi
+else
+  note "could not extract the AppArmor profile from the package"
 fi
 
 # --- postinst must install and load it --------------------------------------
