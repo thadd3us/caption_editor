@@ -77,18 +77,6 @@
     "@vue/compiler-dom": "$vue",
     "@vue/shared": "$vue"
   },
-  "mac": {
-    "identity": "Developer ID Application: Christopher Thaddeus Hughes (RWVMRK3723)",
-    "category": "public.app-category.productivity",
-    "target": [
-      "dmg",
-      "zip"
-    ],
-    "hardenedRuntime": true,
-    "entitlements": "build/entitlements.mac.plist",
-    "entitlementsInherit": "build/entitlements.mac.plist",
-    "gatekeeperAssess": false
-  },
   "allowScripts": {
     "esbuild": true,
     "fsevents": true

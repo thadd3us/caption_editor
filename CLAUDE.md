@@ -640,6 +640,34 @@ uv run python embed_cli.py file.captions_json5  # Uses wespeaker (no token requi
 
 Writes speaker embeddings into the `.captions_json5` document `embeddings[]`.
 
+### Entitlements
+
+`assets/packaging/entitlements.mac.plist` grants the signed app three things, and each one is
+commented in the file with why it is there. Two are V8's. The third,
+`cs.disable-library-validation`, is the interesting one.
+
+**`cs.debugger` is gone, and should stay gone.** It grants `task_for_pid` — the right to
+attach a debugger to other processes on the machine — which is a capability for debugging
+tools, not for an app. It was never used. Verified by signing `embed-rs` (ONNX inference, the
+heaviest native thing we ship) with the hardened runtime and without it: runs normally.
+
+**`cs.disable-library-validation` is load-bearing, and the failure mode is total.** Signed
+without it, dyld refuses to map Electron Framework — *"not valid for use in process: mapping
+process and mapped file (non-platform) have different Team IDs"* — and the app dies before a
+window appears. That test used an ad-hoc signature, which has no Team ID at all, so a real
+Developer ID build (where every nested binary shares one team) may well not need it. Nothing
+third-party is dynamically loaded: `ort` is statically linked (no `load-dynamic`,
+`otool -L` shows only `/usr/lib` and `/System/Library`), electron-builder's `files` list
+excludes `node_modules` so no `.node` ships, and the only dylibs in the bundle are Electron's
+own. To settle it, build with the real cert, drop the key, and launch the .app — that needs
+the signing identity, so it is not answerable from a dev machine without one.
+
+**`package.json` used to carry a top-level `"mac"` block** naming a Developer ID and pointing
+at `build/entitlements.mac.plist`, a file that does not exist. electron-builder reads
+`build.mac`, not a top-level `mac`, so it was never consulted — but it read as authoritative
+and would have broken signing the moment someone "fixed" the nesting. Removed; the real
+configuration is `electron-builder.json` alone.
+
 ### macOS release build (notarization)
 Use `./scripts/build-released-app.sh` for a distributable Mac build. It signs and notarizes so Gatekeeper allows the app when users download it. Requires in `.envrc.private`: `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` (app-specific password from appleid.apple.com). Script exports `APPLE_TEAM_ID`. Without the Apple ID vars, notarization is skipped and the app may be quarantined on download.
 
