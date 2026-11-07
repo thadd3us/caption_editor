@@ -171,7 +171,7 @@ test.describe('Sequential Playback', () => {
 
     // AG Grid renders the row shell before the cells; wait for a cell with text in it.
     await expect(
-      page.locator('.ag-center-cols-container .ag-row [col-id="text"]').first()
+      page.locator('.ag-grid-scrolling-container .ag-row [col-id="text"]').first()
     ).not.toBeEmpty()
 
     // Click the third row (index 2) and get its text via evaluate
@@ -324,7 +324,7 @@ test.describe('Sequential Playback', () => {
     await page.locator('.ag-header-cell:has-text("Caption")').click()
 
     // Sorting is applied once the grid reports the new top row.
-    await expect(page.locator('.ag-center-cols-container .ag-row').first()).toBeVisible()
+    await expect(page.locator('.ag-grid-scrolling-container .ag-row').first()).toBeVisible()
 
     // Get the playlist after sorting
     const playlistAfter = await page.evaluate(() => {

@@ -104,7 +104,7 @@ test.describe('Caption Editor - Context Menu', () => {
       return store?.document?.segments?.length === 2
     })
 
-    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
 
     await appPage.evaluate(() => {
       const gridApi = window.__agGridApi

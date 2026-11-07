@@ -51,10 +51,10 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       return store?.document?.segments?.length === 3
     })
 
-    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
 
-    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
     await waitForSelectedRowCount(appPage, 2)
@@ -96,10 +96,10 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       return store?.document?.segments?.length === 3
     })
 
-    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
 
-    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
     await waitForSelectedRowCount(appPage, 2)
@@ -140,15 +140,15 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       return store?.document?.segments?.length === 3
     })
 
-    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
 
-    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
     await waitForSelectedRowCount(appPage, 2)
 
-    const row2Text = appPage.locator('.ag-center-cols-container .ag-row[row-index="2"] [col-id="text"]')
+    const row2Text = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="2"] [col-id="text"]')
     await row2Text.click({ button: 'right' })
 
     await expect(appPage.locator('.context-menu')).toBeVisible({ timeout: 5000 })
@@ -188,15 +188,15 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       return store?.document?.segments?.length === 3
     })
 
-    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
 
-    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
     await waitForSelectedRowCount(appPage, 2)
 
-    const row1Text = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"] [col-id="text"]')
+    const row1Text = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="1"] [col-id="text"]')
     await row1Text.click({ button: 'right' })
 
     await expect(appPage.locator('.context-menu')).toBeVisible({ timeout: 5000 })
@@ -245,15 +245,15 @@ test.describe('Selection targeting (Lightroom-style)', () => {
       return store?.document?.segments?.length === 3 && (store.document.embeddings?.length ?? 0) >= 1
     })
 
-    await appPage.waitForSelector('.ag-center-cols-container .ag-row', { timeout: 5000 })
+    await appPage.waitForSelector('.ag-grid-scrolling-container .ag-row', { timeout: 5000 })
 
-    const row0 = appPage.locator('.ag-center-cols-container .ag-row[row-index="0"]')
-    const row1 = appPage.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const row0 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="0"]')
+    const row1 = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="1"]')
     await row0.click()
     await row1.click({ modifiers: ['Shift'] })
     await waitForSelectedRowCount(appPage, 2)
 
-    const row2Text = appPage.locator('.ag-center-cols-container .ag-row[row-index="2"] [col-id="text"]')
+    const row2Text = appPage.locator('.ag-grid-scrolling-container .ag-row[row-index="2"] [col-id="text"]')
     await row2Text.click({ button: 'right' })
 
     await expect(appPage.locator('.context-menu')).toBeVisible({ timeout: 5000 })

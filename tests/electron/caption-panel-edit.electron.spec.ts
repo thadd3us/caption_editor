@@ -55,7 +55,7 @@ test.describe('Caption editing in the media panel', () => {
 
     // The table renders from the same store, so the row reflects the edit.
     await expect(
-      page.locator('.ag-center-cols-container .ag-row').filter({ hasText: 'edited from the panel' })
+      page.locator('.ag-grid-scrolling-container .ag-row').filter({ hasText: 'edited from the panel' })
     ).toHaveCount(1)
 
     // And the panel returns to its read-only word display.

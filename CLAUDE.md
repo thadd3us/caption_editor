@@ -205,6 +205,58 @@ needs no Node types. `realignWords.example.ts` lost a dead CommonJS
 `require.main === module` guard; nothing imports that file, and the guard could never
 have fired under ESM anyway.
 
+**AG Grid 36 restructured the internal row DOM**, and ~50 selector sites in the
+specs reached into it. The API surface was unaffected -- no `GridApi` call,
+`ColDef`, module registration or the Theming API needed changing -- but every spec
+that located rows or read scroll position broke at once, with ~20 e2e failures all
+reporting "element(s) not found".
+
+| &le;35 | 36 |
+| --- | --- |
+| `.ag-center-cols-container` | `.ag-grid-scrolling-container` |
+| `.ag-body-viewport` | `.ag-grid-viewport` |
+| `.ag-header-viewport`, `.ag-header-container` | gone; `.ag-header` holds `.ag-header-row` directly |
+
+`.ag-row`, `.ag-cell`, `.ag-header-row`, `.ag-header-cell`, `.ag-root`,
+`.ag-root-wrapper`, `.ag-cell-inline-editing` and `.ag-row-selected` all survive.
+
+Two of those mappings are easy to get subtly wrong, and both would weaken a
+regression test *silently* rather than fail:
+
+- **The scroller is `.ag-grid-viewport`, not `.ag-body-vertical-scroll-viewport`.**
+  Both report the same `scrollTop`, but the latter is the separate scrollbar proxy
+  and carries `.ag-hidden` when the content fits, so it is not a safe stand-in. The
+  rows live under `.ag-grid-viewport` > `.ag-grid-scrollable-area` >
+  `.ag-grid-scrolling-rows` > `.ag-grid-scrolling-container`.
+- **`.ag-grid-scrolling-container` is the non-pinned rows only**, which is what
+  `.ag-center-cols-container` meant. Pinned and sticky rows have their own
+  containers (`.ag-grid-pinned-top-rows-container` and friends), so the old
+  "scrolling rows only" semantics carry over exactly.
+
+Do not reverse-engineer this from the minified bundle -- `grep` finds the class
+names but not the nesting or which element actually scrolls. Dump the live DOM
+instead: load a document with more rows than fit, walk `.ag-root-wrapper` printing
+`ag-*` classes, call `api.ensureIndexVisible(n)` and see whose `scrollTop` moves.
+
+`src/utils/captionGridDebug.ts` used `.ag-body-viewport` too, so the debug overlay
+would have gone quiet without a single test failing -- app code, not just specs,
+reaches into this DOM.
+
+**Majors still deliberately pinned back**, each wanting its own change:
+
+| pinned at | latest | why |
+| --- | --- | --- |
+| `typescript` 6.0.3 | 7.x | no JS compiler API; see above |
+| `nemo-toolkit` 2.x, `transformers` 4.x | 3.x / 5.x | the ASR engine itself |
+| `ort` 2.0.0-rc.12, `parakeet-rs` 0.3.6 | rc.15 / 0.4.x | needs `SessionBuilder::new()` call-site fixes |
+| `eslint-plugin-vue` 10.12.0 | 10.12.0 | no 11.x exists yet |
+| `nyc` 17, `uuid` 14, `concurrently` 10 | — | untried; `nyc`/`uuid` would clear most of the dev-tree audit rows |
+
+`npm audit` sits at ~22 moderate and **`npm audit --omit=dev` is 0** -- every row is
+dev-only, rooted in transitive `minimatch`, `glob`, `uuid` and `js-beautify`. Check
+the production number before treating the headline count as a problem, and expect it
+to move when a dev dep is added or removed rather than when exposure changes.
+
 **Prettier is installed and wired to nothing.** It is in `devDependencies` and
 named in an `eslint.config.js` comment, but no gate runs it; ~75 files under
 `src/` and `electron/` do not match its output and never have. Do not

@@ -382,12 +382,12 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
     await autoScroll.uncheck()
 
     await appPage.evaluate(() => {
-      const vp = document.querySelector('.ag-body-viewport') as HTMLElement | null
+      const vp = document.querySelector('.ag-grid-viewport') as HTMLElement | null
       if (vp) vp.scrollTop = 0
     })
     await expectPageValue(
       appPage,
-      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1,
+      () => (document.querySelector('.ag-grid-viewport') as HTMLElement | null)?.scrollTop ?? -1,
       0
     )
 
@@ -422,7 +422,7 @@ test.describe('Caption Editor - Speaker Name Edit Focus and Commit', () => {
 
     // Still at the top: committing the edit must not scroll the edited row away.
     const scrollAfter = await appPage.evaluate(
-      () => (document.querySelector('.ag-body-viewport') as HTMLElement | null)?.scrollTop ?? -1
+      () => (document.querySelector('.ag-grid-viewport') as HTMLElement | null)?.scrollTop ?? -1
     )
     expect(scrollAfter).toBe(0)
   })

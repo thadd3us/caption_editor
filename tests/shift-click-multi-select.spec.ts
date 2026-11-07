@@ -33,15 +33,15 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     // Wait for rows to render
     await page.waitForSelector('.ag-row', { timeout: 5000 })
 
-    // Click first row to select it (use .ag-center-cols-container to avoid pinned row duplicates)
-    const firstRow = page.locator('.ag-center-cols-container .ag-row[row-index="0"]')
+    // Click first row to select it (use .ag-grid-scrolling-container to avoid pinned row duplicates)
+    const firstRow = page.locator('.ag-grid-scrolling-container .ag-row[row-index="0"]')
     await firstRow.click()
 
     // Verify first row is selected
     await expect(firstRow).toHaveClass(/ag-row-selected/)
 
     // Shift-click the fourth row to select rows 1-4
-    const fourthRow = page.locator('.ag-center-cols-container .ag-row[row-index="3"]')
+    const fourthRow = page.locator('.ag-grid-scrolling-container .ag-row[row-index="3"]')
     await fourthRow.click({ modifiers: ['Shift'] })
 
     await waitForSelectedRowCount(page, 4)
@@ -126,12 +126,12 @@ test.describe('Caption Editor - Shift-Click Multi-Select', () => {
     await page.waitForSelector('.ag-row', { timeout: 5000 })
 
     // Click second row to select it
-    const secondRow = page.locator('.ag-center-cols-container .ag-row[row-index="1"]')
+    const secondRow = page.locator('.ag-grid-scrolling-container .ag-row[row-index="1"]')
     await secondRow.click()
     await expect(secondRow).toHaveClass(/ag-row-selected/)
 
     // Shift-click the fourth row's speaker column to select rows 2-4
-    const fourthRowSpeakerCell = page.locator('.ag-center-cols-container .ag-row[row-index="3"] [col-id="speakerName"]')
+    const fourthRowSpeakerCell = page.locator('.ag-grid-scrolling-container .ag-row[row-index="3"] [col-id="speakerName"]')
     await fourthRowSpeakerCell.click({ modifiers: ['Shift'] })
 
     await waitForSelectedRowCount(page, 3)

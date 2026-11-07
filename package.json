@@ -37,8 +37,8 @@
   "dependencies": {
     "@qgustavor/srt-parser": "2.0.0",
     "@vue/devtools-api": "8.2.1",
-    "ag-grid-community": "35.3.0",
-    "ag-grid-vue3": "35.3.0",
+    "ag-grid-community": "36.2.0",
+    "ag-grid-vue3": "36.2.0",
     "ansi-to-html": "0.7.2",
     "json5": "2.2.3",
     "pinia": "4.1.0",

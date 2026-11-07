@@ -1367,11 +1367,6 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-:deep(.ag-header-viewport),
-:deep(.ag-header-container) {
-  min-height: 48px;
-}
-
 :deep(.ag-header-row) {
   height: 48px !important;
 }
