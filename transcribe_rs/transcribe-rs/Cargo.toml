@@ -18,7 +18,14 @@ eyre = { workspace = true }
 hound = { workspace = true }
 serde_json = { workspace = true }
 hf-hub = { workspace = true }
-parakeet-rs = { workspace = true, features = ["coreml"] }
+parakeet-rs = { workspace = true }
 whisper-rs = { workspace = true }
 tempfile = "3"
 sha2 = "0.10"
+
+# CoreML is an Apple framework, so the feature that binds to it can only be
+# enabled where it exists. Cargo unions features across `[dependencies]` and a
+# `[target.'cfg(...)'.dependencies]` block, so macOS still gets exactly what it
+# got before this was split out; Linux gets the CPU path.
+[target.'cfg(target_os = "macos")'.dependencies]
+parakeet-rs = { workspace = true, features = ["coreml"] }

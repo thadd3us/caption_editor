@@ -6,8 +6,8 @@ test time by //tools/bazel:version_consistency_test.
 
 Loaded by per-crate BUILD.bazel files to set `CARGO_PKG_VERSION` (so
 `clap`'s `--version` flag and any other compile-time-version-aware code
-match what Electron ships and what the GitHub release attaches as
-`transcribe-rs-v${APP_VERSION}-darwin-arm64`).
+match what Electron ships). The binaries are bundled into the packaged app
+rather than downloaded — see the note in Cargo.toml.
 """
 
-APP_VERSION = "1.9.4"
+APP_VERSION = "1.9.5"
