@@ -124,6 +124,38 @@ pattern is what makes `@vue/test-utils` resolve in the Bazel-linked tree. Moving
 it to `publicHoistPattern` in `pnpm-workspace.yaml` is the real fix and wants its
 own change, with the vitest targets actually run.
 
+**TypeScript stops at 6.x until Volar and typescript-eslint port.** `typescript@latest`
+is **7.x, the native (Go) compiler, and it does not ship the JavaScript compiler API
+at all** — `require('typescript')` returns `{ version, versionMajorMinor }` and
+nothing else, `createProgram` / `createSourceFile` / `ts.sys` are gone, and the
+package carries zero `lib.*.d.ts` files (they live inside the native binary). Only
+`tsc` on the command line and the `typescript/unstable/*` entry points exist.
+
+`vue-tsc` drives that API through `@volar/typescript`, and `typescript-eslint` needs
+it for type-aware linting, so TS 7 takes out **both** `//:ts_typecheck` and
+`//:ts_eslint`. `vue-tsc`'s `typescript: ">=5.0.0"` peer range is misleading — it
+will happily install against 7 and then fail at runtime. The real ceiling is
+`typescript-eslint`'s, which is honest about it: `>=4.8.4 <6.1.0`.
+
+So **6.0.3 is the last usable version** — the final JS-based release, same API, and
+the one that carries TS 7's semantics so the eventual jump is about tooling only.
+Re-check when Volar ships a `typescript/unstable/*` backend.
+
+**TS 6 dropped implicit `@types/*` inclusion**, which is the one source change the
+6.x bump needed. With no `types` field, 5.x put *every* package in
+`node_modules/@types` into the program, so `src/**` was quietly getting `@types/node`
+and `global` resolved in the specs. Under 6.x it does not. `tsconfig.node-side.json`
+was unaffected because it already declares `"types": ["node"]`.
+
+The fix was **not** to add `"types": ["node"]` to `tsconfig.json`: that is the
+renderer program, and giving it Node's globals is the same hazard as the DOM lib in
+the node-side config (`process` and `require` would type-check in code that runs in
+a sandboxed renderer with neither). The specs now say `globalThis.` instead of
+`global.` — identical object, but `globalThis` is in the ES2020 lib, so the renderer
+needs no Node types. `realignWords.example.ts` lost a dead CommonJS
+`require.main === module` guard; nothing imports that file, and the guard could never
+have fired under ESM anyway.
+
 **Prettier is installed and wired to nothing.** It is in `devDependencies` and
 named in an `eslint.config.js` comment, but no gate runs it; ~75 files under
 `src/` and `electron/` do not match its output and never have. Do not

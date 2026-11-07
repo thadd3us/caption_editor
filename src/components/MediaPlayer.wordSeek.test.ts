@@ -14,7 +14,7 @@ const localStorageMock = (() => {
   }
 })()
 
-global.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as any
 
 /** One segment whose third word has no timestamp (as if it had just been typed in). */
 function seedStore() {

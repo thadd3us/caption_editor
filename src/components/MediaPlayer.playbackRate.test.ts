@@ -15,7 +15,7 @@ const localStorageMock = (() => {
   }
 })()
 
-global.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as any
 
 /**
  * jsdom's HTMLMediaElement has no real decoder: `duration` is NaN and `loadedmetadata` never

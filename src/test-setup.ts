@@ -23,7 +23,7 @@ window.alert = vi.fn()
 // Replace both with fresh happy-dom Storage instances, as own value properties
 // (not accessors — an accessor delegating to `window[key]` would recurse
 // forever, given `globalThis === window` here). They stay `writable`, because
-// several specs install their own `global.localStorage = mock`, which is what
+// several specs install their own `globalThis.localStorage = mock`, which is what
 // happy-dom's own definition allowed.
 //
 // Production code reaches storage through `window.localStorage` and does not
