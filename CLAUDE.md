@@ -673,7 +673,17 @@ the payload, and the control file has `Maintainer` and `Homepage`.
 not only on a release tag. That job also installs the `.deb` on an `ubuntu-24.04`
 runner and launches the app without `--no-sandbox`, failing if Chromium reports a
 sandbox failure. The runner is pinned to `ubuntu-24.04` rather than `ubuntu-latest`
-precisely because 24.04 is where the userns restriction became the default.
+precisely because 24.04 is where the userns restriction became the default — and the
+job prints `kernel.apparmor_restrict_unprivileged_userns` so the log records whether
+the check ran under the restriction or under a permissive kernel, where it would
+prove much less.
+
+*Reading that job's output:* the clearest signal is the mode on `chrome-sandbox`. The
+postinst sets it to **4755 only when user namespaces are unavailable**, so `0755`
+means the AppArmor profile loaded, the namespace sandbox is the one in use, and the
+SUID helper was not needed. A launch that exits **124** is the `timeout` firing,
+which is the success case: the app was still running. dbus errors in the launch log
+are expected under xvfb with no session bus and have nothing to do with the sandbox.
 
 *The reason this needs a PR-time job rather than a release-time one:* the Linux
 targets had sat in `electron-builder.json` unbuilt, and the first time they were
