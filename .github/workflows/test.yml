@@ -325,10 +325,8 @@ jobs:
           fi
           echo "OK: launched with the sandbox enabled"
 
-      - name: Upload the .deb
-        uses: actions/upload-artifact@v7
-        with:
-          name: caption-editor-deb
-          path: release/*.deb
-          retention-days: 7
-          if-no-files-found: error
+      # No artifact upload here on purpose. The .deb is ~208MB, so zipping and
+      # uploading it cost about 40s of every PR plus the storage, and nothing on
+      # a PR consumes it — the assertions above are the point of this job, not
+      # the file. `release.yml` still uploads and attaches it on a tag, which is
+      # where a downloadable package is actually wanted.
