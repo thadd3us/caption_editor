@@ -1,6 +1,11 @@
 {
   "name": "caption-editor",
   "description": "A WebVTT caption file editor with media playback support, including synchronizing selected caption with the current position of the media playback.",
+  "homepage": "https://github.com/thadd3us/caption_editor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thadd3us/caption_editor.git"
+  },
   "author": "Thad Hughes",
   "version": "0.0.0",
   "type": "module",
@@ -15,6 +20,7 @@
     "build:ffmpeg": "python3 scripts/stage-ffmpeg.py",
     "build:rust": "sh -c 'BAZEL=$(command -v bazelisk || command -v bazel) && \"$BAZEL\" build //transcribe_rs/transcribe-rs //transcribe_rs/embed-rs' && mkdir -p dist-rust && cp -f bazel-bin/transcribe_rs/transcribe-rs/transcribe-rs bazel-bin/transcribe_rs/embed-rs/embed-rs dist-rust/ && chmod +x dist-rust/transcribe-rs dist-rust/embed-rs && npm run build:ffmpeg && npm run build:wespeaker-onnx",
     "verify:dist-rust": "bash scripts/verify-dist-rust.sh",
+    "verify:deb": "bash scripts/verify-deb.sh",
     "build:wespeaker-onnx": "mkdir -p dist-rust/wespeaker-onnx && cp -f models/wespeaker-voxceleb-resnet34-LM-onnx/model.onnx models/wespeaker-voxceleb-resnet34-LM-onnx/model.onnx.data dist-rust/wespeaker-onnx/",
     "package": "npm run build:all && npm run build:rust && npm run verify:dist-rust && electron-builder --mac --win --linux -c.extraMetadata.version=$(node -p \"require('fs').readFileSync('electron/constants.ts','utf8').match(/APP_VERSION = '(.+)'/)[1]\")",
     "package:mac": "npm run build:all && npm run build:rust && npm run verify:dist-rust && electron-builder --mac -c.extraMetadata.version=$(node -p \"require('fs').readFileSync('electron/constants.ts','utf8').match(/APP_VERSION = '(.+)'/)[1]\")",

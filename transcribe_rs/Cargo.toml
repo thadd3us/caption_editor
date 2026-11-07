@@ -11,11 +11,19 @@ members = [
 edition = "2021"
 license = "MIT"
 # Kept in lockstep with electron/constants.ts `APP_VERSION` and enforced
-# by //tools/bazel:version_consistency_test. The release workflow builds
-# these crates and attaches `{transcribe,embed}-rs-v${APP_VERSION}-darwin-arm64`
-# to the GitHub release; the Electron app downloads by version tag.
+# by //tools/bazel:version_consistency_test.
+#
+# These binaries are *bundled*, not downloaded: electron-builder's
+# `extraResources` copies them from `dist-rust/` into the packaged app
+# (Contents/Resources/bin on macOS, resources/bin in the .deb), so an app
+# update replaces them atomically and nothing fetches them at runtime. The
+# version matters for `--version` output and for the release asset names, not
+# for resolving a download. (An earlier version of this comment claimed the
+# app downloaded them by version tag. It does not, and never did on this
+# code path — there is no download logic in electron/ or scripts/.)
+#
 # Bump procedure: see ../CLAUDE.md → "Version Management".
-version = "1.9.4"
+version = "1.9.5"
 publish = false
 
 [workspace.dependencies]

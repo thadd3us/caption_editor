@@ -87,10 +87,14 @@
   },
   "linux": {
     "target": [
-      "AppImage",
       "deb"
     ],
-    "category": "Utility",
-    "icon": "assets/packaging/icon.png"
+    "category": "AudioVideo",
+    "icon": "assets/packaging/icon.png",
+    "synopsis": "Caption and subtitle editor with synchronised media playback",
+    "maintainer": "Thad Hughes <thad@imbue.com>"
+  },
+  "deb": {
+    "priority": "optional"
   }
 }

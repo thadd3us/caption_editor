@@ -1,4 +1,4 @@
-name: Build, sign & publish macOS DMG
+name: Build & publish releases (macOS DMG, Linux .deb)
 
 # Fires on a `v*` tag push (the typical release flow — see CLAUDE.md →
 # "Version Management" for the two-commit dance that precedes the
@@ -288,6 +288,102 @@ jobs:
           files: ${{ env.dmg_path }}
           # The action infers tag_name from GITHUB_REF on tag pushes,
           # so leaving it implicit keeps the workflow tag-agnostic.
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # Linux .deb.
+  #
+  # Independent of the macOS job: nothing here is signed or notarized, so there
+  # is no shared state and no reason to serialise them. Both attach to the same
+  # GitHub Release — `softprops/action-gh-release` updates an existing release
+  # rather than replacing it, so whichever job finishes second adds its asset.
+  #
+  # Why only `deb` and no AppImage: see CLAUDE.md → "Linux packaging". Short
+  # version: electron-builder's AppImage AppRun silently appends `--no-sandbox`
+  # when it cannot create a user namespace, which is the default state of
+  # Ubuntu 24.04+, so an AppImage would ship with the renderer sandbox off.
+  #
+  # The real assertions about this package live in the `package-linux` job in
+  # test.yml, which runs on every PR. This job repeats `verify:deb` only as a
+  # cheap guard against publishing something malformed.
+  # ---------------------------------------------------------------------------
+  build-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write  # required to attach the .deb to the GitHub Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      # whisper-rs-sys builds whisper.cpp via cmake + bindgen; ort-sys and
+      # knf-rs-sys need a C/C++ toolchain and libclang.
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake clang libclang-dev pkg-config libssl-dev file
+
+      # Same reasoning as the macOS job: the staged ffmpeg must be
+      # self-contained, which the distro package is not. See
+      # scripts/stage-ffmpeg.py.
+      - name: Install ffmpeg source for staging
+        run: pip3 install --break-system-packages imageio-ffmpeg
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Bazelisk
+        run: npm install -g @bazel/bazelisk
+
+      - name: Cache Bazel
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/bazel
+            ~/.cache/bazelisk
+            ~/.cache/bazel-disk-cache
+          key: ${{ runner.os }}-bazel-release-${{ hashFiles('.bazelversion', 'MODULE.bazel.lock', 'transcribe_rs/Cargo.lock', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-release-
+            ${{ runner.os }}-bazel-
+
+      - name: Build .deb
+        run: npm run package:linux
+
+      - name: Inspect the .deb
+        run: npm run verify:deb
+
+      - name: Record the .deb path
+        run: |
+          DEB_PATH="$(ls release/*.deb | sed -n '1p')"
+          echo "Found: $DEB_PATH"
+          echo "deb_path=$DEB_PATH" >> "$GITHUB_ENV"
+
+      - name: Upload .deb as workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: caption-editor-linux-deb
+          path: release/*.deb
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Attach .deb to GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ env.deb_path }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

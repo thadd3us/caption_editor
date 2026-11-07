@@ -18,7 +18,7 @@
    - `transcribe_rs/version.bzl`: `APP_VERSION = "1.6.1"` (used by BUILD.bazel files to stamp `CARGO_PKG_VERSION` so the Rust binaries' `--version` flag matches)
    - `transcribe_rs/Cargo.toml`: `workspace.package.version = "1.6.1"` (used when building via `cargo` outside Bazel)
 
-   The GitHub Release workflow attaches the Rust binaries as `transcribe-rs-v${APP_VERSION}-darwin-arm64` and `embed-rs-v${APP_VERSION}-darwin-arm64`. The Electron app downloads by version tag.
+   The Rust binaries are **bundled** into the packaged app by electron-builder's `extraResources` (`Contents/Resources/bin` on macOS, `resources/bin` in the `.deb`). Nothing downloads them at runtime — there is no fetch logic in `electron/` or `scripts/` — so the version matters for `--version` output and release asset names, not for resolving a download. *This line previously claimed the app downloaded them by version tag; it does not.*
 
 2. **`ASR_COMMIT_HASH`** — *Deprecated, used during the Python→Rust migration.* Same string in `electron/constants.ts` and `transcribe/constants.py`. This is the revision **Electron passes to `uvx`** (must be on GitHub with a working `transcribe/` package). It is also baked into `.captions_json5` header blob URLs when the app or CLI serializes a file.
 
@@ -772,6 +772,88 @@ uv run python embed_cli.py file.captions_json5  # Uses wespeaker (no token requi
 ```
 
 Writes speaker embeddings into the `.captions_json5` document `embeddings[]`.
+
+### Linux packaging
+
+`npm run package:linux` builds a **`.deb`**, and that is the only Linux target.
+AppImage was listed in `electron-builder.json` for a long time but never built by any
+workflow; it is now removed deliberately, and the reason is worth keeping.
+
+**AppImage silently disables the renderer sandbox on modern Ubuntu.** The AppRun
+script electron-builder generates probes `unshare -Ur true` and, when that fails,
+appends `--no-sandbox` to the app's own argv. Its comment calls this "an intentional
+fail-safe: we prefer the app to start without sandboxing rather than crash on
+startup." On Ubuntu 24.04+, `kernel.apparmor_restrict_unprivileged_userns=1` is the
+default, so the probe *does* fail and the app runs unsandboxed — with no error, no
+warning, and nothing in the UI to say so. Given that the renderer is the process that
+parses untrusted `.captions_json5` (see "Renderer sandbox and what `media://` will
+serve"), shipping that would quietly undo the hardening rather than report it.
+
+**`deb` keeps the sandbox**, because electron-builder's deb target ships an AppArmor
+profile (`abi <abi/4.0>` plus `userns,`) and its `postinst` installs it into
+`/etc/apparmor.d/` and loads it with `apparmor_parser --replace`, behind a
+`--skip-kernel-load` dry run so Ubuntu 22.04 — whose AppArmor predates `abi/4.0` —
+skips it instead of failing. The same `postinst` sets `chrome-sandbox` to 4755 only
+when user namespaces are unavailable.
+
+All of that lives in electron-builder's own templates, so it can regress on an
+upgrade without anyone touching this repo. `scripts/verify-deb.sh`
+(`npm run verify:deb`) asserts it: the profile is present and grants `userns`, the
+postinst does the three things above, the staged binaries and wespeaker model are in
+the payload, and the control file has `Maintainer` and `Homepage`.
+
+**It is built and checked on every PR**, by the `package-linux` job in `test.yml`,
+not only on a release tag. That job also installs the `.deb` on an `ubuntu-24.04`
+runner and launches the app without `--no-sandbox`, failing if Chromium reports a
+sandbox failure. The runner is pinned to `ubuntu-24.04` rather than `ubuntu-latest`
+precisely because 24.04 is where the userns restriction became the default — and the
+job prints `kernel.apparmor_restrict_unprivileged_userns` so the log records whether
+the check ran under the restriction or under a permissive kernel, where it would
+prove much less.
+
+*Reading that job's output:* the clearest signal is the mode on `chrome-sandbox`. The
+postinst sets it to **4755 only when user namespaces are unavailable**, so `0755`
+means the AppArmor profile loaded, the namespace sandbox is the one in use, and the
+SUID helper was not needed. A launch that exits **124** is the `timeout` firing,
+which is the success case: the app was still running. dbus errors in the launch log
+are expected under xvfb with no session bus and have nothing to do with the sandbox.
+
+*The reason this needs a PR-time job rather than a release-time one:* the Linux
+targets had sat in `electron-builder.json` unbuilt, and the first time they were
+actually run they failed immediately on two hard requirements of the fpm target —
+`linux.maintainer` and a project homepage (now `homepage` in `package.json`).
+Packaging that is only exercised at release time is packaging that breaks at release
+time.
+
+**Two platform-specific things had to give way.**
+
+`coreml` is an Apple framework, and both `transcribe-rs` (via `parakeet-rs`) and
+`embed-rs` (via `ort`) enabled it unconditionally. They now declare it under
+`[target.'cfg(target_os = "macos")'.dependencies]`; Cargo unions features across that
+and `[dependencies]`, so macOS gets exactly what it had before and Linux gets the CPU
+path. Verify with `cargo tree --target x86_64-unknown-linux-gnu -p embed-rs-cli -f
+"{p} [{f}]"` — `cargo metadata` will *not* tell you, because its feature resolution
+is not target-aware and reports the union for every platform. Under Bazel,
+crate_universe turns this into a `select()` on
+`@rules_rust//rust/platform:aarch64-apple-darwin`, which is visible in
+`MODULE.bazel.lock`. Changing these manifests requires refreshing that lock.
+
+`.bazelrc` pinned a macOS `PATH` and a `~/Library/Caches` disk cache for every
+action. Those now sit under `build:macos` / `build:linux` stanzas, auto-applied via
+`common --enable_platform_specific_config`. The macOS strings are byte-identical to
+what they were, deliberately: a forwarded env var contributes to the action cache key,
+so rewording them would invalidate every cached action on every machine.
+
+**ffmpeg staging works on both platforms now, and the check is not symmetrical.**
+`scripts/stage-ffmpeg.py` still refuses to bundle an ffmpeg that references libraries
+a target machine may not have, but "may not have" means something different on Linux.
+On macOS the dangerous binary is Homebrew's, which points at `/opt/homebrew/Cellar`,
+so "is it under `/usr/lib`?" separates safe from unsafe perfectly. On Linux, Ubuntu's
+own ffmpeg links `libavcodec` and friends out of `/usr/lib/<triple>/` — the same
+directory as libc — so a path rule accepts it and we would ship an ffmpeg that dies
+on any machine without the `ffmpeg` package installed. An earlier version of this
+function did exactly that. Linux therefore uses a *name* allowlist of the glibc/gcc
+runtime and nothing else; `imageio-ffmpeg`'s build passes, a distro one does not.
 
 ### Entitlements
 

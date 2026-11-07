@@ -208,3 +208,125 @@ jobs:
             test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Build the Linux .deb and assert it is the package we think it is.
+  #
+  # This runs on every PR rather than only on a `v*` tag, which is the whole
+  # point of it. The Linux targets sat in electron-builder.json for a long time
+  # while `release.yml` built only macOS, so nothing ever ran them — and when
+  # they were finally exercised they failed immediately on two missing required
+  # fields (`linux.maintainer` and a project homepage). Packaging config that is
+  # only built at release time is packaging config that is broken at release
+  # time.
+  #
+  # `ubuntu-24.04` is pinned rather than `ubuntu-latest` deliberately: 24.04 is
+  # the first release to default `kernel.apparmor_restrict_unprivileged_userns=1`,
+  # which is exactly the condition that makes the sandbox interesting here, and
+  # we do not want a runner-image bump to silently move us off it.
+  # ---------------------------------------------------------------------------
+  package-linux:
+    name: Package (Linux .deb)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      # whisper-rs-sys builds whisper.cpp via cmake + bindgen; ort-sys and
+      # knf-rs-sys need a C/C++ toolchain and libclang. xvfb and the apparmor
+      # tools are for the launch check at the end.
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake clang libclang-dev pkg-config libssl-dev \
+            xvfb apparmor-utils file
+
+      - name: Install ffmpeg source for staging
+        run: pip3 install --break-system-packages imageio-ffmpeg
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No brew on Linux; bazelisk ships as an npm package and lands on PATH.
+      - name: Install Bazelisk
+        run: npm install -g @bazel/bazelisk
+
+      - name: Cache Bazel
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/bazel
+            ~/.cache/bazelisk
+            ~/.cache/bazel-disk-cache
+          key: ${{ runner.os }}-bazel-package-${{ hashFiles('.bazelversion', 'MODULE.bazel.lock', 'transcribe_rs/Cargo.lock', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-package-
+            ${{ runner.os }}-bazel-
+
+      # Chains build:all -> build:rust -> verify:dist-rust -> electron-builder.
+      - name: Package
+        run: npm run package:linux
+
+      # Asserts the AppArmor profile, postinst, staged binaries and control
+      # metadata — i.e. the specific claims CLAUDE.md makes about why we ship a
+      # .deb and not an AppImage.
+      - name: Inspect the .deb
+        run: npm run verify:deb
+
+      # The claim under test: on Ubuntu 24.04 the installed .deb runs with
+      # Chromium's sandbox ON. The sysctl is printed first so the log records
+      # which regime this actually ran under — if a future runner image turns
+      # the restriction off, this check proves less and the log says so.
+      - name: Install the .deb and check the sandbox starts
+        run: |
+          set -euo pipefail
+          echo "--- userns restriction on this runner ---"
+          sysctl kernel.apparmor_restrict_unprivileged_userns || \
+            echo "(sysctl absent: this kernel has no userns restriction)"
+          echo "--- apparmor status ---"
+          sudo aa-status --json >/dev/null 2>&1 && echo "apparmor enabled" || echo "apparmor not enabled"
+
+          sudo apt-get install -y ./release/*.deb
+          echo "--- installed profile ---"
+          ls -la /etc/apparmor.d/ | grep -i caption || echo "(no caption profile in /etc/apparmor.d)"
+          echo "--- chrome-sandbox perms ---"
+          ls -la "/opt/Caption Editor/chrome-sandbox"
+
+          # Launch without --no-sandbox. The app opens a window and stays up, so
+          # cap it with `timeout`; exit 124 is the timeout firing, which means it
+          # was still alive and is the outcome we want.
+          set +e
+          xvfb-run -a timeout 30 caption-editor --disable-gpu > /tmp/launch.log 2>&1
+          code=$?
+          set -e
+          echo "--- launch output (exit $code) ---"
+          cat /tmp/launch.log
+
+          # Chromium's sandbox failures are specific and loud. Any of these means
+          # the sandbox did not come up.
+          if grep -qiE 'SUID sandbox helper|Failed to move to new namespace|No usable sandbox|namespace sandbox' /tmp/launch.log; then
+            echo "FAILED: the renderer sandbox did not start — see the output above" >&2
+            exit 1
+          fi
+
+          # And it must actually have been our app running, not a silent no-op.
+          if ! grep -q 'Caption Editor v' /tmp/launch.log; then
+            echo "FAILED: the app did not reach its own startup log line" >&2
+            exit 1
+          fi
+          echo "OK: launched with the sandbox enabled"
+
+      # No artifact upload here on purpose. The .deb is ~208MB, so zipping and
+      # uploading it cost about 40s of every PR plus the storage, and nothing on
+      # a PR consumes it — the assertions above are the point of this job, not
+      # the file. `release.yml` still uploads and attaches it on a tag, which is
+      # where a downloadable package is actually wanted.

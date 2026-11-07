@@ -1,5 +1,6 @@
 common --enable_bzlmod
 common --noenable_workspace
+common --enable_platform_specific_config
 
 # aspect_rules_js 3.5+ bundles `aspect_tools_telemetry`, which phones home
 # with which Bazel and ruleset versions this repo builds with, on by default
@@ -20,9 +21,21 @@ test --test_output=errors
 # action cache key — any caller-side variance (direnv on/off, different
 # `which npm` paths between agent sessions vs interactive shells)
 # would invalidate every cached test action.
-build --action_env=PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
-build --host_action_env=PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
-test --test_env=PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+# `--enable_platform_specific_config` makes Bazel auto-apply the `:macos` and
+# `:linux` stanzas below by host OS, which is how the macOS-shaped values stay
+# macOS-shaped without breaking a Linux build (we package a .deb there).
+# The macOS strings are byte-identical to what they were before being moved
+# under `:macos` — a forwarded env var contributes to the action cache key, so
+# changing them would invalidate every cached action on every developer machine.
+build:macos --action_env=PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+build:macos --host_action_env=PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+test:macos --test_env=PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+
+# Linux has no Homebrew prefix; /usr/local/bin covers manually installed node
+# and bazelisk, /usr/bin:/bin the distro's cmake, cc and python3.
+build:linux --action_env=PATH=/usr/local/bin:/usr/bin:/bin
+build:linux --host_action_env=PATH=/usr/local/bin:/usr/bin:/bin
+test:linux --test_env=PATH=/usr/local/bin:/usr/bin:/bin
 
 # If your `uv` (or any other dev tool) lives outside the PATH above —
 # for instance under `~/.local/bin`, where the standard uv installer
@@ -52,8 +65,10 @@ build --stamp
 # two checkouts at different paths (e.g. ~/src/caption-editor vs a
 # Sculptor clone under ~/.sculptor/workspaces/.../code) do not share
 # hits. The disk cache is keyed by action hash and IS shared.
-build --disk_cache=~/Library/Caches/bazel-disk-cache
-test  --disk_cache=~/Library/Caches/bazel-disk-cache
+build:macos --disk_cache=~/Library/Caches/bazel-disk-cache
+test:macos  --disk_cache=~/Library/Caches/bazel-disk-cache
+build:linux --disk_cache=~/.cache/bazel-disk-cache
+test:linux  --disk_cache=~/.cache/bazel-disk-cache
 
 # Allow developer-local overrides without touching tracked config.
 try-import %workspace%/.bazelrc.user

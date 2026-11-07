@@ -19,11 +19,17 @@ serde_json = { workspace = true }
 hf-hub = { workspace = true }
 hound = { workspace = true }
 ndarray = { workspace = true }
-ort = { workspace = true, features = ["coreml"] }
+ort = { workspace = true }
 knf-rs = { workspace = true }
 tempfile = "3"
 umap-rs = { workspace = true }
 rand = { workspace = true }
+
+# CoreML is an Apple framework; see the note in ../transcribe-rs/Cargo.toml.
+# macOS keeps the CoreML execution provider, Linux falls back to ort's CPU
+# provider, which `ort/default` already brings in.
+[target.'cfg(target_os = "macos")'.dependencies]
+ort = { workspace = true, features = ["coreml"] }
 
 [features]
 default = ["ort-defaults"]
