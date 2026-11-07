@@ -28,7 +28,9 @@ export function getCurrentTimestamp(): string {
  */
 function parseTimestamp(timestamp: string): number {
   const parts = timestamp.split(':')
-  let seconds = 0
+  // No initializer: every branch below either assigns or throws, so `= 0` was
+  // dead (ESLint 10 promotes `no-useless-assignment` into `recommended`).
+  let seconds: number
 
   if (parts.length === 3) {
     // HH:MM:SS.mmm
