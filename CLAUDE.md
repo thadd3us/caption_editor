@@ -80,6 +80,38 @@ fails to build *inside parakeet's own source*. Hence `ort = { version =
 (`=2.0.0-rc.15`), so moving to rc.15 means moving `parakeet-rs` to 0.4.x and
 fixing the `SessionBuilder::new()` call sites in the same change.
 
+**Under Bazel, ONNX Runtime is pinned separately from `ort`, and must move with
+it.** `//tools/bazel:onnxruntime.bzl` fetches pyke's prebuilt static library by
+URL and SHA-256 and hands it to ort-sys via `ORT_LIB_LOCATION` (the `ort-sys`
+`crate.annotation` in `MODULE.bazel`), so ort-sys's build script never downloads.
+Bumping ort/ort-sys means copying the new `none` lines for `aarch64-apple-darwin`
+and `x86_64-unknown-linux-gnu` from the new crate's `build/download/dist.txt` into
+`_DISTS`. Forget, and it still builds — against the old ONNX Runtime. `cargo`
+outside Bazel is unaffected and still downloads.
+
+*Why not let ort-sys download it:* the script writes to `~/Library/Caches/ort.pyke.io`
+and prints that absolute path as a link-search dir. Bazel caches the script's output
+but not that directory, so a CI runner that restored the script from the disk cache
+and then recompiled `ort_sys` failed with `could not find native static library
+'onnxruntime'` — main went red that way after the Linux `.deb` change moved the cache
+keys, and it never reproduces on a dev machine, where the directory exists. To
+reproduce it, move that directory aside and force only `ort_sys` to recompile in a
+fresh output base (`--@rules_rust//rust/settings:extra_rustc_flag=...` changes its
+key without changing the script's).
+
+*Two traps in that annotation.* The archives are a raw LZMA2 stream with no xz
+container, which `repository_ctx.extract` cannot open, hence
+`tools/bazel/decode_raw_lzma2.py`. And rules_rust already expands `$(execpath)` in
+`build_script_env` to an absolute `${pwd}/…` path, so prefixing it yourself doubles
+it — and ort-sys's resulting `cargo::error` is **not** a Bazel failure: `ort_sys`
+builds green with no library behind it. After touching any of this, check
+`bazel-bin/external/rules_rust++crate+crates__ort-sys-*/_bs.linksearchpaths` points
+into `bazel-out/…/+onnxruntime+onnxruntime/lib`.
+
+One host path survives: on macOS ort-sys also emits the Xcode toolchain's
+`clang_rt` directory. It exists on every Mac with Xcode, but a runner image that
+moves Xcode could break a cached result the same way.
+
 **`@vue/*` needs exactly one version in the tree.** `public_hoist_packages` in
 `MODULE.bazel` can hoist each package at one version only, and aspect_rules_js
 fails *analysis* (not a test) if two are present. Nothing there pins a version,

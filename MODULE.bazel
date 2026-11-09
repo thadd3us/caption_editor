@@ -192,4 +192,30 @@ crate.annotation(
     },
     crate = "whisper-rs-sys",
 )
+
+# ort-sys links the ONNX Runtime that Bazel fetched (//tools/bazel:onnxruntime.bzl)
+# rather than downloading its own. Its build script's download lands outside
+# Bazel's view, in ~/Library/Caches, and a disk-cache hit on the script without
+# that directory present fails the link -- the docstring there has the details.
+#
+# - ORT_LIB_LOCATION makes the script take its "user-provided" path, which skips
+#   the download. rules_rust expands `$(execpath)` in build_script_env to an
+#   *absolute* path (the script does not run from the execroot), and rewrites
+#   it back to `${pwd}` in the link flags it hands downstream, so cached results
+#   stay portable. Do not prefix it with `${pwd}` yourself: that doubles it, and
+#   ort-sys then reports "could not link" as a `cargo::error` that Bazel does
+#   NOT treat as a failure -- `ort_sys` still builds, with no library behind it.
+# - compile_data, because rustc bundles the static library into the `ort_sys`
+#   rlib and so needs the file as an input to *that* action too, not only to
+#   the build script.
+crate.annotation(
+    build_script_data = ["@onnxruntime//:lib"],
+    build_script_env = {"ORT_LIB_LOCATION": "$(execpath @onnxruntime//:lib)"},
+    compile_data = ["@onnxruntime//:lib"],
+    crate = "ort-sys",
+    label_injections = {"@onnxruntime": "@onnxruntime"},
+)
 use_repo(crate, "crates")
+
+onnxruntime = use_extension("//tools/bazel:onnxruntime.bzl", "onnxruntime")
+use_repo(onnxruntime, "onnxruntime")
